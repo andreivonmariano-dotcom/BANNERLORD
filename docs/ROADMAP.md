@@ -17,6 +17,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 ### M0: Baseline, build reproducibility and campaign safety
 
+**Tracking issue:** [#1](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/1)
+
 **Objective:** Establish a reliably loadable single-module baseline before expanding gameplay.
 
 **State:** Open. Existing v0.8.0 compile is a prior baseline, not a completed M0 gate.
@@ -32,6 +34,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 **Exit:** Gate E for baseline startup and persistence, with exact game build and logs. Historical v0.8.0 CI only reached Gate B.
 
 ### M1: Economy, depots, logistics and physical convoys
+
+**Tracking issue:** [#2](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2)
 
 **Objective:** Real settlement stock, bounded prices, atomic resource transfers, ownership changes, and observable map convoys.
 
@@ -49,6 +53,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 ### M2: Cultural recruitment and troop progression
 
+**Tracking issue:** [#3](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/3)
+
 **Objective:** Culture-specific recruit selection, real troop costs, gold/influence checks, daily limits, and unit capacity.
 
 **State:** Open. No milestone-wide in-game acceptance test is recorded.
@@ -64,6 +70,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 **Exit:** Gate E for six-culture roster and recruitment economy.
 
 ### M3: Independent clan AI and bounded diplomacy
+
+**Tracking issue:** [#4](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/4)
 
 **Objective:** Safe NPC party goals and goodwill missions, respecting the native army system.
 
@@ -81,6 +89,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 ### M4: Garrisons, sieges and campaign transitions
 
+**Tracking issue:** [#5](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/5)
+
 **Objective:** Garrison staffing, ownership transfers and legal siege transitions.
 
 **State:** Open. No milestone-wide in-game acceptance test is recorded.
@@ -96,6 +106,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 **Exit:** Gate E for ownership, siege transitions, garrison state and regression.
 
 ### M5: Combat, equipment and battle behavior
+
+**Tracking issue:** [#6](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/6)
 
 **Objective:** Independent tactical/roster improvements without destabilizing agent spawn or mission transitions.
 
@@ -113,6 +125,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 ### M6: Characters, interfaces and immersion
 
+**Tracking issue:** [#7](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/7)
+
 **Objective:** Character state and interface changes with safe event lifetimes, identity data and save migration.
 
 **State:** Open. No milestone-wide in-game acceptance test is recorded.
@@ -128,6 +142,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 **Exit:** Gate E for each implemented character or UI behavior.
 
 ### M7: Scenes, visuals, heraldry and audio
+
+**Tracking issue:** [#8](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/8)
 
 **Objective:** Version-correct scene and visual assets that are licensed for distribution.
 
@@ -145,6 +161,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 ### M8: War Sails compatibility track
 
+**Tracking issue:** [#9](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/9)
+
 **Objective:** Test the expansion separately, including sea routes, ship states and naval-specific data.
 
 **State:** Open. No milestone-wide in-game acceptance test is recorded.
@@ -160,6 +178,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 **Exit:** Gate E on the named War Sails version; no expansion support claim from base-game CI.
 
 ### M9: Verified one-folder release
+
+**Tracking issue:** [#10](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/10)
 
 **Objective:** Publish only the actual tested module with precise feature coverage.
 
