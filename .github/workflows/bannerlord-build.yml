@@ -1,9 +1,11 @@
-name: Calradia Unified 1.5.7 - compile and package candidate
+name: Calradia Unified 1.5.7 - v0.9 candidate
 on:
   workflow_dispatch:
   push:
     paths:
       - "Source/**"
+      - "Data/**"
+      - "verify_source.py"
       - "Tests/**"
       - "Modules/**"
       - "scripts/**"
@@ -23,6 +25,11 @@ jobs:
       - name: Validate source and manifest
         shell: pwsh
         run: python verify_source.py
+      - name: Verify feature and mod traceability
+        shell: pwsh
+        run: |
+          python scripts/validate_feature_registry.py
+          python scripts/test_feature_registry.py
       - name: Restore .NET tests
         shell: pwsh
         run: |
@@ -51,13 +58,13 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.8.0-compiled-untested
-          path: Output/CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.9.0-compiled-untested
+          path: Output/CalradiaUnified_v0.9.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.8.0-build-errors
+          name: CalradiaUnified-v0.9.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

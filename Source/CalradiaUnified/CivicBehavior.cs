@@ -31,18 +31,22 @@ namespace CalradiaUnified
             string packed = state.Serialize();
             store.SyncData("CU_v030_civic_state", ref packed);
             state = CivicState.Parse(packed);
+            Log.Write("M0 civic state sync reached: depots=" + state.Depots.Count
+                + " shipments=" + state.Shipments.Count + ". Review a real save/reload for persistence.");
         }
 
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             if (starter == null) return;
+            Log.Write("M0 campaign session launched; registering Calradia Unified town/castle menus.");
             foreach (var menu in new[] { "town", "castle" })
             {
                 starter.AddGameMenuOption(menu, "cu_depot_deposit", "CU: Deposit 5 grain in depot",
-                    x => CanVisit() && CivicPolicy.CanDeposit(settings.EnableCivicSystems, Owned(), GrainOnHand(), 5),
+                    x => CanVisit() && DepotLedgerPolicy.CanDeposit(settings.EnableCivicSystems, Owned(),
+                        GrainOnHand(), 5, Stock(), settings.DepotCapacity),
                     x => Safe(Deposit), false);
                 starter.AddGameMenuOption(menu, "cu_depot_withdraw", "CU: Withdraw 5 grain from depot",
-                    x => CanVisit() && CivicPolicy.CanWithdraw(settings.EnableCivicSystems, Owned(), Stock(), 5),
+                    x => CanVisit() && DepotLedgerPolicy.CanWithdraw(settings.EnableCivicSystems, Owned(), Stock(), 5),
                     x => Safe(Withdraw), false);
                 starter.AddGameMenuOption(menu, "cu_depot_invest", "CU: Fund grain production (300 gold)",
                     x => CanVisit() && CivicPolicy.CanInvest(settings.EnableEconomy, Owned(), PlayerGold(), 300,
@@ -50,7 +54,8 @@ namespace CalradiaUnified
                     x => Safe(Invest), false);
                 starter.AddGameMenuOption(menu, "cu_depot_ship", "CU: Send 5 grain to lowest-stock fief (3 days)",
                     x => CanVisit() && CivicPolicy.CanSendShipment(settings.EnableAbstractShipments, Owned(), Stock(), 5,
-                        Destination() != null, state.HasShipment(CurrentId())),
+                        Destination() != null && DepotLedgerPolicy.FreeCapacity(state.Stock(Destination().StringId),
+                            settings.DepotCapacity) >= 5, state.HasShipment(CurrentId())),
                     x => Safe(Ship), false);
                 starter.AddGameMenuOption(menu, "cu_local_levy", "CU: Hire one local levy (200 gold)",
                     x => CanVisit() && CivicPolicy.CanRecruit(settings.EnableRecruitment, Owned(), PlayerGold(), 200,
@@ -113,8 +118,10 @@ namespace CalradiaUnified
         }
         private void Deposit()
         {
-            if (!Owned() || GrainOnHand() < 5 || !settings.EnableCivicSystems) return;
-            var d = CurrentDepot(); if (d == null || d.Grain > 99995) return;
+            if (!Owned()) return;
+            var d = CurrentDepot();
+            if (d == null || !DepotLedgerPolicy.CanDeposit(settings.EnableCivicSystems, true,
+                GrainOnHand(), 5, d.Grain, settings.DepotCapacity)) return;
             MobileParty.MainParty.ItemRoster.AddToCounts(DefaultItems.Grain, -5);
             d.Grain += 5;
             Notice("Deposited 5 grain. Depot stock: " + d.Grain);
@@ -122,7 +129,8 @@ namespace CalradiaUnified
         private void Withdraw()
         {
             var d = CurrentDepot();
-            if (!Owned() || d == null || d.Grain < 5 || !settings.EnableCivicSystems) return;
+            if (!Owned() || d == null || !DepotLedgerPolicy.CanWithdraw(
+                settings.EnableCivicSystems, true, d.Grain, 5)) return;
             // Vanilla grain stack, no custom items or textures.
             MobileParty.MainParty.ItemRoster.AddToCounts(DefaultItems.Grain, 5);
             d.Grain -= 5;
@@ -149,7 +157,10 @@ namespace CalradiaUnified
         {
             if (!Owned() || !settings.EnableAbstractShipments) return;
             var source = CurrentDepot(); var target = Destination();
-            if (source == null || target == null || source.Grain < 5 || state.HasShipment(source.SettlementId)) return;
+            if (source == null || target == null || !CivicPolicy.CanSendShipment(
+                settings.EnableAbstractShipments, true, source.Grain, 5,
+                DepotLedgerPolicy.FreeCapacity(state.Stock(target.StringId), settings.DepotCapacity) >= 5,
+                state.HasShipment(source.SettlementId))) return;
             source.Grain -= 5;
             state.Shipments.Add(new CivicState.Shipment { From = source.SettlementId, To = target.StringId,
                 Grain = 5, DaysRemaining = 3 });
@@ -189,18 +200,24 @@ namespace CalradiaUnified
                     if (shipment.DaysRemaining > 0) continue;
                     var target = Settlement.All.FirstOrDefault(s => s != null && s.StringId == shipment.To);
                     var source = Settlement.All.FirstOrDefault(s => s != null && s.StringId == shipment.From);
-                    // Ownership loss cancels the shipment; refund only if source still belongs to player.
-                    if (target != null && target.OwnerClan == Clan.PlayerClan &&
-                        CivicState.Valid(shipment.To) && state.Get(shipment.To) != null)
-                    {
-                        state.Get(shipment.To).Grain += shipment.Grain;
-                        Notice("Shipment delivered: " + shipment.Grain + " grain to " + target.Name);
-                    }
-                    else if (source != null && source.OwnerClan == Clan.PlayerClan && state.Get(shipment.From) != null)
-                    {
-                        state.Get(shipment.From).Grain += shipment.Grain;
-                        Notice("Shipment returned after destination ownership changed.");
-                    }
+                    // Credit only the free destination capacity, then return overflow to an owned source.
+                    // Any remainder with no safe depot is explicitly lost, never silently duplicated.
+                    var destinationDepot = target != null && target.OwnerClan == Clan.PlayerClan
+                        ? state.Get(shipment.To) : null;
+                    var sourceDepot = source != null && source.OwnerClan == Clan.PlayerClan
+                        ? state.Get(shipment.From) : null;
+                    int credited = destinationDepot == null ? 0 : DepotLedgerPolicy.Creditable(
+                        shipment.Grain, destinationDepot.Grain, settings.DepotCapacity);
+                    if (credited > 0) destinationDepot.Grain += credited;
+                    int leftover = DepotLedgerPolicy.Remainder(shipment.Grain, credited);
+                    int returned = sourceDepot == null ? 0 : DepotLedgerPolicy.Creditable(
+                        leftover, sourceDepot.Grain, settings.DepotCapacity);
+                    if (returned > 0) sourceDepot.Grain += returned;
+                    int lost = DepotLedgerPolicy.Remainder(leftover, returned);
+                    Log.Write("Abstract supply shipment settled: delivered=" + credited +
+                        " refunded=" + returned + " lost=" + lost);
+                    if (credited > 0) Notice("Abstract shipment: " + credited + " grain delivered to " + target.Name);
+                    if (lost > 0) Notice("Abstract shipment lost " + lost + " grain after ownership or capacity change.");
                     state.Shipments.Remove(shipment);
                 }
                 TickPhysicalConvoys();

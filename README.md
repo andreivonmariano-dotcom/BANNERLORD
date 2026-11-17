@@ -1,68 +1,40 @@
-# Calradia Unified v0.8.0: hosted-build and guarded strategy commands
+# Calradia Unified v0.9.0: depot and convoy accounting, M0 evidence, feature traceability
 
-**Current verified state:** [GitHub Actions run 44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335) compiled a real v0.8.0 `CalradiaUnified.dll` candidate. Game startup, campaign function and save/load remain **NOT TESTED**. The full reconstruction of the 78 historical mods is unfinished.
+**Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Distribution target:** one `Modules/CalradiaUnified` folder, with no installer and no old third-party mod DLLs.
 
-**Project governance:** [Source of truth](docs/SOURCE_OF_TRUTH.md) | [Full handbook](PROJECT_INSTRUCTIONS.md) | [Roadmap and milestones](docs/ROADMAP.md) | [78 original IDs](docs/78_MOD_COVERAGE.md) | [Test matrix](docs/TEST_MATRIX.md) | [Release checklist](docs/RELEASE_CHECKLIST.md)
+## Actual project status
 
-## Q1: GitHub Actions build
+- [v0.8.0 successful hosted build](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335): the first version-pinned C# build compiled a real DLL and ran its configured tests. No in-game startup or save/load acceptance test was recorded.
+- **v0.9.0 change set:** source-implemented bounded depot transfers, improved real convoy unloading, independent policy assertions, M0 log evidence collection, and an auditable 93-record feature registry. Treat v0.9.0 as **source pending CI** until its own build succeeds.
+- Feature switches that mutate gameplay remain disabled by default. A successful new CI run confirms compilation and policy-test execution only.
 
-The project uses `.github/workflows/bannerlord-build.yml` in this repository. Open **Actions**, choose
-**Calradia Unified 1.5.7 - compile and package candidate**, then **Run workflow**.
-It restores `Bannerlord.ReferenceAssemblies` **1.5.7.125802**, runs policy checks,
-compiles a .NET Framework 4.7.2 DLL on a Windows runner, and packages the resulting
-`Modules/CalradiaUnified` folder only if compilation succeeds. If compilation fails,
-see the workflow logs and `BuildResults/compile.log` artifact where present.
+## Development workstreams
 
-The first successful hosted build is [run 44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335).
-Compilation passed. Game startup, save/load and gameplay remain untested.
+1. **[M0: startup and save validation](docs/M0_TEST_PROCEDURE.md).** A read-only PowerShell collector can record module manifests, DLL hashes and logs from a Windows game installation. Only actual game observations can pass the runtime gates.
+2. **[M1: depot and real convoy hardening](docs/M1_IMPLEMENTATION_NOTES.md).** Real `MobileParty` convoys carry actual grain. Deposits and deliveries are bounded by depot capacity. Excess cargo stays in the party for a later unloading tick.
+3. **[Feature-level tracking](docs/FEATURE_STATUS_WORKFLOW.md).** `Data/Feature_Registry.csv` holds 15 current code features and 78 historical references with individual statuses. GitHub Actions validates its traceability and the source build.
 
-## Q2: actual NPC party movement linked to strategy
+## Build
 
-`KingdomAutonomyBehavior` invokes `KingdomStrategyPolicy.Choose` and maps three
-non-combat decisions through `KingdomCommandPolicy.Choose`:
+See [`.github/workflows/bannerlord-build.yml`](.github/workflows/bannerlord-build.yml). The Windows workflow runs source checks, registry validation and .NET policy tests, restores version-pinned references, compiles a real DLL and packages only runtime files. The GitHub artifact is named `COMPILED_UNTESTED` until game startup, save/load and feature tests are actually observed.
 
-- Resupply: order a non-player lord of the *player's clan* toward a friendly,
-  unbesieged town/castle with recorded food stocks.
-- Recruit / Recover: order an eligible party toward a friendly town/castle.
-  The order itself does not add troops or food; vanilla systems decide what happens
-  after the party arrives.
-- Patrol: optionally issue `SetMovePatrolAroundSettlement` at an own-clan town/castle
-  during **confirmed peace**, with a minimum troop count, no active movement,
-  and a confirmed safe target.
+## Install candidate for supervised game testing
 
-All three commands are opt-in via `ModuleData/calradia-config.ini`; **all default off**.
-Actual movement invokes a restricted set of public Bannerlord methods using a
-signature-checked reflection adapter. A missing or changed v1.5.7 method means **no
-order**, not an unsafe fallback. AI or strategic decisions labeled Defend or
-SiegeSupport never issue combat/siege orders in this release. Parties in battles,
-armies, sieges, settlements, at sea, or blocked by cooldown never receive orders.
-The runtime only changes NPC travel orders, not save files or party inventories.
+Extract the compiled ZIP into the game installation root, preserving:
 
-The source compiled against the pinned v1.5.7 reference package. Live game startup,
-30-day campaign, settlement departure, and save/load tests have not yet been run.
+```
+Modules/CalradiaUnified/SubModule.xml
+Modules/CalradiaUnified/ModuleData/calradia-config.ini
+Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll
+```
 
-## Ready-to-paste artifact criteria
+Keep official game modules and Calradia Unified enabled. Back up prior saves and remove old Calradia Unified versions before testing. No installer is required. Follow the [M0 procedure](docs/M0_TEST_PROCEDURE.md) and record results in [issue #1](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/1).
 
-A successful GitHub Actions build produces `CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip`
-containing `Modules/CalradiaUnified` and the built DLL. It is a *candidate* for testing,
-not the final 78-mod overhaul. No Windows installer is part of that artifact.
+## Project records
 
-## Current local verification
+- [Full source instructions](PROJECT_INSTRUCTIONS.md) and [source policy](docs/SOURCE_OF_TRUTH.md)
+- [Roadmap](docs/ROADMAP.md) and [M1 tracking](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2)
+- [78 original mod IDs](docs/78_MOD_COVERAGE.md) and [migration checklist](Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv)
+- [Test matrix](docs/TEST_MATRIX.md) and [release gate checklist](docs/RELEASE_CHECKLIST.md)
 
-`python verify_source.py` checks source structure, project XML, required flags, code
-integration and the 78-mod migration ledger. `Tests/PolicySmoke` exercises independent C#
-policies. The first successful hosted CI run executed these stages and built the DLL.
-No evidenced in-game test exists.
-
-
-## First successful hosted DLL build
-
-On November 17, 2026 (UTC), GitHub Actions run [44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335) completed successfully after repairing a missing compile reference in the policy-test project.
-
-- Build artifact: `CalradiaUnified-v0.8.0-compiled-untested`.
-- Inner ZIP: `CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip`.
-- Contents: `Modules/CalradiaUnified/` with `SubModule.xml`, `ModuleData/calradia-config.ini`, and `bin/Win64_Shipping_Client/CalradiaUnified.dll`.
-- To install a test candidate, extract the inner ZIP into your Bannerlord game root, preserving the `Modules/CalradiaUnified` path. Move any older `CalradiaUnified` folder out of `Modules` first.
-- This is **compiled but not game-tested**. Use a new campaign or a backed-up save. Experimental NPC orders default to disabled. The full 78-mod recreation is not complete.
-
-The downloadable compiled artifact is available on the workflow run's **Artifacts** section.
+**Scope:** The original 78 mods have not been fully reconstructed. `COMPILED` in the feature registry refers to source compiled in the historical v0.8.0 run, not to completed replacement parity or a passed game test.

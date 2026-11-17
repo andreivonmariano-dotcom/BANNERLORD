@@ -11,6 +11,16 @@ namespace CalradiaUnified
             return enabled && playerOwnedSource && playerOwnedTarget && cargo > 0 && grain >= cargo
                 && active >= 0 && active < maxActive && !alreadyDispatched;
         }
+        public static bool CanDispatchToDepot(bool enabled, bool playerOwnedSource,
+            bool playerOwnedTarget, bool distinctSettlements, bool targetUnderSiege,
+            int grain, int cargo, int targetGrain, int targetCapacity,
+            int active, int maxActive, bool alreadyDispatched)
+        {
+            return distinctSettlements && !targetUnderSiege &&
+                CanDispatch(enabled, playerOwnedSource, playerOwnedTarget, grain, cargo,
+                    active, maxActive, alreadyDispatched)
+                && DepotLedgerPolicy.FreeCapacity(targetGrain, targetCapacity) >= cargo;
+        }
         public static bool Delivered(bool partyExists, bool active, bool atDestination,
             bool destinationStillOwned)
         {

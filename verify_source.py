@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.8.0'
+assert manifest.find('Version').get('value')=='v0.9.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -41,6 +41,9 @@ assert 'KingdomCommandPolicy.Choose(' in behavior
 assert 'SetMovePatrolAroundSettlement' in behavior
 assert 'SetMoveGoToSettlement' in behavior
 assert 'KingdomCommandPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'DepotLedgerPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'CanDispatchToDepot' in (src/'CivicBehavior.Convoys.cs').read_text()
+assert 'M0 civic state sync' in (src/'CivicBehavior.cs').read_text()
 assert 'EnableAutonomousClanPatrol=false' in conf
 checks=(P/'Tests/PolicySmoke/Program.cs').read_text()
 assert checks.count('Check(')>122
@@ -48,4 +51,4 @@ with open(P/'Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv',encoding='utf
     rows=list(csv.DictReader(f))
 assert len(rows)==78,len(rows)
 assert all(r['v157_source_port_status']=='NOT REBUILT' for r in rows)
-print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compiled':'NO','runtime_tested':'NO'},indent=2))
+print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compilation':'not assessed by static checker','runtime_tested':'not assessed'},indent=2))

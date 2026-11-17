@@ -67,6 +67,25 @@ internal static class Program
         Check("convoy cargo limited by actual food", ConvoyPolicy.DeliverableGrain(10, 3, 15) == 3);
         Check("convoy target cap", ConvoyPolicy.DeliverableGrain(10, 10, 2) == 2);
         Check("convoy timer timeout", ConvoyPolicy.TimedOut(0));
+        Check("depot free capacity exactly", DepotLedgerPolicy.FreeCapacity(94, 100) == 6);
+        Check("depot zero capacity rejected", DepotLedgerPolicy.FreeCapacity(1, 0) == 0);
+        Check("depot negative stock fails closed", DepotLedgerPolicy.FreeCapacity(-1, 100) == 0);
+        Check("depot deposit fits precisely", DepotLedgerPolicy.CanDeposit(true, true, 5, 5, 95, 100));
+        Check("depot deposit refuses overflow", !DepotLedgerPolicy.CanDeposit(true, true, 5, 5, 96, 100));
+        Check("depot deposit refuses disabled", !DepotLedgerPolicy.CanDeposit(false, true, 5, 5, 95, 100));
+        Check("depot withdraw blocks overdraft", !DepotLedgerPolicy.CanWithdraw(true, true, 4, 5));
+        Check("depot arrival respects cap", DepotLedgerPolicy.Creditable(10, 98, 100) == 2);
+        Check("depot arrival blocks negative amount", DepotLedgerPolicy.Creditable(-2, 0, 100) == 0);
+        Check("depot arrival remains bounded when full", DepotLedgerPolicy.Creditable(10, 100, 100) == 0);
+        Check("shipment remainder bounded", DepotLedgerPolicy.Remainder(5, 7) == 0);
+        Check("shipment remainder exact", DepotLedgerPolicy.Remainder(5, 2) == 3);
+        Check("convoy dispatch blocks full recipient", !ConvoyPolicy.CanDispatchToDepot(true,true,true,true,false,50,10,95,100,0,2,false));
+        Check("convoy dispatch exact recipient space", ConvoyPolicy.CanDispatchToDepot(true,true,true,true,false,50,10,90,100,0,2,false));
+        Check("convoy dispatch blocks besieged recipient", !ConvoyPolicy.CanDispatchToDepot(true,true,true,true,true,50,10,0,100,0,2,false));
+        Check("convoy dispatch blocks same settlement", !ConvoyPolicy.CanDispatchToDepot(true,true,true,false,false,50,10,0,100,0,2,false));
+        Check("convoy unload tracks remaining manifest", DepotLedgerPolicy.Remainder(10, ConvoyPolicy.DeliverableGrain(10,10,3)) == 7);
+        Check("convoy never credits more than cargo", ConvoyPolicy.DeliverableGrain(10,7,100) == 7);
+
         Check("levy opt-in", !KingdomPolicy.CanLevy(false, true, true, true, 500, 10, 40, 100, 0, 2, 250, 5));
         Check("levy requires influence", !KingdomPolicy.CanLevy(true, true, true, true, 500, 4, 40, 100, 0, 2, 250, 5));
         Check("levy requires kingdom", !KingdomPolicy.CanLevy(true, true, false, true, 500, 10, 40, 100, 0, 2, 250, 5));

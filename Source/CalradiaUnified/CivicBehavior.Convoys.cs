@@ -28,9 +28,11 @@ namespace CalradiaUnified
             if (!settings.EnablePhysicalConvoys || !Owned()) return false;
             var target = Destination();
             var source = CurrentDepot();
-            return target != null && source != null && ConvoyPolicy.CanDispatch(
+            return target != null && source != null && ConvoyPolicy.CanDispatchToDepot(
                 settings.EnablePhysicalConvoys, Owned(), target.OwnerClan == Clan.PlayerClan,
-                source.Grain, settings.ConvoyCargoGrain, CountActiveConvoys(), settings.MaxActiveConvoys,
+                target.StringId != CurrentId(), target.SiegeEvent != null,
+                source.Grain, settings.ConvoyCargoGrain, state.Stock(target.StringId),
+                settings.DepotCapacity, CountActiveConvoys(), settings.MaxActiveConvoys,
                 state.HasShipment(source.SettlementId));
         }
         private void DispatchPhysicalConvoy()
@@ -66,8 +68,14 @@ namespace CalradiaUnified
                 };
                 if (!CivicState.Valid(shipment.PartyId))
                     throw new InvalidOperationException("Engine supplied invalid party identifier.");
+                // Recheck ownership and source stock after the game party has been spawned.
+                if (sourceSettlement.OwnerClan != Clan.PlayerClan ||
+                    destination.OwnerClan != Clan.PlayerClan || sourceDepot.Grain < shipment.Grain)
+                    throw new InvalidOperationException("Shipment owner or source stock changed during dispatch.");
                 sourceDepot.Grain -= shipment.Grain;
                 state.Shipments.Add(shipment);
+                Log.Write("M1 physical convoy dispatched: party=" + shipment.PartyId +
+                    " from=" + shipment.From + " to=" + shipment.To + " grain=" + shipment.Grain);
                 Notice("Guarded convoy sent to " + destination.Name + ". Its party can be attacked on the campaign map.");
             }
             catch (Exception e)
@@ -124,18 +132,39 @@ namespace CalradiaUnified
                 var target = Settlement.All.FirstOrDefault(s => s != null && s.StringId == shipment.To);
                 if (target != null && party.CurrentSettlement == target)
                 {
-                    var targetDepot = state.Get(shipment.To);
-                    if (target.OwnerClan == Clan.PlayerClan && targetDepot != null && DefaultItems.Grain != null)
+                    var targetDepot = target.OwnerClan == Clan.PlayerClan ? state.Get(shipment.To) : null;
+                    if (targetDepot == null || DefaultItems.Grain == null || party.ItemRoster == null)
                     {
-                        int actual = party.ItemRoster.GetItemNumber(DefaultItems.Grain);
-                        int cargo = ConvoyPolicy.DeliverableGrain(shipment.Grain, actual,
-                            settings.DepotCapacity - targetDepot.Grain);
-                        targetDepot.Grain += cargo;
-                        Notice("Supply convoy arrived at " + target.Name + ": " + cargo + " grain delivered.");
+                        Log.Write("M1 convoy failed arrival validation: party=" + shipment.PartyId);
+                        Notice("Convoy reached an unavailable or lost depot. Remaining cargo was lost.");
+                        TryDestroyConvoy(party);
+                        state.Shipments.Remove(shipment);
+                        continue;
                     }
-                    else Notice("Convoy reached a lost settlement. Its cargo was not deposited.");
-                    TryDestroyConvoy(party);
-                    state.Shipments.Remove(shipment);
+                    int actual = party.ItemRoster.GetItemNumber(DefaultItems.Grain);
+                    int deliverable = ConvoyPolicy.DeliverableGrain(shipment.Grain, actual,
+                        DepotLedgerPolicy.FreeCapacity(targetDepot.Grain, settings.DepotCapacity));
+                    if (deliverable > 0)
+                    {
+                        // Move stock out of the actual party before crediting the saved depot ledger.
+                        party.ItemRoster.AddToCounts(DefaultItems.Grain, -deliverable);
+                        targetDepot.Grain += deliverable;
+                        shipment.Grain -= deliverable;
+                        Log.Write("M1 convoy unloaded: party=" + shipment.PartyId +
+                            " grain=" + deliverable + " remainingManifest=" + shipment.Grain);
+                        Notice("Supply convoy unloaded " + deliverable + " grain at " + target.Name + ".");
+                    }
+                    int remainingCargo = party.ItemRoster.GetItemNumber(DefaultItems.Grain);
+                    if (shipment.Grain <= 0 || remainingCargo <= 0)
+                    {
+                        if (shipment.Grain > 0)
+                            Log.Write("M1 convoy cargo shortfall: party=" + shipment.PartyId +
+                                " lost=" + shipment.Grain);
+                        TryDestroyConvoy(party);
+                        state.Shipments.Remove(shipment);
+                    }
+                    // Insufficient depot space: the remaining physical grain stays on the convoy
+                    // and the party remains visible until capacity is freed or timeout expires.
                     continue;
                 }
                 if (ConvoyPolicy.TimedOut(shipment.DaysRemaining))
