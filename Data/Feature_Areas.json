@@ -1,0 +1,98 @@
+{
+  "Foundation and mod infrastructure": [
+    "Bannerlord.Harmony",
+    "Bannerlord.ButterLib",
+    "Bannerlord.MBOptionScreen",
+    "Bannerlord.UIExtenderEx",
+    "PrystBase",
+    "CrashDoctor",
+    "UFO148"
+  ],
+  "Combat, tactics and equipment": [
+    "RBM",
+    "RBM_WS",
+    "BattleInstinct",
+    "SpearPreference",
+    "BetterPikes",
+    "RealisticAutoResolve",
+    "DismembermentPlus",
+    "FeelTheHit",
+    "RealisticRetreat",
+    "RealisticBattleLoot",
+    "ReinforcementSystem",
+    "MultiDayBattles",
+    "RealisticTroopCosts",
+    "Dynamic Troop Equipment Reupload",
+    "DefendYourself",
+    "HorsesDie",
+    "HorseCall"
+  ],
+  "Campaign AI, garrisons and sieges": [
+    "CampaignImprovements",
+    "ImprovedGarrisons",
+    "SiegeAIFix",
+    "SiegeAftermath",
+    "SiegeCommandMenu",
+    "AfterTheBattle",
+    "Promoted"
+  ],
+  "Recruitment and troop progression": [
+    "RealisticRecruitment",
+    "ImmersiveRecruitCommoners",
+    "HeroPathAutoBuildAssignment",
+    "AlternateStart",
+    "TraitsOfCalradia"
+  ],
+  "Economy, politics and settlements": [
+    "RealisticTownIncome",
+    "DynamicWarBanks",
+    "ClanRankings",
+    "FaithsOfCalradia",
+    "CulturalKingdoms_Naval",
+    "RealisticPrisoner",
+    "TavernkeeperReach"
+  ],
+  "Characters, identities and social simulation": [
+    "LivingPersonasAI",
+    "ComplexCharacters",
+    "CharacterReload",
+    "HistoricalNameExpansion",
+    "GrowBeard",
+    "XingyuHairstyleExpansion",
+    "RandomBodies",
+    "ImTired"
+  ],
+  "Visuals, scene assets and animation": [
+    "ArtemsLivelyAnimations",
+    "AliveScenes",
+    "ImmersiveBattlefields",
+    "BattlefieldImmersionScoutingFog",
+    "ProceduralScenes",
+    "LargePartyVisuals",
+    "Illumina",
+    "PerfectFireArrows",
+    "RaiseYourTorch",
+    "Horses",
+    "TownHorseMod",
+    "TownHorseFixPatch"
+  ],
+  "UI, interface and immersion": [
+    "CleanHUD",
+    "HideEnemyHUD",
+    "NoMorePowerBar",
+    "LessMenusMoreImmersion",
+    "BetterTime",
+    "BetterSaveLoad",
+    "SpeedTweak",
+    "PerformanceOptimizer",
+    "HorseCounter",
+    "XorberaxLegacy"
+  ],
+  "Banners and heraldry": [
+    "BannerFix",
+    "Bannerlord.EykonalBanners.Cross",
+    "RaiseYourBanner",
+    "EarnYourBanner",
+    "gfrontsMoreBattleShouts"
+  ]
+}

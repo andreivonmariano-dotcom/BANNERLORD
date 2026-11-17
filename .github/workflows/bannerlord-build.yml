@@ -1,0 +1,63 @@
+name: Calradia Unified 1.5.7 - compile and package candidate
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "Source/**"
+      - "Tests/**"
+      - "Modules/**"
+      - "scripts/**"
+      - ".github/workflows/bannerlord-build.yml"
+permissions:
+  contents: read
+jobs:
+  compile:
+    runs-on: windows-2022
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+      - name: Validate source and manifest
+        shell: pwsh
+        run: python verify_source.py
+      - name: Restore .NET tests
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
+          dotnet restore Tests/PolicySmoke/PolicySmoke.csproj 2>&1 | Tee-Object -FilePath BuildResults/test-restore.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Execute independent policy tests
+        shell: pwsh
+        run: |
+          dotnet run --project Tests/PolicySmoke/PolicySmoke.csproj --configuration Release --no-restore 2>&1 | Tee-Object -FilePath BuildResults/policy-tests.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Restore pinned game references from NuGet
+        shell: pwsh
+        run: |
+          dotnet restore Source/CalradiaUnified/CalradiaUnified.csproj -p:UsePublicReferences=true 2>&1 | Tee-Object -FilePath BuildResults/game-restore.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Compile game module against reference assemblies
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
+          dotnet build Source/CalradiaUnified/CalradiaUnified.csproj --configuration Release --no-restore -p:UsePublicReferences=true -v:normal 2>&1 | Tee-Object -FilePath BuildResults/compile.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Package DLL and runtime files only
+        shell: pwsh
+        run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
+      - name: Upload untested paste-ready compiled candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalradiaUnified-v0.8.0-compiled-untested
+          path: Output/CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip
+          if-no-files-found: error
+      - name: Upload build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalradiaUnified-v0.8.0-build-errors
+          path: BuildResults/*.log
+          if-no-files-found: ignore

@@ -1,0 +1,7 @@
+# Compiled binaries are provided by the Windows GitHub Actions build only.
+**/bin/
+**/obj/
+Output/
+BuildResults/
+*.user
+*.suo

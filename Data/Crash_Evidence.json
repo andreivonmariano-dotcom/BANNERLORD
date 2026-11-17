@@ -1,0 +1,41 @@
+{
+  "target": {
+    "base_game": "v1.5.7",
+    "war_sails": "v1.3.7",
+    "confirmed_2026_11_17": true
+  },
+  "evidence_scope": "prior supplied v1.4.8 reports, not evidence of v1.5.7 crashes",
+  "cases": [
+    {
+      "module": "LivingPersonasAI",
+      "exception": "MissingMethodException",
+      "api": "Mission.SpawnAgent",
+      "status": "confirmed in supplied v1.4.8 report, not ported"
+    },
+    {
+      "modules": [
+        "ArtOfWar",
+        "SupplyLines"
+      ],
+      "api": "LeaveSettlementAction.ApplyForParty",
+      "status": "shared Harmony patch owners at crash, causal chain not proven, binaries absent from archive"
+    },
+    {
+      "module": "LargePartyVisuals",
+      "status": "SubModule.xml v1.5.2 dependencies, runtime untested"
+    },
+    {
+      "module": "SiegeCommandMenu",
+      "status": "SubModule.xml v1.5.7 dependencies, runtime untested"
+    }
+  ],
+  "additional_mods_active_but_not_in_archive": [
+    "ArtOfWar",
+    "SupplyLines",
+    "Enlistment",
+    "FastMode",
+    "Chancellerie",
+    "RegardStanding",
+    "ServeAsSoldier"
+  ]
+}

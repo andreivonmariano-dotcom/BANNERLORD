@@ -1,0 +1,51 @@
+from pathlib import Path
+import csv, re, xml.etree.ElementTree as ET, zipfile, json
+P=Path(__file__).parent
+src=P/'Source/CalradiaUnified'
+files=list(src.glob('*.cs'))
+assert len(files)>=18,len(files)
+for f in files:
+    s=f.read_text()
+    assert 'namespace CalradiaUnified' in s,f
+    # Removes strings, char literals, line and block comments before matching braces.
+    tokens=re.sub(r'"(?:\\.|[^"\\])*"|\'(?:\\.|[^\'\\])*\'|//[^\n]*|/\*.*?\*/','',s,flags=re.S)
+    for a,b in ('{}','()','[]'):
+        stack=0
+        for c in tokens:
+            if c==a: stack+=1
+            if c==b: stack-=1
+            assert stack>=0,(f,a,b)
+        assert stack==0,(f,a,b,stack)
+ET.parse(src/'CalradiaUnified.csproj')
+manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
+assert manifest.find('Id').get('value')=='CalradiaUnified'
+assert manifest.find('Version').get('value')=='v0.8.0'
+assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
+assert not any((P/'Modules').rglob('*.dll'))
+settings=(src/'Settings.cs').read_text()
+conf=(P/'Modules/CalradiaUnified/ModuleData/calradia-config.ini').read_text()
+for flag in ('EnableAutonomousClanResupply','EnableAutonomousClanRecruitTrips','EnableAutonomousClanPatrol'):
+    assert re.search(r'public bool '+flag+r'\s*=\s*false;',settings)
+    assert flag+'=false' in conf
+assert 's.Culture.BasicTroop' in (src/'CivicBehavior.cs').read_text()
+behavior=(src/'KingdomAutonomyBehavior.cs').read_text()
+policy=(src/'KingdomAutonomyPolicy.cs').read_text()
+assert 'DailyTickPartyEvent' in behavior and 'SyncData' in behavior
+assert 'party.Army != null' in behavior and 'party.MapEvent != null' in behavior
+assert 'party.CurrentSettlement != null' in behavior
+assert 'place.SiegeEvent != null' in behavior
+assert 'Order.Resupply' in policy and 'Order.Recruit' in policy
+assert 'KingdomAutonomyBehavior' in (src/'SubModule.cs').read_text()
+assert 'KingdomStrategyPolicy.Choose(' in behavior
+assert 'KingdomCommandPolicy.Choose(' in behavior
+assert 'SetMovePatrolAroundSettlement' in behavior
+assert 'SetMoveGoToSettlement' in behavior
+assert 'KingdomCommandPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'EnableAutonomousClanPatrol=false' in conf
+checks=(P/'Tests/PolicySmoke/Program.cs').read_text()
+assert checks.count('Check(')>122
+with open(P/'Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv',encoding='utf-8-sig',newline='') as f:
+    rows=list(csv.DictReader(f))
+assert len(rows)==78,len(rows)
+assert all(r['v157_source_port_status']=='NOT REBUILT' for r in rows)
+print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compiled':'NO','runtime_tested':'NO'},indent=2))

@@ -1,5 +1,54 @@
-# BANNERLORD / Calradia Unified
+# Calradia Unified v0.8.0: hosted-build and guarded strategy commands
 
-This repository is the source and build workspace for Calradia Unified, an experimental Mount & Blade II: Bannerlord mod targeting PC v1.5.7.
+**This is a source candidate, not a compiled mod or finished replacement for the 78 original mods.**
 
-The code is under active development. A successful compile is not proof of in-game compatibility.
+## Q1: GitHub Actions build
+
+The project includes `.github/workflows/bannerlord-build.yml`. Place these files at the
+root of a *dedicated* GitHub repository. In GitHub, open **Actions**, choose
+**Calradia Unified 1.5.7 - compile and package candidate**, then **Run workflow**.
+It restores `Bannerlord.ReferenceAssemblies` **1.5.7.125802**, runs policy checks,
+compiles a .NET Framework 4.7.2 DLL on a Windows runner, and packages the resulting
+`Modules/CalradiaUnified` folder only if compilation succeeds. If compilation fails,
+see the workflow logs and `BuildResults/compile.log` artifact where present.
+
+There is no such build output in this package: GitHub Actions has not run yet.
+Even a green compile does **not** prove the game loads, saves or executes correctly.
+
+## Q2: actual NPC party movement linked to strategy
+
+`KingdomAutonomyBehavior` invokes `KingdomStrategyPolicy.Choose` and maps three
+non-combat decisions through `KingdomCommandPolicy.Choose`:
+
+- Resupply: order a non-player lord of the *player's clan* toward a friendly,
+  unbesieged town/castle with recorded food stocks.
+- Recruit / Recover: order an eligible party toward a friendly town/castle.
+  The order itself does not add troops or food; vanilla systems decide what happens
+  after the party arrives.
+- Patrol: optionally issue `SetMovePatrolAroundSettlement` at an own-clan town/castle
+  during **confirmed peace**, with a minimum troop count, no active movement,
+  and a confirmed safe target.
+
+All three commands are opt-in via `ModuleData/calradia-config.ini`; **all default off**.
+Actual movement invokes a restricted set of public Bannerlord methods using a
+signature-checked reflection adapter. A missing or changed v1.5.7 method means **no
+order**, not an unsafe fallback. AI or strategic decisions labeled Defend or
+SiegeSupport never issue combat/siege orders in this release. Parties in battles,
+armies, sieges, settlements, at sea, or blocked by cooldown never receive orders.
+The runtime only changes NPC travel orders, not save files or party inventories.
+
+The code has not been compiled or run on a v1.5.7 game instance. Its safety cannot
+be certified until live smoke, 30-day, settlement departure, and save/load tests pass.
+
+## Ready-to-paste artifact criteria
+
+A successful GitHub Actions build produces `CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip`
+containing `Modules/CalradiaUnified` and the built DLL. It is a *candidate* for testing,
+not the final 78-mod overhaul. No Windows installer is part of that artifact.
+
+## Current local verification
+
+`python verify_source.py` checks syntax balance, project XML, required flags, code
+integration and the 78-mod migration ledger. `Tests/PolicySmoke` contains C# tests
+that GitHub Actions must execute. No C# compiler or Bannerlord runtime was available
+in the creating environment.

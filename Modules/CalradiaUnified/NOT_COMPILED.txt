@@ -1,0 +1,1 @@
+No compiled DLL included. This directory is NOT installable. The GitHub Actions workflow can attempt to compile a candidate against public v1.5.7 reference assemblies. A successful build still needs Bannerlord in-game testing.

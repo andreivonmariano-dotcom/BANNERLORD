@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Source/CalradiaUnified/SupplyPolicy.cs" Link="SupplyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CivicPolicy.cs" Link="CivicPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CivicState.cs" Link="CivicState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/ConvoyPolicy.cs" Link="ConvoyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/KingdomPolicy.cs" Link="KingdomPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/TradePolicy.cs" Link="TradePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/KingdomAdvisorPolicy.cs" Link="KingdomAdvisorPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/KingdomStrategyPolicy.cs" Link="KingdomStrategyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/KingdomCommandPolicy.cs" Link="KingdomCommandPolicy.cs" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net472</TargetFramework>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyName>CalradiaUnified</AssemblyName>
+    <RootNamespace>CalradiaUnified</RootNamespace>
+    <Nullable>disable</Nullable>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <UsePublicReferences Condition="'$(UsePublicReferences)' == ''">false</UsePublicReferences>
+  </PropertyGroup>
+  <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
+    <PackageReference Include="Bannerlord.ReferenceAssemblies" Version="1.5.7.125802" PrivateAssets="all" />
+  </ItemGroup>
+  <Target Name="ValidateBannerlordReferences" BeforeTargets="ResolveReferences" Condition="'$(UsePublicReferences)' != 'true'">
+    <Error Condition="'$(BannerlordGameDir)'==''" Text="Specify -p:BannerlordGameDir=the 1.5.7 game root." />
+    <Error Condition="!Exists('$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll')" Text="Game reference TaleWorlds.CampaignSystem.dll was not found. Choose the Bannerlord game root." />
+  </Target>
+  <ItemGroup Condition="'$(UsePublicReferences)' != 'true'">
+    <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.CampaignSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.CampaignSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Localization"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ObjectSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.SaveSystem" Condition="Exists('$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll')"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.Engine" Condition="Exists('$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll')"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath><Private>false</Private></Reference>
+  </ItemGroup>
+</Project>
