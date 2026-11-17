@@ -5,7 +5,7 @@
 ## Actual project status
 
 - [v0.8.0 successful hosted build](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335): the first version-pinned C# build compiled a real DLL and ran its configured tests. No in-game startup or save/load acceptance test was recorded.
-- **v0.9.0 compiled candidate:** [GitHub Actions run 44143396054](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44143396054) passed source validation, feature traceability checks, independent C# policy tests, game-referenced compilation, and runtime ZIP packaging. The real DLL has SHA-256 `4f22a30d34e914f7d4a8bc616800cff0df6903b073108794a602e4848b2c6929`. Game startup and save/load remain untested.
+- **v0.9.0 compiled candidate:** [GitHub Actions run 44144214378](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44144214378) passed source validation, feature traceability checks, 143 independent C# policy checks, game-referenced compilation, and runtime ZIP packaging. The compiled DLL from that exact run has SHA-256 `dbd36730a810f62e2770fb882bae8deabeafa3518abf1ae09cd94de76b98d1ec`. Game startup and save/load remain untested.
 - Feature switches that mutate gameplay remain disabled by default. A successful new CI run confirms compilation and policy-test execution only.
 
 ## Development workstreams
