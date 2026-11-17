@@ -6,16 +6,15 @@
 
 ## Q1: GitHub Actions build
 
-The project includes `.github/workflows/bannerlord-build.yml`. Place these files at the
-root of a *dedicated* GitHub repository. In GitHub, open **Actions**, choose
+The project uses `.github/workflows/bannerlord-build.yml` in this repository. Open **Actions**, choose
 **Calradia Unified 1.5.7 - compile and package candidate**, then **Run workflow**.
 It restores `Bannerlord.ReferenceAssemblies` **1.5.7.125802**, runs policy checks,
 compiles a .NET Framework 4.7.2 DLL on a Windows runner, and packages the resulting
 `Modules/CalradiaUnified` folder only if compilation succeeds. If compilation fails,
 see the workflow logs and `BuildResults/compile.log` artifact where present.
 
-There is no such build output in this package: GitHub Actions has not run yet.
-Even a green compile does **not** prove the game loads, saves or executes correctly.
+The first successful hosted build is [run 44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335).
+Compilation passed. Game startup, save/load and gameplay remain untested.
 
 ## Q2: actual NPC party movement linked to strategy
 
@@ -39,8 +38,8 @@ SiegeSupport never issue combat/siege orders in this release. Parties in battles
 armies, sieges, settlements, at sea, or blocked by cooldown never receive orders.
 The runtime only changes NPC travel orders, not save files or party inventories.
 
-The code has not been compiled or run on a v1.5.7 game instance. Its safety cannot
-be certified until live smoke, 30-day, settlement departure, and save/load tests pass.
+The source compiled against the pinned v1.5.7 reference package. Live game startup,
+30-day campaign, settlement departure, and save/load tests have not yet been run.
 
 ## Ready-to-paste artifact criteria
 
@@ -50,10 +49,10 @@ not the final 78-mod overhaul. No Windows installer is part of that artifact.
 
 ## Current local verification
 
-`python verify_source.py` checks syntax balance, project XML, required flags, code
-integration and the 78-mod migration ledger. `Tests/PolicySmoke` contains C# tests
-that GitHub Actions must execute. No C# compiler or Bannerlord runtime was available
-in the creating environment.
+`python verify_source.py` checks source structure, project XML, required flags, code
+integration and the 78-mod migration ledger. `Tests/PolicySmoke` exercises independent C#
+policies. The first successful hosted CI run executed these stages and built the DLL.
+No evidenced in-game test exists.
 
 
 ## First successful hosted DLL build
