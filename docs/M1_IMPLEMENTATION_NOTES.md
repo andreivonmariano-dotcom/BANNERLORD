@@ -1,6 +1,6 @@
 # M1 implementation notes: bounded depot grain and physical convoys
 
-This iteration hardens the existing depot and physical convoy code. Its changes are source-implemented and independently unit-testable. A successful v1.5.7 compilation remains a separate Gate B check. In-game convoy behavior remains unverified until D1.1 through E1.1.
+This iteration hardens the existing depot and physical convoy code. Its changes compiled successfully in [GitHub Actions run 44143396054](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44143396054) and passed independently executed policy checks. This is **Gate B only**. In-game convoy behavior remains unverified until D1.1 through E1.1.
 
 ## Exact runtime changes
 
@@ -24,4 +24,4 @@ The target game's `CreateCustomPartyWithTroopRoster` and movement adapter compil
 5. Save/reload with the convoy moving and with it holding cargo at the destination. Check stable party ID, inventory, manifest and ledger state.
 6. Conquer the recipient while the convoy travels. Expect no credit to the lost settlement and removal after arrival or timeout.
 
-**Tracking:** [M1 issue](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2). Status: implemented in source, C# and game tests pending.
+**Tracking:** [M1 issue](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2). Status: compiled candidate with C# policy tests passed. Real gameplay, save/load, and movement tests pending.
