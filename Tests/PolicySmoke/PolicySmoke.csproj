@@ -13,5 +13,6 @@
     <Compile Include="../../Source/CalradiaUnified/KingdomAdvisorPolicy.cs" Link="KingdomAdvisorPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/KingdomStrategyPolicy.cs" Link="KingdomStrategyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/KingdomCommandPolicy.cs" Link="KingdomCommandPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/KingdomAutonomyPolicy.cs" Link="KingdomAutonomyPolicy.cs" />
   </ItemGroup>
 </Project>
