@@ -52,3 +52,16 @@ not the final 78-mod overhaul. No Windows installer is part of that artifact.
 integration and the 78-mod migration ledger. `Tests/PolicySmoke` contains C# tests
 that GitHub Actions must execute. No C# compiler or Bannerlord runtime was available
 in the creating environment.
+
+
+## First successful hosted DLL build
+
+On November 17, 2026 (UTC), GitHub Actions run [44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335) completed successfully after repairing a missing compile reference in the policy-test project.
+
+- Build artifact: `CalradiaUnified-v0.8.0-compiled-untested`.
+- Inner ZIP: `CalradiaUnified_v0.8.0_COMPILED_UNTESTED.zip`.
+- Contents: `Modules/CalradiaUnified/` with `SubModule.xml`, `ModuleData/calradia-config.ini`, and `bin/Win64_Shipping_Client/CalradiaUnified.dll`.
+- To install a test candidate, extract the inner ZIP into your Bannerlord game root, preserving the `Modules/CalradiaUnified` path. Move any older `CalradiaUnified` folder out of `Modules` first.
+- This is **compiled but not game-tested**. Use a new campaign or a backed-up save. Experimental NPC orders default to disabled. The full 78-mod recreation is not complete.
+
+The downloadable compiled artifact is available on the workflow run's **Artifacts** section.
