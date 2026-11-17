@@ -1,0 +1,47 @@
+name: "Gameplay feature request"
+description: "Scope a single Bannerlord feature with testable behavior"
+title: "[FEATURE] "
+body:
+  - type: input
+    id: behavior
+    attributes:
+      label: "Player-visible behavior"
+      placeholder: "What should happen in the campaign or battle?"
+    validations:
+      required: true
+  - type: dropdown
+    id: milestone
+    attributes:
+      label: "Roadmap milestone"
+      options:
+        - "M0 - Foundation"
+        - "M1 - Economy and logistics"
+        - "M2 - Recruitment"
+        - "M3 - Independent clan AI and diplomacy"
+        - "M4 - Garrisons and sieges"
+        - "M5 - Combat and equipment"
+        - "M6 - Characters and UI"
+        - "M7 - Visuals and scenes"
+        - "M8 - War Sails"
+        - "M9 - Release engineering"
+    validations:
+      required: true
+  - type: textarea
+    id: cases
+    attributes:
+      label: "Rules, exclusions and expected results"
+      description: "Include costs, cooldowns, state transitions, permissions and gameplay boundaries."
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: "Acceptance tests"
+      description: "Describe at least one normal case, rejection case and save/reload case."
+    validations:
+      required: true
+  - type: input
+    id: history
+    attributes:
+      label: "Related original mod IDs (optional)"
+      description: "Use exact IDs from Data/Migration_78.csv; these are references, not copied code."

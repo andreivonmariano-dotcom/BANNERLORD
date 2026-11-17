@@ -1,0 +1,52 @@
+name: "Release-readiness review"
+description: "Record evidence for a new compiled candidate or verified release"
+title: "[RELEASE] "
+body:
+  - type: markdown
+    attributes:
+      value: "Use [docs/RELEASE_CHECKLIST.md](../../docs/RELEASE_CHECKLIST.md) for complete gates A-G. A green CI badge alone does not prove gameplay compatibility."
+  - type: input
+    id: version
+    attributes:
+      label: "Candidate version and game build"
+    validations:
+      required: true
+  - type: input
+    id: commit
+    attributes:
+      label: "Source SHA and CI run URL"
+    validations:
+      required: true
+  - type: textarea
+    id: artifacts
+    attributes:
+      label: "DLL and ZIP hashes and artifact URLs"
+    validations:
+      required: true
+  - type: dropdown
+    id: gate
+    attributes:
+      label: "Highest completed test gate"
+      options:
+        - "Gate A - Source checks"
+        - "Gate B - Compiled"
+        - "Gate C - Game startup"
+        - "Gate D - Gameplay function"
+        - "Gate E - Save and regression"
+        - "Gate F - Release candidate"
+        - "Gate G - Released"
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: "Game startup, feature, save/load and long-session evidence"
+      description: "Provide actual results and tester/date. Use NOT RUN for incomplete items."
+    validations:
+      required: true
+  - type: textarea
+    id: limitations
+    attributes:
+      label: "Outstanding limitations and feature coverage"
+    validations:
+      required: true

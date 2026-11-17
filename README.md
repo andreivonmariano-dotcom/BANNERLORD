@@ -1,6 +1,8 @@
 # Calradia Unified v0.8.0: hosted-build and guarded strategy commands
 
-**This is a source candidate, not a compiled mod or finished replacement for the 78 original mods.**
+**Current verified state:** [GitHub Actions run 44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335) compiled a real v0.8.0 `CalradiaUnified.dll` candidate. Game startup, campaign function and save/load remain **NOT TESTED**. The full reconstruction of the 78 historical mods is unfinished.
+
+**Project governance:** [Source of truth](docs/SOURCE_OF_TRUTH.md) | [Full handbook](PROJECT_INSTRUCTIONS.md) | [Roadmap and milestones](docs/ROADMAP.md) | [78 original IDs](docs/78_MOD_COVERAGE.md) | [Test matrix](docs/TEST_MATRIX.md) | [Release checklist](docs/RELEASE_CHECKLIST.md)
 
 ## Q1: GitHub Actions build
 

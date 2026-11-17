@@ -1,0 +1,69 @@
+name: "Bug report"
+description: "Report a reproducible Calradia Unified defect"
+title: "[BUG] "
+body:
+  - type: markdown
+    attributes:
+      value: "Supply exact game version, compiled candidate and reproducible behavior. Do not upload personal saves, credentials or licensed third-party binaries to a public issue."
+  - type: input
+    id: game
+    attributes:
+      label: "Bannerlord build and expansions"
+      placeholder: "Example: PC v1.5.7, War Sails disabled"
+    validations:
+      required: true
+  - type: input
+    id: module
+    attributes:
+      label: "Calradia Unified build"
+      placeholder: "Example: v0.8.0, commit SHA or Actions run"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: "Reproduction steps"
+      placeholder: "Start from a new campaign or specified save, then give exact actions"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: "Expected behavior"
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: "Observed behavior"
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: "Crash excerpt / logs / stack trace"
+      description: "Paste only non-sensitive excerpts. Include the exception and first meaningful frame."
+      render: text
+  - type: textarea
+    id: order
+    attributes:
+      label: "Enabled modules and load order"
+      description: "Identify other mods and which feature toggles were active."
+  - type: dropdown
+    id: reproducibility
+    attributes:
+      label: "Reproducibility"
+      options:
+        - "Every attempt"
+        - "Intermittent"
+        - "Only once"
+        - "Not yet reproduced"
+    validations:
+      required: true
+  - type: checkboxes
+    id: safety
+    attributes:
+      label: "Report checks"
+      options:
+        - label: "I removed personal information and game-license files from the issue."
+          required: true

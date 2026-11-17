@@ -1,0 +1,59 @@
+name: "Crash / compatibility regression"
+description: "Report a loader, campaign, mission, siege or save crash with technical evidence"
+title: "[CRASH] "
+body:
+  - type: input
+    id: game
+    attributes:
+      label: "Exact Bannerlord game version"
+    validations:
+      required: true
+  - type: input
+    id: build
+    attributes:
+      label: "Calradia Unified commit, DLL version or GitHub Actions run"
+    validations:
+      required: true
+  - type: dropdown
+    id: phase
+    attributes:
+      label: "Failure stage"
+      options:
+        - "Launcher / module load"
+        - "Campaign creation / load"
+        - "Settlement entry or exit"
+        - "Battle / Mission.SpawnAgent"
+        - "Siege"
+        - "Party movement / recruitment"
+        - "Save / reload"
+        - "Other"
+    validations:
+      required: true
+  - type: textarea
+    id: stack
+    attributes:
+      label: "Exception and complete useful stack excerpt"
+      description: "Remove identifying local paths. Capture the first meaningful mod frame."
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: "Exact reproduction and active load order"
+    validations:
+      required: true
+  - type: dropdown
+    id: control
+    attributes:
+      label: "Clean official-mod control run"
+      options:
+        - "Clean official-mod game passes"
+        - "Clean official-mod game fails"
+        - "Not tested"
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: "Recent changes, save context and regression observations"
