@@ -1,0 +1,3 @@
+# BANNERLORD agent instructions
+
+Work only on Mount & Blade II: Bannerlord modding and the Calradia Unified module in this repository. Read [PROJECT_INSTRUCTIONS.md](PROJECT_INSTRUCTIONS.md) before changes. Respect the current game version and verify TaleWorlds API signatures. Keep pure game policies independently testable. Run static checks and the GitHub Actions C# build. A green CI run is a compiled candidate, never an in-game test. Never commit third-party game DLLs, user saves, tokens, or licensed mod assets without permission. The player-facing product is one paste-ready CalradiaUnified module folder with no installer. Update the original 78-mod migration tracker with accurate statuses.
