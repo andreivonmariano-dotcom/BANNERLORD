@@ -111,6 +111,17 @@ internal static class Program
         Check("family home exact settlement requires ID",
             SandboxFamilyHomePolicy.ValidateRequest("SpecificOwned","",true) ==
                 "family_home_id_required");
+        var incompleteFamilyHome = new SandboxOriginProfile();
+        incompleteFamilyHome.TrySet("SpouseEnabled","true");
+        incompleteFamilyHome.TrySet("FamilyHomeMode","SpecificOwned");
+        Check("family residence mode can be saved before ID entry",
+            incompleteFamilyHome.IsValid(30,out var incompleteHomeError));
+        Check("family residence must be complete at final confirmation",
+            SandboxFamilyHomePolicy.ValidateRequest(
+                incompleteFamilyHome.FamilyHomeMode,
+                incompleteFamilyHome.FamilyHomeId,
+                incompleteFamilyHome.SpouseEnabled) ==
+                "family_home_id_required");
         Check("family home accepts owned unbesieged fortified destination",
             SandboxFamilyHomePolicy.ValidateSettlement(true,true,false,false)=="");
         Check("family home refuses cross-clan siege or village",
