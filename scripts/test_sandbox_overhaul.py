@@ -45,7 +45,11 @@ assert set(["ExecuteIdentity","ExecuteHousehold","ExecuteProgression",
             "ExecuteApplyAndContinue"]).issubset(clicks)
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
-assert "AdvancedStartOptionsManager.CreateCampaignStartOptions()" in src
+assert "SandboxNativeStartOptions.TryPrepare" in src
+aso=(ROOT/"Source/CalradiaUnified/SandboxNativeStartOptions.cs").read_text()
+assert "AdvancedStartOptionsManager.CreateCampaignStartOptions()" in aso
+assert '"Lord": return "vassal"' not in aso or 'case "Lord": return "vassal"' in aso
+assert 'case "Lord": return "vassal"' in aso or 'case "Lord": return "vassal";' in aso or ('case "Lord": return "vassal"' in aso) or ('case "Lord":' in aso and 'case "Knight":' in aso)
 assert "new SandBoxGameManager(" in src
 assert "MBGameManager.StartNewGame(" in src
 assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
