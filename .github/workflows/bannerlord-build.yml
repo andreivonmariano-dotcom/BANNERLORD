@@ -65,6 +65,9 @@ jobs:
       - name: Audit safe native appearance registration, family eligibility and guided fief choices
         shell: pwsh
         run: python scripts/test_face_fief_creator.py
+      - name: Regression check native spouse donors, children and readable UI
+        shell: pwsh
+        run: python scripts/test_family_templates_readable_ui.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
