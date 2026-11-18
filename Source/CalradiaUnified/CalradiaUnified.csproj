@@ -32,9 +32,6 @@
     <Reference Include="TaleWorlds.Localization"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Localization.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.ObjectSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.ObjectSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.SaveSystem" Condition="Exists('$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll')"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.SaveSystem.dll</HintPath><Private>false</Private></Reference>
-    <!-- The native FaceGen stage view is shipped in Sandbox itself. -->
-    <Reference Include="SandBox.View"><HintPath>$(BannerlordGameDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath><Private>false</Private></Reference>
-    <Reference Include="SandBox.GauntletUI"><HintPath>$(BannerlordGameDir)\Modules\SandBox\bin\Win64_Shipping_Client\SandBox.GauntletUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Engine" Condition="Exists('$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll')"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.dll</HintPath><Private>false</Private></Reference>
   </ItemGroup>
 </Project>
