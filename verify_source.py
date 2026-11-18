@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.27.0'
+assert manifest.find('Version').get('value')=='v0.28.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -66,6 +66,9 @@ assert (src/'SandboxFamilyOriginPolicy.cs').exists()
 assert (src/'SandboxGeneratedMarriagePolicy.cs').exists()
 assert (P/'scripts/test_active_generated_marriage.py').exists()
 assert (P/'scripts/test_child_count_native_wizard.py').exists()
+assert (src/'SandboxFamilyHomePolicy.cs').exists()
+assert (src/'SandboxFamilyHome.cs').exists()
+assert (P/'scripts/test_family_home_settlement.py').exists()
 assert (src/'SandboxGeneratedSpouseOrigin.cs').exists()
 assert (P/'scripts/test_family_templates_readable_ui.py').exists()
 assert 'NativeStartingLifeMenus.TryAttach' not in (src/'SandboxOriginBehavior.cs').read_text()
