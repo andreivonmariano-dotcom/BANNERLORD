@@ -20,6 +20,8 @@ assert '"FamilyHomeMode"' in overlay
 assert '"FamilyHomeId"' in overlay
 assert 'SandboxFamilyHomePolicy.Modes' in overlay
 assert 'profile.FamilyHomeMode=="SpecificOwned"' in overlay
+assert "SandboxFamilyHomePolicy.ValidateRequest(" in overlay
+assert "string homeError = " in overlay
 assert "sandbox_creator_family_plan" in overlay
 assert 'string familyHome = family.StartsWith("spouse="' in origin
 assert "SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome)" in origin
