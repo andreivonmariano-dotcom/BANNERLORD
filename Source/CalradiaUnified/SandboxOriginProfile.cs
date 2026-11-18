@@ -31,6 +31,10 @@ namespace CalradiaUnified
             { "Mercy", "Valor", "Honor", "Generosity", "Calculating" };
 
         public bool Enabled;
+        // Dangerous creation actions require three independent opt-ins.
+        public bool NativeStageEnabled;
+        public bool RealFamilyEnabled;
+        public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
         public int Gold = -1;
         public int Influence = -1;
@@ -130,6 +134,15 @@ namespace CalradiaUnified
                 case "Enabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     Enabled = b; return true;
+                case "NativeStageEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    NativeStageEnabled = b; return true;
+                case "RealFamilyEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    RealFamilyEnabled = b; return true;
+                case "RoleAffiliationsEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    RoleAffiliationsEnabled = b; return true;
                 case "Role":
                     if (!Allowed(value, Roles)) return false;
                     Role = value; return true;
@@ -304,6 +317,9 @@ namespace CalradiaUnified
                 "# Family templates and appearance values are prepared; no NPC spawns in v0.16.",
                 "Version=CU_ORIGIN_1",
                 "Enabled=" + Enabled.ToString().ToLowerInvariant(),
+                "NativeStageEnabled=" + NativeStageEnabled.ToString().ToLowerInvariant(),
+                "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
+                "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,
                 "Gold=" + Gold,
                 "Influence=" + Influence,

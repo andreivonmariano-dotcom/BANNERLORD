@@ -335,10 +335,37 @@ internal static class Program
         Check("catalog covers every public configurable value",
             catalogKeys.Count == 64);
         var origin = new SandboxOriginProfile();
+        Check("roles cannot forge king or lord titles",
+            !SandboxRolePolicy.MatchesNativeStatus("King", false, false) &&
+            SandboxRolePolicy.MatchesNativeStatus("King", true, true) &&
+            !SandboxRolePolicy.MatchesNativeStatus("Lord", true, true));
+        Check("role packages have distinct troops and renown",
+            SandboxRolePolicy.BonusRecruits("Wanderer") == 0 &&
+            SandboxRolePolicy.BonusRecruits("Soldier") == 4 &&
+            SandboxRolePolicy.BonusRecruits("Knight") == 2 &&
+            SandboxRolePolicy.BonusRecruits("King") == 8 &&
+            SandboxRolePolicy.StarterRenown("Knight") == 40);
+        Check("native affiliations require explicit opt-in",
+            SandboxRolePolicy.CanRequestAffiliation("Soldier", false, true) &&
+            !SandboxRolePolicy.CanRequestAffiliation("Soldier", true, true) &&
+            !SandboxRolePolicy.CanRequestAffiliation("Soldier", false, false) &&
+            !SandboxRolePolicy.CanRequestAffiliation("King", false, true));
         Check("new sandbox origin disabled by default", !origin.Enabled);
         Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "King") >= 0);
+        Check("three risky v0.17 features remain default-off",
+            !new SandboxOriginProfile().NativeStageEnabled &&
+            !new SandboxOriginProfile().RealFamilyEnabled &&
+            !new SandboxOriginProfile().RoleAffiliationsEnabled);
+        Check("profile opt-ins are strict booleans and survive roundtrip",
+            !origin.TrySet("NativeStageEnabled", "yes") &&
+            origin.TrySet("NativeStageEnabled", "true") &&
+            origin.TrySet("RealFamilyEnabled", "true") &&
+            origin.TrySet("RoleAffiliationsEnabled", "true") &&
+            SandboxOriginProfile.Parse(origin.Serialize()).NativeStageEnabled &&
+            SandboxOriginProfile.Parse(origin.Serialize()).RealFamilyEnabled &&
+            SandboxOriginProfile.Parse(origin.Serialize()).RoleAffiliationsEnabled);
         Check("sandbox default does not replace native treasury",
             origin.Gold == -1 && origin.Influence == -1);
         Check("sandbox reject invalid role", !origin.TrySet("Role", "God"));
