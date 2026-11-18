@@ -144,9 +144,12 @@ namespace CalradiaUnified
                     if (child.IsChild)
                     {
                         if (!SandboxFamilyHomePolicy.CanPlaceMinor(
-                            true,true,true,true))
-                            throw new InvalidOperationException(
-                                "Child home policy rejected a valid minor");
+                            child.Clan == Clan.PlayerClan,correctParents,
+                            noParty,child.IsChild))
+                        {
+                            childrenSkipped++;
+                            continue;
+                        }
                         var nativeState = child.HeroState;
                         // StayingInSettlement persists in the game save,
                         // without altering a minor's NotSpawned lifecycle.
