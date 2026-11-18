@@ -29,7 +29,8 @@ for required in ["ExecuteIdentity","ExecuteFamily","ExecuteProgression",
                  "ExecuteSaveNumber","ExecuteEditText","ExecuteClose"]:
     assert required in commands, required
 assert 'InitialStateOption("CU_Sandbox_Origin"' not in sub
-assert 'OnBeforeInitialModuleScreenSetAsRoot' not in sub
+assert 'OnBeforeInitialModuleScreenSetAsRoot' in sub
+assert 'SandboxMainMenuEntry.Install()' in sub
 assert 'OnCharacterCreationInitializedEvent' in behavior
 assert 'cu_native_sandbox_menu' in behavior
 assert "IsStandaloneSandbox()" in behavior
