@@ -26,13 +26,7 @@ $bins = Join-Path $stage 'bin\Win64_Shipping_Client'
 New-Item -ItemType Directory -Path $bins -Force | Out-Null
 Copy-Item $source (Join-Path $bins 'CalradiaUnified.dll')
 $version = [string]$x.Module.Version.value
-if ($version -notmatch '^v[0-9]+\.[0-9]+\.[0-9]+
-if (Test-Path $package) { Remove-Item $package -Force }
-Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
-if (-not (Test-Path $package)) { throw 'Archive creation failed' }
-Write-Host "Compiled, untested module artifact: $package"
-Write-Host 'Not certified in-game. Do not call this a final release until runtime/save tests pass.'
-) { throw 'Unexpected manifest version.' }
+if ($version -notmatch '^v[0-9]+[.][0-9]+[.][0-9]+$') { throw 'Unexpected manifest version.' }
 $package = Join-Path $root ("CalradiaUnified_" + $version + "_COMPILED_UNTESTED.zip")
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
