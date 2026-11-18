@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#030608EE"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"/>
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="1180"
+                HeightSizePolicy="Fixed" SuggestedHeight="716"
+                HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#111E29FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1174"
+                    HeightSizePolicy="Fixed" SuggestedHeight="710"
+                    PositionXOffset="3" PositionYOffset="3"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#243644FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1150"
+                    HeightSizePolicy="Fixed" SuggestedHeight="94"
+                    PositionXOffset="15" PositionYOffset="15"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#BD9661FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1150"
+                    HeightSizePolicy="Fixed" SuggestedHeight="3"
+                    PositionXOffset="15" PositionYOffset="111"/>
+            <TextWidget Text="@Heading" Color="#FFE6B8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="700"
+                    HeightSizePolicy="Fixed" SuggestedHeight="36"
+                    PositionXOffset="34" PositionYOffset="28"/>
+            <TextWidget Text="@Description" Color="#E8E1D4FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1115"
+                    HeightSizePolicy="Fixed" SuggestedHeight="40"
+                    PositionXOffset="34" PositionYOffset="66"/>
+            <TextWidget Text="@MemberCount" Color="#D9B77EFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="400"
+                    HeightSizePolicy="Fixed" SuggestedHeight="32"
+                    PositionXOffset="36" PositionYOffset="125"/>
+            <ListPanel DataSource="{Members}"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1110"
+                    HeightSizePolicy="Fixed" SuggestedHeight="492"
+                    StackLayout.LayoutMethod="VerticalBottomToTop"
+                    PositionXOffset="34" PositionYOffset="157">
+              <ItemTemplate>
+                <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="1110"
+                    HeightSizePolicy="Fixed" SuggestedHeight="61"
+                    StackLayout.LayoutMethod="HorizontalLeftToRight">
+                  <Children>
+                    <ImageIdentifierWidget DataSource="{Portrait}"
+                        WidthSizePolicy="Fixed" SuggestedWidth="52"
+                        HeightSizePolicy="Fixed" SuggestedHeight="57"
+                        AdditionalArgs="@AdditionalArgs"
+                        ImageId="@Id"
+                        TextureProviderName="@TextureProviderName"/>
+                    <TextWidget Text="@Name" Color="#FFE6B8FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="186"
+                        HeightSizePolicy="Fixed" SuggestedHeight="56"/>
+                    <TextWidget Text="@Relationship" Color="#D7B377FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="111"
+                        HeightSizePolicy="Fixed" SuggestedHeight="56"/>
+                    <TextWidget Text="@Age" Color="#E9E3D6FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="135"
+                        HeightSizePolicy="Fixed" SuggestedHeight="56"/>
+                    <TextWidget Text="@Home" Color="#D9E0E7FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="237"
+                        HeightSizePolicy="Fixed" SuggestedHeight="56"/>
+                    <TextWidget Text="@Parentage" Color="#BCCBDBFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="376"
+                        HeightSizePolicy="Fixed" SuggestedHeight="56"/>
+                  </Children>
+                </ListPanel>
+              </ItemTemplate>
+            </ListPanel>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="1150"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    PositionXOffset="15" PositionYOffset="652"/>
+            <TextWidget Text="REAL HEROES  |  NO PARTY RECRUITMENT  |  NO AGE CHANGES"
+                    Color="#B7C8D7FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="800"
+                    HeightSizePolicy="Fixed" SuggestedHeight="36"
+                    PositionXOffset="35" PositionYOffset="664"/>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="194"
+                    HeightSizePolicy="Fixed" SuggestedHeight="47"
+                    PositionXOffset="944" PositionYOffset="661"
+                    Command.Click="ExecuteClose">
+              <Children>
+                <TextWidget Text="Return to castle"
+                    Color="#FFEED6FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>
