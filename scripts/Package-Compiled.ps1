@@ -23,7 +23,7 @@ Copy-Item (Join-Path $module 'ModuleData') (Join-Path $stage 'ModuleData') -Recu
 $bins = Join-Path $stage 'bin\Win64_Shipping_Client'
 New-Item -ItemType Directory -Path $bins -Force | Out-Null
 Copy-Item $source (Join-Path $bins 'CalradiaUnified.dll')
-$package = Join-Path $root 'CalradiaUnified_v0.9.0_COMPILED_UNTESTED.zip'
+$package = Join-Path $root 'CalradiaUnified_v0.9.1_COMPILED_UNTESTED.zip'
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
 if (-not (Test-Path $package)) { throw 'Archive creation failed' }

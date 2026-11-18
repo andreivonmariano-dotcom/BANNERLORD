@@ -25,3 +25,7 @@ The target game's `CreateCustomPartyWithTroopRoster` and movement adapter compil
 6. Conquer the recipient while the convoy travels. Expect no credit to the lost settlement and removal after arrival or timeout.
 
 **Tracking:** [M1 issue](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2). Status: compiled candidate with C# policy tests passed. Real gameplay, save/load, and movement tests pending.
+
+## v0.9.1 timeout correction
+
+The previous arrival path continued waiting on a full receiving depot even after the convoy timeout elapsed. This could leave an indefinitely parked shipment. The game-facing arrival branch now checks the timeout, destroys the abandoned party, removes the shipment record, and records the remaining cargo loss. The headless simulator exercises the corresponding policy with a full depot. Runtime party cleanup remains a separate Bannerlord test.

@@ -163,8 +163,16 @@ namespace CalradiaUnified
                         TryDestroyConvoy(party);
                         state.Shipments.Remove(shipment);
                     }
-                    // Insufficient depot space: the remaining physical grain stays on the convoy
-                    // and the party remains visible until capacity is freed or timeout expires.
+                    // Insufficient depot space: keep the actual grain aboard until room opens.
+                    // Timeouts must still be enforced for convoys already at their destination.
+                    if (ConvoyPolicy.TimedOut(shipment.DaysRemaining))
+                    {
+                        Log.Write("M1 convoy expired at full destination: party=" +
+                            shipment.PartyId + " lostCargo=" + remainingCargo);
+                        TryDestroyConvoy(party);
+                        state.Shipments.Remove(shipment);
+                        Notice("A supply convoy expired at a full depot. Remaining cargo was lost.");
+                    }
                     continue;
                 }
                 if (ConvoyPolicy.TimedOut(shipment.DaysRemaining))

@@ -45,3 +45,11 @@ Each test report must contain: test ID; build SHA; compiled DLL SHA-256; game ve
 **Gate A/B:** The historical GitHub Actions run [44134919335](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335) passed its configured CI steps for v0.8.0. This does not automatically pass new A/B tests added later.
 
 **Gate C onward:** No evidenced in-game test result is recorded. All gameplay and persistence test IDs are **NOT RUN** until a dated log or direct observation is attached.
+
+## Policy simulation: separate from in-game acceptance
+
+- **SIM-001:** Execute the seeded headless C# campaign simulator for 40 runs of 365 model days with fixed starting seed 157. Preserve the JSON summary and the failing seed on error.
+- **SIM-002:** Validate grain conservation, depot bounds, convoy cargo and expiration, gold/influence balances, recruitment caps, NPC safety decisions and CU4 primitive round trips.
+- **SIM-003:** Treat SIM-001 and SIM-002 as model evidence only. Retain all real C0, D1 and E1 game tests as NOT RUN until an actual Bannerlord session is observed.
+
+See [SIMULATOR.md](SIMULATOR.md).

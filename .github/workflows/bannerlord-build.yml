@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.9 candidate
+name: Calradia Unified 1.5.7 - v0.9.1 simulated and compiled
 on:
   workflow_dispatch:
   push:
@@ -41,6 +41,11 @@ jobs:
         run: |
           dotnet run --project Tests/PolicySmoke/PolicySmoke.csproj --configuration Release --no-restore 2>&1 | Tee-Object -FilePath BuildResults/policy-tests.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Simulate deterministic campaign policies
+        shell: pwsh
+        run: |
+          dotnet run --project Tests/CampaignSimulator/CampaignSimulator.csproj --configuration Release -- --seed 157 --runs 40 --days 365 --json BuildResults/campaign-simulation.json 2>&1 | Tee-Object -FilePath BuildResults/campaign-simulation.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore pinned game references from NuGet
         shell: pwsh
         run: |
@@ -58,13 +63,22 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.9.0-compiled-untested
-          path: Output/CalradiaUnified_v0.9.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.9.1-compiled-untested
+          path: Output/CalradiaUnified_v0.9.1_COMPILED_UNTESTED.zip
           if-no-files-found: error
+      - name: Upload simulation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalradiaUnified-v0.9.1-simulation-report
+          path: |
+            BuildResults/campaign-simulation.json
+            BuildResults/campaign-simulation.log
+          if-no-files-found: ignore
       - name: Upload build diagnostics
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.9.0-build-errors
+          name: CalradiaUnified-v0.9.1-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore
