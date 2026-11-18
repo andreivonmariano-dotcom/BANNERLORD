@@ -1,6 +1,6 @@
 # Calradia Unified v0.13.0: castle finance and manual garrisons
 
-**Target:** Bannerlord PC v1.5.7. **Release status:** compiled candidate only after passing the exact v0.13 CI run; native gameplay and saves require in-game acceptance. No old mod DLLs, no installer, one `Modules/CalradiaUnified` folder.
+**Target:** Bannerlord PC v1.5.7. **Verified Gate B:** [Windows CI run 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394), commit `0f7c194240e0797001abec402127a86357cbc898`, 199 policy checks passed, 14,600 simulated campaign days, zero compiler warnings/errors, ZIP CRC and one-DLL package validated. **Release status: COMPILED_UNTESTED.** Native gameplay and saves still require in-game acceptance. No old mod DLLs, no installer, one `Modules/CalradiaUnified` folder.
 
 ## New in v0.13
 
@@ -23,4 +23,4 @@
 
 Includes depot grain transfers, guarded physical convoy candidate, locally cultured recruitment, bounded clan NPC orders, budgeted garrison training, modeled estate harvests, and exportable finance/crash logs. Game-changing features remain disabled by default pending actual v1.5.7 play tests.
 
-Version provenance is the exact commit and associated GitHub Actions run. Do not equate source tests, simulated campaign days or a Windows reference DLL build with a game-tested release.
+Verified v0.13 module ZIP: [CalradiaUnified-v0.13.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394/artifacts/14401771689). DLL SHA-256: `3a342e8d310f46029ab2974c3e01e752875156a64240efeb3998585d4e8da67b`. Inner module ZIP SHA-256: `ffcd046634498e919b5a465d979cf2af5994f63f11a23e3daeb868ee7f560a5a`. Version provenance is the exact commit and associated GitHub Actions run. Do not equate source tests, simulated campaign days or a Windows reference DLL build with a game-tested release.

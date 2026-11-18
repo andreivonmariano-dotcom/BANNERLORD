@@ -2,7 +2,7 @@
 
 **Version:** 1.0 (18 November 2026)  
 **Target baseline:** Bannerlord PC v1.5.7; War Sails is a separate test track  
-**Status:** v0.11.0 hosted DLL build and estate simulator passed (run 44232872459); game launch, campaign function and persistence remain unverified  
+**Status:** v0.13.0 Windows compile and runtime ZIP verification passed ([run 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394)); game launch, campaign function and persistence remain unverified  
 **Inventory:** 78 unique historical mod IDs, grouped into nine feature areas. Counts per primary milestone are `M0 7`, `M1 7`, `M2 5`, `M3 3`, `M4 4`, `M5 17`, `M6 18`, `M7 17`. M8 and M9 are shared tracks; no IDs are double-counted.
 
 ## Working order
@@ -25,8 +25,8 @@ M0 is the release blocker. Complete the first in-game start/save test before act
 
 **Acceptance tests**
 
-- [ ] A0.1: Source structure, XML manifest and dependency scan pass; no old mod DLLs are distributed.
-- [ ] B0.1: Windows GitHub Actions compiles the current commit and executes independent tests.
+- [x] A0.1: Source structure, XML manifest and dependency scan pass; no old mod DLLs are distributed. Gate A evidence: [run 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394).
+- [x] B0.1: Windows GitHub Actions compiles the v0.13 code candidate and executes independent tests. Gate B evidence: [run 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394); game tests still pending.
 - [ ] C0.1: Launcher detects the module; a new campaign launches on the pinned Bannerlord build.
 - [ ] E0.1: Save, exit, relaunch and reload on the same build without lost data or event duplication.
 - [ ] E0.2: Regress Mission.SpawnAgent and LeaveSettlementAction.ApplyForParty transitions without reproducible mod faults.

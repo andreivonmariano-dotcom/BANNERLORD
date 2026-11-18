@@ -1,6 +1,6 @@
 # v0.13 castle economy and manual garrison controls
 
-**Target:** Bannerlord PC v1.5.7, `Bannerlord.ReferenceAssemblies 1.5.7.125802`. **Status:** source candidate, Gate B only after hosted CI. In-game behavior and save reliability are not verified.
+**Target:** Bannerlord PC v1.5.7, `Bannerlord.ReferenceAssemblies 1.5.7.125802`. **Status:** COMPILED_UNTESTED, Gate B verified by [GitHub Actions 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394) for commit `0f7c194240e0797001abec402127a86357cbc898`. The CI run passed 199 policy tests, ranking validation, ZIP integrity, 40 modeled campaigns and reference-DLL compilation with zero warnings/errors. In-game behavior and save reliability are not verified.
 
 ## New source behavior
 
