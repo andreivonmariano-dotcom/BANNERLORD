@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Fief and Face Stage Prototype" />
+  <Name value="Calradia Unified - Crash-safe Guided Sandbox Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.22.0" />
+  <Version value="v0.23.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
