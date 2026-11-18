@@ -84,16 +84,23 @@ namespace CalradiaUnified
             int cap = WageBudgetFor(castle, castles);
             int net = FeudalBudgetPolicy.ProjectedBalance(income,
                 fieldShare, actualGarrisonWages, settings.EstateOtherCostsReserve, 0);
+            int required = CastleManagementPolicy.RequiredIncome(fieldShare,
+                actualGarrisonWages, settings.EstateOtherCostsReserve,
+                settings.EstateTargetDailySurplus);
+            int shortfall = CastleManagementPolicy.ModeledShortfall(income, required);
             Notice("Estate forecast for " + castle.Name + ": model income ~" +
                 income + "/day, clan field wage share " + fieldShare +
                 ", actual garrison wages " + actualGarrisonWages +
                 ", other-expense allowance " + settings.EstateOtherCostsReserve +
                 ", projected balance " + net + ", proposed garrison wage cap " +
-                cap + ". This is NOT the game's exact tax or clan balance.");
+                cap + ", minimum modeled income required " + required +
+                ", modeled shortfall " + shortfall +
+                ". This is NOT the game's exact tax or clan balance.");
             Log.Write("M1 fiscal forecast estate=" + castle.StringId +
                 " modeledIncome=" + income + " fieldShare=" + fieldShare +
                 " actualGarrisonWages=" + actualGarrisonWages +
-                " proposedCap=" + cap + " projectedNet=" + net);
+                " proposedCap=" + cap + " projectedNet=" + net +
+                " incomeRequired=" + required + " modeledShortfall=" + shortfall);
         }
 
         private void TickFeudalEstates()

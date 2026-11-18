@@ -1,0 +1,79 @@
+rank,module_id,original_name,archive_version,feature_area,gameplay_value,engineering_effort,compatibility_risk,existing_source_reuse,priority_score,phase,reason,verification
+1,RealisticTownIncome,Realistic Town Income,v1.0.0,"Economy, politics and settlements",5,2,1,3,26,EARLY_AFTER_M0,Observed castle expenses versus estimated income and affordability,HISTORICAL_UNVERIFIED
+2,ImprovedGarrisons,Improved Garrisons,v4.2.0.7,"Campaign AI, garrisons and sieges",5,3,2,3,20,EARLY_AFTER_M0,"Player-directed local troop transfers, garrison wages, and defense",HISTORICAL_UNVERIFIED
+3,RealisticRecruitment,Realistic Recruitment,v1.3.0,Recruitment and troop progression,5,3,2,3,20,EARLY_AFTER_M0,Existing native-culture recruiting and daily limits,HISTORICAL_UNVERIFIED
+4,ClanRankings,Clan Rankings,v0.2.0,"Economy, politics and settlements",4,2,1,2,18,EARLY_AFTER_M0,Read-only clan comparisons and campaign information,HISTORICAL_UNVERIFIED
+5,ImmersiveRecruitCommoners,Immersive Recruit Commoners,v2.2.1,Recruitment and troop progression,4,3,2,2,12,EARLY_AFTER_M0,Commoner recruitment and progression after native roster testing,HISTORICAL_UNVERIFIED
+6,TavernkeeperReach,Tavernkeeper Reach,v1.0.0,"Economy, politics and settlements",4,3,2,2,12,EARLY_AFTER_M0,Existing aid and logistics ledgers without invented carriers,HISTORICAL_UNVERIFIED
+7,RealisticTroopCosts,Realistic Troop Costs,v1.5.0,"Combat, tactics and equipment",4,2,2,1,11,MID,Transparent troop recruitment and wage costs,HISTORICAL_UNVERIFIED
+8,AfterTheBattle,After the Battle,v1.1.0,"Campaign AI, garrisons and sieges",4,3,3,2,8,MID,Post-battle handling after mission transition regressions,HISTORICAL_UNVERIFIED
+9,Promoted,Promoted,v1.1.7,"Campaign AI, garrisons and sieges",4,3,3,1,5,MID,NPC advancement and safe campaign-event timing,HISTORICAL_UNVERIFIED
+10,RealisticBattleLoot,Realistic Battle Loot,v1.1.0,"Combat, tactics and equipment",4,3,3,1,5,MID,Loot changes after mission and inventory regression,HISTORICAL_UNVERIFIED
+11,RealisticPrisoner,RealisticPrisoner,v1.9.3,"Economy, politics and settlements",4,3,3,1,5,MID,Prisoner economy and release actions,HISTORICAL_UNVERIFIED
+12,BetterTime,Better Time,v1.1.3,"UI, interface and immersion",3,2,2,0,3,LATER,UI speed controls after pause and save/load checks,HISTORICAL_UNVERIFIED
+13,CampaignImprovements,Kingdoms Alive - Campaign and Diplomacy Overhaul,v1.19.0,"Campaign AI, garrisons and sieges",5,5,5,2,1,LATER,Broad AI and diplomacy behavior requires isolated testing,HISTORICAL_UNVERIFIED
+14,SpearPreference,Troops Prefer Spears,v1.6.2,"Combat, tactics and equipment",4,3,4,0,-2,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+15,CleanHUD,Clean HUD,v1.0.0,"UI, interface and immersion",2,2,2,0,-2,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+16,HorseCounter,HorseCounter,v1.2.0,"UI, interface and immersion",2,2,2,0,-2,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+17,EarnYourBanner,EarnYourBanner,v1.2.1,Banners and heraldry,3,3,3,0,-3,DEFER,Needs asset licensing and mission cue testing,HISTORICAL_UNVERIFIED
+18,HeroPathAutoBuildAssignment,HeroPathAutoBuildAssignment,v1.0.4,Recruitment and troop progression,3,3,3,0,-3,DEFER,"Protect culture IDs, upgrade routes and recruiting costs",HISTORICAL_UNVERIFIED
+19,HideEnemyHUD,Realistic Enemy Detection,v1.1.0,"UI, interface and immersion",3,3,3,0,-3,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+20,AlternateStart,Alternate Start,v1.0.0,Recruitment and troop progression,4,4,4,0,-4,DEFER,"Protect culture IDs, upgrade routes and recruiting costs",HISTORICAL_UNVERIFIED
+21,RealisticRetreat,Realistic Retreat,v1.0.1,"Combat, tactics and equipment",4,4,4,0,-4,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+22,SiegeAftermath,Siege Aftermath,v0.1.0,"Campaign AI, garrisons and sieges",4,4,4,0,-4,DEFER,"Respect native army ownership, siege states and save transitions",HISTORICAL_UNVERIFIED
+23,TraitsOfCalradia,Traits of Calradia,v1.0.10,Recruitment and troop progression,4,4,4,0,-4,DEFER,"Protect culture IDs, upgrade routes and recruiting costs",HISTORICAL_UNVERIFIED
+24,HistoricalNameExpansion,Historical Name Expansion,v1.1.9,"Characters, identities and social simulation",2,3,2,0,-4,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+25,RBM,(RBM) Realistic Battle Mod Bannerlord,v4.5.4,"Combat, tactics and equipment",5,5,5,0,-5,DEFER,"Large mission, combat and equipment rewrite",HISTORICAL_UNVERIFIED
+26,ReinforcementSystem,Reinforcement System,v2.4.8,"Combat, tactics and equipment",5,5,5,0,-5,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+27,SiegeAIFix,SiegeAIFix,v1.9.6,"Campaign AI, garrisons and sieges",5,5,5,0,-5,DEFER,Siege AI and mission transitions carry high compatibility risk,HISTORICAL_UNVERIFIED
+28,LessMenusMoreImmersion,LessMenusMoreImmersion,v1.7.0,"UI, interface and immersion",3,3,4,0,-7,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+29,NoMorePowerBar,NoMorePowerBar,v1.0.0,"UI, interface and immersion",3,3,4,0,-7,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+30,BetterPikes,Better Pikes,v1.4.18,"Combat, tactics and equipment",4,4,5,0,-8,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+31,BetterSaveLoad,Better Save/Load,v1.0.3,"UI, interface and immersion",4,4,5,0,-8,DEFER,Save-screen changes require rigorous persistence testing,HISTORICAL_UNVERIFIED
+32,RealisticAutoResolve,Realistic Auto Resolve,v1.0.0,"Combat, tactics and equipment",4,4,5,0,-8,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+33,SiegeCommandMenu,Siege Command Menu,v1.0.4,"Campaign AI, garrisons and sieges",4,4,5,0,-8,DEFER,Historical departure patch collision requires version-specific testing,HISTORICAL_UNVERIFIED
+34,RandomBodies,Random Bodies,v2.1.1,"Characters, identities and social simulation",2,3,3,0,-8,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+35,BattleInstinct,Battle Instinct,v0.7.4,"Combat, tactics and equipment",3,4,4,0,-9,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+36,ComplexCharacters,Complex Characters,v1.0.7,"Characters, identities and social simulation",3,4,4,0,-9,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+37,DefendYourself,DefendYourself,v1.4.1,"Combat, tactics and equipment",3,4,4,0,-9,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+38,FeelTheHit,FeelTheHit,v1.0.0,"Combat, tactics and equipment",3,4,4,0,-9,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+39,GrowBeard,Grow Beard,v1.0.4,"Characters, identities and social simulation",3,4,4,0,-9,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+40,HorseCall,Horse Call Edit,v2.3.1,"Combat, tactics and equipment",3,4,4,0,-9,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+41,RaiseYourBanner,Raise your Banner,v16.1.7,Banners and heraldry,3,4,4,0,-9,DEFER,Needs asset licensing and mission cue testing,HISTORICAL_UNVERIFIED
+42,CulturalKingdoms_Naval,Cultural Kingdoms - War Sails,v1.4.0,"Economy, politics and settlements",4,5,5,0,-10,DEFER,Naval expansion integration requires its exact version,HISTORICAL_UNVERIFIED
+43,DynamicWarBanks,Dynamic War Banks,v1.7.1.7,"Economy, politics and settlements",4,5,5,0,-10,DEFER,Separate observed settlement resources from hypothetical policy changes,HISTORICAL_UNVERIFIED
+44,FaithsOfCalradia,Faiths of Calradia,v1.0.16,"Economy, politics and settlements",4,5,5,0,-10,DEFER,Separate observed settlement resources from hypothetical policy changes,HISTORICAL_UNVERIFIED
+45,LivingPersonasAI,Living Personas,v1.0.0,"Characters, identities and social simulation",4,5,5,0,-10,DEFER,Earlier SpawnAgent failure makes mission-agent hooks high risk,HISTORICAL_UNVERIFIED
+46,MultiDayBattles,Multi-Day Battles: No More Trickle Reinforcements,v1.1.0,"Combat, tactics and equipment",4,5,5,0,-10,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+47,RBM_WS,(RBM WS) Realistic Battle Mod War Sails Submod,v4.5.4,"Combat, tactics and equipment",4,5,5,0,-10,DEFER,Naval expansion integration distinct from base-game compilation,HISTORICAL_UNVERIFIED
+48,CharacterReload,Character Reload,e1.4.8.0,"Characters, identities and social simulation",3,5,4,0,-11,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+49,SpeedTweak,Party Speed Tweakable,v2.2.1,"UI, interface and immersion",2,3,4,0,-12,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+50,Dynamic Troop Equipment Reupload,DynamicTroopReupload,v1.4.7.5,"Combat, tactics and equipment",3,4,5,0,-13,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+51,HorsesDie,HorsesDie,v1.10.1,"Combat, tactics and equipment",3,4,5,0,-13,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+52,ImTired,ImTired,v4.9.0,"Characters, identities and social simulation",3,4,5,0,-13,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+53,XingyuHairstyleExpansion,Xingyu’s Hairstyle Expansion,v1.0.0,"Characters, identities and social simulation",3,4,5,0,-13,DEFER,Validate hero lifecycle and saved character state,HISTORICAL_UNVERIFIED
+54,BannerFix,Banner Fix Performance,v3.3.6,Banners and heraldry,2,4,4,0,-14,DEFER,Needs asset licensing and mission cue testing,HISTORICAL_UNVERIFIED
+55,Bannerlord.EykonalBanners.Cross,Eykonal's Banners - Crosses,v2.3.0,Banners and heraldry,2,4,4,0,-14,DEFER,Needs asset licensing and mission cue testing,HISTORICAL_UNVERIFIED
+56,DismembermentPlus,Dismemberment (Plus) for v1.4.8,v2.0.8.8,"Combat, tactics and equipment",3,5,5,0,-15,DEFER,"Test mission entry, damage and battle transitions before acceptance",HISTORICAL_UNVERIFIED
+57,PerformanceOptimizer,Performance Optimizer,v1.6.0,"UI, interface and immersion",3,5,5,0,-15,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+58,XorberaxLegacy,Xorberax's Legacy for v1.4.8,v1.0.8.8,"UI, interface and immersion",3,5,5,0,-15,DEFER,Restrict changes to documented UI entry points and resolution tests,HISTORICAL_UNVERIFIED
+59,AliveScenes,Alive Scenes,v1.2.0,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+60,Horses,Horses,v1.0.7,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+61,Illumina,Illumina,v1.0.1,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+62,ImmersiveBattlefields,Immersive Battlefields,v3.6.2,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+63,PerfectFireArrows,Perfect Fire Arrows,v6.8.1,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+64,ProceduralScenes,Procedural Scenes,v1.0.1,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+65,RaiseYourTorch,Raise your Torch,v7.2.9,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+66,TownHorseMod,Town Horse,v1.0.0,"Visuals, scene assets and animation",2,5,4,0,-16,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+67,gfrontsMoreBattleShouts,More Battle Shouts,v1.0.5,Banners and heraldry,2,4,5,0,-18,DEFER,Needs asset licensing and mission cue testing,HISTORICAL_UNVERIFIED
+68,ArtemsLivelyAnimations,ArtemsLivelyAnimations,v1.3.4,"Visuals, scene assets and animation",2,5,5,0,-20,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+69,BattlefieldImmersionScoutingFog,BattlefieldImmersionScoutingFog,v1.4.4,"Visuals, scene assets and animation",2,5,5,0,-20,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+70,LargePartyVisuals,Large Party Visuals,v0.1.0,"Visuals, scene assets and animation",2,5,5,0,-20,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+71,TownHorseFixPatch,Town Horse Fix Patch,v1.0.0,"Visuals, scene assets and animation",2,5,5,0,-20,DEFER,Requires version-correct assets and reuse rights,HISTORICAL_UNVERIFIED
+72,Bannerlord.ButterLib,ButterLib,v2.12.0,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+73,Bannerlord.Harmony,Harmony,v2.4.2.248,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+74,Bannerlord.MBOptionScreen,Mod Configuration Menu v5,v5.13.1,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+75,Bannerlord.UIExtenderEx,UIExtenderEx,v3.0.3,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+76,CrashDoctor,Crash Doctor,v1.9.1.4,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+77,PrystBase,Pryst Base,v1.5.0,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED
+78,UFO148,UFO's Cheat Mods Bundle [1.4.8],v1.0.18,Foundation and mod infrastructure,1,5,5,0,-25,DEFER,"Replace only required functionality with local code, not historical framework DLLs",HISTORICAL_UNVERIFIED

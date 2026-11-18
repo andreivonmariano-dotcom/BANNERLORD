@@ -38,7 +38,7 @@ namespace CalradiaUnified
         private void OnLaunch(CampaignGameStarter starter)
         {
             if (settings.EnableDiagnostics)
-                DiagnosticJournal.Event("campaign_session_launched", "version=0.12.0");
+                DiagnosticJournal.Event("campaign_session_launched", "version=0.13.0");
             if (starter == null) return;
             foreach (var menu in new[] { "town", "castle" })
                 starter.AddGameMenuOption(menu, "cu_export_diagnostics",
@@ -124,6 +124,14 @@ namespace CalradiaUnified
                     N(playerTroops), N(playerGold), goldDelta, N(estimate),
                     N(suggested), N(modelNet), "", "", "",
                     "garrison_limit=" + castle.GarrisonWagePaymentLimit +
+                    "|modeled_required_income=" +
+                    CastleManagementPolicy.RequiredIncome(share, garrisonWages,
+                        settings.EstateOtherCostsReserve,
+                        settings.EstateTargetDailySurplus) +
+                    "|modeled_shortfall=" + CastleManagementPolicy.ModeledShortfall(
+                        estimate, CastleManagementPolicy.RequiredIncome(share,
+                        garrisonWages, settings.EstateOtherCostsReserve,
+                        settings.EstateTargetDailySurplus)) +
                     "|forecast_not_native_tax");
             }
             // Summary row is logged even without owned castles.

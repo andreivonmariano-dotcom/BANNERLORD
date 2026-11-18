@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.12.0'
+assert manifest.find('Version').get('value')=='v0.13.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -46,6 +46,12 @@ assert 'LocalRecruitmentPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj')
 assert 'GarrisonTrainingPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'GarrisonTrainingPolicy.cs' in (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').read_text()
 assert 'FeudalBudgetPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'CastleManagementPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'RegisterCastleManagementMenu' in (src/'CivicBehavior.cs').read_text()
+assert 'CastleManagementPolicy.CanMove' in (src/'CivicBehavior.CastleManagement.cs').read_text()
+assert 'CastleManagementPolicy.CanApplyCap' in (src/'CivicBehavior.CastleManagement.cs').read_text()
+assert 'EnableManualGarrisonTransfers=false' in conf
+assert 'EnableManualGarrisonWageCaps=false' in conf
 assert 'DiagnosticJournal.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'new DiagnosticBehavior(config)' in (src/'SubModule.cs').read_text()
 assert 'DiagnosticJournal.Exception' in (src/'CivicBehavior.cs').read_text()
@@ -77,5 +83,10 @@ assert checks.count('Check(')>122
 with open(P/'Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv',encoding='utf-8-sig',newline='') as f:
     rows=list(csv.DictReader(f))
 assert len(rows)==78,len(rows)
+with open(P/'Data/Reconstruction_Priority_78.csv',encoding='utf-8-sig',newline='') as f:
+    priorities=list(csv.DictReader(f))
+assert len(priorities)==78
+assert len({r['module_id'] for r in priorities})==78
+assert [int(r['rank']) for r in priorities]==list(range(1,79))
 assert all(r['v157_source_port_status']=='NOT REBUILT' for r in rows)
 print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compilation':'not assessed by static checker','runtime_tested':'not assessed'},indent=2))
