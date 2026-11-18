@@ -139,8 +139,9 @@ namespace CalradiaUnified
                         "|narrative_stage=" + narrativeStage +
                         "|review_stage=" + reviewStage +
                         "|view_resolution=not_inspected" +
-                        "|cu_stage_registration=disabled" +
-                        "|stage_changes=none");
+                        "|cu_native_review_appended=" +
+                        (manager.GetStage<CUNativeOriginReviewStage>() != null) +
+                        "|face_view_replacement=false");
                     foreach (var menu in manager.NarrativeMenus)
                     {
                         if (menu == null) continue;
@@ -166,7 +167,9 @@ namespace CalradiaUnified
             public void OnCharacterCreationFinalize(CharacterCreationManager manager)
             {
                 DiagnosticJournal.Event("cu_native_sandbox_finish",
-                    "native_handler_finished=true|no_custom_ui");
+                    "native_handler_finished=true" +
+                    "|native_review_opt_in=" +
+                    (manager.GetStage<CUNativeOriginReviewStage>() != null));
             }
         }
 
