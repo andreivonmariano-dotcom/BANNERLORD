@@ -82,12 +82,26 @@ namespace CalradiaUnified
                 // GauntletCampaignStartingOptionsView.OnConfirm.
                 // The game then owns its normal cinematic and character
                 // creation finalization stages.
-                var options = AdvancedStartOptionsManager.CreateCampaignStartOptions();
+                var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
+                SandBox.AdvancedStartOptions.AdvancedStartOptions options;
+                string reason;
+                if (!profile.Enabled ||
+                    !SandboxNativeStartOptions.TryPrepare(profile,out options,out reason))
+                {
+                    DiagnosticJournal.Event("sandbox_direct_game_start_refused",
+                        "profile_enabled=" + profile.Enabled + "|reason=" + reason);
+                    return;
+                }
+                // This creates the actual native King/Vassal/Mercenary/etc.
+                // starting data, rather than the former empty default start.
+                var gameOptions = options.GetChangedOptions();
                 MBGameManager.StartNewGame(new SandBoxGameManager(
-                    () => new Campaign(CampaignGameMode.Campaign,
-                        options.GetChangedOptions())));
+                    () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
-                    "route=default|native_start_selector_skipped=true");
+                    "role=" + profile.Role + "|type=" +
+                    SandboxNativeStartOptions.StartTypeForRole(profile.Role) +
+                    "|kingdom=" + profile.StartingKingdomId +
+                    "|scenario=" + profile.StartingScenario);
             }
             catch (Exception error)
             {
@@ -236,8 +250,11 @@ namespace CalradiaUnified
             {
                 new Field("Identity","Role","Starting role","choice",
                     choices:SandboxOriginProfile.Roles),
+                new Field("Identity","StartingKingdomId",
+                    "Starting kingdom (required for Lord, King, Soldier and Knight)",
+                    "choice",choices:SandboxOriginProfile.KingdomIds),
                 new Field("Identity","StartingCulture",
-                    "Preferred culture (confirm in native appearance stage)",
+                    "Preferred culture (still confirmed in native creation)",
                     "choice",choices:new[]{"","empire","vlandia","sturgia",
                         "aserai","khuzait","battania"}),
                 new Field("Identity","PlayerAge",
@@ -269,7 +286,28 @@ namespace CalradiaUnified
                 new Field("Resources","Troops",
                     "Additional native-culture recruits","number",0,50),
                 new Field("Location","StartingTown",
-                    "Preferred starting settlement ID","text"),
+                    "Preferred starting settlement ID (relocation not implemented)","text"),
+                new Field("Location","StartingScenario",
+                    "Native world scenario","choice",
+                    choices:SandboxOriginProfile.Scenarios),
+                new Field("Location","ScenarioFaction1",
+                    "World scenario faction 1 / unifier","choice",
+                    choices:SandboxOriginProfile.KingdomIds),
+                new Field("Location","ScenarioFaction2",
+                    "Two-Faction War second faction","choice",
+                    choices:SandboxOriginProfile.KingdomIds),
+                new Field("Location","ScenarioVariant",
+                    "Alternate Calradia variation","choice",
+                    choices:new[]{"alternativecalradiadefault",
+                        "alternativecalradiafractured",
+                        "alternativecalradiashattered"}),
+                new Field("Location","WorldSeed",
+                    "Optional world seed (-1 keeps random)","number",0,2000000000),
+                new Field("Location","StartFastMode","Advanced: fast mode","boolean"),
+                new Field("Location","StartBanditSurge","World: bandit surge","boolean"),
+                new Field("Location","StartCivilUnrest","World: civil unrest","boolean"),
+                new Field("Location","StartRecruitShortage","World: recruit shortage","boolean"),
+                new Field("Location","StartSwiftTravel","World: swift travel","boolean"),
                 new Field("Review","RealFamilyEnabled",
                     "EXPERIMENTAL: create real spouse and children","boolean"),
                 new Field("Review","RoleAffiliationsEnabled",
@@ -401,13 +439,13 @@ namespace CalradiaUnified
         {
             get
             {
-                if (page=="Identity") return "Choose your own Calradian identity. King and Admiral are experimental, not instant titles.";
-                if (page=="Household") return "Plan a spouse, children or siblings. Actual hero creation requires separate consent.";
+                if (page=="Identity") return "Choose your actual native start. Lord means Vassal with a kingdom; King uses the engine's royal start. Admiral requires naval content.";
+                if (page=="Household") return "Spouse and children are created as native heroes after character creation. Siblings need existing native parents.";
                 if (page=="Progression") return "Set attributes, 18 skills, focus and personality traits for your new character.";
                 if (page=="Equipment") return "Select a kit theme and exact existing game item IDs.";
                 if (page=="Resources") return "Set your treasury, influence and basic native-culture recruits.";
-                if (page=="Location") return "Record the town where you want to start. Actual relocation is pending.";
-                return "Review the profile, opt in to risky actions only on a disposable campaign, then apply.";
+                if (page=="Location") return "Choose native world scenarios, factions, seed and modifiers. Town relocation is not implemented.";
+                return "Review your real start, kingdom and family choices. Apply launches that native scenario; a save test is still required.";
             }
         }
         [DataSourceProperty] public string SelectedLabel
@@ -474,10 +512,14 @@ namespace CalradiaUnified
         {
             get
             {
-                return profile.Role+" | "+(profile.SpouseEnabled ? "married" : "independent")+
+                return profile.Role+" | kingdom: "+
+                    (String.IsNullOrEmpty(profile.StartingKingdomId) ?
+                        "none":profile.StartingKingdomId)+
+                    " | spouse: "+(profile.SpouseEnabled ? "requested" : "no")+
                     " | children: "+profile.ChildCount+
-                    " | gold: "+(profile.Gold<0 ? "native":profile.Gold.ToString())+
-                    " | family creation: "+(profile.RealFamilyEnabled?"EXPERIMENTAL":"off");
+                    " | family: "+(profile.RealFamilyEnabled ?
+                        "requested":"off")+
+                    " | native ASO: "+profile.StartingScenario;
             }
         }
 
@@ -575,7 +617,8 @@ namespace CalradiaUnified
         public void ExecuteUseNative()
         {
             if(Current!=null && (Current.Key=="Gold"||
-                Current.Key=="Influence"||Current.Key=="PlayerAge"))
+                Current.Key=="Influence"||Current.Key=="PlayerAge" ||
+                Current.Key=="WorldSeed"))
                 Write(Current.Key,"-1");
         }
         public void ExecuteEditText()
@@ -593,7 +636,30 @@ namespace CalradiaUnified
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
             candidate.Enabled=true;
             candidate.NativeStageEnabled=false;
+            // A deliberate spouse/children choice is an actual native family
+            // request. Do not leave users with a decorative family profile.
+            candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
+                candidate.ChildCount > 0 || candidate.SiblingCount > 0;
             string error;
+            if (candidate.ChildCount > 0 && !candidate.SpouseEnabled)
+            {
+                SetStatus("Children require a selected spouse in this build.");
+                return;
+            }
+            if (candidate.SiblingCount > 0)
+            {
+                SetStatus("Siblings need native parent heroes and are not " +
+                    "available at fresh Sandbox start. Set sibling count to zero.");
+                return;
+            }
+            if (!SandboxNativeStartOptions.TryPrepare(candidate,
+                out SandBox.AdvancedStartOptions.AdvancedStartOptions plan,
+                out error))
+            {
+                SetStatus(error);
+                DiagnosticJournal.Event("sandbox_creator_profile_refused",error);
+                return;
+            }
             if(!candidate.Save(SandboxOriginProfile.UserPath,out error))
             {
                 SetStatus("Profile not activated: "+error+
@@ -603,7 +669,10 @@ namespace CalradiaUnified
             profile=candidate;
             SandboxCreatorOverlay.Accept();
             DiagnosticJournal.Event("sandbox_overhaul_accepted",
-                "role="+profile.Role+"|hand_off=native_appearance_and_finish");
+                "role="+profile.Role+
+                "|kingdom="+profile.StartingKingdomId+
+                "|family_requested="+profile.RealFamilyEnabled+
+                "|hand_off=native_appearance_and_finish");
             if(close!=null) close();
         }
 
