@@ -34,3 +34,7 @@ Starting families support a single parent with children, a spouse and children, 
 ## Not showing in the Bannerlord launcher?
 
 The GitHub Actions download contains a ZIP file inside another ZIP. Extract the outer artifact, then extract `CalradiaUnified_v0.16.0_COMPILED_UNTESTED.zip` into the actual installed Bannerlord game root. The final manifest must be `Modules/CalradiaUnified/SubModule.xml`. The project now includes a checked installer and clear manual steps in [launcher troubleshooting](docs/INSTALLATION_TROUBLESHOOTING.md). Check the Singleplayer > Mods tab after fully restarting the launcher. This addresses file placement, not game runtime testing.
+
+## Module recognized, but DLL cannot load?
+
+The launcher has found the manifest. Verify the DLL is present and unblocked, then compare your installed Native version with the compiled v1.5.7 target. Run scripts/Diagnose-CU-LoadFailure.ps1 against the actual game directory to inspect the exact installed CLR DLL, hash and game engine version. No other framework DLLs are declared. The v0.16 runtime preflight version check is now corrected.

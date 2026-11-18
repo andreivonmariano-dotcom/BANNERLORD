@@ -120,6 +120,18 @@ jobs:
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
           if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
           Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
+      - name: Test installed DLL load-failure diagnostics
+        shell: pwsh
+        run: |
+          $fake = Join-Path (Get-Location) "BuildResults/FakeBannerlord"
+          $json = Join-Path (Get-Location) "BuildResults/ci-loader-diagnosis.json"
+          ./scripts/Diagnose-CU-LoadFailure.ps1 -GameRoot $fake -OutJson $json
+          $report = Get-Content -LiteralPath $json -Raw | ConvertFrom-Json
+          if (-not $report.dll_present) { throw "Mod DLL was missing after installer smoke test" }
+          if ($report.module_version -ne "v0.16.0") { throw "Wrong installed version" }
+          if ($report.clr_identity -notlike "CalradiaUnified,*") { throw "Invalid DLL assembly metadata" }
+          if ($report.dll_bytes -le 1024) { throw "Unexpected DLL size" }
+          Write-Output "PASS: installed module DLL, CLR metadata and load report"
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:

@@ -32,3 +32,7 @@ Example command from the repository root, replacing both paths with your own:
 Confirm that `SubModule.xml` is not `SubModule.xml.txt` and sits directly inside `CalradiaUnified`. Confirm the game root contains `Modules/Native` and belongs to the installed launcher, not an older installation. Completely exit the launcher and reopen it. Send the absolute `SubModule.xml` file path and a screenshot of the Singleplayer Mods list to distinguish path and parsing failures.
 
 Correct file placement proves only installation. The new Sandbox UI and runtime changes still require v1.5.7 game testing.
+
+## Launcher lists the module but fails to load its DLL
+
+This is different from the mod being absent. Check whether the CalradiaUnified.dll exists in its exact bin/Win64_Shipping_Client path. Right-click Properties and use Unblock if the downloaded DLL is marked by Windows. Confirm the Native game module is v1.5.7. Run scripts/Diagnose-CU-LoadFailure.ps1 with -GameRoot to record the actual DLL identity, bytes, hash, game version and missing engine DLL names. These checks do not prove the mod can load or that third-party frameworks are needed.
