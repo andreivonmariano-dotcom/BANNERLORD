@@ -8,6 +8,8 @@
 - **v0.9.0 compiled candidate:** [GitHub Actions run 44144214378](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44144214378) passed source validation, feature traceability checks, 143 independent C# policy checks, game-referenced compilation, and runtime ZIP packaging. The compiled DLL from that exact run has SHA-256 `dbd36730a810f62e2770fb882bae8deabeafa3518abf1ae09cd94de76b98d1ec`. Game startup and save/load remain untested.
 - Feature switches that mutate gameplay remain disabled by default. A successful new CI run confirms compilation and policy-test execution only.
 
+**Simulator evidence:** [v0.9.1 GitHub Actions run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032) completed 40 seeded policy-world campaigns (14,600 modeled days, 154,714 checks), alongside 143 prior pure C# policy tests and a successful DLL compile (0 compiler errors, 0 warnings). [Download simulation JSON/report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393492219). This is **model-only** verification and has no real game startup, pathfinding or save/load result.
+
 ## Campaign policy simulation
 
 New in v0.9.1: [headless seeded campaign simulator](docs/SIMULATOR.md). It runs the production C# policy classes for depot capacity, convoy cargo, abstract shipments, resource conservation, troop costs, NPC decision safety and CU4 state round trips across thousands of modeled campaign days. GitHub Actions runs it before compiling the DLL and publishes a JSON report. The game-facing convoy now expires even if parked at an overfull destination.

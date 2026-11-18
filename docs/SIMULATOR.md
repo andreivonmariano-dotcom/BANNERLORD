@@ -37,3 +37,17 @@ Use [M0_TEST_PROCEDURE.md](M0_TEST_PROCEDURE.md) for launcher, startup and actua
 ## Evidence and status
 
 A passed simulation demonstrates only that the selected invariants held in the modeled sequences for the source revision and seeds tested. It cannot prove the model accurately represents every game-state transition. Record simulator results beside, not in place of, real Bannerlord test results.
+
+## First verified hosted simulator run
+
+The following report is tied to commit \`3bf3f1d99f828611b829312128c3a7c3374db37e\` and [GitHub Actions run 44227235032](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032).
+
+- **Result:** PASS. All configured build and simulation stages completed.
+- **Inputs:** starting seed 157; 40 independent seeded worlds; 365 simulated days per world.
+- **Scope:** 14,600 modeled world-days and 154,714 checks, including 10 deterministic edge examples.
+- **Prior policy suite:** 143 executable pure C# policy checks passed.
+- **Compile:** the v0.9.1 DLL compiled with 0 warnings and 0 errors.
+- **Evidence:** [simulation-report artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393492219) contains the JSON report and console log. The [compiled-untested module artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393591779) is separate.
+- **Highest gate reached:** B. No game-engine startup, actual MobileParty, Taleworlds campaign save/load, combat or scene test ran.
+
+**Caveat:** The current model abstracts NPC party routing, vanilla battle events, settlements and cargo ownership. It detects policy and accounting inconsistencies under the modeled conditions. The numerical check count measures executed model assertions, not unique game features.
