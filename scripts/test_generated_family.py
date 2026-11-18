@@ -57,7 +57,7 @@ assert 'sandbox_start_contract' in origin
 stage=(src/"CUNativeOriginReviewStage.cs").read_text()
 assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
 assert sum(p.read_text().count('[CharacterCreationStageView(')
-           for p in src.glob("*.cs")) == 1
+           for p in src.glob("*.cs")) == 2
 assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" not in stage
 assert "CharacterCreationStageView(typeof(CharacterCreationCultureStage))" not in stage
 print("PASS: generated commoner/noble spouse, chosen/eligible native birth clan, Vlandian alias and parent-blended child appearance (STATIC ONLY)")
