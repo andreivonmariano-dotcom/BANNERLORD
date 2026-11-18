@@ -22,8 +22,8 @@ namespace CalradiaUnified
                 Clan.PlayerClan == null) return "not_enabled";
             // Automatic selection avoids a same-sex default when the player's
             // sex is not known until the native appearance stage has finished.
-            bool spouseFemale = profile.SpouseGender == "Auto" ?
-                !player.IsFemale : profile.SpouseGender == "Female";
+            bool spouseFemale = SandboxFamilyPolicy.ResolveSpouseFemale(
+                profile.SpouseGender,player.IsFemale);
             string reason;
             if (!profile.IsValid((int)player.Age, out reason))
                 return "invalid_family:" + reason;
