@@ -90,7 +90,7 @@
                     PositionXOffset="944" PositionYOffset="661"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Text="Return to castle"
+                <TextWidget Text="Return to settlement"
                     Color="#FFEED6FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
