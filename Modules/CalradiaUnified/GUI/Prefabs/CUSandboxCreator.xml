@@ -141,7 +141,7 @@
                           MaxValueInt="@NumberMaximum" ValueInt="@PendingNumber"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
-                          SuggestedWidth="128" HeightSizePolicy="Fixed"
+                          SuggestedWidth="136" HeightSizePolicy="Fixed"
                           SuggestedHeight="48" PositionXOffset="298" PositionYOffset="537"
                           Command.Click="ExecuteDecrease" IsVisible="@IsNumber">
               <Children>
@@ -152,7 +152,7 @@
             </ButtonWidget>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
-                          SuggestedWidth="128" HeightSizePolicy="Fixed"
+                          SuggestedWidth="136" HeightSizePolicy="Fixed"
                           SuggestedHeight="48" PositionXOffset="436" PositionYOffset="537"
                           Command.Click="ExecuteIncrease" IsVisible="@IsNumber">
               <Children>
