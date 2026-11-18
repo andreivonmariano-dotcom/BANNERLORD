@@ -32,7 +32,11 @@ assert any(w.get("Text")=="@PageProgress" for w in xmlRoot.iter("TextWidget"))
 assert "candidate.NativeStageEnabled=false;" in overlay
 assert not (src/"CUFaceGeneratorStageView.cs").exists()
 assert not (ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml").exists()
-assert "CharacterCreationStageView(" not in "".join(p.read_text() for p in src.glob("*.cs"))
+stage=(src/"CUNativeOriginReviewStage.cs").read_text()
+assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
+assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob("*.cs"))==1
+assert 'CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in stage
+assert 'CharacterCreationStageView(typeof(CharacterCreationCultureStage))' not in stage
 assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
 assert "SandboxFamilyPolicy.ResolveSpouseFemale(" in family
 assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
