@@ -233,18 +233,7 @@ namespace CalradiaUnified
             profile=SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
             // A stale prior profile must not become active simply from
             // visiting the new creator, including a cancelled new Sandbox.
-            profile.Enabled=false;
-            profile.NativeStageEnabled=false;
-            profile.RealFamilyEnabled=false;
-            profile.RoleAffiliationsEnabled=false;
-            // A new campaign must never inherit the last campaign's family
-            // count or fief transfers without an explicit new selection.
-            profile.SpouseEnabled=false;
-            profile.ChildCount=0;
-            profile.SiblingCount=0;
-            profile.StartingFiefMode="Native";
-            profile.AllowStartingFiefTransfer=false;
-            profile.StartingFiefId="";
+            profile.ResetForNewCampaign();
             DiagnosticJournal.Event("sandbox_creator_fresh_start",
                 "spouse=false|children=0|fief=Native" +
                 "|next=native_culture_appearance_origins_age_difficulty");
