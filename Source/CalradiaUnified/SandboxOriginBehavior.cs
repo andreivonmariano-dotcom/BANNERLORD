@@ -4,6 +4,7 @@ using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -21,6 +22,7 @@ namespace CalradiaUnified
     {
         private bool applied;
         private bool startedNewGame;
+        private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
 
@@ -32,6 +34,75 @@ namespace CalradiaUnified
                 this, NewGameCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
+            CampaignEvents.OnCharacterCreationInitializedEvent.AddNonSerializedListener(
+                this, ObserveNativeCharacterCreation);
+        }
+
+        // The engine initializes the native narrative graph after receiving
+        // OnCharacterCreationInitializedEvent. Register a read-only content
+        // handler so the diagnostics reflect the COMPLETE graph, not an empty
+        // or partially registered set of menus.
+        private void ObserveNativeCharacterCreation(CharacterCreationManager manager)
+        {
+            if (!IsStandaloneSandbox() || manager == null ||
+                Object.ReferenceEquals(observedNativeCreator, manager)) return;
+            observedNativeCreator = manager;
+            try
+            {
+                manager.RegisterCharacterCreationContentHandler(
+                    new NativeSandboxStageObserver(), 1600);
+                DiagnosticJournal.Event("cu_native_sandbox_creator",
+                    "observer_registered=true|mutates_stages=false");
+            }
+            catch (Exception e)
+            {
+                DiagnosticJournal.Exception("native_sandbox_observer_register", e);
+            }
+        }
+
+        private sealed class NativeSandboxStageObserver :
+            ICharacterCreationContentHandler
+        {
+            public void InitializeContent(CharacterCreationManager manager)
+            {
+                // Native handlers own all stage content and choices.
+            }
+
+            public void AfterInitializeContent(CharacterCreationManager manager)
+            {
+                if (manager == null) return;
+                try
+                {
+                    DiagnosticJournal.Event("cu_native_sandbox_stage",
+                        "total=" + manager.GetTotalStagesCount() +
+                        "|narrative_menus=" + manager.NarrativeMenus.Count);
+                    foreach (var menu in manager.NarrativeMenus)
+                    {
+                        if (menu == null) continue;
+                        DiagnosticJournal.Event("cu_native_sandbox_menu",
+                            "id=" + menu.StringId +
+                            "|input=" + menu.InputMenuId +
+                            "|output=" + menu.OutputMenuId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    DiagnosticJournal.Exception("native_sandbox_graph", e);
+                }
+            }
+
+            public void OnStageCompleted(CharacterCreationStageBase stage)
+            {
+                if (stage != null)
+                    DiagnosticJournal.Event("cu_native_sandbox_stage_completed",
+                        stage.GetType().Name);
+            }
+
+            public void OnCharacterCreationFinalize(CharacterCreationManager manager)
+            {
+                DiagnosticJournal.Event("cu_native_sandbox_finish",
+                    "native_handler_finished=true|no_custom_ui");
+            }
         }
 
         public override void SyncData(IDataStore store)

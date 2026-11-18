@@ -11,6 +11,8 @@
     <Deterministic>true</Deterministic>
     <UsePublicReferences Condition="'$(UsePublicReferences)' == ''">false</UsePublicReferences>
   </PropertyGroup>
+  <!-- Archive the discarded launcher Gauntlet prototype outside the runtime DLL. -->
+  <ItemGroup><Compile Remove="SandboxOriginPanel.cs" /></ItemGroup>
   <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
     <PackageReference Include="Bannerlord.ReferenceAssemblies" Version="1.5.7.125802" PrivateAssets="all" />
   </ItemGroup>
