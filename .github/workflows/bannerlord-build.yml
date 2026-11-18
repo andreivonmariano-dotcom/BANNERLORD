@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.11.0 feudal budget candidate
+name: Calradia Unified 1.5.7 - v0.12.0 exportable finance and crash diagnostics
 on:
   workflow_dispatch:
   push:
@@ -30,6 +30,9 @@ jobs:
         run: |
           python scripts/validate_feature_registry.py
           python scripts/test_feature_registry.py
+      - name: Test diagnostic export reader
+        shell: pwsh
+        run: python scripts/analyze_diagnostics.py --self-test
       - name: Restore .NET tests
         shell: pwsh
         run: |
@@ -63,14 +66,14 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.11.0-compiled-untested
-          path: Output/CalradiaUnified_v0.11.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.12.0-compiled-untested
+          path: Output/CalradiaUnified_v0.12.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.11.0-simulation-report
+          name: CalradiaUnified-v0.12.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -79,6 +82,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.11.0-build-errors
+          name: CalradiaUnified-v0.12.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

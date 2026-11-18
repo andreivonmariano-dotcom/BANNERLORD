@@ -1,43 +1,47 @@
-# Calradia Unified v0.11.0: early-vassal budget, villages and garrison economics
+# Calradia Unified v0.12.0: exportable finance and crash diagnostics
 
-**Target game:** Mount & Blade II: Bannerlord PC v1.5.7  
-**Release status:** v0.11.0 compiled candidate. Actual game startup and save/load remain unverified.  
-**Package:** one `Modules/CalradiaUnified` folder and one compiled DLL, no installer or old third-party mod DLLs.
+**Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Product:** one `Modules/CalradiaUnified` folder with no installer or historical third-party DLLs.
 
-**v0.11.0 hosted build:** [run 44232872459](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459), source commit `38c274a06f0c544ac93c574a3fdd35eebf13c342`, passed **176 independent C# policy checks** and **303,098 model assertions** over 40 seeded 365-day campaigns, and compiled the game module with **0 warnings / 0 errors**. [Compiled candidate](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459/artifacts/14396465903) | [simulation report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459/artifacts/14395682930). The four new features are **Gate B COMPILED, not GAME_TESTED**. The user-reported castle-and-villages deficit is under [issue #32](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32) pending native finance evidence.
+## New in v0.12.0
 
-## Early-vassal balance problem
+**Daily real-game financial records.** Read-only `DiagnosticBehavior` writes daily clan gold snapshots, gold changes since previous samples, actual player-clan lord-party wages, actual castle garrison wages and troop counts, castle prosperity, healthy village hearths, raided village counts, and **separately labelled modeled** income projections. This is a diagnostic layer. It does **not** read the exact native daily fief-tax ledger or prove that the fiscal changes cured your original `−5,000 to −10,000` starting deficit.
 
-A castle and two villages should finance a **reasonable starting force** in a balanced starting scenario. An inherited 70-plus-mod load order gave the user daily deficits of **5,000 to 10,000 denars**. This is a reported experience, not a verified calculation on the current v1.5.7 configuration.
+**Managed crash journal.** Exceptions caught in civic menus, campaign ticks, NPC movement and campaign setup write context, exception type, message and stack trace to `exceptions.csv`. The module registers a limited unhandled-managed-exception handler. A hard native crash may prevent it from running.
 
-The new fiscal system uses the castle's prosperity and the hearths in its non-raided bound villages to forecast an indicative income. It compares the forecast against **actual clan lord-party wages and garrison wages** and recommends a wage cap that leaves a configured reserve. **The forecast is not Bannerlord's native tax calculation.** It deliberately avoids pretending that all oversized armies must produce positive income.
+**Engine crash collector.** The read-only `ModuleData/Export-CU-Diagnostics.ps1` PowerShell utility collects available recent TaleWorlds `rgl_log*` files and crash-report text from `%PROGRAMDATA%\Mount and Blade II Bannerlord`, alongside Windows Application Error events. Saves and memory dumps are excluded by default. Nothing is uploaded automatically.
 
-The model's illustrative reference case: castle prosperity **1,500**, two villages with **900 combined hearths**, forecast income **1,450/day**, clan field wage share **500**, other-cost allowance **150**, and garrison cap **550**. The resulting model balance is **+250/day**. An 8,500-denar garrison in that example would instead yield **−7,700/day** before any cap. These are example inputs, **not observed v1.5.7 revenue values**.
+**In-game export:** A town/castle menu action, `CU: Export campaign economy and crash diagnostics`, copies the mod's own log records into `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Exports`. The Windows script packages mod and engine evidence into a single shareable ZIP. `EnableDiagnostics=true` defaults to on, and can be disabled in the module INI.
 
-## New v0.11.0 gameplay functions
+## Export after a session or crash
 
-- **Fief fiscal briefing:** Every owned castle has an estimated tax/wage report in its menu. It reads the castle and its bound villages and prints actual game garrison and field-party wages alongside the *forecast*.
-- **Opt-in garrison wage budgeting:** `EnableAutoGarrisonWageCaps=false` by default. If enabled, it can **lower** an existing wage limit for a player-owned castle using the game's `SetGarrisonWagePaymentLimit` API. It skips sieges, preserves manually lower caps, and refuses a result below the configured minimum defensive wage. Lower limits can trigger unpaid-wage desertion, so test on a new campaign.
-- **Opt-in budgeted garrison training:** `EnableAutoGarrisonTraining=false`. Only an existing player-owned castle garrison is considered. Requires the previous `EnableGarrisonTraining` toggle, a safe settlement, adequate gold reserves, depot grain, a troop deficit, and a positive model budget after added wages. Creates at most two basic local soldiers per castle/day.
-- **Opt-in abstract village harvest:** `EnableVillageHarvest=false`. Healthy bound villages add bounded **virtual** grain to the castle depot according to hearths. It never takes goods from the vanilla village inventory. No harvest is granted for raided villages.
-- **Opt-in abstract estate wholesale:** `EnableSurplusEstateSales=false`. The estate sells only depot stock above a grain reserve and credits at most eight grain x 18 denars per day. Grain is subtracted from the saved depot ledger. No physical buyer or real caravan is spawned.
+1. Run the current compiled candidate and record your castle with two villages for 7 to 30 game days. The new finance CSV is written once per campaign day.
+2. From the game menu, choose **CU: Export campaign economy and crash diagnostics** for the mod-only snapshot. For a crash that ends the game, skip the menu.
+3. Run the PowerShell script included in your installed module folder, `Modules\CalradiaUnified\ModuleData\Export-CU-Diagnostics.ps1`, to create a Desktop ZIP:
+   ```powershell
+   powershell.exe -ExecutionPolicy Bypass -File ".\Modules\CalradiaUnified\ModuleData\Export-CU-Diagnostics.ps1" -GameDir "."
+   ```
+   Run this from the Bannerlord installation root. By default it searches the previous 72 hours of engine logs and crash reports. The `-IncludeDumps` switch adds raw dumps that can contain private memory and is **not** recommended for normal reports.
+4. Inspect the ZIP for private text, then upload it directly to this conversation. I can compare observed wages, gold movements and exception stacks with our simulator and trace them to the mod's source revision.
 
-These additions do not rewrite native castle/village tax income, vanilla garrison wage formulas, or the kingdom's AI army command system. The existing M1 guarded map convoys remain separate.
+You can analyze an exported ZIP locally with:
 
-## Build, test and traceability
-
-The pinned [GitHub Actions workflow](.github/workflows/bannerlord-build.yml) runs independent C# policy tests and the headless simulator, compiles against v1.5.7 references and packages a `COMPILED_UNTESTED` module. See [Feudal budget design and scenarios](docs/FEUDAL_BUDGET_v011.md), [simulator](docs/SIMULATOR.md), [M0 startup procedure](docs/M0_TEST_PROCEDURE.md), [feature registry](Data/Feature_Registry.csv) and [78-mod tracker](Data/Migration_78.csv).
-
-**Test ladder:** simulation = modeled policy evidence. Compilation = Gate B. Real startup, settlement menus, wage-cap effects and game save/load remain Gates C–E and are not passed by CI.
-
-## Installation after successful build
-
-Open the Actions run and download its `CalradiaUnified-v0.11.0-compiled-untested` artifact. Extract the inner module ZIP into the Bannerlord installation root, preserving:
-
-```
-Modules/CalradiaUnified/SubModule.xml
-Modules/CalradiaUnified/ModuleData/calradia-config.ini
-Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll
+```powershell
+python scripts/analyze_diagnostics.py CalradiaUnified-Diagnostics-YYYYMMDD.zip
 ```
 
-Back up the old module folder and saves. Start with all mutating fiscal switches disabled. Read the castle budget briefing, then activate one experimental feature at a time on a fresh campaign.
+**Read [the diagnostic export handbook](docs/DIAGNOSTICS_v012.md) for schemas, caveats and evidence handling.**
+
+## Existing v0.11.0 gameplay systems
+
+Calradia Unified retains guarded depot transfers, physical convoy candidate code, local culture recruits, garrison training, budgeted castle wage limits, village production and abstract surplus sales. All gameplay-modifying flags remain **disabled by default** until real v1.5.7 in-game acceptance tests pass.
+
+## Build and release verification
+
+GitHub Actions runs structural source tests, feature-registry checks, independent C# policy tests, diagnostic analyzer tests, the seeded headless simulator, and a Windows v1.5.7 reference compilation. A successful CI build creates a `COMPILED_UNTESTED` archive, not a certified game-tested release.
+
+- [Build workflow](.github/workflows/bannerlord-build.yml)
+- [Game test procedure](docs/M0_TEST_PROCEDURE.md)
+- [Fiscal model](docs/FEUDAL_BUDGET_v011.md)
+- [Feature registry](Data/Feature_Registry.csv)
+- [Original 78-mod coverage](docs/78_MOD_COVERAGE.md)
+- [Starting vassal deficit regression](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32)

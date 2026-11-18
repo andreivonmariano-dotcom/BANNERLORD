@@ -31,6 +31,7 @@ namespace CalradiaUnified
             string packed = state.Serialize();
             store.SyncData("CU_v030_civic_state", ref packed);
             state = CivicState.Parse(packed);
+            DiagnosticJournal.Event("civic_sync_data_invoked", "not_proof_of_save");
             Log.Write("M0 civic state sync reached: depots=" + state.Depots.Count
                 + " shipments=" + state.Shipments.Count + ". Review a real save/reload for persistence.");
         }
@@ -110,7 +111,11 @@ namespace CalradiaUnified
         private void Safe(Action body)
         {
             try { body(); }
-            catch (Exception e) { Log.Write("Civic action failed: " + e); }
+            catch (Exception e)
+            {
+                DiagnosticJournal.Exception("civic_menu_action", e);
+                Log.Write("Civic action failed: " + e);
+            }
         }
         private static void Notice(string message)
         {
@@ -247,7 +252,11 @@ namespace CalradiaUnified
                 TickFeudalEstates();
                 advisorCount = 0;
             }
-            catch (Exception e) { Log.Write("Civic daily tick error: " + e); }
+            catch (Exception e)
+            {
+                DiagnosticJournal.Exception("civic_daily_tick", e);
+                Log.Write("Civic daily tick error: " + e);
+            }
         }
         private void OnPartyTick(MobileParty party)
         {
@@ -280,7 +289,11 @@ namespace CalradiaUnified
                         + ". Advisory only; no movement, war, peace or recruitment order issued.");
                 }
             }
-            catch (Exception ex) { Log.Write("NPC advisory skipped: " + ex.GetType().Name); }
+            catch (Exception ex)
+            {
+                DiagnosticJournal.Exception("npc_advisory", ex);
+                Log.Write("NPC advisory skipped: " + ex.GetType().Name);
+            }
         }
     }
 }

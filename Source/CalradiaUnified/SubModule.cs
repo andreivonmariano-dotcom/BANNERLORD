@@ -15,7 +15,17 @@ namespace CalradiaUnified
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            Log.Write("Calradia Unified 0.11.0 initialized; no Harmony patches applied.");
+            try
+            {
+                DiagnosticJournal.Enabled = Settings.Load().EnableDiagnostics;
+                if (DiagnosticJournal.Enabled)
+                {
+                    DiagnosticJournal.InstallManagedExceptionHooks();
+                    DiagnosticJournal.Event("module_loaded", "version=0.12.0");
+                }
+            }
+            catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
+            Log.Write("Calradia Unified 0.12.0 initialized; diagnostics enabled; no Harmony patches applied.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter starter)
@@ -31,11 +41,16 @@ namespace CalradiaUnified
                     campaignStarter.AddBehavior(new SupplyBehavior(config));
                     campaignStarter.AddBehavior(new CivicBehavior(config));
                     campaignStarter.AddBehavior(new KingdomAutonomyBehavior(config));
+                    campaignStarter.AddBehavior(new DiagnosticBehavior(config));
                     Log.Write("Campaign supply, civic depots, recruitment, economy and diplomacy behaviors registered; player-only foraging="
                         + config.EnablePlayerForaging);
                 }
             }
-            catch (Exception ex) { Log.Write("Campaign registration error: " + ex); }
+            catch (Exception ex)
+            {
+                DiagnosticJournal.Exception("campaign_registration", ex);
+                Log.Write("Campaign registration error: " + ex);
+            }
         }
     }
 }

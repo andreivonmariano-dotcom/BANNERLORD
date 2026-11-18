@@ -119,6 +119,7 @@ namespace CalradiaUnified
             }
             catch (Exception ex)
             {
+                DiagnosticJournal.Exception("npc_movement_order", ex);
                 Log.Write("NPC order not issued: " + ex.GetType().Name + ": " + ex.Message);
             }
         }

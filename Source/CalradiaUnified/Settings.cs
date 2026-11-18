@@ -5,6 +5,7 @@ namespace CalradiaUnified
 {
     public sealed class Settings
     {
+        public bool EnableDiagnostics = true;
         public bool EnableSupplyWarnings = true;
         public int SupplyWarningDays = 3;
         public bool EnableArmyWarnings = true;
@@ -93,7 +94,8 @@ namespace CalradiaUnified
                 string value = line.Substring(eq + 1).Trim();
                 bool b;
                 int n;
-                if (key == "EnableSupplyWarnings" && Boolean.TryParse(value, out b)) output.EnableSupplyWarnings = b;
+                if (key == "EnableDiagnostics" && Boolean.TryParse(value, out b)) output.EnableDiagnostics = b;
+                else if (key == "EnableSupplyWarnings" && Boolean.TryParse(value, out b)) output.EnableSupplyWarnings = b;
                 else if (key == "EnableArmyWarnings" && Boolean.TryParse(value, out b)) output.EnableArmyWarnings = b;
                 else if (key == "EnablePlayerForaging" && Boolean.TryParse(value, out b)) output.EnablePlayerForaging = b;
                 else if (key == "SupplyWarningDays" && Int32.TryParse(value, out n)) output.SupplyWarningDays = Clamp(n, 0, 15);

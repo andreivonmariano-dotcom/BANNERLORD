@@ -291,6 +291,50 @@ internal static class Program
             !FeudalBudgetPolicy.AffordableTraining(true, true, false,
                 1450, 500, 450, 550, 150, 250, 50,
                 3000, 5000, 40, 55));
+        Check("diagnostic CSV escapes quotes and comma",
+            DiagnosticJournal.CsvField("castle,\"test\"") == "\"castle,\"\"test\"\"\"");
+        Check("diagnostic path redactor accepts empty", DiagnosticJournal.StripPersonalPath("") == "");
+        var tempDiagnostic = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+            "CU-Diagnostic-Test-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            DiagnosticJournal.OverrideRootForTests = tempDiagnostic;
+            DiagnosticJournal.Enabled = true;
+            var cells = new string[19];
+            for (int i = 0; i < cells.Length; i++) cells[i] = "0";
+            cells[0] = "castle";
+            cells[2] = "castle_test";
+            DiagnosticJournal.Finance(cells);
+            DiagnosticJournal.Event("test_event", "change=0");
+            DiagnosticJournal.Exception("test_crash",
+                new InvalidOperationException("Mock crash with comma, and quotes"));
+            Check("diagnostic finance CSV writes correct header",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "finance.csv"))
+                    .StartsWith(DiagnosticJournal.FinanceHeader));
+            Check("diagnostic exception CSV captures managed failure",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "exceptions.csv"))
+                    .Contains("InvalidOperationException"));
+            Check("diagnostic exception CSV preserves escaped commas",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "exceptions.csv"))
+                    .Contains("Mock crash with comma, and quotes"));
+            string exported = DiagnosticJournal.ExportSnapshot();
+            Check("diagnostic export contains finance and crash evidence",
+                System.IO.File.Exists(System.IO.Path.Combine(exported, "finance.csv")) &&
+                System.IO.File.Exists(System.IO.Path.Combine(exported, "exceptions.csv")) &&
+                System.IO.File.Exists(System.IO.Path.Combine(exported, "events.csv")));
+            DiagnosticJournal.Enabled = false;
+            DiagnosticJournal.Event("disabled", "should_not_be_written");
+            Check("opt-out stops writing diagnostic journal",
+                !System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "events.csv"))
+                    .Contains("should_not_be_written"));
+        }
+        finally
+        {
+            DiagnosticJournal.Enabled = true;
+            DiagnosticJournal.OverrideRootForTests = null;
+            if (System.IO.Directory.Exists(tempDiagnostic))
+                System.IO.Directory.Delete(tempDiagnostic, true);
+        }
         Console.WriteLine("PASS: " + passed + " gameplay policy checks");
     }
 }

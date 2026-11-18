@@ -72,3 +72,16 @@ See [SIMULATOR.md](SIMULATOR.md).
 - **D-114:** With abstract surplus sale on, verify gold gains equal grain sold at the configured price, no sale occurs below the reserve, and no physical caravan is claimed.
 - **E-110:** Save/reload with a fiscal cap, partially spent training quota, depot stock and sales. Check actual game side effects and don't claim M0 based on model round trips.
 - **SIM-110:** Seed the fiscal stress model with one castle, two villages, oversized garrison, oversized field party, and dual raids. Healthy affordable example must be positive, crisis cases must preserve negative-balance possibility.
+
+## v0.12.0 diagnostic capture and crash reporting
+
+- **A-012:** The diagnostic CSV headers, quoting, user-path redaction, exception serialization, file export and opt-out setting must pass independent tests.
+- **B-012:** The ZIP analyzer's self-tests pass. A compiled DLL and `ModuleData/Export-CU-Diagnostics.ps1` appear in the packaged output.
+- **C-012:** With all mutating settings disabled, the game boots and the diagnostics menu becomes available in a castle or town.
+- **D-012:** On a one-castle two-village start, record actual player gold and party/garrison wages for at least seven daily ticks, and verify the log identifies the estate. Compare against the clan finance screen.
+- **D-013:** Trigger a controlled handled exception only in a test build (never intentionally crash the player's campaign) and verify exception type, context and stack are exported.
+- **E-012:** After a real game crash, run the Windows exporter and verify it captures any existing `rgl_log`, TaleWorlds crash text and relevant Windows Application Error events. Missing crash artifacts are an explicit limitation.
+- **E-013:** Inspect the exported ZIP for sensitive personal paths before sharing. Memory dumps remain opt-in only.
+- **E-014:** Save, quit, reload and validate that daily CSV logs resume under a new session ID, without duplication from duplicate listeners.
+
+Current validation: static and hosted compile evidence pending. These are not passed in-game tests.

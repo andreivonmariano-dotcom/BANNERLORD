@@ -20,10 +20,12 @@ if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 Copy-Item $manifest (Join-Path $stage 'SubModule.xml')
 Copy-Item (Join-Path $module 'ModuleData') (Join-Path $stage 'ModuleData') -Recurse
+# The read-only crash/finance ZIP exporter ships inside the one-folder module.
+Copy-Item (Join-Path $ProjectRoot 'scripts\Export-CU-Diagnostics.ps1')  (Join-Path $stage 'ModuleData\Export-CU-Diagnostics.ps1')
 $bins = Join-Path $stage 'bin\Win64_Shipping_Client'
 New-Item -ItemType Directory -Path $bins -Force | Out-Null
 Copy-Item $source (Join-Path $bins 'CalradiaUnified.dll')
-$package = Join-Path $root 'CalradiaUnified_v0.11.0_COMPILED_UNTESTED.zip'
+$package = Join-Path $root 'CalradiaUnified_v0.12.0_COMPILED_UNTESTED.zip'
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
 if (-not (Test-Path $package)) { throw 'Archive creation failed' }

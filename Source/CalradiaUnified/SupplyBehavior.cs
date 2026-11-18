@@ -66,6 +66,7 @@ namespace CalradiaUnified
             }
             catch (Exception ex)
             {
+                DiagnosticJournal.Exception("player_supply_daily_tick", ex);
                 Log.Write("Daily player supply event failed: " + ex);
             }
         }
