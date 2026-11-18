@@ -53,8 +53,11 @@ assert "sandbox_start_fief_result" in behavior
 assert "ChangeOwnerOfSettlementAction.ApplyByGift" in fief
 assert "target.OwnerClan != Clan.PlayerClan" in fief
 assert "fief_outside_starting_kingdom" in (src/"SandboxFiefPolicy.cs").read_text()
-assert "SandBox.View" not in (src/"CalradiaUnified.csproj").read_text()
-assert "SandBox.GauntletUI" not in (src/"CalradiaUnified.csproj").read_text()
+refs=(src/"CalradiaUnified.csproj").read_text()
+assert 'Reference Include="SandBox.View"' in refs
+assert 'Reference Include="SandBox.GauntletUI"' in refs
+assert "CharacterCreationReviewStageView" in stage
+assert "CharacterCreationFaceGeneratorView" not in stage
 assert any(w.get("Text")=="@FieldHelp" for w in xmlRoot.iter("TextWidget"))
 assert any(w.get("Text")=="@AdvancedToggleLabel" for w in xmlRoot.iter("TextWidget"))
 print("PASS: no FaceGen view hijack, five guided custom-start pages before native wizard, family eligibility and fief guards (STATIC ONLY)")
