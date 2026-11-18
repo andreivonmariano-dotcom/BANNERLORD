@@ -25,6 +25,7 @@
     <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Core.ViewModelCollection"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.ViewModelCollection.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="SandBox.View"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\SandBox.View.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.ModuleManager"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.ModuleManager.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="SandBox.GauntletUI"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\SandBox.GauntletUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.InputSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.InputSystem.dll</HintPath><Private>false</Private></Reference>
