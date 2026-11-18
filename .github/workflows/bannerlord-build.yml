@@ -104,6 +104,22 @@ jobs:
       - name: Verify ZIP paths, CRC, DLL identity and hashes
         shell: pwsh
         run: python scripts/verify_package.py Output/CalradiaUnified_v0.16.0_COMPILED_UNTESTED.zip --version v0.16.0
+      - name: Test installer with nested GitHub artifact ZIP
+        shell: pwsh
+        run: |
+          $fake = Join-Path (Get-Location) "BuildResults/FakeBannerlord"
+          $native = Join-Path $fake "Modules/Native"
+          New-Item -ItemType Directory -Force -Path $native | Out-Null
+          '<Module><Id value="Native"/></Module>' | Set-Content -LiteralPath (Join-Path $native "SubModule.xml")
+          $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
+          Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.16.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
+          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer
+          $module = Join-Path $fake "Modules/CalradiaUnified"
+          if (-not (Test-Path -LiteralPath (Join-Path $module "SubModule.xml"))) { throw "Missing installed manifest" }
+          if (-not (Test-Path -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll"))) { throw "Missing installed DLL" }
+          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
+          if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
+          Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
