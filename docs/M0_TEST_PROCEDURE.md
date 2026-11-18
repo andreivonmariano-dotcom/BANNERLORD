@@ -73,3 +73,17 @@ See [V015_RUNTIME_ACCEPTANCE.md](V015_RUNTIME_ACCEPTANCE.md) for the installed-g
 7. Repeat the previous M0 mission-entry, siege, ownership-change and scene-departure regressions, comparing against an official-only control and collecting sanitized diagnostic ZIPs.
 
 **Gate C/D/E status: NOT RUN.** Native UI XML and reference DLL compilation are Gate B only.
+
+## v0.17 native Starting Life experimental acceptance
+
+Use a disposable new Sandbox on Bannerlord PC **v1.5.7.125802**. The profile at
+`%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` has three new Boolean
+flags, all false by default: `NativeStageEnabled`, `RealFamilyEnabled`,
+and `RoleAffiliationsEnabled`. Turn on only one experiment at a time.
+
+1. Native stage test: Set `NativeStageEnabled=true` and keep the other two false. Start native Sandbox. Confirm culture, appearance, family background, early childhood, adolescence, youth, adulthood, starting age, banner, clan naming, review and difficulty still work. Test Back and Next through every added Starting Life page. Verify role/family/resources/equipment selections persist in the profile. Record any change to the original final narrative menu.
+2. Disable all flags, then start a new control Sandbox. Confirm no custom pages appear and normal start and save/load still work.
+3. Family test: Prepare legal spouse/child names and ages. In a disposable new game set `Enabled=true` and `RealFamilyEnabled=true`. Confirm the hero is in the player's clan, native spouse pointers are reciprocal, every child's parent pointers match, ages and genders match, and the family appears correctly in the encyclopedia. Save, quit and reload. Compare IDs before and after.
+4. Role test: In a separate new game set `RoleAffiliationsEnabled=true`. Verify Soldier receives a real **mercenary clan** contract, Knight and Lord receive real **vassal clan** status, and King works **only if** the native Advanced Start established a ruling clan. A label alone must never grant a crown.
+5. Check a single-parent start, existing native spouse, missing character template, unsupported native parents for siblings, and a mismatched King role. All must refuse the dangerous operation without creating false relatives or titles.
+6. Inspect diagnostics and compare renown, recruits, faction map, clan UI, hero biographies and the exact same save after restart. Do not promote Gate C, D or E from compilation alone.

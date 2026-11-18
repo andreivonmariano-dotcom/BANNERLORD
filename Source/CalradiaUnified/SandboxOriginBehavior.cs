@@ -439,6 +439,12 @@ namespace CalradiaUnified
             }
             try
             {
+                // Real contracts use native ChangeKingdomAction and are opt-in.
+                // King status is never forged by a role label.
+                string affiliation = SandboxRoleAffiliations.TryApply(profile,hero);
+                DiagnosticJournal.Event("cu_role_affiliation_status",
+                    "role=" + profile.Role + "|status=" + affiliation);
+
                 // Native ASO is the authority for king/vassal/mercenary
                 // affiliation. A role label must never forge king status.
                 if (profile.Role == "King" &&
@@ -466,25 +472,33 @@ namespace CalradiaUnified
                     hero.AddInfluenceWithKingdom(profile.Influence -
                         Clan.PlayerClan.Influence);
                 }
-                if (profile.Troops > 0 && MobileParty.MainParty != null &&
+                int troops = profile.RoleAffiliationsEnabled
+                    ? Math.Max(profile.Troops,
+                        SandboxRolePolicy.BonusRecruits(profile.Role))
+                    : profile.Troops;
+                if (troops > 0 && MobileParty.MainParty != null &&
                     MobileParty.MainParty.MemberRoster != null &&
                     hero.Culture != null && hero.Culture.BasicTroop != null)
-                {
                     MobileParty.MainParty.MemberRoster.AddToCounts(
-                        hero.Culture.BasicTroop, profile.Troops);
-                }
+                        hero.Culture.BasicTroop, troops);
+                if (profile.RoleAffiliationsEnabled)
+                    Clan.PlayerClan.AddRenown(
+                        SandboxRolePolicy.StarterRenown(profile.Role),false);
 
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
 
-                // Family, appearance and relocation remain templates. Never
-                // create a Hero with missing parentage or bypass an active siege.
+                string family = SandboxFamilyCreator.TryCreate(profile,hero);
+                DiagnosticJournal.Event("cu_family_creation_status",family);
+
+                // Relocation and direct face sliders remain disabled. The
+                // opt-in family helper uses native hero/marriage APIs.
                 DiagnosticJournal.Event("sandbox_origin_applied",
                     "role=" + profile.Role + "|gold_target=" + profile.Gold +
                     "|influence_target=" + profile.Influence +
                     "|troops=" + profile.Troops +
-                    "|family_templates_only=true" +
-                    "|appearance_templates_only=true" +
+                    "|family_status=" + family +
+                    "|appearance_template_lookup_only=true" +
                     "|relocation_pending=true" +
                     "|progression_requested=" + profile.Overrides.Count +
                     "|individual_items_requested=" + profile.ItemIds.Count);
