@@ -538,6 +538,15 @@ namespace CalradiaUnified
                     "|ids=" + String.Join(",",
                         Clan.PlayerClan.Companions.Select(h =>
                             h == null ? "null" : h.StringId)));
+                // Compare creator's final saved request with the exact
+                // profile loaded after native age/difficulty finalization.
+                // This distinguishes a UI save defect from child creation.
+                DiagnosticJournal.Event("cu_family_loaded_plan",
+                    "spouse=" + profile.SpouseEnabled +
+                    "|requested_children=" + profile.ChildCount +
+                    "|details=" + String.Join(";",
+                        profile.Children.Take(profile.ChildCount).Select(
+                            c => c.Name + ":" + c.Gender + ":" + c.Age)));
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
@@ -618,6 +627,7 @@ namespace CalradiaUnified
                         0 : observedClan.Settlements.Count) +
                     "|fief_request=" + fiefOutcome +
                     "|spouse_present=" + (hero.Spouse != null) +
+                    "|requested_children=" + profile.ChildCount +
                     "|children=" + (hero.Children == null ?
                         0 : hero.Children.Count) +
                     "|failures=" + String.Join(",",failures));
