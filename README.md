@@ -1,28 +1,37 @@
-# Calradia Unified v0.26.0 | Generated Spouse Activation and Family Cleanup
+# Calradia Unified v0.27.0 | Reliable child count and coordinated Sandbox creation
 
-**Game:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
-**Status:** Gate B COMPILED_UNTESTED. **Not yet proven to create a married spouse or a child in the running game.**
+**Target game:** Bannerlord PC v1.5.7.125802.
+**Status:** Compiled candidate under active verification. Source-policy tests and CI are not proof of in-game UI behavior or saved-game persistence.
 
-## Confirmed defect in v0.25
+## What the actual v0.26 game test proved
 
-The user chose Lord of Vlandia, NobleRandom spouse and one female child. Two adult nobles appeared around the castle, but the player had no spouse or child in the clan. Their attached v0.25 log showed `sandbox_start_contract result=FAIL|native_type=vassal|kingdom=vlandia|fiefs=3|spouse_present=False|children=0`. `exceptions.csv` captured `Native marriage rules rejected the created spouse`. The user's installed DLL hash was the earlier successful v0.25 build `f0f99d3a2433af5dd1dc7cfbf80b65c3dc47af00c07049b25884e6c223ca2c02`.
+The player's Vlandian **Lord** start succeeded with a real newly generated NobleRandom spouse. The new wife joined `player_faction`, had native noble birth-clan parents, and two real children received parent-based appearance.
 
-**Source-confirmed cause:** TaleWorlds `HeroCreator.CreateSpecialHero()` leaves newly created Hero objects in `NotSpawned` state. The native `DefaultMarriageModel.IsSuitableForMarriage` requires `IsActive`. v0.25 gave new spouses Lord occupation but never activated them. The native `MarriageAction` consequently rejected the spouse and the code skipped children.
+The user intended **one** child. The runtime log says `requested_children=2|actual_children=2|created_children=2`. The family system created exactly the two children stored in the origin profile. This is a **creator number-persistence error**, not a repeated hero-creation callback. The prior numeric slider changed a pending display value, but required a separate `Confirm amount` click. The request remained `ChildCount=2` if confirmation was missed.
 
-## v0.26 changes
+## v0.27 corrected numeric controls
 
-- The new adult Hero is changed to `Hero.CharacterStates.Active` **before** `MarriageAction` and marriage eligibility testing. Younger children are never forced active.
-- Player marriage eligibility is checked **before** creating any new spouse. Pure `SandboxGeneratedMarriagePolicy` and runtime diagnostics identify inactive participants, invalid clans, same-sex pair or a hero whose native marriage eligibility failed.
-- Events `cu_family_new_adult_activated` and `cu_family_marriage_prerequisites` record actual before/after state and model requirements.
-- On failed marriage **before** any child or spouse relationship exists, the mod compensates by removing links to chosen noble parents and calling native `DisableHeroAction.Apply`, then removing the stray hero from their clan. It does not attempt to undo an established marriage, and compensation is not a guaranteed transactional rollback.
-- Generated spouse backgrounds Commoner, NobleRandom and NobleChosen remain available, with correct native `vlandia` culture IDs. Child mother/father links and two-parent body-property blending are unchanged from v0.25.
+- Slider and plus/minus buttons **save every valid numeric change immediately**. Direct `Enter exact value` remains for typed numbers. If a value cannot be saved, the UI reloads the actual persisted number, so a displayed count cannot disagree with the chosen count.
+- Each new Sandbox resets the dependent count to **0**, disables prior spouse request and siblings, resets fief mode to Native, and clears previous transfer permission. The role, spouse background and names may remain as editable preferences.
+- The right-side campaign plan displays `1 child` and the child's exact name, sex and age. Review is read-only.
+- Logs `sandbox_creator_family_plan|child_count=N` at acceptance, `sandbox_overhaul_accepted|child_count=N` at native handoff, `cu_family_loaded_plan|requested_children=N` after native character creation, and `sandbox_start_contract|requested_children=N|children=M` after creation.
+- The code still creates a spouse first, then strictly loops over the saved `ChildCount` to create the requested children using native parent links and two-parent body-property inheritance.
 
-## Gate B results and download
+## Native stages are now presented as an explicit continuation
 
-- [Successful v0.26 Windows CI #44327989195](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44327989195): 604 policy checks, 40 campaign policy simulations, zero warnings/errors, new activation regression, package checks and installer simulation.
-- [Compiled-untested v0.26 artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44327989195/artifacts/14437991751), module DLL 215040 bytes, SHA-256 `04abd30e26d87d48f246c08ace3a2f0ee1a3c6ce4011b47c1ee39c8c223faf61`.
-- [Exact test and interpretation](docs/V026_ACTIVE_MARRIAGE_ACCEPTANCE.md).
+The CU editor has five pages: **Starting Life → Household → Resources → Kingdom & World → Review**. The redundant blank CU Appearance page has been removed, so the player does not select culture or face twice.
 
-**Runtime proof pending:** in a new disposable Lord/Vlandia game, actual reciprocal wife/husband in PlayerClan, one female minor with correct native parents and appearance, genuine noble natal clan, save/exit/reload with no duplicate or orphan nobles. The player's old v0.25 campaign is not repaired by this module update. Native culture, face, narrative, age and difficulty screens still appear.
+The header says **PART 1 OF 2: STARTING CONDITIONS** and the final button says **NEXT: NATIVE CREATOR**. Bannerlord then owns **culture, 3D appearance, background/origins, age, and difficulty** in Part 2. The real native start is applied at character-creation phase 8; CU's spouse and children are created at phase 9. This avoids the former competing FaceGen view registration that crashed the culture stage in v0.22.
 
-To restore the native Sandbox start selector, set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`. Do not modify official game DLLs.
+This is a more coherent two-part setup, **not** a fully replaced native wizard or a proven in-game polished interface. The remaining one-screen unified creator requires safe stage/view architecture and screenshots.
+
+## Evidence and required game test
+
+- [v0.27 exact one-child acceptance](docs/V027_CHILD_COUNT_NATIVE_HANDOFF.md).
+- [Windows build and policy checks](.github/workflows/bannerlord-build.yml).
+- [Existing generated-family marriage fix](docs/V026_ACTIVE_MARRIAGE_ACCEPTANCE.md).
+- [Full unified creator design goal](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44).
+
+Test only a disposable new Sandbox: Lord/Vlandia, NobleRandom spouse, exact **one female child**. Confirm the slider saves one immediately, the right preview shows your child's name/age, the native wizard follows once, the Clan contains a real spouse and only one child, and the same relatives persist after saving and fully restarting the game. The prior v0.26 save with two children is not silently edited by installing v0.27.
+
+Restore native Default/Advanced starting selector by setting `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
