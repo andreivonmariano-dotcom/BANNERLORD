@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Marriage Activation and Cleanup Candidate" />
+  <Name value="Calradia Unified - Committed Family and Native Handoff Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.26.0" />
+  <Version value="v0.27.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
