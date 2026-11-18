@@ -55,3 +55,9 @@ Kingdom status, family links, Hero birthdays, clan membership, child growth, fac
 5. Test an ASO King start with a matching King profile and a mismatched Wanderer start. Neither case must create a second kingdom.
 6. Attempt invalid spouse/child ages and malformed profile fields. A refused or malformed profile must have no world effects.
 7. Verify original town/castle menus, Gauntlet screen, mission transitions and siege state are unchanged.
+
+## Native input dialogs (v0.16)
+
+In the **Design my NEXT Sandbox starting life** menu, select Family, Attributes/Skills/Focus/Traits or Equipment. Each choice opens a Bannerlord-native text inquiry with validation. The spouse's name and age, each child's name, age, gender and appearance seed, all core skill/attribute/focus/trait numbers and twelve item IDs can be edited without touching an existing campaign. Values remain templates for anything not yet supported by the guarded new-game application.
+
+The editor is registered only for a standalone Campaign game type. It refuses Story Mode.

@@ -337,8 +337,8 @@ internal static class Program
         var origin = new SandboxOriginProfile();
         Check("new sandbox origin disabled by default", !origin.Enabled);
         Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
-            SandboxOriginProfile.Roles.Contains("Wanderer") &&
-            SandboxOriginProfile.Roles.Contains("King"));
+            Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&
+            Array.IndexOf(SandboxOriginProfile.Roles, "King") >= 0);
         Check("sandbox default does not replace native treasury",
             origin.Gold == -1 && origin.Influence == -1);
         Check("sandbox reject invalid role", !origin.TrySet("Role", "God"));

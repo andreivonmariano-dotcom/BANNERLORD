@@ -12,7 +12,7 @@ Only on the **OnNewGameCreated** event, when the profile is enabled, the module 
 
 All requested profile fields are represented: player age, attributes, 18 skill levels, focus, five personality traits, exact item IDs, equipment kit, chosen settlement ID, spouse name/age/gender/culture/face seed and equipment, and up to six individually named/aged children and four siblings.
 
-The built-in native menu currently edits common choices. Detailed names, appearance seeds, attributes, skills, traits and equipment IDs are editable in the saved profile file. An in-game text and appearance editor is planned after target-version UI acceptance.
+The built-in native menu currently edits common choices. Names, ages and appearance seeds for a spouse and six children can be edited through native text dialogs. The same editor offers all six attributes, eighteen skills and focus levels, five personality traits, and twelve item IDs. The file remains available for extended data. An in-game text and appearance editor is planned after target-version UI acceptance.
 
 ## Evidence
 

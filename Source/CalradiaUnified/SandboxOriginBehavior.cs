@@ -47,7 +47,7 @@ namespace CalradiaUnified
 
         private void RegisterMenus(CampaignGameStarter starter)
         {
-            if (starter == null) return;
+            if (starter == null || !IsStandaloneSandbox()) return;
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -59,6 +59,12 @@ namespace CalradiaUnified
                 "NPC birth and marriage are not yet active.", args => { });
             starter.AddGameMenu("cu_origin_wealth",
                 "Starting money and influence for a new Sandbox only.",
+                args => { });
+            starter.AddGameMenu("cu_origin_stats",
+                "Profile-only player attributes, skill levels, focus and traits.",
+                args => { });
+            starter.AddGameMenu("cu_origin_items",
+                "Profile-only starter equipment kits and exact item IDs.",
                 args => { });
             starter.AddGameMenu("cu_origin_location",
                 "Choose a town for your next Sandbox profile. Relocation is " +
@@ -93,6 +99,10 @@ namespace CalradiaUnified
                 "cu_origin_wealth");
             AddNavigation(starter, "cu_origin_main", "location", "Starting town",
                 "cu_origin_location");
+            AddNavigation(starter, "cu_origin_main", "stats",
+                "Attributes, skills, focus and traits", "cu_origin_stats");
+            AddNavigation(starter, "cu_origin_main", "items",
+                "Starter equipment", "cu_origin_items");
             starter.AddGameMenuOption("cu_origin_main", "cu_origin_file",
                 "Show advanced editor profile path", args => true,
                 args => Notify(SandboxOriginProfile.UserPath), false);
@@ -124,6 +134,42 @@ namespace CalradiaUnified
                     args => Editing.SpouseEnabled && Editing.ChildCount != value,
                     args => Update("ChildCount", n), false);
             }
+            AddText(starter, "cu_origin_family", "spouse_name",
+                "Name your spouse template", "SpouseName", () => Editing.SpouseName);
+            AddText(starter, "cu_origin_family", "spouse_age",
+                "Spouse age (18-70)", "SpouseAge", () => Editing.SpouseAge.ToString());
+            AddText(starter, "cu_origin_family", "spouse_face",
+                "Spouse appearance seed", "SpouseFaceSeed", () => Editing.SpouseFaceSeed);
+            foreach (var gender in new[] { "Female", "Male" })
+            {
+                string chosen = gender;
+                starter.AddGameMenuOption("cu_origin_family", "cu_spouse_gender_" + chosen,
+                    "Spouse gender: " + chosen, args => Editing.SpouseGender != chosen,
+                    args => Update("SpouseGender", chosen), false);
+            }
+            for (int i = 1; i <= SandboxOriginProfile.MaxChildren; i++)
+            {
+                int index = i;
+                AddText(starter, "cu_origin_family", "child_name_" + index,
+                    "Child " + index + " name", "Child." + index + ".Name",
+                    () => Editing.Children[index - 1].Name);
+                AddText(starter, "cu_origin_family", "child_age_" + index,
+                    "Child " + index + " age", "Child." + index + ".Age",
+                    () => Editing.Children[index - 1].Age.ToString());
+                AddText(starter, "cu_origin_family", "child_face_" + index,
+                    "Child " + index + " appearance seed",
+                    "Child." + index + ".FaceSeed",
+                    () => Editing.Children[index - 1].FaceSeed);
+                string childGender = "Child." + index + ".Gender";
+                starter.AddGameMenuOption("cu_origin_family", "cu_child_gender_" + index,
+                    "Change child " + index + " gender",
+                    args => true, args =>
+                        Update(childGender, Editing.Children[index - 1].Gender ==
+                            "Female" ? "Male" : "Female"), false);
+            }
+            AddText(starter, "cu_origin_family", "siblings",
+                "Number of siblings (0-4)", "SiblingCount",
+                () => Editing.SiblingCount.ToString());
             starter.AddGameMenuOption("cu_origin_family", "cu_family_preview",
                 "Show spouse and child names", args => true,
                 args => Notify(Editing.SpouseName + ", children=" +
@@ -164,7 +210,76 @@ namespace CalradiaUnified
                     args => Editing.StartingTown != id,
                     args => Update("StartingTown", id), false);
             }
+            AddText(starter, "cu_origin_location", "specific_town",
+                "Enter exact settlement StringId", "StartingTown",
+                () => Editing.StartingTown);
             AddBack(starter, "cu_origin_location");
+
+            foreach (string attr in SandboxOriginProfile.Attributes)
+            {
+                string key = "Attribute." + attr;
+                AddText(starter, "cu_origin_stats", "attribute_" + attr,
+                    "Player attribute " + attr + " (1-10)", key,
+                    () => ReadOverride(key));
+            }
+            foreach (string skill in SandboxOriginProfile.Skills)
+            {
+                string level = "Skill." + skill;
+                string focus = "Focus." + skill;
+                AddText(starter, "cu_origin_stats", "level_" + skill,
+                    "Player " + skill + " skill (0-330)", level,
+                    () => ReadOverride(level));
+                AddText(starter, "cu_origin_stats", "focus_" + skill,
+                    "Player " + skill + " focus (0-5)", focus,
+                    () => ReadOverride(focus));
+            }
+            foreach (string trait in SandboxOriginProfile.Traits)
+            {
+                string key = "Trait." + trait;
+                AddText(starter, "cu_origin_stats", "trait_" + trait,
+                    "Player " + trait + " trait (-2 to 2)", key,
+                    () => ReadOverride(key));
+            }
+            AddText(starter, "cu_origin_stats", "player_age",
+                "Player age (18-80, -1 for vanilla)", "PlayerAge",
+                () => Editing.PlayerAge.ToString());
+            AddBack(starter, "cu_origin_stats");
+            foreach (string kit in SandboxOriginProfile.Kits)
+            {
+                string chosen = kit;
+                starter.AddGameMenuOption("cu_origin_items", "cu_kit_" + kit,
+                    "Equipment template: " + chosen,
+                    args => Editing.EquipmentKit != chosen,
+                    args => Update("EquipmentKit", chosen), false);
+            }
+            for (int i = 1; i <= 12; i++)
+            {
+                int slot = i;
+                AddText(starter, "cu_origin_items", "item_" + slot,
+                    "Exact item ID slot " + slot, "Item." + slot,
+                    () => Editing.ItemIds.ContainsKey(slot) ?
+                        Editing.ItemIds[slot] : "");
+            }
+            AddBack(starter, "cu_origin_items");
+        }
+
+        private string ReadOverride(string key)
+        {
+            int value;
+            return Editing.Overrides.TryGetValue(key, out value)
+                ? value.ToString() : "";
+        }
+
+        private void AddText(CampaignGameStarter starter, string menu,
+            string id, string label, string key, Func<string> current)
+        {
+            starter.AddGameMenuOption(menu, "cu_origin_edit_" + id, label,
+                args => true,
+                args => InformationManager.ShowTextInquiry(new TextInquiryData(
+                    label, "For your NEXT new Sandbox only.",
+                    true, true, "Save", "Cancel",
+                    text => Update(key, text), () => { },
+                    false, null, "", current())), false);
         }
 
         private void AddNavigation(CampaignGameStarter starter,
@@ -196,9 +311,16 @@ namespace CalradiaUnified
             Notify("Saved " + key + "=" + value + " for the next Sandbox.");
         }
 
+        private static bool IsStandaloneSandbox()
+        {
+            // StoryMode.CampaignStoryMode is a subclass of Campaign.
+            return Game.Current != null && Game.Current.GameType != null &&
+                Game.Current.GameType.GetType() == typeof(Campaign);
+        }
+
         private void NewGameCreated(CampaignGameStarter starter)
         {
-            if (applied) return;
+            if (applied || !IsStandaloneSandbox()) return;
             // OnGameLoaded does not execute this event. The save key provides
             // a second barrier against reapplying wealth or changing old saves.
             applied = true;
@@ -225,7 +347,9 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "King requires the native King Advanced Start");
                 }
-                if (profile.Role == "Lord" && Clan.PlayerClan.Kingdom == null)
+                if (profile.Role == "Lord" &&
+                    (Clan.PlayerClan.Kingdom == null ||
+                     Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "Lord requires native Vassal Advanced Start");
 
