@@ -260,7 +260,7 @@ namespace CalradiaUnified
                     "Experimental: edit live 3D face in CU workshop",
                     "boolean"),
                 new Field("Identity","PlayerAge",
-                    "Requested starting age (not applied yet)","number",18,80),
+                    "Starting age (use native creator)","unavailable"),
                 new Field("Household","SpouseEnabled",
                     "Begin married","boolean"),
                 new Field("Household","SpouseName",
@@ -283,10 +283,9 @@ namespace CalradiaUnified
                 new Field("Household","ChildCount",
                     "Number of children (0-6)","number",0,6),
                 new Field("Household","SiblingCount",
-                    "Number of siblings (0-4)","number",0,4),
+                    "Starting siblings (requires parent Heroes)","unavailable"),
                 new Field("Resources","EquipmentKit",
-                    "Advanced: equipment theme (not applied yet)","choice",
-                    choices:SandboxOriginProfile.Kits),
+                    "Equipment theme (not applied yet)","unavailable"),
                 new Field("Resources","Gold",
                     "Starting gold (-1 means native)","number",0,2000000,1000),
                 new Field("Resources","Influence",
@@ -299,7 +298,7 @@ namespace CalradiaUnified
                 new Field("Location","FamilyHomeId",
                     "Exact owned castle or town ID for your family","text"),
                 new Field("Location","StartingTown",
-                    "Preferred starting settlement ID (relocation pending)","text"),
+                    "Preferred starting town (relocation unavailable)","unavailable"),
                 new Field("Location","StartingFiefMode",
                     "Founding fief: native, same-kingdom castle, town, or exact ID",
                     "choice",choices:SandboxFiefPolicy.Modes),
@@ -437,6 +436,8 @@ namespace CalradiaUnified
                 key=="StartSwiftTravel")
                 return advancedFieldsVisible;
             // Culture, face and age are selected once in the native wizard.
+            if (key.StartsWith("Sibling.",StringComparison.Ordinal))
+                return false;
             if (key=="StartingCulture") return false;
             return true;
         }
@@ -530,6 +531,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsBoolean,"IsBoolean");
             OnPropertyChangedWithValue(IsChoice,"IsChoice");
             OnPropertyChangedWithValue(IsText,"IsText");
+            OnPropertyChangedWithValue(IsUnavailable,"IsUnavailable");
             OnPropertyChangedWithValue(IsReviewPage,"IsReviewPage");
             OnPropertyChangedWithValue(IsNotReviewPage,"IsNotReviewPage");
             OnPropertyChangedWithValue(NumberMinimum,"NumberMinimum");
@@ -578,6 +580,10 @@ namespace CalradiaUnified
                 if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
                 if (key=="NativeFaceWorkshopEnabled") return "Experimental 3D prototype, OFF by default. Adds a CU-branded face editor after the native pages. Edits real player body properties, but this does NOT yet remove the native wizard. Do not enable together with CU 3D Review.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
+                if (key=="PlayerAge") return "Unavailable here: choose your actual player age using Bannerlord\'s native character creation until the CU native-state bridge is finished.";
+                if (key=="SiblingCount") return "Unavailable: sibling creation requires real native parent Heroes. This build never adds placeholder relatives.";
+                if (key=="EquipmentKit") return "Unavailable: equipment themes are not applied. Use the native starting equipment or advanced exact item IDs.";
+                if (key=="StartingTown") return "Unavailable: starting-town relocation is not active. Use the native starting location and supported fief options.";
                 if (key=="SpouseEnabled") return "Choose Yes to request a real spouse. No spouse means no starting children.";
                 if (key=="SpouseGender") return "Auto uses the opposite gender after your native character is finalized.";
                 if (key=="SpouseBackground") return "Commoner: no noble ancestors. NobleRandom: a generated child of a real noble couple in your kingdom. NobleChosen: type a clan ID.";
@@ -634,6 +640,7 @@ namespace CalradiaUnified
             get
             {
                 if(Current==null) return "";
+                if(Current.Kind=="unavailable") return "NOT AVAILABLE IN THIS BUILD";
                 string value=RawValue(Current.Key);
                 if(value=="-1" || value=="") return "Keep the native default";
                 if(Current.Kind=="number") return pendingNumber.ToString();
@@ -671,6 +678,10 @@ namespace CalradiaUnified
         [DataSourceProperty] public bool IsText
         {
             get { return Current!=null && Current.Kind=="text"; }
+        }
+        [DataSourceProperty] public bool IsUnavailable
+        {
+            get { return Current!=null && Current.Kind=="unavailable"; }
         }
         [DataSourceProperty] public bool IsReviewPage { get {return page=="Review";} }
         [DataSourceProperty] public bool IsNotReviewPage { get {return page!="Review";} }
@@ -936,7 +947,7 @@ namespace CalradiaUnified
         public void ExecuteUseNative()
         {
             if(Current!=null && (Current.Key=="Gold"||
-                Current.Key=="Influence"||Current.Key=="PlayerAge" ||
+                Current.Key=="Influence" ||
                 Current.Key=="WorldSeed"))
                 Write(Current.Key,"-1");
         }
