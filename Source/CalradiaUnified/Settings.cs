@@ -83,10 +83,35 @@ namespace CalradiaUnified
 
         public static Settings Load()
         {
+            return LoadFromPaths(
+                Path.Combine(Log.ModuleRoot, "ModuleData", "calradia-config.ini"),
+                UserOverridePath);
+        }
+
+        public static string UserOverridePath
+        {
+            get
+            {
+                return Path.Combine(Environment.GetFolderPath(
+                    Environment.SpecialFolder.LocalApplicationData),
+                    "CalradiaUnified", "calradia-user-config.ini");
+            }
+        }
+
+        public static Settings LoadFromPaths(string bundled, string userOverride)
+        {
             var output = new Settings();
-            var filename = Path.Combine(Log.ModuleRoot, "ModuleData", "calradia-config.ini");
-            if (!File.Exists(filename)) return output;
-            foreach (string raw in File.ReadAllLines(filename))
+            if (File.Exists(bundled))
+                ApplyLines(output, File.ReadAllLines(bundled));
+            if (File.Exists(userOverride))
+                ApplyLines(output, File.ReadAllLines(userOverride));
+            return output;
+        }
+
+        // Existing INI parser remains the only route for updating live settings.
+        private static void ApplyLines(Settings output, string[] lines)
+        {
+            foreach (string raw in lines)
             {
                 var line = raw.Trim();
                 if (line.Length == 0 || line.StartsWith("#")) continue;
@@ -161,7 +186,39 @@ namespace CalradiaUnified
                 else if (key == "EstateSalePricePerGrain" && Int32.TryParse(value, out n)) output.EstateSalePricePerGrain = Clamp(n, 1, 100);
                 else if (key == "GrainPerForage" && Int32.TryParse(value, out n)) output.GrainPerForage = Clamp(n, 1, 5);
             }
-            return output;
+        }
+
+        /// <summary>
+        /// UI changes are saved first, then reflected into this shared settings
+        /// instance. Other campaign behaviors observe the change on their next
+        /// event without receiving a duplicate event registration.
+        /// </summary>
+        public bool TrySetMenuValue(string key, string value, string path,
+            out string error)
+        {
+            string normalized;
+            if (!SettingsMenuPolicy.TryNormalize(key, value, out normalized))
+            {
+                error = "This setting is not editable in the in-game menu.";
+                return false;
+            }
+            try
+            {
+                SettingsMenuPolicy.WriteOverride(path, key, normalized);
+                ApplyLines(this, new[] { key + "=" + normalized });
+                error = "";
+                return true;
+            }
+            catch (Exception ex)
+            {
+                error = "Unable to save setting: " + ex.GetType().Name;
+                return false;
+            }
+        }
+
+        public bool TrySetMenuValue(string key, string value, out string error)
+        {
+            return TrySetMenuValue(key, value, UserOverridePath, out error);
         }
 
         private static int Clamp(int x, int a, int b) { return Math.Min(b, Math.Max(a, x)); }

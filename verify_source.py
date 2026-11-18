@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.13.0'
+assert manifest.find('Version').get('value')=='v0.14.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -54,6 +54,13 @@ assert 'EnableManualGarrisonTransfers=false' in conf
 assert 'EnableManualGarrisonWageCaps=false' in conf
 assert 'DiagnosticJournal.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'new DiagnosticBehavior(config)' in (src/'SubModule.cs').read_text()
+assert 'new NativeSettingsBehavior(config)' in (src/'SubModule.cs').read_text()
+assert (src/'NativeSettingsBehavior.cs').exists()
+assert (src/'SettingsMenuPolicy.cs').exists()
+assert 'Settings.LoadFromPaths' in (src/'Settings.cs').read_text()
+assert 'SettingsMenuPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'calradia-user-config.ini' in (src/'Settings.cs').read_text()
+assert 'GameMenu.SwitchToMenu' in (src/'NativeSettingsBehavior.cs').read_text()
 assert 'DiagnosticJournal.Exception' in (src/'CivicBehavior.cs').read_text()
 assert 'DiagnosticJournal.Exception' in (src/'KingdomAutonomyBehavior.cs').read_text()
 assert 'EnableDiagnostics=true' in conf

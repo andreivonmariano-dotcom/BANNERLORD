@@ -307,6 +307,75 @@ internal static class Program
         Check("manual wage cap no layoffs", !CastleManagementPolicy.CanApplyCap(true, true, true, false, 2000, 1000, 250, 1100));
         Check("manual wage cap siege rejected", !CastleManagementPolicy.CanApplyCap(true, true, true, true, 2000, 1000, 250, 900));
         Check("manual wage cap disabled", !CastleManagementPolicy.CanApplyCap(false, true, true, false, 2000, 1000, 250, 900));
+        Check("settings allow-list accepts reporting toggles",
+            SettingsMenuPolicy.TryNormalize("EnableSupplyWarnings", "false", out var normalizedBool)
+            && normalizedBool == "false");
+        Check("settings allow-list rejects external patch switch",
+            !SettingsMenuPolicy.TryNormalize("EnableHarmonyPatching", "true", out var unknown));
+        Check("settings allow-list rejects dangerous patrol activation",
+            !SettingsMenuPolicy.TryNormalize("EnableAutonomousClanPatrol", "true", out var forbidden));
+        Check("settings rejects malformed bool",
+            !SettingsMenuPolicy.TryNormalize("EnableEconomy", "yes", out var badBool));
+        Check("settings accepts maximum day threshold",
+            SettingsMenuPolicy.TryNormalize("SupplyWarningDays", "15", out var bounded)
+            && bounded == "15");
+        Check("settings rejects day threshold overflow",
+            !SettingsMenuPolicy.TryNormalize("SupplyWarningDays", "16", out var overflow));
+        Check("settings rejects negative recruit cap",
+            !SettingsMenuPolicy.TryNormalize("LocalRecruitDailyCap", "-1", out var negative));
+        Check("settings replace preserves unknown keys and comments",
+            SettingsMenuPolicy.UpdateLines("# user note\\nUnknownCustomOption=yes\\nEnableSupplyWarnings=true\\n",
+                "EnableSupplyWarnings", "false").Contains("UnknownCustomOption=yes")
+            && SettingsMenuPolicy.UpdateLines("# user note\\nEnableSupplyWarnings=true\\n",
+                "EnableSupplyWarnings", "false").Contains("# user note"));
+        Check("settings replace prevents duplicate definitions",
+            SettingsMenuPolicy.UpdateLines("EnableEconomy=true\\nEnableEconomy=true",
+                "EnableEconomy", "false").Split(new[] {"EnableEconomy="},
+                StringSplitOptions.None).Length == 2);
+        var tempSettings = System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(), "CU-Settings-" + Guid.NewGuid().ToString("N"));
+        System.IO.Directory.CreateDirectory(tempSettings);
+        try
+        {
+            string baseline = System.IO.Path.Combine(tempSettings, "baseline.ini");
+            string userIni = System.IO.Path.Combine(tempSettings, "user.ini");
+            System.IO.File.WriteAllText(baseline,
+                "# default configuration\\nEnableEconomy=false\\nSupplyWarningDays=3\\n");
+            var settings = Settings.LoadFromPaths(baseline, userIni);
+            Check("settings start with safe baseline", !settings.EnableEconomy &&
+                settings.SupplyWarningDays == 3);
+            string configError;
+            Check("settings in-game write succeeds",
+                settings.TrySetMenuValue("EnableSupplyWarnings", "false",
+                    userIni, out configError) && !settings.EnableSupplyWarnings);
+            Check("settings write persists across new object",
+                !Settings.LoadFromPaths(baseline, userIni).EnableSupplyWarnings);
+            Check("settings experimental stays opt-in on reload",
+                !Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
+            Check("settings can enable and persist an opt-in feature",
+                settings.TrySetMenuValue("EnableEconomy", "true",
+                    userIni, out configError) && settings.EnableEconomy &&
+                Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
+            Check("settings numeric updates apply immediately",
+                settings.TrySetMenuValue("SupplyWarningDays", "5",
+                    userIni, out configError) && settings.SupplyWarningDays == 5);
+            string previousContents = System.IO.File.ReadAllText(userIni);
+            Check("settings invalid input does not mutate disk",
+                !settings.TrySetMenuValue("SupplyWarningDays", "99",
+                    userIni, out configError) &&
+                System.IO.File.ReadAllText(userIni) == previousContents &&
+                settings.SupplyWarningDays == 5);
+            Check("settings malformed path does not change live state",
+                !settings.TrySetMenuValue("EnableEconomy", "false",
+                    "", out configError) && settings.EnableEconomy);
+            Check("settings preserving unrelated user entries",
+                SettingsMenuPolicy.UpdateLines("# keep\\nExtraKey=hello\\n",
+                    "EnableCivicSystems", "false").Contains("ExtraKey=hello"));
+        }
+        finally
+        {
+            System.IO.Directory.Delete(tempSettings, true);
+        }
         Check("diagnostic CSV escapes quotes and comma",
             DiagnosticJournal.CsvField("castle,\"test\"") == "\"castle,\"\"test\"\"\"");
         Check("diagnostic path redactor accepts empty", DiagnosticJournal.StripPersonalPath("") == "");
