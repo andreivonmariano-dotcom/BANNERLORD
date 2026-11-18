@@ -1,4 +1,17 @@
-# Calradia Unified v0.29.0 | Native 3D Origin Review and Real Family Portraits
+# Calradia Unified v0.31.0 | Experimental Native 3D Face Workshop
+
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** source candidate awaiting exact Windows CI and in-game testing. This work advances the single-screen CU creator, but **the second native character wizard still appears**.
+
+In **Sandbox → Starting Life → More options**, an optional **Experimental: edit live 3D face in CU workshop** choice adds a distinct CU stage after native difficulty. It composes Bannerlord's real `CharacterCreationFaceGeneratorView`, preserving the native BodyGenerator, model, face history, camera and face controls. A CU read-only context ribbon remains unfocused so the editor owns user input. The option is **off by default**, and the previous experimental CU review cannot be selected at the same time.
+
+The new `NativeCreatorParityPolicy` guards all seven native stage prerequisites before the optional workshop can load. No native stage view is replaced, no child Heroes are created during preview, and the native character-creation sequence stays unchanged when the mode is disabled. The goal of a single CU creator from **Sandbox click to campaign map** remains open under [issue #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44).
+
+**Technical and test protocol:** [v0.31 Face Workshop and Unified Creator Parity](docs/V031_FACE_WORKSHOP_AND_UNIFIED_CREATOR_PARITY.md). Keep the original v0.29 review and family features intact.
+
+---
+
+## Previous v0.29 candidate and established mechanics
+
 
 **Target game:** Mount & Blade II: Bannerlord PC v1.5.7.125802. **Status:** COMPILED_UNTESTED for v0.29 UI and the v0.28 family-home feature. Previous in-game evidence validated genuine spouse and children, but the new stage, portrait gallery and save persistence still need separate Bannerlord playtests.
 
