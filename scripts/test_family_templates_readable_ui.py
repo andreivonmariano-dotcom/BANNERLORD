@@ -51,7 +51,9 @@ for binding in ("RoleSummary","FamilySummary","LandSummary",
     assert any(n.tag=="TextWidget" and n.get("Text")=="@"+binding
                for n in xml.iter()),binding
     assert "public string "+binding in overlay,binding
-assert "profile.SpouseEnabled ?" in overlay
+assert "if (!profile.SpouseEnabled)" in overlay
+assert "public string ChildPreview" in overlay
+assert "profile.ChildCount" in overlay
 assert "family: off" not in overlay
 assert "REAL FAMILY" not in overlay
 
