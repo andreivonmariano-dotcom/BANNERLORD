@@ -12,6 +12,37 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("start contract accepts genuine Vlandian Lord with fief and spouse",
+            SandboxStartContract.Validate("vassal","vassal","vlandia",
+                "vlandia",false,1,true,true,0,0).Length == 0);
+        Check("start contract refuses fake vanilla Lord",
+            Array.IndexOf(SandboxStartContract.Validate("vassal","default",
+                "vlandia","",false,0,false,false,0,0),
+                "native_start_type_mismatch") >= 0);
+        Check("start contract refuses wrong kingdom",
+            Array.IndexOf(SandboxStartContract.Validate("vassal","vassal",
+                "vlandia","sturgia",false,1,false,false,0,0),
+                "starting_kingdom_mismatch") >= 0);
+        Check("start contract refuses fake king without ruling clan",
+            Array.IndexOf(SandboxStartContract.Validate("king","king",
+                "vlandia","vlandia",false,2,false,false,0,0),
+                "ruler_status_or_fief_missing") >= 0);
+        Check("start contract refuses missing vassal fief",
+            Array.IndexOf(SandboxStartContract.Validate("vassal","vassal",
+                "vlandia","vlandia",false,0,false,false,0,0),
+                "vassal_status_or_fief_missing") >= 0);
+        Check("start contract refuses spouse fields without real hero",
+            Array.IndexOf(SandboxStartContract.Validate("vassal","vassal",
+                "vlandia","vlandia",false,1,true,false,0,0),
+                "requested_spouse_missing") >= 0);
+        Check("start contract refuses missing requested children",
+            Array.IndexOf(SandboxStartContract.Validate("vassal","vassal",
+                "vlandia","vlandia",false,1,true,true,2,1),
+                "requested_children_missing") >= 0);
+        Check("start contract accepts independent Wanderer",
+            SandboxStartContract.Validate("default","default","","",
+                false,0,false,false,0,0).Length == 0);
+
         Check("exact shortage threshold", SupplyPolicy.IsLowFood(3, 3));
         Check("unknown supply not shortage", !SupplyPolicy.IsLowFood(-1, 3));
         Check("ample food not shortage", !SupplyPolicy.IsLowFood(4, 3));
