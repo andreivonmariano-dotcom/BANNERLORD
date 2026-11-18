@@ -13,6 +13,7 @@ using TaleWorlds.Core;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 using TaleWorlds.ObjectSystem;
+using TaleWorlds.ModuleManager;
 
 namespace CalradiaUnified
 {
@@ -94,9 +95,36 @@ namespace CalradiaUnified
                         manager.GetStage<CharacterCreationFaceGeneratorStage>() != null &&
                         manager.GetStage<CharacterCreationReviewStage>() != null &&
                         manager.GetStage<CharacterCreationOptionsStage>() != null;
+                    // CharacterCreationScreen discovers stage views only
+                    // from active assemblies referencing SandBox.View.
+                    // Mirror that exact public engine discovery check BEFORE
+                    // adding a stage that otherwise could have a blank view.
+                    bool viewDiscoverable = false;
+                    try
+                    {
+                        var ownAssembly =
+                            typeof(CUNativeOriginReviewStageView).Assembly;
+                        var attributeAssembly =
+                            typeof(CharacterCreationStageViewAttribute).Assembly;
+                        var attr = (CharacterCreationStageViewAttribute)
+                            Attribute.GetCustomAttribute(
+                                typeof(CUNativeOriginReviewStageView),
+                                typeof(CharacterCreationStageViewAttribute),
+                                false);
+                        viewDiscoverable = attr != null &&
+                            attr.StageType == typeof(CUNativeOriginReviewStage) &&
+                            (ownAssembly == attributeAssembly ||
+                             attributeAssembly.GetActiveReferencingGameAssembliesSafe()
+                                 .Contains(ownAssembly));
+                    }
+                    catch (Exception error)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_view_discovery_probe",error);
+                    }
                     if (originProfile.Enabled &&
                         originProfile.NativeIntegrationReviewEnabled &&
-                        nativeComplete &&
+                        nativeComplete && viewDiscoverable &&
                         manager.GetStage<CUNativeOriginReviewStage>() == null)
                     {
                         manager.AddStage(new CUNativeOriginReviewStage());
@@ -111,7 +139,8 @@ namespace CalradiaUnified
                             "opt_in=" +
                             originProfile.NativeIntegrationReviewEnabled +
                             "|profile_active=" + originProfile.Enabled +
-                            "|native_stages_complete=" + nativeComplete);
+                            "|native_stages_complete=" + nativeComplete +
+                            "|view_discoverable=" + viewDiscoverable);
                     }
                     // The discontinued age-menu relinker is never used with
                     // the independent custom front-end. The native graph
