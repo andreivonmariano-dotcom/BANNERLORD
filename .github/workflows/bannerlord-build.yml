@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.14.0 native in-game settings and standalone framework equivalents
+name: Calradia Unified 1.5.7 - v0.15.0 complete catalog settings and runtime diagnostics
 on:
   workflow_dispatch:
   push:
@@ -84,18 +84,18 @@ jobs:
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
       - name: Verify ZIP paths, CRC, DLL identity and hashes
         shell: pwsh
-        run: python scripts/verify_package.py Output/CalradiaUnified_v0.14.0_COMPILED_UNTESTED.zip --version v0.14.0
+        run: python scripts/verify_package.py Output/CalradiaUnified_v0.15.0_COMPILED_UNTESTED.zip --version v0.15.0
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-compiled-untested
-          path: Output/CalradiaUnified_v0.14.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.15.0-compiled-untested
+          path: Output/CalradiaUnified_v0.15.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-simulation-report
+          name: CalradiaUnified-v0.15.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -104,6 +104,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-build-errors
+          name: CalradiaUnified-v0.15.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

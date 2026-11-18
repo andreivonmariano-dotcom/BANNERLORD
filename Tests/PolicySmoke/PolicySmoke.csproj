@@ -23,5 +23,6 @@
     <Compile Include="../../Source/CalradiaUnified/Log.cs" Link="Log.cs" />
     <Compile Include="../../Source/CalradiaUnified/Settings.cs" Link="Settings.cs" />
     <Compile Include="../../Source/CalradiaUnified/SettingsMenuPolicy.cs" Link="SettingsMenuPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SettingsCatalog.cs" Link="SettingsCatalog.cs" />
   </ItemGroup>
 </Project>

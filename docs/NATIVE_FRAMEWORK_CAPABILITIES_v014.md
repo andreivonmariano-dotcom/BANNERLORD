@@ -26,7 +26,7 @@ The supply warning threshold supports 0–15 days. The local recruitment daily c
 3. UI save writes a temporary file in the local settings directory and commits it by replace/rename. The memory value updates only after disk success. A failed write does not change the current setting.
 4. A user can remove the local override file to return to the bundled defaults. No campaign save data keys were changed.
 
-**Safety:** native menus expose only a strict allow-list. Autonomous NPC movement and physical convoy toggles are intentionally not editable here. Experimental economy, recruitment and castle actions remain disabled until the user explicitly turns one on.
+**Safety:** native menus expose the audited catalog of all 64 existing public settings with strict type and range constraints. Autonomous NPC movement and physical convoy toggles are marked experimental with a detail page before activation. Experimental economy, recruitment and castle actions remain disabled until the user explicitly turns one on.
 
 ## Verification still required
 

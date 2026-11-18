@@ -38,134 +38,134 @@ namespace CalradiaUnified
         {
             if (starter == null) return;
             starter.AddGameMenu("cu_settings_main",
-                "Calradia Unified | Settings\nChanges persist in your user profile.",
+                "Calradia Unified settings | Select a category.",
                 args => { });
-            starter.AddGameMenu("cu_settings_reports",
-                "Reports and supply warnings. Changes apply immediately.",
-                args => { });
-            starter.AddGameMenu("cu_settings_economy",
-                "Economy and recruitment. EXPERIMENTAL, no game testing yet.",
-                args => { });
-            starter.AddGameMenu("cu_settings_castles",
-                "Castle management. EXPERIMENTAL, no game testing yet.",
-                args => { });
-
             foreach (string name in new[] { "town", "castle" })
             {
                 string source = name;
-                starter.AddGameMenuOption(name, "cu_open_settings_" + name,
+                starter.AddGameMenuOption(source, "cu_open_settings_" + name,
                     "CU: Configure Calradia Unified",
                     args => true,
-                    args => { returnMenu = source;
-                        GameMenu.SwitchToMenu("cu_settings_main"); }, false);
+                    args =>
+                    {
+                        returnMenu = source;
+                        DiagnosticJournal.Event("settings_menu_open", "source=" + source);
+                        GameMenu.SwitchToMenu("cu_settings_main");
+                    }, false);
             }
-            AddGo(starter, "cu_settings_main", "reports", "Reports and warnings",
-                "cu_settings_reports");
-            AddGo(starter, "cu_settings_main", "economy", "Economy and recruitment",
-                "cu_settings_economy");
-            AddGo(starter, "cu_settings_main", "castles", "Castle management",
-                "cu_settings_castles");
-            starter.AddGameMenuOption("cu_settings_main", "cu_config_location",
-                "Show my settings file location", args => true,
-                args => Notify("Your profile overrides are stored at " +
-                    Settings.UserOverridePath), false);
-            starter.AddGameMenuOption("cu_settings_main", "cu_config_exit",
-                "Return to settlement",
-                args => true, args => GameMenu.SwitchToMenu(returnMenu), false);
 
-            AddToggle(starter, "cu_settings_reports", "supplies",
-                "Supply warnings", "EnableSupplyWarnings",
-                () => settings.EnableSupplyWarnings);
-            AddToggle(starter, "cu_settings_reports", "army",
-                "Army food warnings", "EnableArmyWarnings",
-                () => settings.EnableArmyWarnings);
-            AddToggle(starter, "cu_settings_reports", "npc",
-                "Read-only clan advice", "EnableNpcAdvisory",
-                () => settings.EnableNpcAdvisory);
-            AddNumber(starter, "cu_settings_reports", "supply_days",
-                "Supply warning threshold (days)", "SupplyWarningDays",
-                () => settings.SupplyWarningDays, 0, 15, 1);
-            AddBack(starter, "cu_settings_reports");
+            foreach (var group in SettingsCatalog.Groups)
+            {
+                string category = group;
+                string menu = "cu_settings_group_" + category;
+                starter.AddGameMenu(menu,
+                    SettingsCatalog.GroupLabel(category) +
+                    " | Choose a setting to view and change.",
+                    args => { });
+                starter.AddGameMenuOption("cu_settings_main",
+                    "cu_settings_go_" + category,
+                    SettingsCatalog.GroupLabel(category),
+                    args => true, args => GameMenu.SwitchToMenu(menu), false);
 
-            AddToggle(starter, "cu_settings_economy", "depots",
-                "EXPERIMENTAL depot deposits and withdrawals",
-                "EnableCivicSystems", () => settings.EnableCivicSystems);
-            AddToggle(starter, "cu_settings_economy", "production",
-                "EXPERIMENTAL depot production", "EnableEconomy",
-                () => settings.EnableEconomy);
-            AddToggle(starter, "cu_settings_economy", "recruits",
-                "EXPERIMENTAL native-culture recruitment",
-                "EnableRecruitment", () => settings.EnableRecruitment);
-            AddToggle(starter, "cu_settings_economy", "trading",
-                "EXPERIMENTAL depot trading", "EnableDepotTrade",
-                () => settings.EnableDepotTrade);
-            AddNumber(starter, "cu_settings_economy", "recruits_per_day",
-                "Maximum local recruits per settlement per day",
-                "LocalRecruitDailyCap", () => settings.LocalRecruitDailyCap,
-                1, 20, 1);
-            AddBack(starter, "cu_settings_economy");
+                foreach (var item in SettingsCatalog.All)
+                {
+                    if (item.Group != category) continue;
+                    var option = item;
+                    string detail = "cu_setting_" + option.Key.ToLowerInvariant();
+                    starter.AddGameMenuOption(menu, "cu_settings_entry_" + option.Key,
+                        (option.Experimental ? "[EXPERIMENTAL] " : "") + option.Label,
+                        args => true,
+                        args => GameMenu.SwitchToMenu(detail), false);
+                    starter.AddGameMenu(detail,
+                        option.Label + " | " + (option.Experimental ?
+                            "Experimental, use a disposable campaign. " :
+                            "Current setting. ") +
+                        "Changes are saved to the user profile.",
+                        args => { });
+                    RegisterDetail(starter, detail, menu, option);
+                }
+                starter.AddGameMenuOption(menu, "cu_settings_back_" + category,
+                    "Back to categories",
+                    args => true,
+                    args => GameMenu.SwitchToMenu("cu_settings_main"), false);
+            }
 
-            AddToggle(starter, "cu_settings_castles", "transfers",
-                "EXPERIMENTAL existing garrison troop transfers",
-                "EnableManualGarrisonTransfers",
-                () => settings.EnableManualGarrisonTransfers);
-            AddToggle(starter, "cu_settings_castles", "wagecap",
-                "EXPERIMENTAL manual castle wage caps",
-                "EnableManualGarrisonWageCaps",
-                () => settings.EnableManualGarrisonWageCaps);
-            AddToggle(starter, "cu_settings_castles", "training",
-                "EXPERIMENTAL grain-funded garrison training",
-                "EnableGarrisonTraining",
-                () => settings.EnableGarrisonTraining);
-            AddBack(starter, "cu_settings_castles");
+            starter.AddGameMenuOption("cu_settings_main", "cu_settings_profile",
+                "Show profile settings location", args => true,
+                args => Notify(Settings.UserOverridePath), false);
+            starter.AddGameMenuOption("cu_settings_main", "cu_settings_close",
+                "Return to settlement", args => true, args =>
+                {
+                    DiagnosticJournal.Event("settings_menu_close",
+                        "return=" + returnMenu);
+                    GameMenu.SwitchToMenu(returnMenu);
+                }, false);
+            DiagnosticJournal.Event("settings_menu_registered",
+                "definitions=" + SettingsCatalog.All.Count);
         }
 
-        private void AddGo(CampaignGameStarter starter, string menu,
-            string id, string label, string next)
+        private void RegisterDetail(CampaignGameStarter starter, string detail,
+            string parent, SettingDescriptor option)
         {
-            starter.AddGameMenuOption(menu, "cu_settings_go_" + id,
-                label, args => true,
-                args => GameMenu.SwitchToMenu(next), false);
-        }
-
-        private void AddBack(CampaignGameStarter starter, string menu)
-        {
-            starter.AddGameMenuOption(menu, menu + "_back",
-                "Back to settings categories", args => true,
-                args => GameMenu.SwitchToMenu("cu_settings_main"), false);
-        }
-
-        private void AddToggle(CampaignGameStarter starter, string menu,
-            string id, string label, string key, Func<bool> current)
-        {
-            starter.AddGameMenuOption(menu, "cu_s_" + id + "_enable",
-                "Enable " + label,
-                args => !current(),
-                args => Change(key, "true", menu), false);
-            starter.AddGameMenuOption(menu, "cu_s_" + id + "_disable",
-                "Disable " + label,
-                args => current(),
-                args => Change(key, "false", menu), false);
-        }
-
-        private void AddNumber(CampaignGameStarter starter, string menu,
-            string id, string label, string key, Func<int> current,
-            int min, int max, int increment)
-        {
-            starter.AddGameMenuOption(menu, "cu_s_" + id + "_show",
-                "Show current " + label,
+            starter.AddGameMenuOption(detail, "cu_current_" + option.Key,
+                "Show current value", args => true,
+                args => Notify(option.Key + " = " +
+                    SettingsCatalog.Read(settings, option)), false);
+            if (option.Boolean)
+            {
+                starter.AddGameMenuOption(detail, "cu_enable_" + option.Key,
+                    option.Experimental ? "Enable experimental feature" : "Enable",
+                    args => SettingsCatalog.Read(settings, option) == "false",
+                    args => Change(option.Key, "true", detail), false);
+                starter.AddGameMenuOption(detail, "cu_disable_" + option.Key,
+                    "Disable", args =>
+                        SettingsCatalog.Read(settings, option) == "true",
+                    args => Change(option.Key, "false", detail), false);
+            }
+            else
+            {
+                starter.AddGameMenuOption(detail, "cu_decrease_" + option.Key,
+                    "Decrease by " + option.Step,
+                    args => CurrentNumber(option) > option.Min,
+                    args => Nudge(option, -1, 1, detail), false);
+                starter.AddGameMenuOption(detail, "cu_increase_" + option.Key,
+                    "Increase by " + option.Step,
+                    args => CurrentNumber(option) < option.Max,
+                    args => Nudge(option, 1, 1, detail), false);
+                starter.AddGameMenuOption(detail, "cu_decrease10_" + option.Key,
+                    "Decrease by " + (option.Step * 10),
+                    args => CurrentNumber(option) > option.Min,
+                    args => Nudge(option, -1, 10, detail), false);
+                starter.AddGameMenuOption(detail, "cu_increase10_" + option.Key,
+                    "Increase by " + (option.Step * 10),
+                    args => CurrentNumber(option) < option.Max,
+                    args => Nudge(option, 1, 10, detail), false);
+                starter.AddGameMenuOption(detail, "cu_range_" + option.Key,
+                    "Show allowed minimum and maximum",
+                    args => true,
+                    args => Notify(option.Label + " range: " +
+                        option.Min + " to " + option.Max), false);
+            }
+            starter.AddGameMenuOption(detail, "cu_detail_back_" + option.Key,
+                "Back to " + SettingsCatalog.GroupLabel(option.Group),
                 args => true,
-                args => Notify(label + ": " + current()), false);
-            starter.AddGameMenuOption(menu, "cu_s_" + id + "_plus",
-                "Increase " + label + " by " + increment,
-                args => current() <= max - increment,
-                args => Change(key, (current() + increment).ToString(), menu),
-                false);
-            starter.AddGameMenuOption(menu, "cu_s_" + id + "_minus",
-                "Decrease " + label + " by " + increment,
-                args => current() >= min + increment,
-                args => Change(key, (current() - increment).ToString(), menu),
-                false);
+                args => GameMenu.SwitchToMenu(parent), false);
+        }
+
+        private int CurrentNumber(SettingDescriptor option)
+        {
+            int value;
+            return Int32.TryParse(SettingsCatalog.Read(settings, option),
+                out value) ? value : option.Min;
+        }
+
+        private void Nudge(SettingDescriptor option, int direction, int factor,
+            string menu)
+        {
+            int value = SettingsCatalog.Next(CurrentNumber(option),
+                option, direction, factor);
+            Change(option.Key, value.ToString(
+                System.Globalization.CultureInfo.InvariantCulture), menu);
         }
 
         private void Change(string key, string value, string menu)
