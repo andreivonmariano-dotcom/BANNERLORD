@@ -23,7 +23,7 @@ namespace CalradiaUnified
             base.OnInitialize();
             dataSource = new NativeSettingsPanelVM(settings,
                 () => ScreenManager.PopScreen());
-            layer = new GauntletLayer(100) { IsFocusLayer = true };
+            layer = new GauntletLayer("CalradiaUnifiedSettings", 100, false) { IsFocusLayer = true };
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
             layer.LoadMovie("CUSettingsPanel", dataSource);
