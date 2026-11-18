@@ -21,7 +21,18 @@ assert "[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]" in nati
 assert native.count("[CharacterCreationStageView(")==1
 assert "CUNativeOriginReviewStage : CharacterCreationStageBase" in native
 assert "CharacterCreationReviewStageView" in native
-assert "base(manager,affirmativeAction,affirmativeText" in native
+assert "CUNativeOriginReviewStageView :\n        CharacterCreationStageViewBase" in native
+assert "new CharacterCreationReviewStageView(" in native
+assert "nativeReview.SetGenericScene(scene)" in native
+assert "nativeReview.GetLayers()" in native
+assert "nativeReview.Tick(dt)" in native
+assert "nativeReview.NextStage()" in native
+assert "nativeReview.PreviousStage()" in native
+assert "((ICharacterCreationStageListener)nativeReview)" in native
+assert ".OnStageFinalize();" in native
+# Native review has an inherited attribute. Composing rather than inheriting
+# prevents the engine's inherit:true scan from treating us as a native view.
+assert "CUNativeOriginReviewStageView :\n        CharacterCreationReviewStageView" not in native
 assert 'GauntletLayer("CUOriginNativeReview", 2, false)' in native
 assert "summaryLayer.IsFocusLayer = false;" in native
 assert 'summaryLayer.LoadMovie(' in native
