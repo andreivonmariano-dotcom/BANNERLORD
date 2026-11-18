@@ -48,7 +48,8 @@ for key in ("NativeStageEnabled","RealFamilyEnabled","RoleAffiliationsEnabled"):
 assert 'if (profile == null || !profile.RealFamilyEnabled' in family
 assert 'SandboxFamilyPolicy.Guard' in family
 assert 'MarriageAction.Apply(player,spouseHero' in family
-assert 'child.Mother=mother' in family and 'child.Father=father' in family
+assert 'child.Mother = mother;' in family and 'child.Father = father;' in family
+assert 'GetStaticBodyProperties(child,true)' in family
 assert 'if (!profile.RoleAffiliationsEnabled)' in role
 assert 'king_requires_official_advanced_start' in role
 assert 'ApplyByJoinFactionAsMercenary' in role
