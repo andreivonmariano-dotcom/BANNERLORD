@@ -26,8 +26,8 @@ if (-not (Test-Path -LiteralPath $movie -PathType Leaf)) {
 if ([string]$module.Module.Id.value -ne 'CalradiaUnified') {
     throw 'Unexpected module ID.'
 }
-if ([string]$module.Module.Version.value -ne 'v0.20.0') {
-    throw 'The installed module is not the v0.20.0 direct Sandbox candidate.'
+if ([string]$module.Module.Version.value -ne 'v0.21.0') {
+    throw 'The installed module is not the v0.21.0 direct Sandbox candidate.'
 }
 # The managed file version is often 1.0.0.0; check official module
 # manifests, the authoritative installed Bannerlord module versions.
@@ -52,7 +52,7 @@ $version = (Get-Item -LiteralPath $engine).VersionInfo
 $report = [ordered]@{
     schema = 'CU-RUNTIME-PREFLIGHT-1'
     performed_utc = [DateTime]::UtcNow.ToString('o')
-    expected_version = 'v0.20.0'
+    expected_version = 'v0.21.0'
     installed_module_version = [string]$module.Module.Version.value
     game_campaign_assembly_file_version = [string]$version.FileVersion
     game_campaign_assembly_product_version = [string]$version.ProductVersion

@@ -1,33 +1,36 @@
-# Calradia Unified v0.20.0 | Real Native Starts & Family Candidate
+# Calradia Unified v0.21.0 | Native start verification candidate
 
-**Game target:** Mount & Blade II: Bannerlord PC v1.5.7.125802. **Status:** compiled-source candidate until exact Windows Actions and live-game validation are recorded. Do not call this a final release.
+**Target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
+**Current status:** Gate B COMPILED_UNTESTED. [Successful Windows CI #44300627835](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300627835): 578 pure gameplay-policy checks passed, 40 simulated campaigns completed, and 0 compiler warnings/errors. This is **not** a completed single-screen Sandbox overhaul.
 
-## Why v0.20 exists
+## Intended complete creator
 
-A user successfully launched v0.19 and entered **Lord** plus family details in the custom creator, yet the game launched an ordinary native Default Start with no family. The source explanation is concrete: v0.19 never set the native `StartType` or `KingdomId` fields and attempted profile effects too early.
+**Sandbox → one Calradia Unified editor → Begin Your Life**, with no Default/Advanced popup and no second culture, face or background wizard. It must include real native 3D appearance, culture, clan, kingdom, fief, spouse, children, skills, gear, resources and world scenarios.
 
-v0.20 keeps the direct **Sandbox → CU creator** main-menu action and adds true native start values:
-- **Lord / Knight → native Vassal**, **King → native Ruler**, **Soldier → native Mercenary**, Wanderer → Default, Trader/Outlaw/Beggar → their native options. Admiral is refused unless a native provider offers its start type.
-- Native political starts require a valid **Starting Kingdom** choice. The creator refuses the Apply action with a clear message if it is missing. Selecting Lord now means requesting the actual Vassal game start, not a descriptive label.
-- The Location page contains native world Scenario, faction IDs, modifiers and optional seed, passed to the engine's `AdvancedStartOptions` instead of displaying the Default/Advanced picker.
-- **Spouse/children requests** are treated as family creation requests. Actual `HeroCreator` / `MarriageAction` runs only after the engine's native start effects, at `OnCharacterCreationIsOverEvent` phase 9. It rejects children without spouse and fresh-start siblings without native parents. Runtime failures are recorded explicitly.
-- The custom screen has category navigation, a native-brush frame, buttons and separate panels. Rendering and input are still owed a screenshot and game test.
+Exact architecture and acceptance criteria: [v0.21 engine map](docs/V021_UNIFIED_CREATOR_ENGINE_MAP.md).
+Full end-state tracking: [issue #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44).
 
-## Completion boundary
+## What this candidate actually changes
 
-This fixes the functional start-data handoff, but **does not yet replace** Bannerlord's video, culture, native face/appearance, background and finalization screens. A true single-screen total conversion with a live 3D character preview, full family setup, and no native wizard is tracked in [issue #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44). Do not label v0.20 as that finished feature.
+- Uses the v0.20 native Advanced Start mapping for genuine vassal, king, mercenary and other role choices.
+- **Checks the observed game state after character creation.** New `SandboxStartContract.Validate` rejects mismatches between the chosen role and actual native StartType, kingdom, ruling status or fief count. It checks real spouse and child references, too.
+- After the v1.5.7 native start runs, the live campaign behavior records `sandbox_start_contract result=PASS/FAIL` with status and failure codes. A requested Lord who starts as a default Wanderer now produces a logged failure and visible message instead of an unqualified success.
+- **Reads the actual native appearance-stage surface** at creation time: `sandbox_appearance_engine_probe` records the face, culture, narrative and review stages and whether the native face view type is loaded.
+- Adds executable pure-policy tests for native King/Lord/fief/family acceptance. The probe is observational and does **not** replace the current native screen or alter face data.
 
-The equipment-theme preset, age request, starting-town preference and some family appearance fields are not fully implemented and are labeled accordingly in the editor. Actual spouse and children depend on native templates, ages, sex restrictions and successful engine references. Use disposable new campaigns.
+## Still unimplemented
 
-## Build, installation and tests
+The integrated 3D face preview, native character-editor skin, selected-fief ownership transfer, full native-wizard suppression and verified family creation remain open. The installed v0.20's gameplay outcome was not yet reported. These features must be tested against the real game engine before shipment.
 
-- [Windows build workflow](.github/workflows/bannerlord-build.yml), including 570 policy checks, campaign simulation and a regression guard for actual Vassal/King/Family startup wiring.
-- [v0.20 runtime acceptance test](docs/V020_NATIVE_START_FAMILY_ACCEPTANCE.md).
-- [v0.19 underlying direct-main-menu feature](docs/V019_DIRECT_SANDBOX_ENTRY.md).
-- [v0.19 player-reported gameplay failure](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/43).
-- [Full Sandbox overhaul acceptance](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44).
-- [Feature registry](Data/Feature_Registry.csv).
+Read [v0.20 actual start/family test procedure](docs/V020_NATIVE_START_FAMILY_ACCEPTANCE.md) first. Previous user-proven failures: [v0.18 UI](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41), [v0.19 role/family](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/43).
 
-The compiled release candidate should be installed as a single `Modules/CalradiaUnified` module using `scripts/Install-CU-From-Artifact.ps1`, which backs up the previous installed module before replacement. The current compiled candidate URL, ZIP hash and DLL identity must come from a successful *v0.20 branch* GitHub Actions run. The installer and source checks never prove in-game behavior.
+## Build and test rules
 
-Setting `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` restores the original Default/Advanced selector.
+- [Windows CI](.github/workflows/bannerlord-build.yml) checks source structure, policy tests, engine-reference compilation, package integrity and nested-ZIP installation.
+- [Compiled, untested v0.21 module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300627835/artifacts/14426620218), intended for diagnostic testing only. It does not implement the integrated face editor.
+- [Pure acceptance logic](Source/CalradiaUnified/SandboxStartContract.cs) runs in `Tests/PolicySmoke` with no Bannerlord game process.
+- [In-game diagnostics](Source/CalradiaUnified/SandboxOriginBehavior.cs) observe the actual v1.5.7 campaign and creator stages.
+- [Acceptance specification](docs/V021_UNIFIED_CREATOR_ENGINE_MAP.md) separates compile, 3D-preview, native-start, family, save/reload and UI polish checks.
+- The installed native module versions, exact DLL hash and in-game output must all match before any feature is declared game-tested.
+
+Set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` to restore the original Default/Advanced chooser if the experimental creator fails.

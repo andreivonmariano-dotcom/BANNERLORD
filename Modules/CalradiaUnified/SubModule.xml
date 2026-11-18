@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Native Advanced Start and Family Candidate" />
+  <Name value="Calradia Unified - Verified Start Contracts Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.20.0" />
+  <Version value="v0.21.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.20.0'
+assert manifest.find('Version').get('value')=='v0.21.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -67,6 +67,9 @@ assert 'SandboxCreatorOverlay.Arm(manager)' not in (src/'SandboxOriginBehavior.c
 assert 'SandboxCreatorOverlay.Tick()' in (src/'SubModule.cs').read_text()
 assert (src/'SandboxCreatorOverlay.cs').exists()
 assert (src/'SandboxNativeStartOptions.cs').exists()
+assert (src/'SandboxStartContract.cs').exists()
+assert 'sandbox_start_contract' in (src/'SandboxOriginBehavior.cs').read_text()
+assert 'sandbox_appearance_engine_probe' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'OnCharacterCreationIsOverEvent' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'phase != 9' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'SandboxNativeStartOptions.TryPrepare' in (src/'SandboxCreatorOverlay.cs').read_text()

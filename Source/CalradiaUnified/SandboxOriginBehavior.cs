@@ -87,6 +87,28 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_native_sandbox_stage",
                         "total=" + manager.GetTotalStagesCount() +
                         "|narrative_menus=" + manager.NarrativeMenus.Count);
+                    // Direct engine-surface evidence for the next creator:
+                    // the 3D face editor must live inside CharacterCreationState.
+                    // This probe does not delete stages or replace any view.
+                    bool faceStage = manager.GetStage<CharacterCreationFaceGeneratorStage>()
+                        != null;
+                    bool cultureStage = manager.GetStage<CharacterCreationCultureStage>()
+                        != null;
+                    bool narrativeStage = manager.GetStage<CharacterCreationNarrativeStage>()
+                        != null;
+                    bool reviewStage = manager.GetStage<CharacterCreationReviewStage>()
+                        != null;
+                    var nativeFaceView = Type.GetType(
+                        "SandBox.GauntletUI.CharacterCreation." +
+                        "CharacterCreationFaceGeneratorView, SandBox.GauntletUI",
+                        false);
+                    DiagnosticJournal.Event("sandbox_appearance_engine_probe",
+                        "face_stage=" + faceStage +
+                        "|culture_stage=" + cultureStage +
+                        "|narrative_stage=" + narrativeStage +
+                        "|review_stage=" + reviewStage +
+                        "|native_face_view_loaded=" + (nativeFaceView != null) +
+                        "|stage_changes=none");
                     foreach (var menu in manager.NarrativeMenus)
                     {
                         if (menu == null) continue;
@@ -546,6 +568,39 @@ namespace CalradiaUnified
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
 
+                // Acceptance is based on observed Bannerlord state, not a
+                // serialized choice, click handler or successful compilation.
+                var observedClan = Clan.PlayerClan;
+                var observedKingdom = observedClan.Kingdom;
+                string[] failures = SandboxStartContract.Validate(
+                    SandboxNativeStartOptions.StartTypeForRole(profile.Role),
+                    actualStart,
+                    profile.StartingKingdomId,
+                    observedKingdom == null ? "" : observedKingdom.StringId,
+                    observedKingdom != null &&
+                        observedKingdom.RulingClan == observedClan,
+                    observedClan.Settlements == null ?
+                        0 : observedClan.Settlements.Count,
+                    profile.SpouseEnabled,
+                    hero.Spouse != null,
+                    profile.ChildCount,
+                    hero.Children == null ? 0 : hero.Children.Count);
+                DiagnosticJournal.Event("sandbox_start_contract",
+                    "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
+                    "|role=" + profile.Role +
+                    "|native_type=" + actualStart +
+                    "|kingdom=" + (observedKingdom == null ?
+                        "none" : observedKingdom.StringId) +
+                    "|fiefs=" + (observedClan.Settlements == null ?
+                        0 : observedClan.Settlements.Count) +
+                    "|spouse_present=" + (hero.Spouse != null) +
+                    "|children=" + (hero.Children == null ?
+                        0 : hero.Children.Count) +
+                    "|failures=" + String.Join(",",failures));
+                if (failures.Length != 0)
+                    Notify("Calradia Unified starting conditions failed: " +
+                        String.Join(", ",failures));
+
                 // Relocation and direct face sliders remain disabled. The
                 // opt-in family helper uses native hero/marriage APIs.
                 DiagnosticJournal.Event("sandbox_origin_applied",
@@ -553,6 +608,7 @@ namespace CalradiaUnified
                     "|influence_target=" + profile.Influence +
                     "|troops=" + profile.Troops +
                     "|family_status=" + family +
+                    "|start_contract_passed=" + (failures.Length == 0) +
                     "|appearance_template_lookup_only=true" +
                     "|relocation_pending=true" +
                     "|progression_requested=" + profile.Overrides.Count +
