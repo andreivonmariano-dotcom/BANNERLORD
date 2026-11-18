@@ -1,40 +1,40 @@
-# Calradia Unified v0.23.0 | Crash-safe Guided Sandbox Test Candidate
+# Calradia Unified v0.24.0 | Family source recovery and readable Sandbox creator
 
-**Game:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
-**Status:** **COMPILED_UNTESTED**, not certified as a game-tested fix. [Windows CI #44310173930](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44310173930) passed 591 policy checks, 40 simulated campaigns and zero C# warnings/errors. That cannot prove the native culture screen, marriage, or saving work.
+**Game target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
+**Release status:** Development candidate. Reference compilation, policy checks and packaging are not proof of in-game family or visual acceptance. [User-reported failure #50](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/50).
 
-## Why v0.23 replaces v0.22
+## What the real game has proved
 
-The player reported a crash entering Bannerlord's native culture screen. The only supplied diagnostic showed the culture/face/narrative/review *stages* existed; it contained no exception stack. The experimental v0.22 face view was registered globally even when its UI option was false. This is a plausible cause of the crash, not a proven root cause.
+v0.23 entered a working Lord/Vassal start, Kingdom Vlandia, with three reported fiefs. The user had chosen a wife and two children, but `cu_family_creation_status requested=True|result=spouse_template_missing` occurred. The family pipeline returned before creating the wife or any children. The start contract correctly reported both failures.
 
-**v0.23 removes the competing `CharacterCreationStageView` implementation completely**, deletes the custom FaceGen header prefab and extra assembly references, and disables the obsolete appearance override flag. The native game remains in charge of culture, 3D face/body, story background, clan naming and finalization.
+**Two starting wanderer companions are normal for a Vassal start**, not failed children. Bannerlord's own `CampaignAdvancedStartingPlayerOptionsCampaignBehavior.StartGameAsVassal` calls `GiveStartingCompanions(2, random)`. The custom family feature must create relatives as real Hero family links, not party companions.
 
-## Family reliability changes
+A user-provided v0.23 screenshot shows the old interface text floating directly over a bright cinematic, invisible frame backgrounds, unclear choices and misleading `family: off` status.
 
-The beginning-married request now defaults spouse gender to `Auto`, based on the player's actual character sex. Before calling native `MarriageAction`, the mod checks the game's marriage suitability model. It then verifies both spouse references, spouse-clan membership and reciprocal mother/father/children relationships. Events report `cu_family_verification=PASS/FAIL` and partial-creation failures.
+## v0.24 corrective code
 
-**Family is not yet independently proven in-game.** The game can reject a requested marriage or hero template, and partial hero creation has no automatic rollback. The next disposable campaign plus save/reload test determines whether this source change works on the user's v1.5.7 installation.
+### Spouse and children
+- Broader native source lookup: prefer matching culture/sex Lord/Wanderer templates, any matching template, then clone an existing native same-culture Lord's CharacterObject. If unavailable, use a gender-matched native template or cloned Lord of another culture, then assign the intended new spouse's culture. The donor is never reassigned or removed.
+- `cu_family_template_scan` records culture, gender, template counts and exact fallback. `cu_family_marriage_gate` records the native marriage eligibility, player and spouse ages and clans. `MarriageAction` still owns actual marriage.
+- The requested children now use `HeroCreationModel.GetCharacterTemplateForOffspring(mother,father,sex)` and `HeroCreator.CreateChild` with selected ages. Native mother/father/child/clan references are verified after creation.
+- `cu_native_companion_snapshot` records ordinary native companions **before** the family attempt, separating the two Vassal recruits from real relatives.
+- **No claimed successful in-game marriage or save/reload.** Native marriage rules can reject a created spouse; partial results are logged and the game should be tested only in a disposable new campaign.
 
-## Six guided pages instead of a long settings form
+### Readable six-step layout
+- Real tinted native `BlankWhiteSquare_9` backing planes dim the cinematic. Solid dark-blue/steel panels, bronze highlights, a left navigation bar, wide value/help panel and separate right-hand campaign summary replace the floating text.
+- The right summary displays chosen role, kingdom, spouse requested and children count, land and world setup. It does not wrongly say `family: off` before Apply.
+- Back, Continue and Begin Campaign are explicit and consistent. `More options` hides detailed controls by default.
+- The Appearance step is informational in Quick Setup; the native 3D culture/face editor still follows, so no option falsely promises a working independent face editor.
+- Actual Gauntlet rendering and click behavior must be tested at the player's game resolution.
 
-- Starting Life: actual native career and kingdom, only if the role requires one.
-- Appearance: culture preference and a clear explanation that native face controls follow.
-- Family: spouse request, then relevant spouse and child fields.
-- Resources: gold, influence, recruits. Skills and exact equipment appear under Advanced.
-- Kingdom & Fief: native or consented same-kingdom castle/town/fief options and world scenario settings.
-- Review: starting role, kingdom, family, fief and scenario, then **Begin your life**.
+## Test and installation
 
-A **Show advanced settings** button reveals less common settings only on request. Back/Continue advances through the relevant fields and pages. New contextual explanations state what each option actually affects. The XML uses native frame/button brushes, selected navigation states and larger content regions. Game screenshots at more than one resolution are still required to verify readability and appearance.
+- [Detailed v0.24 runtime acceptance procedure](docs/V024_FAMILY_UI_ACCEPTANCE.md)
+- [Windows v1.5.7 CI workflow](.github/workflows/bannerlord-build.yml)
+- [Package installer, backs up existing CalradiaUnified module](scripts/Install-CU-From-Artifact.ps1)
+- [User-reported family and UI bug](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/50)
+- [Long-term full one-screen character creator](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44)
 
-## Installation and test evidence
+**Do not load an important existing save.** First test new Lord/Vlandia with a spouse and two validly aged children. The native culture/appearance/background/age/difficulty sequence is still present. Confirm a real spouse, real parent-linked children and persistence after saving/reloading.
 
-- [Download the v0.23 compiled-untested module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44310173930/artifacts/14430555683). Exact DLL SHA-256: `fad4d45b39f07cf1d17982948594908cd87bf84f4f46ebb980499858b7c1ca60`. Installation backs up the old module.
-- [Crash recovery and step-by-step family test](docs/V023_CRASH_RECOVERY_FAMILY_GUIDED_UI.md)
-- [Underlying crash report #48](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/48)
-- [Full unified character-creator goal #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44)
-- [Windows CI](.github/workflows/bannerlord-build.yml)
-- [New game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
-
-**Do not test on an existing save.** First confirm Wanderer with no family and no fief reaches the native culture screen without crashing. Next test a married Lord and save/reload. Add children only after the spouse test passes. Test fief transfer last.
-
-Set `OverhauledCreatorEnabled=false` under `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` to restore Bannerlord's original Default/Advanced Sandbox start. This does not affect old installed DLLs; replace v0.22 completely.
+To fall back to the native Default/Advanced Start selector, set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
