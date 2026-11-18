@@ -215,7 +215,7 @@ namespace CalradiaUnified
 
         private static readonly string[] Pages =
         {
-            "Identity", "Household", "Progression",
+            "Identity", "Appearance", "Household", "Progression",
             "Equipment", "Resources", "Location", "Review"
         };
 
@@ -253,10 +253,13 @@ namespace CalradiaUnified
                 new Field("Identity","StartingKingdomId",
                     "Starting kingdom (required for Lord, King, Soldier and Knight)",
                     "choice",choices:SandboxOriginProfile.KingdomIds),
-                new Field("Identity","StartingCulture",
-                    "Preferred culture (still confirmed in native creation)",
+                new Field("Appearance","StartingCulture",
+                    "Culture preference (native stage still confirms)",
                     "choice",choices:new[]{"","empire","vlandia","sturgia",
                         "aserai","khuzait","battania"}),
+                new Field("Appearance","NativeStageEnabled",
+                    "Experimental: CU frame on native live 3D face editor",
+                    "boolean"),
                 new Field("Identity","PlayerAge",
                     "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
@@ -286,7 +289,15 @@ namespace CalradiaUnified
                 new Field("Resources","Troops",
                     "Additional native-culture recruits","number",0,50),
                 new Field("Location","StartingTown",
-                    "Preferred starting settlement ID (relocation not implemented)","text"),
+                    "Preferred starting settlement ID (relocation pending)","text"),
+                new Field("Location","StartingFiefMode",
+                    "Founding fief: native, same-kingdom castle, town, or exact ID",
+                    "choice",choices:SandboxFiefPolicy.Modes),
+                new Field("Location","StartingFiefId",
+                    "Specific fief's exact settlement ID (world-validated)","text"),
+                new Field("Location","AllowStartingFiefTransfer",
+                    "Authorize transfer from another clan in your kingdom",
+                    "boolean"),
                 new Field("Location","StartingScenario",
                     "Native world scenario","choice",
                     choices:SandboxOriginProfile.Scenarios),
@@ -438,12 +449,13 @@ namespace CalradiaUnified
         {
             get
             {
-                if (page=="Identity") return "Choose your actual native start. Lord means Vassal with a kingdom; King uses the engine's royal start. Admiral requires naval content.";
+                if (page=="Identity") return "Choose a real native start. Lord means Vassal with a chosen kingdom; King requests a native ruler start."; 
+                if (page=="Appearance") return "Opt-in CU heading on the live 3D FaceGen stage. The existing face editor remains responsible for sliders and body changes.";
                 if (page=="Household") return "Spouse and children are created as native heroes after character creation. Siblings need existing native parents.";
                 if (page=="Progression") return "Set skill, attribute, focus and personality values for a one-time post-creation update.";
                 if (page=="Equipment") return "Exact item IDs are granted after native setup. Equipment theme presets are not active yet.";
                 if (page=="Resources") return "Set your treasury, influence and basic native-culture recruits.";
-                if (page=="Location") return "Choose native world scenarios, factions, seed and modifiers. Town relocation is not implemented.";
+                if (page=="Location") return "Choose a founding castle/town or exact settlement ID within your starting kingdom. Transfers require explicit consent. World scenarios follow.";
                 return "Review your real start, kingdom and family choices. Apply launches that native scenario; a save test is still required.";
             }
         }
@@ -519,6 +531,9 @@ namespace CalradiaUnified
                     " | children: "+profile.ChildCount+
                     " | family: "+(profile.RealFamilyEnabled ?
                         "requested":"off")+
+                    " | starting fief: "+profile.StartingFiefMode+
+                    (profile.StartingFiefMode=="Specific" ?
+                        " / "+profile.StartingFiefId:"")+
                     " | native ASO: "+profile.StartingScenario;
             }
         }
@@ -531,6 +546,7 @@ namespace CalradiaUnified
             Refresh();
         }
         public void ExecuteIdentity() {Switch("Identity");}
+        public void ExecuteAppearance() {Switch("Appearance");}
         public void ExecuteHousehold() {Switch("Household");}
         public void ExecuteProgression() {Switch("Progression");}
         public void ExecuteEquipment() {Switch("Equipment");}
@@ -635,7 +651,8 @@ namespace CalradiaUnified
         {
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
             candidate.Enabled=true;
-            candidate.NativeStageEnabled=false;
+            // Preserve the explicit Appearance page opt-in. Native defaults
+            // remain unchanged until the player enables the CU face header.
             // A deliberate spouse/children choice is an actual native family
             // request. Do not leave users with a decorative family profile.
             candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
@@ -650,6 +667,15 @@ namespace CalradiaUnified
             {
                 SetStatus("Siblings need native parent heroes and are not " +
                     "available at fresh Sandbox start. Set sibling count to zero.");
+                return;
+            }
+            string fiefError = SandboxFiefPolicy.ValidateRequest(
+                candidate.Role, candidate.StartingFiefMode,
+                candidate.StartingFiefId,
+                candidate.AllowStartingFiefTransfer);
+            if (fiefError.Length != 0)
+            {
+                SetStatus("Starting fief request: " + fiefError);
                 return;
             }
             if (!SandboxNativeStartOptions.TryPrepare(candidate,
@@ -672,6 +698,8 @@ namespace CalradiaUnified
                 "role="+profile.Role+
                 "|kingdom="+profile.StartingKingdomId+
                 "|family_requested="+profile.RealFamilyEnabled+
+                "|fief_mode="+profile.StartingFiefMode+
+                "|native_face_header="+profile.NativeStageEnabled+
                 "|hand_off=native_appearance_and_finish");
             if(close!=null) close();
         }
