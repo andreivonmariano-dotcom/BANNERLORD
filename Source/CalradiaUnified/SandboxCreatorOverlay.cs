@@ -137,7 +137,10 @@ namespace CalradiaUnified
             // Physical escape works even if a movie button has bad dimensions.
             if (ScreenManager.TopScreen == this &&
                 Input.IsKeyReleased(InputKey.Escape))
+            {
+                SandboxCreatorOverlay.Cancel();
                 CloseSafely();
+            }
         }
 
         private void CloseSafely()

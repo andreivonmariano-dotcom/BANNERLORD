@@ -411,7 +411,7 @@ internal static class Program
             SandboxRolePolicy.BonusRecruits("Admiral")==0 &&
             !SandboxRolePolicy.MatchesNativeStatus("Admiral",true,true));
         Check("new sandbox origin disabled by default", !origin.Enabled);
-        Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
+        Check("sandbox roles six source choices", SandboxOriginProfile.Roles.Length == 6 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "King") >= 0);
         Check("three risky v0.17 features remain default-off",

@@ -40,6 +40,7 @@ assert set(["ExecuteIdentity","ExecuteHousehold","ExecuteProgression",
             "ExecuteReview","ExecuteReturnToNative",
             "ExecuteApplyAndContinue"]).issubset(clicks)
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
+assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
 assert "game.GameStateManager.ActiveState is CharacterCreationState" in src
 assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
 assert "SandboxCreatorOverlay.Arm(manager)" in origin
