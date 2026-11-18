@@ -29,6 +29,25 @@ if ([string]$module.Module.Id.value -ne 'CalradiaUnified') {
 if ([string]$module.Module.Version.value -ne 'v0.20.0') {
     throw 'The installed module is not the v0.20.0 direct Sandbox candidate.'
 }
+# The managed file version is often 1.0.0.0; check official module
+# manifests, the authoritative installed Bannerlord module versions.
+$officialVersions = [ordered]@{}
+foreach ($moduleId in @('Native','SandBoxCore','Sandbox')) {
+    $officialManifest = Join-Path $game "Modules\$moduleId\SubModule.xml"
+    if (-not (Test-Path -LiteralPath $officialManifest -PathType Leaf)) {
+        throw "Missing official Bannerlord module: $moduleId"
+    }
+    [xml]$officialXml = Get-Content -LiteralPath $officialManifest -Raw
+    $officialVersion = [string]$officialXml.Module.Version.value
+    $officialVersions[$moduleId] = $officialVersion
+    if ($officialVersion -ne 'v1.5.7') {
+        throw "Incompatible installed $moduleId version: $officialVersion (expected v1.5.7)"
+    }
+}
+[xml]$creatorXml = Get-Content -LiteralPath $movie -Raw
+if ($creatorXml.DocumentElement.Name -ne 'Prefab') {
+    throw 'The custom Sandbox creator is not a Gauntlet Prefab.'
+}
 $version = (Get-Item -LiteralPath $engine).VersionInfo
 $report = [ordered]@{
     schema = 'CU-RUNTIME-PREFLIGHT-1'
@@ -41,10 +60,12 @@ $report = [ordered]@{
     module_dll_bytes = (Get-Item -LiteralPath $dll).Length
     module_dll_sha256 = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash.ToLowerInvariant()
     creator_prefab_xml_present = $true
+    creator_prefab_xml_valid = $true
     expected_declared_official_dependencies = @('Native', 'SandBoxCore', 'Sandbox')
     result = 'STATIC_PREFLIGHT_PASSED'
     game_executed = $false
-    game_v157_confirmed = $false
+    game_v157_confirmed = $true
+    official_module_versions = $officialVersions
     settings_screen_rendered = $false
     save_reload_verified = $false
     note = 'Click Sandbox in-game. Preflight cannot prove main-menu replacement or mouse input.'
