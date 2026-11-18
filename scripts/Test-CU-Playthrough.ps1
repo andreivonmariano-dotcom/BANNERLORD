@@ -103,7 +103,7 @@ $plan = Event-Last $session 'sandbox_creator_family_plan'
 $loaded = Event-Last $session 'cu_family_loaded_plan'
 $verification = Event-Last $session 'cu_family_verification'
 $contract = Event-Last $session 'sandbox_start_contract'
-$home = Event-Last $session 'cu_family_home_result'
+$homeEvent = Event-Last $session 'cu_family_home_result'
 $homeStatus = Event-Last $session 'cu_family_home_status'
 $childEvents = @($session | Where-Object { $_.context -eq 'cu_family_child_created' })
 $spouse = Event-Last $session 'cu_family_spouse_created'
@@ -175,7 +175,7 @@ if ($sessionUtc) {
     Write-Host "Spouse: $(if ($null -eq $spouse) { 'not logged' } else { $spouse.detail })"
     Write-Host "Family verification: $(if ($null -eq $verification) { 'not logged' } else { $verification.detail })"
     Write-Host "Start contract: $(if ($null -eq $contract) { 'not logged' } else { $contract.detail })"
-    Write-Host "Family residence: $(if ($null -ne $home) { $home.detail } elseif ($null -ne $homeStatus) { $homeStatus.detail } else { 'not logged' })"
+    Write-Host "Family residence: $(if ($null -ne $homeEvent) { $homeEvent.detail } elseif ($null -ne $homeStatus) { $homeStatus.detail } else { 'not logged' })"
 } else {
     Write-Host 'No accepted custom Sandbox start found in events.csv.'
 }
@@ -203,7 +203,7 @@ $report = [ordered]@{
     spouse_event_recorded = ($null -ne $spouse)
     contract_result = $contractOutcome
     family_verification = $familyOutcome
-    family_home_result = $(if ($null -ne $home) { $home.detail } else { '' })
+    family_home_result = $(if ($null -ne $homeEvent) { $homeEvent.detail } else { '' })
     exceptions_in_scope = $exceptions.Count
     status = $outcome
     mismatches = $issues.ToArray()
