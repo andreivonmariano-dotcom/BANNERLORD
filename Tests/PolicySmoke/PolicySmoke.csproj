@@ -30,6 +30,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxFiefPolicy.cs" Link="SandboxFiefPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyOriginPolicy.cs" Link="SandboxFamilyOriginPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyHomePolicy.cs" Link="SandboxFamilyHomePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxGeneratedMarriagePolicy.cs" Link="SandboxGeneratedMarriagePolicy.cs" />
   </ItemGroup>
 </Project>
