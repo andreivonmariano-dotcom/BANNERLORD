@@ -14,7 +14,8 @@ namespace CalradiaUnified
     /// </summary>
     internal static class SandboxFamilyHome
     {
-        internal static string TryPlace(SandboxOriginProfile profile,Hero player)
+        internal static string TryPlace(SandboxOriginProfile profile,Hero player,
+            string startingFiefOutcome)
         {
             if (profile == null || player == null || player.Spouse == null ||
                 Clan.PlayerClan == null)
@@ -22,7 +23,7 @@ namespace CalradiaUnified
 
             string refusal;
             var target = Resolve(profile.FamilyHomeMode,
-                profile.FamilyHomeId, out refusal);
+                profile.FamilyHomeId, startingFiefOutcome, out refusal);
             if (target == null)
             {
                 DiagnosticJournal.Event("cu_family_home_result",
@@ -45,7 +46,7 @@ namespace CalradiaUnified
         }
 
         private static Settlement Resolve(string mode,string id,
-            out string refusal)
+            string startingFiefOutcome, out string refusal)
         {
             refusal = "";
             var clan = Clan.PlayerClan;
@@ -64,6 +65,23 @@ namespace CalradiaUnified
                 }
                 refusal = Check(exact);
                 return refusal.Length == 0 ? exact : null;
+            }
+
+            // Respect the exact native fief awarded in this startup, when
+            // the family-home mode is automatic. Do not use other clans'
+            // holdings merely because they are in the same kingdom.
+            if (mode == "OwnedFief" &&
+                !String.IsNullOrEmpty(startingFiefOutcome) &&
+                (startingFiefOutcome.StartsWith("granted:",
+                    StringComparison.Ordinal) ||
+                 startingFiefOutcome.StartsWith("already_owned:",
+                    StringComparison.Ordinal)))
+            {
+                int colon = startingFiefOutcome.IndexOf(':');
+                var newFief = Settlement.Find(
+                    startingFiefOutcome.Substring(colon+1));
+                if (newFief != null && Check(newFief).Length == 0)
+                    return newFief;
             }
 
             var owned = clan.Settlements.Where(s =>
