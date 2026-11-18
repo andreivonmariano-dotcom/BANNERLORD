@@ -1,30 +1,40 @@
-# Calradia Unified v0.22.0 | Native FaceGen and Starting Fiefs
+# Calradia Unified v0.23.0 | Crash-safe Guided Sandbox Test Candidate
 
-**Game target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.  
-**Release state:** **COMPILED_UNTESTED development prototype**. Source and reference-assembly compilation do not prove in-game appearance, castle ownership or save/reload.
+**Game:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
+**Status:** **COMPILED_UNTESTED**, not certified as a game-tested fix. [Windows CI #44310173930](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44310173930) passed 591 policy checks, 40 simulated campaigns and zero C# warnings/errors. That cannot prove the native culture screen, marriage, or saving work.
 
-## What's in the v0.22 prototype
+## Why v0.23 replaces v0.22
 
-**Q1: Real 3D appearance.** A new `CUFaceGeneratorStageView` derives from the game's actual `CharacterCreationFaceGeneratorView`. It uses Bannerlord's native BodyGenerator, face sliders, scene, cameras, character object, editing history and clean-up. On the CU Appearance page, `NativeStageEnabled` adds a passive Calradia Unified title when the real in-game face stage opens. The flag is **off by default**. If the native stage resolver does not pick up the custom view, the game retains its regular face editor and diagnostics will show the missing integration.
+The player reported a crash entering Bannerlord's native culture screen. The only supplied diagnostic showed the culture/face/narrative/review *stages* existed; it contained no exception stack. The experimental v0.22 face view was registered globally even when its UI option was false. This is a plausible cause of the crash, not a proven root cause.
 
-**Q2: Starting fief.** `StartingFiefMode` supports `Native`, `Castle`, `Town` or `Specific`. An exact `StartingFiefId` is required for the last mode. Any non-Native choice needs `AllowStartingFiefTransfer=true`, a Lord/Knight/King native starting role, a real Kingdom, and a same-kingdom non-besieged castle or town. The new-campaign phase-9 handoff uses native `ChangeOwnerOfSettlementAction.ApplyByGift` and verifies ownership afterward. **This can take an existing allied clan's settlement.** Consent is mandatory. The automatic Castle/Town modes pick a reproducible eligible settlement, preferring an already owned one. A named fief uses an exact engine ID, not a name-based suggestion.
+**v0.23 removes the competing `CharacterCreationStageView` implementation completely**, deletes the custom FaceGen header prefab and extra assembly references, and disables the obsolete appearance override flag. The native game remains in charge of culture, 3D face/body, story background, clan naming and finalization.
 
-**Q3: Native-style interface.** The CU pregame Gauntlet now shows eight sections: Identity, Appearance, Household, Progression, Equipment, Resources, Fief & World, Review. It includes a page counter, selected-tab bindings, native frame/button brushes and clearer Begin/Cancel actions.
+## Family reliability changes
 
-## What is not finished
+The beginning-married request now defaults spouse gender to `Auto`, based on the player's actual character sex. Before calling native `MarriageAction`, the mod checks the game's marriage suitability model. It then verifies both spouse references, spouse-clan membership and reciprocal mother/father/children relationships. Events report `cu_family_verification=PASS/FAIL` and partial-creation failures.
 
-The creator is **not** yet a single, polished screen with its own integrated live 3D model. The current native culture/appearance/background/naming/review wizard remains after the initial CU form. Native BodyGenerator integration here is the first opt-in stage wrapper, not a complete replacement.
+**Family is not yet independently proven in-game.** The game can reject a requested marriage or hero template, and partial hero creation has no automatic rollback. The next disposable campaign plus save/reload test determines whether this source change works on the user's v1.5.7 installation.
 
-The Fief & World section does not yet have an interactive settlement map or browsable cards. An exact named fief requires its real internal settlement ID. Owner changes, spouse/child creation, role status and save/reload still need actual Bannerlord evidence. Never use an important existing save for these tests.
+## Six guided pages instead of a long settings form
 
-## Testing and traceability
+- Starting Life: actual native career and kingdom, only if the role requires one.
+- Appearance: culture preference and a clear explanation that native face controls follow.
+- Family: spouse request, then relevant spouse and child fields.
+- Resources: gold, influence, recruits. Skills and exact equipment appear under Advanced.
+- Kingdom & Fief: native or consented same-kingdom castle/town/fief options and world scenario settings.
+- Review: starting role, kingdom, family, fief and scenario, then **Begin your life**.
 
-- [v0.22 exact runtime acceptance test](docs/V022_FACE_FIEF_RUNTIME_ACCEPTANCE.md)
-- [v0.21 engine API and final architecture](docs/V021_UNIFIED_CREATOR_ENGINE_MAP.md)
-- [Issue #44: full native-looking creator](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44)
-- [Issue #43: earlier Lord/family regression](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/43)
-- [Current Windows build workflow](.github/workflows/bannerlord-build.yml)
-- [Install compiled module script](scripts/Install-CU-From-Artifact.ps1)
-- [Read-only game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
+A **Show advanced settings** button reveals less common settings only on request. Back/Continue advances through the relevant fields and pages. New contextual explanations state what each option actually affects. The XML uses native frame/button brushes, selected navigation states and larger content regions. Game screenshots at more than one resolution are still required to verify readability and appearance.
 
-No original TaleWorlds DLL is modified. The module remains independently removable. Set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` to restore the untouched native Sandbox start selector.
+## Installation and test evidence
+
+- [Download the v0.23 compiled-untested module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44310173930/artifacts/14430555683). Exact DLL SHA-256: `fad4d45b39f07cf1d17982948594908cd87bf84f4f46ebb980499858b7c1ca60`. Installation backs up the old module.
+- [Crash recovery and step-by-step family test](docs/V023_CRASH_RECOVERY_FAMILY_GUIDED_UI.md)
+- [Underlying crash report #48](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/48)
+- [Full unified character-creator goal #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44)
+- [Windows CI](.github/workflows/bannerlord-build.yml)
+- [New game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
+
+**Do not test on an existing save.** First confirm Wanderer with no family and no fief reaches the native culture screen without crashing. Next test a married Lord and save/reload. Add children only after the spouse test passes. Test fief transfer last.
+
+Set `OverhauledCreatorEnabled=false` under `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` to restore Bannerlord's original Default/Advanced Sandbox start. This does not affect old installed DLLs; replace v0.22 completely.
