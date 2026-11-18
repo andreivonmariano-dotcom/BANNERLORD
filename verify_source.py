@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.9.1'
+assert manifest.find('Version').get('value')=='v0.10.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -42,6 +42,14 @@ assert 'SetMovePatrolAroundSettlement' in behavior
 assert 'SetMoveGoToSettlement' in behavior
 assert 'KingdomCommandPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'DepotLedgerPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'LocalRecruitmentPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'GarrisonTrainingPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'GarrisonTrainingPolicy.cs' in (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').read_text()
+assert 'RegisterGarrisonMenu(starter, menu)' in (src/'CivicBehavior.cs').read_text()
+assert 'LocalToday' in (src/'CivicState.cs').read_text()
+assert 'GarrisonToday' in (src/'CivicState.cs').read_text()
+assert 'EnableGarrisonTraining=false' in conf
+assert 'LocalRecruitDailyCap=2' in conf
 assert 'CanDispatchToDepot' in (src/'CivicBehavior.Convoys.cs').read_text()
 assert 'M1 convoy expired at full destination' in (src/'CivicBehavior.Convoys.cs').read_text()
 assert (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').exists()

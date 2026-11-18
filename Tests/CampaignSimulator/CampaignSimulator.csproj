@@ -12,6 +12,8 @@
     <Compile Include="../../Source/CalradiaUnified/DepotLedgerPolicy.cs" Link="DepotLedgerPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/ConvoyPolicy.cs" Link="ConvoyPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/KingdomPolicy.cs" Link="KingdomPolicy.cs"/>
+    <Compile Include="../../Source/CalradiaUnified/LocalRecruitmentPolicy.cs" Link="LocalRecruitmentPolicy.cs"/>
+    <Compile Include="../../Source/CalradiaUnified/GarrisonTrainingPolicy.cs" Link="GarrisonTrainingPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/KingdomStrategyPolicy.cs" Link="KingdomStrategyPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/KingdomCommandPolicy.cs" Link="KingdomCommandPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/KingdomAutonomyPolicy.cs" Link="KingdomAutonomyPolicy.cs"/>

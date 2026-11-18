@@ -1,13 +1,13 @@
 # M0 verification: exact game startup and save/load
 
-**Target:** Bannerlord PC v1.5.7. **Candidate:** Calradia Unified v0.9.0 (compiled untested until observed). This document is an executable test procedure for a real Windows game installation, not a claim of a passed test.
+**Target:** Bannerlord PC v1.5.7. **Candidate:** Calradia Unified v0.10.0 (compiled untested until observed). This document is an executable test procedure for a real Windows game installation, not a claim of a passed test.
 
 ## Test prerequisites
 
 1. Back up save files and move any older `CalradiaUnified` module folder out of `Modules`. Keep a clean official-only profile available as a control.
 2. Extract the compiled artifact so the installation contains `Modules/CalradiaUnified/SubModule.xml` and `Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll`.
 3. Verify the Native module's version is v1.5.7 and retain a screenshot of launcher module versions and load order.
-4. Leave `EnablePhysicalConvoys`, `EnableCivicSystems`, `EnableEconomy`, `EnableAutonomousClanResupply`, `EnableAutonomousClanRecruitTrips` and `EnableAutonomousClanPatrol` set to `false` for the baseline session.
+4. Leave `EnablePhysicalConvoys`, `EnableCivicSystems`, `EnableEconomy`, `EnableRecruitment`, `EnableGarrisonTraining`, `EnableAutonomousClanResupply`, `EnableAutonomousClanRecruitTrips` and `EnableAutonomousClanPatrol` set to `false` for the baseline session.
 
 ## M0 test sequence
 

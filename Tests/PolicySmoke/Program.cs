@@ -54,7 +54,7 @@ internal static class Program
         Check("save round trip shipment", recovered.Shipments.Count == 1 && recovered.Shipments[0].To == "town_B");
         Check("malformed save fails closed", CivicState.Parse("INVALID").Depots.Count == 0);
         Check("invalid settlement id blocked", !CivicState.Valid("bad;id"));
-        Check("empty save state safe", CivicState.Parse("").Serialize() == "CU4");
+        Check("empty save state safe", CivicState.Parse("").Serialize() == "CU5");
         Check("legacy CU3 depot loads", CivicState.Parse("CU3;D,old_town,6,1").Stock("old_town") == 6);
         Check("legacy CU3 shipment loads", CivicState.Parse("CU3;S,town_A,town_B,5,3").Shipments.Count == 1);
         Check("convoy disabled by default", !ConvoyPolicy.CanDispatch(false, true, true, 20, 10, 0, 2, false));
@@ -208,6 +208,41 @@ internal static class Program
         Check("strategy patrol allowed in safe peacetime", KingdomCommandPolicy.Choose(
             KingdomStrategyPolicy.Priority.Patrol,true,true,true,false,false,false,false,false,
             false,true,true,true,true,true,true,true) == KingdomCommandPolicy.TravelOrder.Patrol);
+        Check("local recruit daily cap", !LocalRecruitmentPolicy.CanRecruit(
+            true, true, true, 200, 200, 20, 100, 2, 2));
+        Check("local recruit lacks gold", !LocalRecruitmentPolicy.CanRecruit(
+            true, true, true, 199, 200, 20, 100, 0, 2));
+        Check("local recruit ownership guarded", !LocalRecruitmentPolicy.CanRecruit(
+            true, false, true, 200, 200, 20, 100, 0, 2));
+        Check("local recruit allowed within cap", LocalRecruitmentPolicy.CanRecruit(
+            true, true, true, 200, 200, 20, 100, 1, 2));
+        Check("garrison disabled by default", !GarrisonTrainingPolicy.CanTrain(
+            false,true,false,true,true,250,250,5,5,90,100,0,4,2));
+        Check("garrison under siege rejected", !GarrisonTrainingPolicy.CanTrain(
+            true,true,true,true,true,250,250,5,5,90,100,0,4,2));
+        Check("garrison requires real party", !GarrisonTrainingPolicy.CanTrain(
+            true,true,false,false,true,250,250,5,5,90,100,0,4,2));
+        Check("garrison grain shortage rejected", !GarrisonTrainingPolicy.CanTrain(
+            true,true,false,true,true,250,250,4,5,90,100,0,4,2));
+        Check("garrison full-party cap", !GarrisonTrainingPolicy.CanTrain(
+            true,true,false,true,true,250,250,5,5,99,100,0,4,2));
+        Check("garrison daily cap", !GarrisonTrainingPolicy.CanTrain(
+            true,true,false,true,true,250,250,5,5,90,100,4,4,2));
+        Check("garrison exact capacity allowed", GarrisonTrainingPolicy.CanTrain(
+            true,true,false,true,true,250,250,5,5,98,100,0,4,2));
+        var legacyCouncil = CivicState.Parse("CU4;K,town_a,1,6");
+        Check("legacy CU4 council migration",
+            legacyCouncil.CouncilFor("town_a").LevyToday == 1 &&
+            legacyCouncil.CouncilFor("town_a").MissionCooldown == 6 &&
+            legacyCouncil.CouncilFor("town_a").LocalToday == 0 &&
+            legacyCouncil.CouncilFor("town_a").GarrisonToday == 0);
+        var newCounters = new CivicState();
+        newCounters.CouncilFor("town_a").LocalToday = 1;
+        newCounters.CouncilFor("town_a").GarrisonToday = 2;
+        var reloadedCounters = CivicState.Parse(newCounters.Serialize());
+        Check("new daily counters survive CU5 reload",
+            reloadedCounters.CouncilFor("town_a").LocalToday == 1 &&
+            reloadedCounters.CouncilFor("town_a").GarrisonToday == 2);
         Console.WriteLine("PASS: " + passed + " gameplay policy checks");
     }
 }

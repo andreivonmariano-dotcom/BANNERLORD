@@ -135,6 +135,8 @@ namespace CalradiaUnified
             foreach (var r in state.Council)
             {
                 r.LevyToday = 0;
+                r.LocalToday = 0;
+                r.GarrisonToday = 0;
                 if (r.MissionCooldown > 0) r.MissionCooldown--;
             }
         }

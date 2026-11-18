@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.9.1 simulated and compiled
+name: Calradia Unified 1.5.7 - v0.10.0 recruit and garrison candidate
 on:
   workflow_dispatch:
   push:
@@ -63,14 +63,14 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.9.1-compiled-untested
-          path: Output/CalradiaUnified_v0.9.1_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.10.0-compiled-untested
+          path: Output/CalradiaUnified_v0.10.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.9.1-simulation-report
+          name: CalradiaUnified-v0.10.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -79,6 +79,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.9.1-build-errors
+          name: CalradiaUnified-v0.10.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

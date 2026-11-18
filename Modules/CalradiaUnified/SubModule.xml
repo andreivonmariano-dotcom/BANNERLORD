@@ -2,7 +2,7 @@
 <Module>
   <Name value="Calradia Unified - Safe Strategy Commands Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.9.1" />
+  <Version value="v0.10.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

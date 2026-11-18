@@ -31,6 +31,8 @@ namespace CalradiaUnified
             public string Id;
             public int LevyToday;
             public int MissionCooldown;
+            public int LocalToday;
+            public int GarrisonToday;
         }
         public readonly List<Depot> Depots = new List<Depot>();
         public readonly List<Shipment> Shipments = new List<Shipment>();
@@ -69,7 +71,7 @@ namespace CalradiaUnified
         }
         public string Serialize()
         {
-            var parts = new List<string> { "CU4" };
+            var parts = new List<string> { "CU5" };
             foreach (var d in Depots.OrderBy(x => x.SettlementId))
                 parts.Add("D," + d.SettlementId + "," + d.Grain.ToString(CultureInfo.InvariantCulture)
                     + "," + d.Investment.ToString(CultureInfo.InvariantCulture));
@@ -79,15 +81,19 @@ namespace CalradiaUnified
                     + "," + (s.Physical ? "P" : "A") + "," + (s.PartyId ?? ""));
             foreach (var c in Council.OrderBy(x => x.Id))
                 parts.Add("K," + c.Id + "," + c.LevyToday.ToString(CultureInfo.InvariantCulture)
-                    + "," + c.MissionCooldown.ToString(CultureInfo.InvariantCulture));
+                    + "," + c.MissionCooldown.ToString(CultureInfo.InvariantCulture)
+                    + "," + c.LocalToday.ToString(CultureInfo.InvariantCulture)
+                    + "," + c.GarrisonToday.ToString(CultureInfo.InvariantCulture));
             return String.Join(";", parts);
         }
         public static CivicState Parse(string data)
         {
             var result = new CivicState();
             if (String.IsNullOrEmpty(data) || data.Length > 150000 ||
-                !(data == "CU3" || data == "CU4" || data.StartsWith("CU3;", StringComparison.Ordinal)
-                || data.StartsWith("CU4;", StringComparison.Ordinal))) return result;
+                !(data == "CU3" || data == "CU4" || data == "CU5" ||
+                data.StartsWith("CU3;", StringComparison.Ordinal) ||
+                data.StartsWith("CU4;", StringComparison.Ordinal) ||
+                data.StartsWith("CU5;", StringComparison.Ordinal))) return result;
             var records = data.Split(';');
             foreach (var record in records.Skip(1))
             {
@@ -115,13 +121,22 @@ namespace CalradiaUnified
                             Grain = Limit(a, 0, 1000), DaysRemaining = Limit(b, 0, 365),
                             Physical = physical, PartyId = partyId });
                 }
-                else if (fields.Length == 4 && fields[0] == "K" && Valid(fields[1])
+                else if ((fields.Length == 4 || fields.Length == 6) && fields[0] == "K" && Valid(fields[1])
                     && Int32.TryParse(fields[2], NumberStyles.Integer, CultureInfo.InvariantCulture, out a)
                     && Int32.TryParse(fields[3], NumberStyles.Integer, CultureInfo.InvariantCulture, out b)
                     && result.Council.Count < 512 && result.Council.All(x => x.Id != fields[1]))
                 {
+                    int local = 0, garrison = 0;
+                    if (fields.Length == 6 &&
+                        (!Int32.TryParse(fields[4], NumberStyles.Integer,
+                            CultureInfo.InvariantCulture, out local) ||
+                         !Int32.TryParse(fields[5], NumberStyles.Integer,
+                            CultureInfo.InvariantCulture, out garrison)))
+                        continue;
                     result.Council.Add(new CouncilRecord { Id = fields[1],
-                        LevyToday = Limit(a, 0, 100), MissionCooldown = Limit(b, 0, 365) });
+                        LevyToday = Limit(a, 0, 100), MissionCooldown = Limit(b, 0, 365),
+                        LocalToday = Limit(local, 0, 100),
+                        GarrisonToday = Limit(garrison, 0, 100) });
                 }
             }
             return result;

@@ -58,15 +58,14 @@ namespace CalradiaUnified
                             settings.DepotCapacity) >= 5, state.HasShipment(CurrentId())),
                     x => Safe(Ship), false);
                 starter.AddGameMenuOption(menu, "cu_local_levy", "CU: Hire one local levy (200 gold)",
-                    x => CanVisit() && CivicPolicy.CanRecruit(settings.EnableRecruitment, Owned(), PlayerGold(), 200,
-                        MobileParty.MainParty == null ? 0 : MobileParty.MainParty.MemberRoster.TotalManCount,
-                        settings.RecruitmentMaxPartySize) && LocalRecruit() != null,
+                    x => CanVisit() && CanLocalRecruit(),
                     x => Safe(Recruit), false);
                 starter.AddGameMenuOption(menu, "cu_grain_aid", "CU: Donate 5 grain for local goodwill",
                     x => CanVisit() && CivicPolicy.CanAid(settings.EnableLocalDiplomacy, Owned(), GrainOnHand(), 5,
                         LocalNotable() != null),
                     x => Safe(Aid), false);
                 RegisterPhysicalConvoyMenu(starter, menu);
+                RegisterGarrisonMenu(starter, menu);
                 RegisterKingdomMenu(starter, menu);
                 RegisterDepotTradeMenu(starter, menu);
             }
@@ -166,14 +165,36 @@ namespace CalradiaUnified
                 Grain = 5, DaysRemaining = 3 });
             Notice("Scheduled 5 grain to " + target.Name + ". Delivery in 3 days (abstract shipment).");
         }
+        private bool CanLocalRecruit()
+        {
+            var party = MobileParty.MainParty;
+            var record = CurrentLevyRecord();
+            return party != null && party.MemberRoster != null && record != null &&
+                LocalRecruitmentPolicy.CanRecruit(settings.EnableRecruitment, Owned(),
+                    LocalRecruit() != null, PlayerGold(), 200, party.MemberRoster.TotalManCount,
+                    settings.RecruitmentMaxPartySize, record.LocalToday,
+                    settings.LocalRecruitDailyCap);
+        }
         private void Recruit()
         {
-            var troop = LocalRecruit(); var p = MobileParty.MainParty;
-            if (!Owned() || troop == null || p == null || !CivicPolicy.CanRecruit(settings.EnableRecruitment, true,
-                PlayerGold(), 200, p.MemberRoster.TotalManCount, settings.RecruitmentMaxPartySize)) return;
-            GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, -200, true);
+            if (!CanLocalRecruit()) return;
+            var troop = LocalRecruit();
+            var p = MobileParty.MainParty;
+            var record = CurrentLevyRecord();
+            if (troop == null || p == null || record == null || Hero.MainHero == null) return;
             p.MemberRoster.AddToCounts(troop, 1);
-            Notice("Recruited one local levy.");
+            try
+            {
+                GiveGoldAction.ApplyBetweenCharacters(null, Hero.MainHero, -200, true);
+            }
+            catch
+            {
+                p.MemberRoster.AddToCounts(troop, -1);
+                throw;
+            }
+            record.LocalToday++;
+            Notice("Recruited one local levy (" + record.LocalToday +
+                "/" + settings.LocalRecruitDailyCap + " today).");
         }
         private void Aid()
         {

@@ -57,6 +57,10 @@ namespace CalradiaUnified
         public int MaxDepotInvestment = 3;
         public int DepotCapacity = 100;
         public int RecruitmentMaxPartySize = 100;
+        public int LocalRecruitDailyCap = 2;
+        public bool EnableGarrisonTraining = false;
+        public int GarrisonTrainingDailyCap = 4;
+        public int GarrisonTrainingMaxTroops = 250;
 
         public static Settings Load()
         {
@@ -114,6 +118,10 @@ namespace CalradiaUnified
                 else if (key == "MaxDepotInvestment" && Int32.TryParse(value, out n)) output.MaxDepotInvestment = Clamp(n, 0, 10);
                 else if (key == "DepotCapacity" && Int32.TryParse(value, out n)) output.DepotCapacity = Clamp(n, 20, 1000);
                 else if (key == "RecruitmentMaxPartySize" && Int32.TryParse(value, out n)) output.RecruitmentMaxPartySize = Clamp(n, 10, 1000);
+                else if (key == "LocalRecruitDailyCap" && Int32.TryParse(value, out n)) output.LocalRecruitDailyCap = Clamp(n, 1, 20);
+                else if (key == "EnableGarrisonTraining" && Boolean.TryParse(value, out b)) output.EnableGarrisonTraining = b;
+                else if (key == "GarrisonTrainingDailyCap" && Int32.TryParse(value, out n)) output.GarrisonTrainingDailyCap = Clamp(n, 2, 20);
+                else if (key == "GarrisonTrainingMaxTroops" && Int32.TryParse(value, out n)) output.GarrisonTrainingMaxTroops = Clamp(n, 20, 2000);
                 else if (key == "GrainPerForage" && Int32.TryParse(value, out n)) output.GrainPerForage = Clamp(n, 1, 5);
             }
             return output;

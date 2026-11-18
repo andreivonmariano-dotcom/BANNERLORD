@@ -53,3 +53,12 @@ Each test report must contain: test ID; build SHA; compiled DLL SHA-256; game ve
 - **SIM-003:** Treat SIM-001 and SIM-002 as model evidence only. Retain all real C0, D1 and E1 game tests as NOT RUN until an actual Bannerlord session is observed.
 
 See [SIMULATOR.md](SIMULATOR.md).
+
+## v0.10.0 additional gameplay and migration tests
+
+- **D-202:** In an owned town, recruit two local culture troops at 200 gold each. The third attempt on the same day must reject, and a new campaign day must reset the settlement counter.
+- **D-203:** In a captured town, recruit units from the town's native culture, not the current faction of its owner. Refuse a purchase that would exceed party capacity or available gold.
+- **D-402:** In a player-owned, unbesieged town or castle with an existing garrison, train exactly two native basic troops using 250 gold and five depot grain. Confirm the roster receives two actual soldiers and both resources decrease exactly once.
+- **D-403:** Reject garrison training during a siege, in an unowned settlement, without an existing garrison, with insufficient gold or grain, at troop cap, or after daily training cap. Check that rejection changes no resource.
+- **E-203:** Save and reload with nonzero local and garrison daily counters, then attempt additional recruitment. Test older CU3 and CU4 saves separately for safe counter defaults.
+- **SIM-010:** Use the headless policy simulation to test new recruitment and training transaction limits across repeatable campaigns. Simulated save round-trips do not count as game save/load evidence.

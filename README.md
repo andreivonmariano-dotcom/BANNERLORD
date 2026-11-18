@@ -1,4 +1,4 @@
-# Calradia Unified v0.9.1: depot and convoy accounting, M0 evidence, feature traceability
+# Calradia Unified v0.10.0: depot and convoy accounting, M0 evidence, feature traceability
 
 **Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Distribution target:** one `Modules/CalradiaUnified` folder, with no installer and no old third-party mod DLLs.
 
@@ -9,6 +9,17 @@
 - Feature switches that mutate gameplay remain disabled by default. A successful new CI run confirms compilation and policy-test execution only.
 
 **Simulator evidence:** [v0.9.1 GitHub Actions run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032) completed 40 seeded policy-world campaigns (14,600 modeled days, 154,714 checks), alongside 143 prior pure C# policy tests and a successful DLL compile (0 compiler errors, 0 warnings). [Download simulation JSON/report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393492219). This is **model-only** verification and has no real game startup, pathfinding or save/load result.
+
+## v0.10.0 recruitment and garrison changes
+
+The next experimental gameplay candidate introduces two source-implemented mechanics:
+
+- **Local recruitment daily cap:** A player-owned town or castle can hire up to two native-culture basic recruits per campaign day at 200 gold each, within the configured party size. An independent, saved per-settlement counter prevents menu spamming.
+- **Garrison defender training:** When enabled, an owned, unbesieged town or castle with an existing garrison can train two culture-specific basic defenders for **250 player gold and five grain from that settlement's depot**, subject to garrison size and daily limits. This adds actual soldiers to the existing `GarrisonParty.MemberRoster`; it is not an abstract troop count.
+
+Both mechanics are opt-in, and the garrison training toggle defaults to `false`. Local recruitment already used `EnableRecruitment=false`. Daily counters serialize with **CU5** state, which accepts older CU3 and CU4 council entries. Old campaign compatibility remains unverified until a real game save/load test is completed.
+
+See [the implementation and test specification](docs/FEATURES_v010.md).
 
 ## Campaign policy simulation
 

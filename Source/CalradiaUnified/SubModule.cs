@@ -15,7 +15,7 @@ namespace CalradiaUnified
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
-            Log.Write("Calradia Unified 0.9.1 initialized; no Harmony patches applied.");
+            Log.Write("Calradia Unified 0.10.0 initialized; no Harmony patches applied.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter starter)

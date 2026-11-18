@@ -30,3 +30,10 @@ These are three independently testable features. The historical mods remain unma
 4. For gameplay gates, provide game version, toggles, save ID, steps, observed outcome and log.
 5. Test save/load and destructive transitions before setting `REGRESSION_TESTED`.
 6. Only update historical replacement status after the defined feature coverage is accepted.
+
+## v0.10.0 recruitment and garrison entries
+
+- `CU-M2-002`: Daily settlement-specific limit on local cultural recruitment.
+- `CU-M4-001`: Gold-and-grain-funded defenders added to an existing garrison.
+
+These features are new source work with independent C# policy tests and simulation scenarios. They must pass a pinned build and actual supervised game tests before their runtime status can be advanced beyond compilation.

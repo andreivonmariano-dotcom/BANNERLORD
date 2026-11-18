@@ -38,6 +38,9 @@ namespace CalradiaUnified.CampaignSimulator
         private int gold = 50000;
         private int influence = 500;
         private int troops = 20;
+        private int garrisonTroops = 12;
+        private int localRecruits;
+        private int trainedGarrison;
         private int produced;
         private int lost;
         private int spentGold;
@@ -93,6 +96,11 @@ namespace CalradiaUnified.CampaignSimulator
                 "depot stock capacity");
             Require(playerGrain >= 0 && gold >= 0 && influence >= 0 && troops >= 0,
                 "nonnegative player resources");
+            Require(garrisonTroops >= 0 && garrisonTroops <= 250,
+                "garrison bounded by training cap");
+            Require(state.Council.All(x => x.LocalToday <= 2 &&
+                x.GarrisonToday <= 4 && x.LocalToday >= 0 && x.GarrisonToday >= 0),
+                "local and garrison daily recruitment caps");
             Require(gold + spentGold == startingGold, "gold balance and expenditures");
             Require(influence + spentInfluence == startingInfluence,
                 "influence balance and expenditures");
@@ -175,6 +183,33 @@ namespace CalradiaUnified.CampaignSimulator
             }
             Require(troops <= 100 && record.LevyToday <= 2,
                 "troop count and daily levy cap");
+        }
+
+        private void MaybeLocalRecruit()
+        {
+            var record = state.CouncilFor("town_b");
+            if (!LocalRecruitmentPolicy.CanRecruit(true, true, true,
+                gold, 200, troops, 100, record.LocalToday, 2)) return;
+            gold -= 200;
+            spentGold += 200;
+            troops++;
+            record.LocalToday++;
+            localRecruits++;
+        }
+
+        private void MaybeTrainGarrison()
+        {
+            var depot = state.Get("town_a");
+            var record = state.CouncilFor("town_a");
+            if (!GarrisonTrainingPolicy.CanTrain(true, true, false, true, true,
+                gold, 250, depot.Grain, 5, garrisonTroops, 250,
+                record.GarrisonToday, 4, 2)) return;
+            gold -= 250;
+            spentGold += 250;
+            depot.Grain -= 5;
+            garrisonTroops += 2;
+            record.GarrisonToday += 2;
+            trainedGarrison += 2;
         }
 
         private void MaybeDispatch(bool physical)
@@ -345,7 +380,9 @@ namespace CalradiaUnified.CampaignSimulator
         {
             var packed = state.Serialize();
             var read = CivicState.Parse(packed);
-            Require(read.Serialize() == packed, "primitive CU4 state round trip");
+            Require(read.Serialize() == packed, "primitive CU5 state round trip");
+            Require(read.Council.All(x => x.LocalToday >= 0 &&
+                x.GarrisonToday >= 0), "new training counters survived model reload");
             foreach (var shipment in read.Shipments.Where(x => x.Physical))
                 Require(parties.ContainsKey(shipment.PartyId),
                     "saved simulated party ID resolves after model reload");
@@ -356,8 +393,12 @@ namespace CalradiaUnified.CampaignSimulator
         private void DailyStep()
         {
             day++;
-            var levy = state.CouncilFor("player_clan");
-            if (levy != null) levy.LevyToday = 0;
+            foreach (var record in state.Council)
+            {
+                record.LevyToday = 0;
+                record.LocalToday = 0;
+                record.GarrisonToday = 0;
+            }
             foreach (var depot in state.Depots)
             {
                 int n = CivicPolicy.DailyDepotOutput(depot.Investment, depot.Grain,
@@ -369,6 +410,8 @@ namespace CalradiaUnified.CampaignSimulator
             if (random.Next(4) == 0) MaybeTrade();
             if (random.Next(7) == 0) MaybeInvest();
             if (random.Next(15) == 0) MaybeRecruit();
+            if (random.Next(8) == 0) MaybeLocalRecruit();
+            if (random.Next(6) == 0) MaybeTrainGarrison();
             if (random.Next(3) == 0) MaybeDispatch(true);
             if (random.Next(4) == 0) MaybeDispatch(false);
             SettleShipments();
@@ -384,7 +427,8 @@ namespace CalradiaUnified.CampaignSimulator
             {
                 seed, days, checks, physicalDispatched, abstractDispatched,
                 delivered, convoyLosses, partialUnloads, reloads,
-                npcDecisions, recruitmentEvents, tradeEvents, investments,
+                npcDecisions, recruitmentEvents, localRecruits,
+                trainedGarrison, tradeEvents, investments,
                 generatedGrain = produced, accountedLoss = lost,
                 activeShipments = state.Shipments.Count
             };
@@ -434,6 +478,17 @@ namespace CalradiaUnified.CampaignSimulator
                 false, true, true, false, false, false, false,
                 1, 2, 50, 35, 20, 0) == KingdomAutonomyPolicy.Order.Hold,
                 "autonomy remains disabled by default");
+            Check(!LocalRecruitmentPolicy.CanRecruit(true, true, true,
+                200, 200, 20, 100, 2, 2), "local recruit daily cap");
+            Check(GarrisonTrainingPolicy.CanTrain(true, true, false, true, true,
+                250, 250, 5, 5, 98, 100, 0, 4, 2),
+                "garrison exact capacity accepted");
+            Check(!GarrisonTrainingPolicy.CanTrain(true, true, false, true, true,
+                250, 250, 4, 5, 98, 100, 0, 4, 2),
+                "garrison shortage cannot train");
+            Check(CivicState.Parse("CU4;K,town_a,1,3")
+                .CouncilFor("town_a").LocalToday == 0,
+                "older CU4 council state accepted");
             return count;
         }
 
