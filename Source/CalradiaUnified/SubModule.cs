@@ -3,6 +3,9 @@ using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
+using TaleWorlds.Localization;
+using TaleWorlds.Library;
+using TaleWorlds.ScreenSystem;
 
 namespace CalradiaUnified
 {
@@ -12,6 +15,45 @@ namespace CalradiaUnified
     /// </summary>
     public sealed class SubModule : MBSubModuleBase
     {
+        private bool originMenuRegistered;
+
+        protected override void OnBeforeInitialModuleScreenSetAsRoot()
+        {
+            base.OnBeforeInitialModuleScreenSetAsRoot();
+            if (originMenuRegistered) return;
+            try
+            {
+                TaleWorlds.MountAndBlade.Module.CurrentModule.AddInitialStateOption(
+                    new InitialStateOption("CU_Sandbox_Origin",
+                        new TextObject("CU: Design Next Sandbox Character"),
+                        9010, OpenOriginCreator, () => (false, (TextObject)null)));
+                originMenuRegistered = true;
+                DiagnosticJournal.Event("sandbox_origin_main_menu_option_registered",
+                    "pre_campaign_profile_editor");
+            }
+            catch (Exception ex)
+            {
+                DiagnosticJournal.Exception("origin_main_menu_option", ex);
+            }
+        }
+
+        private static void OpenOriginCreator()
+        {
+            try
+            {
+                ScreenManager.PushScreen(new SandboxOriginPanel());
+                DiagnosticJournal.Event("sandbox_origin_creator_open",
+                    "pre_campaign_screen_requested");
+            }
+            catch (Exception ex)
+            {
+                DiagnosticJournal.Exception("sandbox_origin_creator_open", ex);
+                InformationManager.DisplayMessage(new InformationMessage(
+                    "[Calradia Unified] Origin creator could not open. " +
+                    "Profile can still be edited using the game-campaign menu."));
+            }
+        }
+
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
@@ -21,11 +63,11 @@ namespace CalradiaUnified
                 if (DiagnosticJournal.Enabled)
                 {
                     DiagnosticJournal.InstallManagedExceptionHooks();
-                    DiagnosticJournal.Event("module_loaded", "version=0.15.0");
+                    DiagnosticJournal.Event("module_loaded", "version=0.16.0");
                 }
             }
             catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
-            Log.Write("Calradia Unified 0.15.0 initialized; diagnostics configured; no Harmony patches applied.");
+            Log.Write("Calradia Unified 0.16.0 initialized; diagnostics configured; no Harmony patches applied.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter starter)
@@ -43,6 +85,7 @@ namespace CalradiaUnified
                     campaignStarter.AddBehavior(new KingdomAutonomyBehavior(config));
                     campaignStarter.AddBehavior(new DiagnosticBehavior(config));
                     campaignStarter.AddBehavior(new NativeSettingsBehavior(config));
+                    campaignStarter.AddBehavior(new SandboxOriginBehavior());
                     Log.Write("Campaign supply, civic depots, recruitment, economy and diplomacy behaviors registered; player-only foraging="
                         + config.EnablePlayerForaging);
                 }

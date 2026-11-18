@@ -1,32 +1,30 @@
-# Calradia Unified v0.15.0 | Complete settings catalog and experimental Gauntlet UI
+# Calradia Unified v0.16.0: Expanded Sandbox Origin Designer
 
-**Target:** Bannerlord PC v1.5.7, no installer, one `Modules/CalradiaUnified` folder and one custom DLL. **Highest evidence: Gate B COMPILED_UNTESTED.** The [v0.15 Windows run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44251639925) verified source, 78 historic module IDs, **530 independent policy checks**, 40 deterministic simulated campaigns (14,600 days and 303,098 checks), game-reference compilation (0 errors, 0 warnings), and packaged ZIP integrity.
+**Target:** Bannerlord PC v1.5.7, one-folder standalone module, no historical DLLs. **Gate B pending on this branch.** The official game's Advanced Starting Options remain authoritative for King, Vassal, Mercenary and other kingdom standing.
 
-## v0.15 changes
+## New Sandbox Origin Designer
 
-- All **64** declared configuration settings from `Settings.cs`: **24 Boolean feature flags and 40 bounded numerical values**, across nine native campaign-menu categories.
-- Each setting has a separate detail page. Experimental flags require opening that page before choosing Enable. Defaults are unchanged, and autonomous orders and convoys are still **off** by default.
-- New **EXPERIMENTAL** native Gauntlet screen with three tab buttons, selected setting navigation, Boolean toggle, and a native slider with an explicit Save action. Its XML is packaged inside the same module folder and has **not** been verified in the real game.
-- Persistent per-user settings at `%LOCALAPPDATA%\CalradiaUnified\calradia-user-config.ini`. It overrides the bundled `ModuleData/calradia-config.ini`, leaves the installed module unchanged and updates active shared settings only after a successful write.
-- New runtime-evidence validator and Windows preflight script, with conservative status classifications that do not assert game startup, visual rendering or save/load without observed in-game evidence.
+From an existing town or castle, use **CU: Design my NEXT Sandbox starting life**. Choose a role (Wanderer, Soldier, Knight, Lord or King), set a next-game gold/influence budget, prepare a spouse and child template count, and select a desired starting town from actual settlements. No existing campaign is modified.
 
-### Opening settings
+The profile is saved to `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`. It is **disabled by default** and can be edited for an entirely new Sandbox launch.
 
-Enter a town or castle. Choose **CU: Configure Calradia Unified** for the nine-category native settings menu. From its main page choose **EXPERIMENTAL: Open native tabbed slider panel** to try the three-tab screen in a disposable test campaign. The native menu remains the fallback.
+Only on the **OnNewGameCreated** event, when the profile is enabled, the module currently attempts the native resource subset: exact player gold, clan influence where the player has a native kingdom, a bounded count of native-culture basic troops, player skill/attribute/focus/trait overrides, and up to twelve exact item IDs in the party inventory. Skill, focus and attribute effects use the game's progression APIs and must be verified in an actual v1.5.7 campaign. A save key stops repeat application. Roles do not forge rulership. **The spouse, children, siblings, facial appearance, named equipment kits, player age and starting-town relocation are profile-only in this first candidate.** No new relative hero is spawned and no unsafe birth, marriage or map move runs. Full start customization is an ongoing work item, not a completed feature.
 
-## Historical frameworks: external DLLs remain unnecessary
+All requested profile fields are represented: player age, attributes, 18 skill levels, focus, five personality traits, exact item IDs, equipment kit, chosen settlement ID, spouse name/age/gender/culture/face seed and equipment, and up to six individually named/aged children and four siblings.
 
-- **Harmony:** native campaign event handlers only, no general method patching API.
-- **ButterLib:** local logging, managed exceptions, diagnostic ZIPs, no ButterLib API compatibility.
-- **UIExtenderEx:** official native menu and a self-contained Gauntlet prefab, no arbitrary third-party prefab patching.
-- **MCM:** the project's own settings controls and persistence, no compatible MCM plugin API.
+The built-in native menu currently edits common choices. Names, ages and appearance seeds for a spouse and six children can be edited through native text dialogs. The same editor offers all six attributes, eighteen skills and focus levels, five personality traits, and twelve item IDs. The file remains available for extended data. An in-game text and appearance editor is planned after target-version UI acceptance.
 
-## Game-only acceptance
+## Evidence
 
-- [v0.15 startup, nine-category, native slider and save/load test matrix](docs/V015_RUNTIME_ACCEPTANCE.md)
-- [Windows installed-game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
-- [Session and settings event analysis](scripts/validate_runtime_evidence.py)
-- [Original 78-mod priority register](Data/Reconstruction_Priority_78.csv)
-- [Castle management controls and limitations](docs/V013_CASTLE_MANAGEMENT.md)
+- [Sandbox profile format, valid relationships and the staged feature matrix](docs/V016_SANDBOX_ORIGINS.md)
+- [Game-only startup and regression acceptance](docs/V015_RUNTIME_ACCEPTANCE.md)
+- [Existing full 64-setting native controls](docs/V015_NATIVE_SETTINGS_CAPABILITIES.md)
+- [Original 78-mod development priorities](Data/Reconstruction_Priority_78.csv)
 
-**Verified compiled ZIP:** [CalradiaUnified-v0.15.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44251639925/artifacts/14403429717). Do not call the module game-tested or released until Bannerlord v1.5.7 launcher, screen rendering, gameplay, and same-save persistence have been verified.
+**No in-game launch/save test has passed.** A hosted Windows C# build is not a runtime claim.
+
+## Pre-game creator entry point (experimental)
+
+An **experimental** `CU: Design Next Sandbox Character` button is registered on the game's initial main menu. It opens the module's native Gauntlet creator. Edit role, spouse templates, six children, siblings, attributes, skills and focus, traits, equipment IDs and starting place **before** launching a new Sandbox. The creator saves the same separate origin profile, not the active game. The in-campaign origin editor remains a fallback. The panel has passed no actual-game rendering or controller tests.
+
+Starting families support a single parent with children, a spouse and children, a spouse without children, no family, or siblings only. Family creation remains profile data until an actual v1.5.7 save-persistent hero creation mechanism has passed in-game tests.

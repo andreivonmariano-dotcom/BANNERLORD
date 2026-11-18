@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.15.0'
+assert manifest.find('Version').get('value')=='v0.16.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -55,6 +55,17 @@ assert 'EnableManualGarrisonWageCaps=false' in conf
 assert 'DiagnosticJournal.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'new DiagnosticBehavior(config)' in (src/'SubModule.cs').read_text()
 assert 'new NativeSettingsBehavior(config)' in (src/'SubModule.cs').read_text()
+assert 'new SandboxOriginBehavior()' in (src/'SubModule.cs').read_text()
+assert (src/'SandboxOriginProfile.cs').exists()
+assert (src/'SandboxOriginBehavior.cs').exists()
+assert (src/'SandboxOriginPanel.cs').exists()
+assert (P/'scripts/test_sandbox_origin_panel.py').exists()
+assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUOriginPanel.xml').exists()
+assert 'CU_Sandbox_Origin' in (src/'SubModule.cs').read_text()
+assert 'OnBeforeInitialModuleScreenSetAsRoot' in (src/'SubModule.cs').read_text()
+assert 'OnNewGameCreatedEvent' in (src/'SandboxOriginBehavior.cs').read_text()
+assert 'CU_v016_origin_applied' in (src/'SandboxOriginBehavior.cs').read_text()
+assert 'SandboxOriginProfile.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert (src/'NativeSettingsBehavior.cs').exists()
 assert (src/'SettingsMenuPolicy.cs').exists()
 assert (src/'SettingsCatalog.cs').exists()
