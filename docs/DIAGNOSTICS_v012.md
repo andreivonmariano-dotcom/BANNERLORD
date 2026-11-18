@@ -50,3 +50,18 @@ Upload the ZIP directly. For finance, inspect at least seven daily records, sepa
 ## Release acceptance
 
 Compilation, analyzer tests and artificial exception tests are Gate B evidence only. M0 game startup, real financial capture, post-crash capture and save/reload remain open until tested with a live v1.5.7 installation.
+
+## First verified hosted diagnostics build
+
+**GitHub Actions run:** [44236922635](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44236922635), source revision `23b366dc4ac21504bb08dbf21f3bcf7413dd69a8`.
+
+- **183 executable C# policy/diagnostic checks passed** including filesystem CSV writing, managed exception capture, manual snapshot export and diagnostic opt-out.
+- The Python diagnostic ZIP reader's synthetic tests passed.
+- The Windows PowerShell exporter parsed and executed on the hosted runner, producing a ZIP with `manifest.json`.
+- **40 simulated campaigns / 14,600 modeled days / 303,098 model checks passed**.
+- The v1.5.7-reference DLL compiled with **zero warnings and zero errors**.
+- The compiled module ZIP passed CRC and one-DLL package checks, and contains `Modules/CalradiaUnified/ModuleData/Export-CU-Diagnostics.ps1`.
+- Compiled DLL SHA-256: `35491baa6d17c8ba192c892839c8733c2220aa020a6d062ff5eb7a19eff0405e`.
+- Inner module ZIP SHA-256: `b0834ffb7f49c56376a722cfbbcf5e623dd1be6a1625ec079a2c04542ddc490c`.
+
+**Scope:** This is Gate B only. No actual Bannerlord play session, save/load, engine crash or game finance screen has been observed. The test ZIP created on the runner did not contain real Bannerlord crash evidence.

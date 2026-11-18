@@ -1,6 +1,6 @@
 # M0 verification: exact game startup and save/load
 
-**Target:** Bannerlord PC v1.5.7. **Candidate:** Calradia Unified v0.10.0 (compiled untested until observed). This document is an executable test procedure for a real Windows game installation, not a claim of a passed test.
+**Target:** Bannerlord PC v1.5.7. **Candidate:** Calradia Unified v0.12.0 (compiled untested until observed). This document is an executable test procedure for a real Windows game installation, not a claim of a passed test.
 
 ## Test prerequisites
 
@@ -42,3 +42,7 @@ The collector only reads the game manifest, DLL identity and the last 250 local 
 | E0.4 official-only control | NOT RUN | | |
 
 **Gate status:** CI compilation alone qualifies for Gate B. M0 Gate C and E stay open until observed game results and the exact tested build are attached to [M0 tracking](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/1).
+
+## v0.12.0 diagnostic gate
+
+After a campaign session, confirm that `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\finance.csv` contains castle and clan-summary rows from different day indices. Export from the in-game menu, then run the module's PowerShell helper to collect existing engine and crash logs. Attach the sanitized ZIP to [diagnostics issue #33](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/33), not the raw memory dump. A managed exception record is not a native crash report. Native game save/load and crash tests remain NOT RUN.

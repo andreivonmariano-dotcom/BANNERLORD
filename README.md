@@ -1,6 +1,6 @@
 # Calradia Unified v0.12.0: exportable finance and crash diagnostics
 
-**Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Product:** one `Modules/CalradiaUnified` folder with no installer or historical third-party DLLs.
+**Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Verified build:** [run 44236922635](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44236922635). **Product:** one `Modules/CalradiaUnified` folder with no installer or historical third-party DLLs.
 
 ## New in v0.12.0
 
@@ -37,7 +37,7 @@ Calradia Unified retains guarded depot transfers, physical convoy candidate code
 
 ## Build and release verification
 
-GitHub Actions runs structural source tests, feature-registry checks, independent C# policy tests, diagnostic analyzer tests, the seeded headless simulator, and a Windows v1.5.7 reference compilation. A successful CI build creates a `COMPILED_UNTESTED` archive, not a certified game-tested release.
+GitHub Actions runs structural source tests, feature-registry checks, independent C# policy tests, diagnostic analyzer tests, the seeded headless simulator, and a Windows v1.5.7 reference compilation. The v0.12.0 Windows build passed. A `COMPILED_UNTESTED` archive is not a certified game-tested release.
 
 - [Build workflow](.github/workflows/bannerlord-build.yml)
 - [Game test procedure](docs/M0_TEST_PROCEDURE.md)
@@ -45,3 +45,18 @@ GitHub Actions runs structural source tests, feature-registry checks, independen
 - [Feature registry](Data/Feature_Registry.csv)
 - [Original 78-mod coverage](docs/78_MOD_COVERAGE.md)
 - [Starting vassal deficit regression](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32)
+
+## First verified hosted diagnostics build
+
+**GitHub Actions run:** [44236922635](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44236922635), source revision `23b366dc4ac21504bb08dbf21f3bcf7413dd69a8`.
+
+- **183 executable C# policy/diagnostic checks passed** including filesystem CSV writing, managed exception capture, manual snapshot export and diagnostic opt-out.
+- The Python diagnostic ZIP reader's synthetic tests passed.
+- The Windows PowerShell exporter parsed and executed on the hosted runner, producing a ZIP with `manifest.json`.
+- **40 simulated campaigns / 14,600 modeled days / 303,098 model checks passed**.
+- The v1.5.7-reference DLL compiled with **zero warnings and zero errors**.
+- The compiled module ZIP passed CRC and one-DLL package checks, and contains `Modules/CalradiaUnified/ModuleData/Export-CU-Diagnostics.ps1`.
+- Compiled DLL SHA-256: `35491baa6d17c8ba192c892839c8733c2220aa020a6d062ff5eb7a19eff0405e`.
+- Inner module ZIP SHA-256: `b0834ffb7f49c56376a722cfbbcf5e623dd1be6a1625ec079a2c04542ddc490c`.
+
+**Scope:** This is Gate B only. No actual Bannerlord play session, save/load, engine crash or game finance screen has been observed. The test ZIP created on the runner did not contain real Bannerlord crash evidence.
