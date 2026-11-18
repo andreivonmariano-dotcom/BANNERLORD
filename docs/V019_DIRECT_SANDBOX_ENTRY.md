@@ -1,6 +1,6 @@
 # Calradia Unified v0.19 | Direct Sandbox entry
 
-**Target:** Bannerlord PC v1.5.7.125802. **Status:** Gate B **COMPILED_UNTESTED**. [Windows CI #44289351309](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289351309) verified 570 C# policy checks, 40 modeled campaigns, 0 compiler warnings/errors, runtime ZIP checks and installer simulation. Live screen and game testing remain open. This change follows the confirmed v0.18 user screenshot and diagnostic events, tracked in [issue #41](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41).
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** Gate B **COMPILED_UNTESTED**. [Windows CI #44289665260](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289665260) verified 570 C# policy checks, 40 modeled campaigns, 0 compiler warnings/errors, runtime ZIP checks and installer simulation. Live screen and game testing remain open. This change follows the confirmed v0.18 user screenshot and diagnostic events, tracked in [issue #41](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41).
 
 ## Player-visible contract
 
@@ -47,6 +47,6 @@ Use a disposable new Sandbox and **Native + SandBoxCore + Sandbox + Calradia Uni
 
 ## Exact compiled artifact
 
-- [GitHub Actions compiled-untested ZIP artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289351309/artifacts/14421410332), a GitHub ZIP containing one runtime module ZIP.
-- Compiled DLL size: 174080 bytes. DLL SHA-256: `840ba763a79cbcb76355eefbaeaa348cd89bcb83110fb1738c62a2cd5c6927bb`.
+- [GitHub Actions compiled-untested ZIP artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289665260/artifacts/14420293511), a GitHub ZIP containing one runtime module ZIP.
+- Compiled DLL size: 174080 bytes. DLL SHA-256: `d351ebd48553bd86a8e456c14ad4202fdbf0fc96d13715b8be9bfbaa2b8070f0`.
 - Source review: [draft PR #42](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/42). The actual in-game test must use a file with the exact DLL hash above.
