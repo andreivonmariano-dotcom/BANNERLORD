@@ -30,6 +30,9 @@ jobs:
         run: |
           python scripts/validate_feature_registry.py
           python scripts/test_feature_registry.py
+      - name: Validate 78-module reconstruction priorities
+        shell: pwsh
+        run: python scripts/test_priority_ranking.py
       - name: Test diagnostic export reader
         shell: pwsh
         run: python scripts/analyze_diagnostics.py --self-test

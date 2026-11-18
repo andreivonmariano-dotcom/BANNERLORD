@@ -83,5 +83,10 @@ assert checks.count('Check(')>122
 with open(P/'Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv',encoding='utf-8-sig',newline='') as f:
     rows=list(csv.DictReader(f))
 assert len(rows)==78,len(rows)
+with open(P/'Data/Reconstruction_Priority_78.csv',encoding='utf-8-sig',newline='') as f:
+    priorities=list(csv.DictReader(f))
+assert len(priorities)==78
+assert len({r['module_id'] for r in priorities})==78
+assert [int(r['rank']) for r in priorities]==list(range(1,79))
 assert all(r['v157_source_port_status']=='NOT REBUILT' for r in rows)
 print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compilation':'not assessed by static checker','runtime_tested':'not assessed'},indent=2))
