@@ -28,3 +28,7 @@ The `CU5` primitive state preserves two additional council counters, `LocalToday
 ## Rights and historical coverage
 
 `RealisticRecruitment` and `ImprovedGarrisons` are historical feature references, not copied code or claims of complete replacement. The original 78-mod acceptance checklist remains unreplaced.
+
+## Compilation and simulator evidence
+
+[GitHub Actions run 44229623505](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505) passed 156 independent C# policy checks and the seeded model check with 186,295 assertions across 40 modeled 365-day campaigns. The game DLL compiled against the pinned v1.5.7 reference package with zero warnings and errors. This establishes source compilation and deterministic policy behavior only. Real training, garrison party effects, actual save/reload and menu visibility are not yet verified.

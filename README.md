@@ -10,6 +10,8 @@
 
 **Simulator evidence:** [v0.9.1 GitHub Actions run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032) completed 40 seeded policy-world campaigns (14,600 modeled days, 154,714 checks), alongside 143 prior pure C# policy tests and a successful DLL compile (0 compiler errors, 0 warnings). [Download simulation JSON/report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393492219). This is **model-only** verification and has no real game startup, pathfinding or save/load result.
 
+**v0.10.0 build evidence:** [GitHub Actions run 44229623505](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505) successfully executed 156 independent C# policy tests, 40 simulator worlds across 14,600 modeled days (186,295 checks), and the pinned game-reference DLL compilation with zero warnings/errors. The [compiled ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505/artifacts/14394337024) and [simulator report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505/artifacts/14394661345) are available as GitHub Actions artifacts. Both gameplay-changing features remain **COMPILED, not GAME_TESTED**.
+
 ## v0.10.0 recruitment and garrison changes
 
 The next experimental gameplay candidate introduces two source-implemented mechanics:
