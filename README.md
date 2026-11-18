@@ -30,3 +30,7 @@ An **experimental** `CU: Design Next Sandbox Character` button is registered on 
 Starting families support a single parent with children, a spouse and children, a spouse without children, no family, or siblings only. Family creation remains profile data until an actual v1.5.7 save-persistent hero creation mechanism has passed in-game tests.
 
 **Compiled v0.16 module:** [CalradiaUnified-v0.16.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670/artifacts/14406421335). DLL SHA-256 `c4844140bf9be56a6caf73610dfeebd128bf9a6dd04fa4f446ef4203f3c005c9`. The release stage remains Gate B until real game startup, profile application, family and UI behavior, and save/load evidence are recorded.
+
+## Not showing in the Bannerlord launcher?
+
+The GitHub Actions download contains a ZIP file inside another ZIP. Extract the outer artifact, then extract `CalradiaUnified_v0.16.0_COMPILED_UNTESTED.zip` into the actual installed Bannerlord game root. The final manifest must be `Modules/CalradiaUnified/SubModule.xml`. The project now includes a checked installer and clear manual steps in [launcher troubleshooting](docs/INSTALLATION_TROUBLESHOOTING.md). Check the Singleplayer > Mods tab after fully restarting the launcher. This addresses file placement, not game runtime testing.

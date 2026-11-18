@@ -122,3 +122,6 @@ assert len({r['module_id'] for r in priorities})==78
 assert [int(r['rank']) for r in priorities]==list(range(1,79))
 assert all(r['v157_source_port_status']=='NOT REBUILT' for r in rows)
 print(json.dumps({'source_cs_files':len(files),'policy_check_assertions':checks.count('Check(')-1,'tracked_original_mods':len(rows),'static_checks':'PASS','compilation':'not assessed by static checker','runtime_tested':'not assessed'},indent=2))
+
+assert (P/'scripts/Install-CU-From-Artifact.ps1').exists()
+assert (P/'docs/INSTALLATION_TROUBLESHOOTING.md').exists()
