@@ -334,6 +334,84 @@ internal static class Program
         }
         Check("catalog covers every public configurable value",
             catalogKeys.Count == 64);
+        var origin = new SandboxOriginProfile();
+        Check("new sandbox origin disabled by default", !origin.Enabled);
+        Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
+            SandboxOriginProfile.Roles.Contains("Wanderer") &&
+            SandboxOriginProfile.Roles.Contains("King"));
+        Check("sandbox default does not replace native treasury",
+            origin.Gold == -1 && origin.Influence == -1);
+        Check("sandbox reject invalid role", !origin.TrySet("Role", "God"));
+        Check("sandbox accept knight role", origin.TrySet("Role", "Knight") &&
+            origin.Role == "Knight");
+        Check("sandbox reject unbounded gold", !origin.TrySet("Gold", "9000000"));
+        Check("sandbox accept explicit wealth", origin.TrySet("Gold", "12000") &&
+            origin.Gold == 12000);
+        Check("sandbox accept configurable spouse",
+            origin.TrySet("SpouseEnabled", "true") &&
+            origin.TrySet("SpouseName", "Lady Aria") &&
+            origin.TrySet("SpouseAge", "35"));
+        Check("sandbox child requires parental ages",
+            origin.TrySet("ChildCount", "2") &&
+            origin.TrySet("Child.1.Name", "Aelia") &&
+            origin.TrySet("Child.1.Age", "8") &&
+            origin.TrySet("Child.2.Name", "Cassian") &&
+            origin.TrySet("Child.2.Age", "9") &&
+            origin.IsValid(34, out var validOrigin));
+        Check("sandbox reject child older than parent",
+            origin.TrySet("Child.1.Age", "30") &&
+            !origin.IsValid(34, out var childAgeError));
+        origin.TrySet("Child.1.Age", "8");
+        Check("sandbox rejects child without spouse",
+            origin.TrySet("SpouseEnabled", "false") &&
+            !origin.IsValid(34, out var noSpouseError));
+        origin.TrySet("SpouseEnabled", "true");
+        Check("sandbox reject bad hero name",
+            !origin.TrySet("SpouseName", "Bad\nName"));
+        Check("sandbox skill override bounded",
+            origin.TrySet("Skill.OneHanded", "220") &&
+            !origin.TrySet("Skill.OneHanded", "440"));
+        Check("sandbox attributes bounded",
+            origin.TrySet("Attribute.Vigor", "8") &&
+            !origin.TrySet("Attribute.Vigor", "11"));
+        Check("sandbox focus bounded",
+            origin.TrySet("Focus.Bow", "4") &&
+            !origin.TrySet("Focus.Bow", "9"));
+        Check("sandbox traits bounded",
+            origin.TrySet("Trait.Mercy", "-2") &&
+            !origin.TrySet("Trait.Mercy", "-4"));
+        Check("sandbox equipment exact id allow-list",
+            origin.TrySet("Item.1", "empire_sword_1_t2") &&
+            !origin.TrySet("Item.13", "empire_sword_1_t2") &&
+            !origin.TrySet("Item.2", "../../evil"));
+        Check("sandbox roundtrip all family and stats data",
+            SandboxOriginProfile.Parse(origin.Serialize()).Children[0].Name == "Aelia" &&
+            SandboxOriginProfile.Parse(origin.Serialize()).Overrides["Skill.OneHanded"] == 220 &&
+            SandboxOriginProfile.Parse(origin.Serialize()).ItemIds[1] == "empire_sword_1_t2");
+        var originTemp = System.IO.Path.Combine(System.IO.Path.GetTempPath(),
+            "CU-Origin-" + Guid.NewGuid().ToString("N"), "origin.ini");
+        try
+        {
+            string saveError;
+            Check("sandbox origin persisted atomically",
+                origin.Save(originTemp, out saveError) &&
+                SandboxOriginProfile.Load(originTemp).SpouseName == "Lady Aria");
+            var broken = SandboxOriginProfile.Load(originTemp);
+            broken.ChildCount = 1;
+            broken.SpouseEnabled = false;
+            string previous = System.IO.File.ReadAllText(originTemp);
+            Check("invalid sandbox family cannot overwrite profile",
+                !broken.Save(originTemp, out saveError) &&
+                System.IO.File.ReadAllText(originTemp) == previous);
+            Check("malformed origin profile is safe",
+                !SandboxOriginProfile.Parse("Enabled=nope\nRole=wrong\nGold=abc").Enabled);
+        }
+        finally
+        {
+            string folder = System.IO.Path.GetDirectoryName(originTemp);
+            if (System.IO.Directory.Exists(folder))
+                System.IO.Directory.Delete(folder, true);
+        }
         Check("settings allow-list accepts reporting toggles",
             SettingsMenuPolicy.TryNormalize("EnableSupplyWarnings", "false", out var normalizedBool)
             && normalizedBool == "false");
