@@ -270,10 +270,16 @@ namespace CalradiaUnified
                 new Field("Household","SpouseGender",
                     "Spouse gender (Auto selects the opposite gender)",
                     "choice",choices:new[]{"Auto","Female","Male"}),
+                new Field("Household","SpouseBackground",
+                    "Generated spouse's family background",
+                    "choice", choices:SandboxFamilyOriginPolicy.Backgrounds),
+                new Field("Household","SpouseBirthClanId",
+                    "Exact chosen noble birth-clan ID",
+                    "text"),
                 new Field("Household","SpouseCulture",
-                    "Spouse culture ID","text"),
-                new Field("Household","SpouseFaceSeed",
-                    "Spouse appearance template ID","text"),
+                    "Spouse culture (blank uses your culture)",
+                    "choice",choices:new[]{"","vlandia","sturgia",
+                        "battania","empire","aserai","khuzait"}),
                 new Field("Household","ChildCount",
                     "Number of children (0-6)","number",0,6),
                 new Field("Household","SiblingCount",
@@ -373,12 +379,14 @@ namespace CalradiaUnified
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
-            if (key == "SpouseName" || key == "SpouseAge" ||
-                key == "SpouseGender" || key == "SpouseCulture" ||
-                key == "SpouseFaceSeed")
+            if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
-                    (advancedFieldsVisible || key != "SpouseCulture" &&
-                    key != "SpouseFaceSeed");
+                    profile.SpouseBackground == "NobleChosen";
+            if (key == "SpouseName" || key == "SpouseAge" ||
+                key == "SpouseGender" || key == "SpouseBackground")
+                return profile.SpouseEnabled;
+            if (key == "SpouseCulture")
+                return profile.SpouseEnabled && advancedFieldsVisible;
             if (key == "ChildCount") return profile.SpouseEnabled;
             if (key.StartsWith("Child.",StringComparison.Ordinal))
             {
@@ -555,6 +563,9 @@ namespace CalradiaUnified
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="SpouseEnabled") return "Choose Yes to request a real spouse. No spouse means no starting children.";
                 if (key=="SpouseGender") return "Auto uses the opposite gender after your native character is finalized.";
+                if (key=="SpouseBackground") return "Commoner: no noble ancestors. NobleRandom: a generated child of a real noble couple in your kingdom. NobleChosen: type a clan ID.";
+                if (key=="SpouseBirthClanId") return "Use a real clan ID from your starting kingdom. A living married couple must be old enough to be your spouse's parents.";
+                if (key=="SpouseCulture") return "Leave blank to match your player culture, or select an official game culture ID. Vlandian is stored as vlandia.";
                 if (key=="ChildCount") return "Choose children, then enter their names, ages and genders. Parents must satisfy the game's rules.";
                 if (key=="StartingFiefMode") return "Native preserves Bannerlord's grants. Castle/Town/Specific can transfer land from a same-kingdom clan.";
                 if (key=="StartingFiefId") return "Enter an exact settlement ID from this game version. Unknown and foreign holdings are refused.";
@@ -586,7 +597,7 @@ namespace CalradiaUnified
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
                 if (page=="Appearance") return "The native 3D editor will appear next, after campaign initialization. No unsafe replacement is installed.";
-                if (page=="Household") return "Begin married or independent. Family fields appear only when relevant. Real spouse and child links are checked later.";
+                if (page=="Household") return "Generate a new spouse, choose commoner or noble ancestry, then select your children's names, ages and genders.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
                 if (page=="Location") return "Choose native fiefs or an approved same-kingdom transfer. Advanced world settings are optional.";
                 return "Review your choices. The game still owns its culture, face and background stages.";
@@ -685,7 +696,8 @@ namespace CalradiaUnified
             {
                 if (!profile.SpouseEnabled)
                     return "Unmarried, no children";
-                return "Spouse planned  /  " + profile.ChildCount +
+                return profile.SpouseBackground + " spouse  /  " +
+                    profile.ChildCount +
                     (profile.ChildCount==1 ? " child" : " children");
             }
         }

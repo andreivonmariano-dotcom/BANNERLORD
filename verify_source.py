@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.24.0'
+assert manifest.find('Version').get('value')=='v0.25.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -62,6 +62,8 @@ assert (P/'scripts/test_native_starting_life.py').exists()
 assert (src/'SandboxRoleAffiliations.cs').exists()
 assert (src/'NativeStartingLifeMenus.cs').exists()
 assert (src/'SandboxFamilyCreator.cs').exists()
+assert (src/'SandboxFamilyOriginPolicy.cs').exists()
+assert (src/'SandboxGeneratedSpouseOrigin.cs').exists()
 assert (P/'scripts/test_family_templates_readable_ui.py').exists()
 assert 'NativeStartingLifeMenus.TryAttach' not in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'SandboxCreatorOverlay.Arm(manager)' not in (src/'SandboxOriginBehavior.cs').read_text()

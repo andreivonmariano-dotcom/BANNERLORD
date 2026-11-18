@@ -39,11 +39,30 @@ namespace CalradiaUnified
                     profile.Children[i].Age, (int)player.Age,
                     profile.SpouseEnabled, profile.SpouseAge))
                     return "invalid_child_age:" + (i+1);
+            // Resolve native birth-clan ancestry before any new Hero is made.
+            // This is a NEW spouse, not an existing clan daughter/son recruited.
+            Clan birthClan = Clan.PlayerClan;
+            Hero birthFather = null;
+            Hero birthMother = null;
+            string birthError;
+            if (profile.SpouseEnabled &&
+                !SandboxGeneratedSpouseOrigin.TryResolve(profile,player,
+                    out birthClan,out birthFather,out birthMother,
+                    out birthError))
+            {
+                DiagnosticJournal.Event("cu_family_origin_refused",
+                    "mode=" + profile.SpouseBackground +
+                    "|reason=" + birthError);
+                return "invalid_noble_origin:" + birthError;
+            }
+
             // Do not start creating unrelated heroes if the correct source
             // templates cannot be resolved up front.
             var spouseTemplate = profile.SpouseEnabled ?
+                // Generated family mode does not reuse stale explicit
+                // face-template IDs from earlier versions of the editor.
                 FindTemplate(player,profile.SpouseCulture,
-                    spouseFemale,profile.SpouseFaceSeed) : null;
+                    spouseFemale,"") : null;
             if (profile.SpouseEnabled && spouseTemplate == null)
                 return "spouse_template_missing";
 
@@ -73,7 +92,26 @@ namespace CalradiaUnified
                 if (profile.SpouseEnabled)
                 {
                     spouseHero = Create(spouseTemplate,profile.SpouseName,
-                        profile.SpouseAge);
+                        profile.SpouseAge,birthClan);
+                    if (birthFather != null && birthMother != null)
+                    {
+                        spouseHero.Father = birthFather;
+                        spouseHero.Mother = birthMother;
+                        if (!birthFather.Children.Contains(spouseHero) ||
+                            !birthMother.Children.Contains(spouseHero))
+                            throw new InvalidOperationException(
+                                "Generated noble spouse has incomplete ancestry");
+                    }
+                    DiagnosticJournal.Event("cu_family_generated_spouse",
+                        "id=" + spouseHero.StringId +
+                        "|background=" + profile.SpouseBackground +
+                        "|origin_clan=" + (spouseHero.OriginClan == null ?
+                            "none" : spouseHero.OriginClan.StringId) +
+                        "|father=" + (birthFather == null ?
+                            "none" : birthFather.StringId) +
+                        "|mother=" + (birthMother == null ?
+                            "none" : birthMother.StringId) +
+                        "|new_hero=true");
                     // A fallback native noble source can have another culture.
                     // The requested culture is applied to the new hero only,
                     // never to the donor character from the campaign.
@@ -113,6 +151,9 @@ namespace CalradiaUnified
                             "Spouse was not moved into the player's clan");
                     DiagnosticJournal.Event("cu_family_spouse_created",
                         "id=" + spouseHero.StringId +
+                        "|birth_background=" + profile.SpouseBackground +
+                        "|birth_clan=" + (spouseHero.OriginClan == null ?
+                            "none" : spouseHero.OriginClan.StringId) +
                         "|age=" + spouseHero.Age +
                         "|gender=" + (spouseHero.IsFemale ? "Female" : "Male") +
                         "|clan=" + spouseHero.Clan.StringId);
@@ -138,16 +179,24 @@ namespace CalradiaUnified
                             "Native CreateChild returned null");
                     child.SetName(new TextObject(childProfile.Name),
                         new TextObject(childProfile.Name));
+                    // CreateChild initializes with isOffspring=false. Supply
+                    // actual parents, then ask the native offspring model to
+                    // blend their body properties rather than keeping an
+                    // arbitrary cloned adult face.
+                    child.IsFemale = childProfile.Gender == "Female";
+                    child.Mother = mother;
+                    child.Father = father;
+                    child.StaticBodyProperties = Campaign.Current.Models
+                        .HeroCreationModel.GetStaticBodyProperties(child,true);
+                    DiagnosticJournal.Event("cu_family_inherited_appearance",
+                        "child=" + child.StringId +
+                        "|mother=" + mother.StringId +
+                        "|father=" + father.StringId +
+                        "|source=native_hero_creation_model");
                     DiagnosticJournal.Event("cu_family_child_source",
                         "index=" + (i+1) +
                         "|template=" + childTemplate.StringId +
                         "|native_offspring_model=true");
-                    child.Mother=mother;
-                    child.Father=father;
-                    if (mother != null && !mother.Children.Contains(child))
-                        mother.Children.Add(child);
-                    if (father != null && !father.Children.Contains(child))
-                        father.Children.Add(child);
                     if (child.Father != father || child.Mother != mother ||
                         child.Clan != Clan.PlayerClan ||
                         !father.Children.Contains(child) ||
@@ -211,10 +260,11 @@ namespace CalradiaUnified
                 "failed:family_reference_mismatch";
         }
 
-        private static Hero Create(CharacterObject source,string name,int age)
+        private static Hero Create(CharacterObject source,string name,int age,
+            Clan originClan=null)
         {
             var result=HeroCreator.CreateSpecialHero(source,null,
-                Clan.PlayerClan,null,age);
+                originClan ?? Clan.PlayerClan,null,age);
             if (result == null)
                 throw new InvalidOperationException("HeroCreator returned null");
             result.SetName(new TextObject(name),new TextObject(name));
@@ -226,7 +276,8 @@ namespace CalradiaUnified
         private static CultureObject ResolveCulture(Hero player,string cultureId)
         {
             if (String.IsNullOrEmpty(cultureId)) return player.Culture;
-            return MBObjectManager.Instance.GetObject<CultureObject>(cultureId);
+            return MBObjectManager.Instance.GetObject<CultureObject>(
+                SandboxFamilyOriginPolicy.NormalizeCultureId(cultureId));
         }
 
         /// <summary>

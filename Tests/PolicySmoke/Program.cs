@@ -72,6 +72,34 @@ internal static class Program
             SandboxOriginProfile.Parse("StartingFiefMode=Specific\n" +
                 "StartingFiefId=castle_x\nAllowStartingFiefTransfer=true")
                 .StartingFiefId == "castle_x");
+        Check("legacy display culture Vlandian maps to real game ID",
+            SandboxFamilyOriginPolicy.NormalizeCultureId("Vlandian") == "vlandia" &&
+            SandboxFamilyOriginPolicy.NormalizeCultureId("vlandia") == "vlandia");
+        Check("legacy Empire display maps to real empire culture",
+            SandboxFamilyOriginPolicy.NormalizeCultureId("Imperial") == "empire");
+        Check("generated spouse background defaults commoner",
+            new SandboxOriginProfile().SpouseBackground == "Commoner");
+        Check("generated noble random and chosen modes validate",
+            SandboxFamilyOriginPolicy.Validate("NobleRandom","",true) == "" &&
+            SandboxFamilyOriginPolicy.Validate("NobleChosen","clan_vlandia_1",true) == "");
+        Check("chosen noble birth clan requires exact id",
+            SandboxFamilyOriginPolicy.Validate("NobleChosen","",true) ==
+                "spouse_noble_clan_required");
+        Check("invalid generated social background rejected",
+            SandboxFamilyOriginPolicy.Validate("Invented","",true) ==
+                "unknown_spouse_background");
+        Check("noble parent ages and marriage required",
+            SandboxFamilyOriginPolicy.CanBeNobleParents(55,48,30,true,true) &&
+            !SandboxFamilyOriginPolicy.CanBeNobleParents(45,47,30,true,true) &&
+            !SandboxFamilyOriginPolicy.CanBeNobleParents(55,48,30,false,true));
+        Check("social background survives profile save and reload",
+            SandboxOriginProfile.Parse("SpouseEnabled=true\n"+
+                "SpouseBackground=NobleChosen\n"+
+                "SpouseBirthClanId=clan_x\nSpouseCulture=Vlandian")
+                .SpouseCulture == "vlandia" &&
+            SandboxOriginProfile.Parse("SpouseEnabled=true\n"+
+                "SpouseBackground=NobleChosen\n"+
+                "SpouseBirthClanId=clan_x").SpouseBirthClanId == "clan_x");
         Check("automatic spouse gender yields opposite of male player",
             SandboxFamilyPolicy.ResolveSpouseFemale("Auto",false));
         Check("automatic spouse gender yields opposite of female player",

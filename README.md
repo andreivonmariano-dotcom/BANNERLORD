@@ -1,40 +1,36 @@
-# Calradia Unified v0.24.0 | Family source recovery and readable Sandbox creator
+# Calradia Unified v0.25.0 | Generated Sandbox families and inherited appearance
 
 **Game target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
-**Release status:** Development candidate. Reference compilation, policy checks and packaging are not proof of in-game family or visual acceptance. [User-reported failure #50](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/50).
+**Status:** **COMPILED_UNTESTED**. Do not merge or release based only on a reference build.
 
-## What the real game has proved
+## Why this version exists
 
-v0.23 entered a working Lord/Vassal start, Kingdom Vlandia, with three reported fiefs. The user had chosen a wife and two children, but `cu_family_creation_status requested=True|result=spouse_template_missing` occurred. The family pipeline returned before creating the wife or any children. The start contract correctly reported both failures.
+The user's installed v0.24 logs exposed an exact culture-name mismatch: `cu_family_template_scan status=culture_missing|id=Vlandian`. The engine expects `vlandia`, not the adjectival label. That stopped the wife and children before hero creation. Existing Vlandian King/Lord starts, factions and fiefs worked.
 
-**Two starting wanderer companions are normal for a Vassal start**, not failed children. Bannerlord's own `CampaignAdvancedStartingPlayerOptionsCampaignBehavior.StartGameAsVassal` calls `GiveStartingCompanions(2, random)`. The custom family feature must create relatives as real Hero family links, not party companions.
+v0.25 corrects this alias (plus other native culture adjectives), lets players **generate an entirely new spouse**, and gives children their appearance from the native mother/father blend. Two random wanderers appearing on Lord starts remain vanilla Advanced Start companions, not family.
 
-A user-provided v0.23 screenshot shows the old interface text floating directly over a bright cinematic, invisible frame backgrounds, unclear choices and misleading `family: off` status.
+## Quick Setup: generated spouse
 
-## v0.24 corrective code
+Choose Household → Begin Married → spouse name, age and gender (Auto or explicit), then **Generated spouse's family background**:
 
-### Spouse and children
-- Broader native source lookup: prefer matching culture/sex Lord/Wanderer templates, any matching template, then clone an existing native same-culture Lord's CharacterObject. If unavailable, use a gender-matched native template or cloned Lord of another culture, then assign the intended new spouse's culture. The donor is never reassigned or removed.
-- `cu_family_template_scan` records culture, gender, template counts and exact fallback. `cu_family_marriage_gate` records the native marriage eligibility, player and spouse ages and clans. `MarriageAction` still owns actual marriage.
-- The requested children now use `HeroCreationModel.GetCharacterTemplateForOffspring(mother,father,sex)` and `HeroCreator.CreateChild` with selected ages. Native mother/father/child/clan references are verified after creation.
-- `cu_native_companion_snapshot` records ordinary native companions **before** the family attempt, separating the two Vassal recruits from real relatives.
-- **No claimed successful in-game marriage or save/reload.** Native marriage rules can reject a created spouse; partial results are logged and the game should be tested only in a disposable new campaign.
+- **Commoner**: a fresh Hero with no noble ancestral family. A Lord-type occupation and player's clan are still used internally so Bannerlord's native marriage action can recognize and marry them.
+- **NobleRandom**: select a real noble clan in the player's actual starting kingdom that has a qualifying married parent couple. A new spouse is generated as their child and records their birth clan, father and mother. Marriage moves the new Hero into the player clan.
+- **NobleChosen**: type a valid exact `SpouseBirthClanId` in the same kingdom. That family must have real eligible parents. Missing/unknown IDs are refused. A searchable clan-name picker is not implemented at this pre-campaign stage.
 
-### Readable six-step layout
-- Real tinted native `BlankWhiteSquare_9` backing planes dim the cinematic. Solid dark-blue/steel panels, bronze highlights, a left navigation bar, wide value/help panel and separate right-hand campaign summary replace the floating text.
-- The right summary displays chosen role, kingdom, spouse requested and children count, land and world setup. It does not wrongly say `family: off` before Apply.
-- Back, Continue and Begin Campaign are explicit and consistent. `More options` hides detailed controls by default.
-- The Appearance step is informational in Quick Setup; the native 3D culture/face editor still follows, so no option falsely promises a working independent face editor.
-- Actual Gauntlet rendering and click behavior must be tested at the player's game resolution.
+The new spouse is **never an existing hero renamed or married**. Native donor CharacterObjects provide valid race/sex/appearance data, but `HeroCreator.CreateSpecialHero` registers a unique new hero. Previous `SpouseFaceSeed` fields are not used in generated-family mode.
 
-## Test and installation
+## Children inherit both parents' looks
 
-- [Detailed v0.24 runtime acceptance procedure](docs/V024_FAMILY_UI_ACCEPTANCE.md)
-- [Windows v1.5.7 CI workflow](.github/workflows/bannerlord-build.yml)
-- [Package installer, backs up existing CalradiaUnified module](scripts/Install-CU-From-Artifact.ps1)
-- [User-reported family and UI bug](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/50)
-- [Long-term full one-screen character creator](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44)
+After both parent heroes exist, each new child receives genuine father/mother links and then `HeroCreationModel.GetStaticBodyProperties(child,true)`, which blends native parental body properties with random variation and cultural appearance rules. This explicitly corrects the prior `HeroCreator.CreateChild` path that left a non-inherited donor face.
 
-**Do not load an important existing save.** First test new Lord/Vlandia with a spouse and two validly aged children. The native culture/appearance/background/age/difficulty sequence is still present. Confirm a real spouse, real parent-linked children and persistence after saving/reloading.
+The native 3D culture/appearance/background/age/difficulty screens still appear after the pregame CU form. A full single-screen creator remains issue #44.
 
-To fall back to the native Default/Advanced Start selector, set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
+## Build and test status
+
+- [Successful Windows build #44322044399](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44322044399): **599 policy checks**, **40 simulated campaigns**, **0 compiler errors/warnings**, package integrity and nested installer tests passed.
+- [Compiled v0.25 test module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44322044399/artifacts/14434014831), DLL SHA-256 `f0f99d3a2433af5dd1dc7cfbf80b65c3dc47af00c07049b25884e6c223ca2c02` (212480 bytes). This is a **test build**, not a game-verified release.
+- [v0.25 exact in-game acceptance procedure](docs/V025_GENERATED_FAMILY_ACCEPTANCE.md).
+- [Underlying family culture mismatch](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/50).
+- [Source and CI](.github/workflows/bannerlord-build.yml).
+
+**Important:** Test only on disposable new campaigns. Verify actual spouses, parent links, origin clan, visually inherited child faces and saving/reloading. Noble clan selection and the native marriage action can still refuse a request; no automatic rollback exists for partially registered heroes. Default and Advanced entry can be restored using `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
