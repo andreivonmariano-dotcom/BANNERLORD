@@ -14,8 +14,10 @@ namespace CalradiaUnified
     {
         private const string First = "cu_life_role";
         private const string Family = "cu_life_family";
+        private const string FamilyConfirm = "cu_life_family_confirm";
         private const string Resources = "cu_life_resources";
         private const string Equipment = "cu_life_equipment";
+        private const string Affiliation = "cu_life_affiliation";
 
         public static bool TryAttach(CharacterCreationManager creator,
             SandboxOriginProfile profile)
@@ -57,7 +59,7 @@ namespace CalradiaUnified
                     "Choose your starting identity. Kingdom status is verified in-game.",
                     () => SaveChoices(new[] {Pair("Role",selected),Pair("Enabled","true")}));
             }
-            var family = NewPage(nativeAge, Family, First, Resources,
+            var family = NewPage(nativeAge, Family, First, FamilyConfirm,
                 "Starting Life: Family", "Choose the family present in your new Sandbox.");
             AddOption(family, "family_alone", "Independent, no starting family",
                 "Begin without spouse, children or siblings.",
@@ -78,7 +80,19 @@ namespace CalradiaUnified
                 "Sibling templates use native parent relationships where available.",
                 () => SetFamily(false, 0, 2));
 
-            var finances = NewPage(nativeAge, Resources, Family, Equipment,
+            var familyConfirm = NewPage(nativeAge, FamilyConfirm, Family,
+                Resources, "Starting Life: Household Members",
+                "Create real clan heroes or keep the family as a plan.");
+            AddOption(familyConfirm, "family_templates_only",
+                "Keep family as a starting profile",
+                "No extra wife, children or sibling heroes are created.",
+                () => SaveChoices(new[] {Pair("RealFamilyEnabled","false")}));
+            AddOption(familyConfirm, "family_create_real",
+                "EXPERIMENTAL: Create the selected real family",
+                "Uses native hero and marriage APIs. Test only on a disposable save.",
+                () => SaveChoices(new[] {Pair("RealFamilyEnabled","true")}));
+
+            var finances = NewPage(nativeAge, Resources, FamilyConfirm, Equipment,
                 "Starting Life: Resources", "Pick a starting treasury and influence.");
             AddOption(finances, "resource_native", "Native starting wealth",
                 "Keep the game's standard resources.",
@@ -100,7 +114,7 @@ namespace CalradiaUnified
                 () => SaveChoices(new[] {Pair("Gold","250000"),Pair("Influence","500")}));
 
             var equipment = NewPage(nativeAge, Equipment, Resources,
-                nativeAge.OutputMenuId,
+                Affiliation,
                 "Starting Life: Equipment", "Choose a starting equipment theme.");
             foreach (var kit in SandboxOriginProfile.Kits)
             {
@@ -110,6 +124,19 @@ namespace CalradiaUnified
                     () => SaveChoices(new[] {Pair("EquipmentKit",selected)}));
             }
 
+            var affiliation = NewPage(nativeAge, Affiliation, Equipment,
+                nativeAge.OutputMenuId,
+                "Starting Life: Service and Political Rank",
+                "Choose whether Calradia Unified requests actual native service.");
+            AddOption(affiliation, "service_native",
+                "Keep vanilla political status",
+                "No kingdom action or role-based renown is applied.",
+                () => SaveChoices(new[] {Pair("RoleAffiliationsEnabled","false")}));
+            AddOption(affiliation, "service_experimental",
+                "EXPERIMENTAL: Begin with matching native service",
+                "Soldier becomes a mercenary clan. Knight and Lord seek a vassal contract. King must be a native ruler.",
+                () => SaveChoices(new[] {Pair("RoleAffiliationsEnabled","true")}));
+
             bool removed = false;
             var added = new List<string>();
             try
@@ -118,14 +145,15 @@ namespace CalradiaUnified
                 removed = true;
                 creator.AddNewMenu(rewrittenAge);
                 added.Add(nativeAge.StringId);
-                foreach (var page in new[] {role, family, finances, equipment})
+                foreach (var page in new[] {role, family, familyConfirm,
+                    finances, equipment, affiliation})
                 {
                     creator.AddNewMenu(page);
                     added.Add(page.StringId);
                 }
                 DiagnosticJournal.Event("cu_life_stage_attached",
                     "native_age=" + nativeAge.StringId +
-                    "|pages=4|uses_native_navigation=true");
+                    "|pages=6|uses_native_navigation=true");
                 return true;
             }
             catch (Exception ex)
