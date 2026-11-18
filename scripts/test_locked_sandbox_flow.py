@@ -34,7 +34,7 @@ for index,(page,action) in enumerate(zip(pages,actions)):
              if w.get("Command.Click")==action]
     assert len(buttons)==1,(page,"duplicate/missing tab")
     assert buttons[0].get("IsSelected")=="@Is"+page+"Selected",page
-    assert re.search(r"public void\s+"+action+r"\(\)\s*\{Switch\(\""+page+r"\"\);\}",overlay),page
+    assert "public void "+action+"() {Switch(\""+page+"\");}" in overlay,page
 assert [all_buttons.index(action) for action in actions]==sorted(
        all_buttons.index(action) for action in actions),"tab order changed"
 assert len(all_buttons)>=18
