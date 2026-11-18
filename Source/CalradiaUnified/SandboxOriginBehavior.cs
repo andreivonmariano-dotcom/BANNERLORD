@@ -30,6 +30,8 @@ namespace CalradiaUnified
                 this, RegisterMenus);
             CampaignEvents.OnNewGameCreatedEvent.AddNonSerializedListener(
                 this, NewGameCreated);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, TryApplyOnDailyTick);
         }
 
         public override void SyncData(IDataStore store)
@@ -51,6 +53,8 @@ namespace CalradiaUnified
 
         private void RegisterMenus(CampaignGameStarter starter)
         {
+            // Prefer the first actual session launch over a delayed daily tick.
+            TryApplyOnce();
             if (starter == null || !IsStandaloneSandbox()) return;
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
@@ -324,15 +328,36 @@ namespace CalradiaUnified
         private void NewGameCreated(CampaignGameStarter starter)
         {
             if (applied || !IsStandaloneSandbox()) return;
-            // OnGameLoaded does not execute this event. The save key provides
-            // a second barrier against reapplying wealth or changing old saves.
-            applied = true;
+            // Arm only on a new Sandbox. A loaded save never runs this event.
             startedNewGame = true;
-            SandboxOriginProfile profile = SandboxOriginProfile.Load(
-                SandboxOriginProfile.UserPath);
-            if (!profile.Enabled) return;
+            DiagnosticJournal.Event("sandbox_origin_new_game_armed",
+                "waiting_for_native_main_hero");
+            TryApplyOnce();
+        }
+
+        private void TryApplyOnDailyTick()
+        {
+            if (startedNewGame && !applied) TryApplyOnce();
+        }
+
+        private void TryApplyOnce()
+        {
+            if (!startedNewGame || applied || !IsStandaloneSandbox()) return;
             var hero = Hero.MainHero;
             if (hero == null || Clan.PlayerClan == null) return;
+
+            // Commit the one-shot barrier before any resources are changed.
+            // Save/load or partial action failure must not duplicate grants.
+            applied = true;
+            startedNewGame = false;
+            SandboxOriginProfile profile = SandboxOriginProfile.Load(
+                SandboxOriginProfile.UserPath);
+            if (!profile.Enabled)
+            {
+                DiagnosticJournal.Event("sandbox_origin_disabled_for_new_game",
+                    "native_start_unchanged");
+                return;
+            }
             string reason;
             if (!profile.IsValid((int)hero.Age, out reason))
             {
