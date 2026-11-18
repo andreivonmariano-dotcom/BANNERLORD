@@ -609,10 +609,10 @@ namespace CalradiaUnified
             get
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
-                if (page=="Household") return "Choose a spouse and exact child count. Every number change saves immediately. Your children's ages and genders appear in the plan.";
+                if (page=="Household") return "Design a real starting family: spouse, noble ancestry, children and ages. Only registered native Heroes receive portraits after creation.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
                 if (page=="Location") return "Set your family's home in a town or castle, then choose your fief policy. No party recall is needed for infants.";
-                return "Part 1 of 2 is complete. Bannerlord handles culture, 3D appearance, origins, age and difficulty next.";
+                return "Your starting life is ready. Continue to Bannerlord's true culture, live 3D body editor and native origins. Opt-in CU 3D review runs after difficulty.";
             }
         }
         [DataSourceProperty] public string SelectedLabel
@@ -729,8 +729,8 @@ namespace CalradiaUnified
             get
             {
                 return profile.NativeIntegrationReviewEnabled ?
-                    "NATIVE 3D REVIEW: EXTRA CU PAGE (TEST MODE)" :
-                    "NEXT: NATIVE CULTURE + LIVE 3D FACE EDITOR";
+                    "NATIVE 3D REVIEW: OPT-IN ON" :
+                    "LIVE 3D FACE: NATIVE NEXT";
             }
         }
         [DataSourceProperty] public string ChildPreview
