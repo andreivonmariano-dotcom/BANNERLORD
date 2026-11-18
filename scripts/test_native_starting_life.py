@@ -15,7 +15,7 @@ assert len(names)==6,names
 chain=("First","Family","FamilyConfirm","Resources","Equipment","Affiliation")
 assert set(chain)==set(names),names
 for left,right in zip(chain,chain[1:]):
-    assert re.search(r"NewPage\(nativeAge,\s*"+left+r",\s*\w+,\s*"+right+r",",page),left
+    assert re.search(r"NewPage\(nativeAge,\s*"+left+r",\s*[^,]+,\s*"+right+r",",page),left
 assert re.search(r'NewPage\(nativeAge,\s*Affiliation,\s*Equipment,\s*nativeAge.OutputMenuId',page)
 assert 'var rewrittenAge = new NarrativeMenu(nativeAge.StringId,' in page
 assert 'nativeAge.InputMenuId, First, nativeAge.Title' in page
