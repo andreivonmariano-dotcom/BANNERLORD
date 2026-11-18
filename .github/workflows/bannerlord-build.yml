@@ -93,6 +93,15 @@ jobs:
           $parseErrors = $null
           $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path scripts/Run-CU-Runtime-Preflight.ps1).Path, [ref]$tokens, [ref]$parseErrors)
           if ($parseErrors.Count -gt 0) { throw ("PowerShell preflight syntax errors: " + ($parseErrors -join '; ')) }
+      - name: Validate standard PowerShell installer and playthrough script syntax
+        shell: pwsh
+        run: |
+          foreach ($script in @('scripts/Install-CU-From-Artifact.ps1','scripts/Test-CU-Playthrough.ps1')) {
+            $tokens = $null
+            $parseErrors = $null
+            $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $script).Path,[ref]$tokens,[ref]$parseErrors)
+            if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax errors in " + $script + ': ' + ($parseErrors -join ', ')) }
+          }
       - name: Test diagnostic export reader
         shell: pwsh
         run: python scripts/analyze_diagnostics.py --self-test
@@ -161,6 +170,51 @@ jobs:
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
           if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
           Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
+      - name: Test pinned CI SHA-256 before install and latest-session playthrough report
+        shell: pwsh
+        run: |
+          $fake = Join-Path (Get-Location) "BuildResults/FakeBannerlord"
+          $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
+          $dll = Join-Path $fake "Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll"
+          $hash = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          $before = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
+          $rejected = $false
+          try {
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
+          } catch {
+            $rejected = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
+          }
+          if (-not $rejected) { throw 'Installer failed to reject the wrong CI hash.' }
+          $after = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
+          if ($after -ne $before -or (Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
+            throw 'Wrong-hash artifact must never change an installed mod or its backups.'
+          }
+          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 $hash -ReplaceExisting
+          $events = Join-Path (Get-Location) 'BuildResults/sample-playthrough-events.csv'
+          @(
+            'utc,context,detail',
+            '2026-11-18T12:00:00Z,sandbox_overhaul_accepted,role=Lord|child_count=2',
+            '2026-11-18T12:00:01Z,cu_family_child_created,id=old_child_1|age=5',
+            '2026-11-18T13:00:00Z,sandbox_overhaul_accepted,role=Lord|child_count=1',
+            '2026-11-18T13:00:01Z,sandbox_creator_family_plan,spouse=True|child_count=1',
+            '2026-11-18T13:00:02Z,cu_family_loaded_plan,spouse=True|requested_children=1',
+            '2026-11-18T13:00:03Z,cu_family_spouse_created,id=spouse_1|clan=player_faction',
+            '2026-11-18T13:00:04Z,cu_family_child_created,id=child_1|age=1',
+            '2026-11-18T13:00:05Z,cu_family_verification,result=PASS|requested_children=1|created_children=1',
+            '2026-11-18T13:00:06Z,sandbox_start_contract,result=PASS|requested_children=1|children=1'
+          ) | Set-Content -LiteralPath $events -Encoding UTF8
+          $report = Join-Path (Get-Location) 'BuildResults/sample-playthrough-report.json'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 $hash -ExpectedChildren 1 -EventsCsv $events -ExceptionsCsv (Join-Path (Get-Location) 'BuildResults/no-exceptions.csv') -ReportJson $report -Assert
+          $r = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
+          if ($r.status -ne 'PASS' -or $r.child_created_events -ne 1 -or $r.expected_children -ne 1 -or -not $r.ci_hash_pinned) {
+            throw 'The current campaign audit did not ignore historical child events.'
+          }
+          $mismatchWasRejected = $false
+          try {
+            ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 2 -EventsCsv $events -Assert
+          } catch { $mismatchWasRejected = $true }
+          if (-not $mismatchWasRejected) { throw 'Expected child mismatch should fail in assertion mode.' }
+          Write-Output 'PASS: pinned CI hash before game mutation, read-only one-child audit, historical session filter and mismatch rejection'
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
