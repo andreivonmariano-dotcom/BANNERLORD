@@ -4,6 +4,7 @@ using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -21,6 +22,7 @@ namespace CalradiaUnified
     {
         private bool applied;
         private bool startedNewGame;
+        private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
 
@@ -32,6 +34,40 @@ namespace CalradiaUnified
                 this, NewGameCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
+            CampaignEvents.OnCharacterCreationInitializedEvent.AddNonSerializedListener(
+                this, ObserveNativeCharacterCreation);
+        }
+
+        // Observe the real Sandbox creation graph without replacing its
+        // character, culture, age, story, review, Back, or Next handlers.
+        // A future built-in page must be linked to these actual menu IDs.
+        private void ObserveNativeCharacterCreation(CharacterCreationManager manager)
+        {
+            if (!IsStandaloneSandbox() || manager == null ||
+                Object.ReferenceEquals(observedNativeCreator, manager)) return;
+            observedNativeCreator = manager;
+            try
+            {
+                int count = manager.NarrativeMenus.Count;
+                DiagnosticJournal.Event("cu_native_sandbox_creator",
+                    "narrative_menus=" + count + "|game_mode=Sandbox");
+                foreach (var menu in manager.NarrativeMenus)
+                {
+                    if (menu == null) continue;
+                    DiagnosticJournal.Event("cu_native_sandbox_menu",
+                        "id=" + menu.StringId +
+                        "|input=" + menu.InputMenuId +
+                        "|output=" + menu.OutputMenuId);
+                }
+                DiagnosticJournal.Event("cu_native_sandbox_stage",
+                    "current=" + (manager.CurrentStage == null ? "none"
+                        : manager.CurrentStage.GetType().Name) +
+                    "|total=" + manager.GetTotalStagesCount());
+            }
+            catch (Exception e)
+            {
+                DiagnosticJournal.Exception("native_sandbox_graph", e);
+            }
         }
 
         public override void SyncData(IDataStore store)

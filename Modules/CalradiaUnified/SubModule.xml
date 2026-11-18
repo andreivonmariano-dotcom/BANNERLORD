@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Sandbox Origin Designer Candidate" />
+  <Name value="Calradia Unified - Native Sandbox Flow Correction" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.16.0" />
+  <Version value="v0.16.1" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

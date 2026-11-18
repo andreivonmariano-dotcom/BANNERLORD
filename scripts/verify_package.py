@@ -24,9 +24,10 @@ def verify(filename, version):
         gauntlet_prefab = prefix + "GUI/Prefabs/CUSettingsPanel.xml"
         assert gauntlet_prefab in names, "Native UI prefab missing"
         assert ET.fromstring(archive.read(gauntlet_prefab)).tag == "Prefab", "Invalid prefab XML"
+        # The former pre-game screen has an observed broken layout and blocked
+        # Back navigation. It is intentionally excluded from shipped builds.
         origin_prefab = prefix + "GUI/Prefabs/CUOriginPanel.xml"
-        assert origin_prefab in names, "Pre-game origin creator prefab missing"
-        assert ET.fromstring(archive.read(origin_prefab)).tag == "Prefab", "Invalid origin XML"
+        assert origin_prefab not in names, "Broken standalone origin UI must not ship"
         assert all(not n.lower().endswith((".pdb", ".exe", ".cs", "not_compiled.txt")) for n in names), "Developer file"
         assert all(n in names for n in (base, manifest, ini, exporter)), "Required module file absent"
         assert [n for n in names if n.lower().endswith(".dll")] == [base], "Unexpected DLL count"

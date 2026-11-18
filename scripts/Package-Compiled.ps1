@@ -23,6 +23,10 @@ Copy-Item $manifest (Join-Path $stage 'SubModule.xml')
 $gui = Join-Path $module 'GUI'
 if (Test-Path -LiteralPath $gui) {
     Copy-Item $gui (Join-Path $stage 'GUI') -Recurse
+    $discontinued = Join-Path $stage 'GUI\Prefabs\CUOriginPanel.xml'
+    if (Test-Path -LiteralPath $discontinued) {
+        Remove-Item -LiteralPath $discontinued -Force
+    }
 }
 Copy-Item (Join-Path $module 'ModuleData') (Join-Path $stage 'ModuleData') -Recurse
 # The read-only crash/finance ZIP exporter ships inside the one-folder module.

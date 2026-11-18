@@ -28,9 +28,11 @@ for required in ["ExecuteIdentity","ExecuteFamily","ExecuteProgression",
                  "ExecuteEquipment","ExecuteLocation","ExecuteToggle",
                  "ExecuteSaveNumber","ExecuteEditText","ExecuteClose"]:
     assert required in commands, required
-assert 'new InitialStateOption("CU_Sandbox_Origin"' in sub
-assert "if (originMenuRegistered) return;" in sub
+assert 'InitialStateOption("CU_Sandbox_Origin"' not in sub
+assert 'OnBeforeInitialModuleScreenSetAsRoot' not in sub
+assert 'OnCharacterCreationInitializedEvent' in behavior
+assert 'cu_native_sandbox_menu' in behavior
 assert "IsStandaloneSandbox()" in behavior
 assert "CU_v016_origin_applied" in behavior
 assert "OnNewGameCreatedEvent" in behavior
-print("PASS: pre-game screen XML commands, bindings, main-menu registration and new-game guards")
+print("PASS: old panel bindings archived, separate main-menu entry disabled, native creation observed")
