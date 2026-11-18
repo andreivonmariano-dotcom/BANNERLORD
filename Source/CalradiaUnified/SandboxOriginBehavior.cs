@@ -575,13 +575,15 @@ namespace CalradiaUnified
                 // genuine marriage and children have been created.
                 string familyHome = family.StartsWith("spouse=",
                     StringComparison.Ordinal) ?
-                    SandboxFamilyHome.TryPlace(profile,hero) :
+                    SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome) :
                     "skipped:family_not_verified";
                 DiagnosticJournal.Event("cu_family_home_status",
                     "result=" + familyHome +
                     "|requested_mode=" + profile.FamilyHomeMode +
                     "|requested_id=" + profile.FamilyHomeId);
-                if (familyHome.StartsWith("failed:",StringComparison.Ordinal) ||
+                if ((profile.FamilyHomeMode=="SpecificOwned" &&
+                    familyHome.StartsWith("skipped:",StringComparison.Ordinal)) ||
+                    familyHome.StartsWith("failed:",StringComparison.Ordinal) ||
                     familyHome.StartsWith("refused:",StringComparison.Ordinal))
                     Notify("Family home could not be established: " +
                         familyHome);
