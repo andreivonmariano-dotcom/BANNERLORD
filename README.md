@@ -1,26 +1,29 @@
-# Calradia Unified v0.13.0: castle finance and manual garrisons
+# Calradia Unified v0.14.0: native in-game settings, no third-party frameworks
 
-**Target:** Bannerlord PC v1.5.7. **Verified Gate B:** [Windows CI run 44246191394](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394), commit `0f7c194240e0797001abec402127a86357cbc898`, 199 policy checks passed, 14,600 simulated campaign days, zero compiler warnings/errors, ZIP CRC and one-DLL package validated. **Release status: COMPILED_UNTESTED.** Native gameplay and saves still require in-game acceptance. No old mod DLLs, no installer, one `Modules/CalradiaUnified` folder.
+**Target:** Bannerlord PC v1.5.7. **Status:** v0.14.0 Gate B Windows build complete. Native in-game startup and save/load remain untested. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
 
-## New in v0.13
+## New in v0.14
 
-- Castle estate briefing shows **modeled income required** and **modeled shortfall** against known wage costs. Forecasts are not the game's observed native tax entries.
-- Castle staffing report shows real existing roster counts, wage totals and current limits.
-- Optional manual deposit or withdrawal of five **existing** native-culture basic recruits between your player party and castle garrison. No autonomous party is sent.
-- Optional manual castle wage cap action only if existing garrison wages already fit. Both new gameplay flags default to **false**.
-- Complete editorial priority ranking of all original 78 mod IDs, with a validated formula and source traceability.
+Enter a **town or castle** and choose **CU: Configure Calradia Unified**. The new native Bannerlord campaign menu contains three pages: Reports and Warnings, Economy and Recruitment, and Castle Management. Each flag has an Enable or Disable choice with the opposite state automatically hidden. Two supported numeric controls can be increased or decreased one step at a time.
 
-## Documents and evidence
+Changes write to a user-owned file at `%LOCALAPPDATA%\\CalradiaUnified\\calradia-user-config.ini` and take effect within the same campaign. This **does not write to the installed module directory**. Old `ModuleData/calradia-config.ini` values remain the baseline and are overridden only by saved user settings. Unknown user-edited keys and comments are preserved. Failed saves do not change live settings.
 
-- [Castle-control rules and game-only acceptance](docs/V013_CASTLE_MANAGEMENT.md)
-- [78-module ranking and methodology](docs/RECONSTRUCTION_PRIORITY_v013.md)
-- [78-row ranking CSV](Data/Reconstruction_Priority_78.csv)
-- [Finance and crash diagnostics](docs/DIAGNOSTICS_v012.md)
-- [Baseline start/save procedure](docs/M0_TEST_PROCEDURE.md)
-- [Historical registry](Data/Feature_Registry.csv)
+Existing dangerous automated orders, experimental convoys, auto garrison training, and other advanced controls remain off by default and are not exposed through the native menu. The native menu, profile persistence and startup still need game testing.
 
-## Existing features retained
+## Internal equivalents rather than copied frameworks
 
-Includes depot grain transfers, guarded physical convoy candidate, locally cultured recruitment, bounded clan NPC orders, budgeted garrison training, modeled estate harvests, and exportable finance/crash logs. Game-changing features remain disabled by default pending actual v1.5.7 play tests.
+- **Harmony:** existing safe native campaign event hooks, no arbitrary method patcher.
+- **ButterLib:** existing local log, managed exceptions and diagnostic export.
+- **UIExtenderEx:** add campaign UI through official native game menu registration. No Gauntlet widget patcher.
+- **MCM:** new native in-game settings categories, opt-in toggles, numeric controls and persistent user overrides. No general third-party settings extension API.
 
-Verified v0.13 module ZIP: [CalradiaUnified-v0.13.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44246191394/artifacts/14401771689). DLL SHA-256: `3a342e8d310f46029ab2974c3e01e752875156a64240efeb3998585d4e8da67b`. Inner module ZIP SHA-256: `ffcd046634498e919b5a465d979cf2af5994f63f11a23e3daeb868ee7f560a5a`. Version provenance is the exact commit and associated GitHub Actions run. Do not equate source tests, simulated campaign days or a Windows reference DLL build with a game-tested release.
+No Harmony, ButterLib, UIExtenderEx or MCM DLL, package or separate module is needed.
+
+## Existing documentation
+
+- [Native settings and framework capability limits](docs/NATIVE_FRAMEWORK_CAPABILITIES_v014.md)
+- [Castle management v0.13 acceptance](docs/V013_CASTLE_MANAGEMENT.md)
+- [Full 78-mod priority register](Data/Reconstruction_Priority_78.csv)
+- [M0 real-game test procedure](docs/M0_TEST_PROCEDURE.md)
+
+**Release status:** COMPILED_UNTESTED only after a successful exact v0.14 workflow. Do not claim a real game launch, save/reload or MCM compatibility from reference-assembly compilation.
