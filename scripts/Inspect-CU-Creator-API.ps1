@@ -9,9 +9,17 @@ $ErrorActionPreference = 'Stop'
 if ($PSVersionTable.PSEdition -eq 'Core') {
     throw 'ReflectionOnlyLoadFrom requires Windows PowerShell 5.1.'
 }
-$root = Join-Path $env:USERPROFILE ('.nuget\packages\bannerlord.referenceassemblies\' + $ReferenceVersion)
-if (-not (Test-Path -LiteralPath $root)) {
-    throw ('Pinned Bannerlord reference package is missing: ' + $root)
+$root = Join-Path $env:USERPROFILE '.nuget\packages'
+$assets = Join-Path $PSScriptRoot '..\Source\CalradiaUnified\obj\project.assets.json'
+if (-not (Test-Path -LiteralPath $assets) -or
+    -not (Test-Path -LiteralPath $root)) {
+    throw 'Pinned NuGet reference restoration files are missing.'
+}
+# Bannerlord.ReferenceAssemblies is a meta-package: its referenced DLLs
+# are inside the restored dependency packages, not necessarily its folder.
+$assetsText = [IO.File]::ReadAllText([IO.Path]::GetFullPath($assets))
+if (-not $assetsText.Contains('Bannerlord.ReferenceAssemblies/' + $ReferenceVersion)) {
+    throw ('Restored project assets do not contain pinned game package ' + $ReferenceVersion)
 }
 $script:referencePaths = @{}
 Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.dll' | ForEach-Object {
@@ -49,6 +57,7 @@ try {
     $lines = New-Object 'System.Collections.Generic.List[string]'
     $lines.Add('Calradia Unified native creator metadata audit')
     $lines.Add('Exact pinned reference package: ' + $ReferenceVersion)
+    foreach ($name in $assemblies) { $lines.Add('REFERENCE ' + $name + ' ' + $script:referencePaths[$name]) }
     $lines.Add('Source: local NuGet reference assemblies, not a running game')
     $lines.Add('Stage view constructors and inherited registration attributes require live validation.')
     $flags = [Reflection.BindingFlags] 'Public,NonPublic,Instance,Static,DeclaredOnly'
