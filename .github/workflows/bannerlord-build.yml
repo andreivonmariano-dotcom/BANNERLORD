@@ -138,6 +138,25 @@ jobs:
           name: CalradiaUnified-v0.16.0-compiled-untested
           path: Output/CalradiaUnified_v0.16.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
+      - name: Compile isolated base-game DLL loader probe
+        shell: pwsh
+        run: |
+          dotnet restore Source/CULoaderProbe/CULoaderProbe.csproj
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          dotnet build Source/CULoaderProbe/CULoaderProbe.csproj -c Release --no-restore
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $folder = "Output/Probe/Modules/CULoaderProbe"
+          New-Item -ItemType Directory -Force -Path "$folder/bin/Win64_Shipping_Client" | Out-Null
+          Copy-Item "Modules/CULoaderProbe/SubModule.xml" "$folder/SubModule.xml"
+          Copy-Item "Source/CULoaderProbe/bin/Release/net472/CULoaderProbe.dll" "$folder/bin/Win64_Shipping_Client/CULoaderProbe.dll"
+          Compress-Archive -Path "Output/Probe/Modules" -DestinationPath "Output/CULoaderProbe_v0.1.0_DIAGNOSTIC.zip" -CompressionLevel Optimal
+          python scripts/verify_loader_probe.py Output/CULoaderProbe_v0.1.0_DIAGNOSTIC.zip
+      - name: Upload minimal loader diagnostic (not a playable mod)
+        uses: actions/upload-artifact@v4
+        with:
+          name: CULoaderProbe-v0.1.0-diagnostic-only
+          path: Output/CULoaderProbe_v0.1.0_DIAGNOSTIC.zip
+          if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
