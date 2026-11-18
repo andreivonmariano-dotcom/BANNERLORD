@@ -130,6 +130,26 @@ namespace CalradiaUnified
                 Siblings.Add(new OriginRelative("Sibling", i));
         }
 
+        /// <summary>
+        /// Fresh Sandbox starts cannot inherit another campaign's dependent
+        /// count or an authorized fief transfer. Preserve character names,
+        /// spouse background and role choices so users may reuse preferences.
+        /// The player explicitly chooses a spouse and child count each time.
+        /// </summary>
+        public void ResetForNewCampaign()
+        {
+            Enabled=false;
+            NativeStageEnabled=false;
+            RealFamilyEnabled=false;
+            RoleAffiliationsEnabled=false;
+            SpouseEnabled=false;
+            ChildCount=0;
+            SiblingCount=0;
+            StartingFiefMode="Native";
+            AllowStartingFiefTransfer=false;
+            StartingFiefId="";
+        }
+
         public static string UserPath
         {
             get
