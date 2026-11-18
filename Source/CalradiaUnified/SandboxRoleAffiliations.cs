@@ -38,13 +38,13 @@ namespace CalradiaUnified
                     // This is a genuine MERCENARY CLAN contract, not an
                     // unimplemented rank-and-file enlistment.
                     ChangeKingdomAction.ApplyByJoinFactionAsMercenary(
-                        clan,kingdom,50,false);
+                        clan,kingdom,CampaignTime.DaysFromNow(90f),50,false);
                 }
                 else
                 {
                     // Knight and Lord use the game's genuine vassal action.
                     ChangeKingdomAction.ApplyByJoinToKingdom(
-                        clan,kingdom,false);
+                        clan,kingdom,CampaignTime.Never,false);
                 }
                 return clan.Kingdom == kingdom
                     ? (profile.Role == "Soldier" ?
