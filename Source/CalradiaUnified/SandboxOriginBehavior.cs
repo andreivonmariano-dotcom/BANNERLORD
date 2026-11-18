@@ -493,6 +493,22 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "Lord requires native Vassal Advanced Start");
 
+                // Explicitly requested family is created after the native
+                // character and start kingdom exist.
+                string family = SandboxFamilyCreator.TryCreate(profile,hero);
+                DiagnosticJournal.Event("cu_family_creation_status",
+                    "requested=" + profile.RealFamilyEnabled + "|result=" + family);
+                if (profile.RealFamilyEnabled && (
+                    family == "not_enabled" ||
+                    !family.StartsWith("spouse=",StringComparison.Ordinal)))
+                    Notify("Family request could not be completed: " + family);
+                if ((profile.Role == "Lord" || profile.Role == "King") &&
+                    !SandboxRolePolicy.MatchesNativeStatus(profile.Role,
+                        Clan.PlayerClan.Kingdom != null,
+                        Clan.PlayerClan.Kingdom != null &&
+                        Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
+                    Notify("Start role was not applied: " + profile.Role);
+
                 if (profile.Gold >= 0)
                 {
                     int delta = profile.Gold - Math.Max(0, hero.Gold);
@@ -529,24 +545,6 @@ namespace CalradiaUnified
 
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
-
-                // Explicitly requested family is created after the native
-                // character and start kingdom exist.
-                string family = SandboxFamilyCreator.TryCreate(profile,hero);
-                DiagnosticJournal.Event("cu_family_creation_status",
-                    "requested=" + profile.RealFamilyEnabled + "|result=" + family);
-                if (profile.RealFamilyEnabled && (
-                    family == "not_enabled" ||
-                    family.StartsWith("invalid_",StringComparison.Ordinal) ||
-                    family.StartsWith("partial:",StringComparison.Ordinal) ||
-                    family.EndsWith("_missing",StringComparison.Ordinal)))
-                    Notify("Family request could not be completed: " + family);
-                if ((profile.Role == "Lord" || profile.Role == "King") &&
-                    !SandboxRolePolicy.MatchesNativeStatus(profile.Role,
-                        Clan.PlayerClan.Kingdom != null,
-                        Clan.PlayerClan.Kingdom != null &&
-                        Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
-                    Notify("Start role was not applied: " + profile.Role);
 
                 // Relocation and direct face sliders remain disabled. The
                 // opt-in family helper uses native hero/marriage APIs.
