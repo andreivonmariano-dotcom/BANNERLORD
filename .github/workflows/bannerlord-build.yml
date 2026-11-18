@@ -39,6 +39,9 @@ jobs:
       - name: Audit native Gauntlet XML against ViewModel bindings
         shell: pwsh
         run: python scripts/test_gauntlet_bindings.py
+      - name: Validate pre-game origin creator XML and ViewModel
+        shell: pwsh
+        run: python scripts/test_sandbox_origin_panel.py
       - name: Verify runtime evidence analyzer rejects unproven game claims
         shell: pwsh
         run: python scripts/validate_runtime_evidence.py --self-test

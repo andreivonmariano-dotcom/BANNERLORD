@@ -67,3 +67,7 @@ The editor is registered only for a standalone Campaign game type. It refuses St
 The `OnBeforeInitialModuleScreenSetAsRoot` entry point registers **CU: Design Next Sandbox Character** in the game's initial main menu. It creates an optional Gauntlet `SandboxOriginPanel` with five tabs: Identity, Family, Progression, Equipment, and Location. Numeric values are bounded with a slider and explicit Save, and names/face-seed strings use a native text inquiry. It writes only `sandbox-origin.ini`. The main-menu option is registered once per module lifetime. The in-campaign editor remains available as a fallback.
 
 **CI compilation and XML validation do not prove actual screen rendering.** Confirm the initial menu entry, rendering, tab controls, close/reopen, editor text input and exact same-profile persistence on the v1.5.7 game before release. New-game family hero creation, age adjustment, actual role affiliation, item auto-equipping and town relocation remain unimplemented.
+
+## Compile-only verification and safety
+
+The new pre-game panel's prefab bindings and click handlers are checked by `scripts/test_sandbox_origin_panel.py`. The new-game event refuses Story Mode and stores `CU_v016_origin_applied` in a campaign save. These are source and policy gates, not independent proof of world mutation or safe campaign reload.
