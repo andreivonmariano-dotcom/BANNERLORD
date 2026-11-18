@@ -59,6 +59,9 @@ jobs:
       - name: Audit direct Sandbox creator with button brushes and Escape
         shell: pwsh
         run: python scripts/test_sandbox_overhaul.py
+      - name: Verify real native starts and post-creation family effects
+        shell: pwsh
+        run: python scripts/test_native_start_handoff.py
       - name: Verify runtime evidence analyzer rejects unproven game claims
         shell: pwsh
         run: python scripts/validate_runtime_evidence.py --self-test
