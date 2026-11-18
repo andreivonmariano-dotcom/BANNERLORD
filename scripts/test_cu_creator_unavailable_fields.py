@@ -42,7 +42,7 @@ assert 'Current.Kind=="number"' in overlay
 assert 'Current.Kind=="boolean"' in overlay
 assert 'Current.Kind=="choice"' in overlay
 assert 'Current.Kind=="text"' in overlay
-assert 'if (!IsText) return;' in overlay
+assert 'if(!IsText) return;' in overlay
 assert 'if (!IsNumber || Current==null) return;' in overlay
 assert 'if(IsBoolean)' in overlay
 
