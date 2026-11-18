@@ -989,6 +989,8 @@ namespace CalradiaUnified
                 "|family_requested="+profile.RealFamilyEnabled+
                 "|spouse_requested="+profile.SpouseEnabled+
                 "|child_count="+profile.ChildCount+
+                "|family_home_mode="+profile.FamilyHomeMode+
+                "|family_home_id="+profile.FamilyHomeId+
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
