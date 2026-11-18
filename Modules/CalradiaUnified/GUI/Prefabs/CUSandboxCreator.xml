@@ -365,8 +365,12 @@
                         PositionXOffset="990" PositionYOffset="306" />
             <TextWidget Text="@FamilySummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
-                        HeightSizePolicy="Fixed" SuggestedHeight="57"
+                        HeightSizePolicy="Fixed" SuggestedHeight="32"
                         PositionXOffset="990" PositionYOffset="336" />
+            <TextWidget Text="@ChildPreview" Color="#E8C17DFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="252"
+                        HeightSizePolicy="Fixed" SuggestedHeight="43"
+                        PositionXOffset="990" PositionYOffset="369" />
             <TextWidget Text="LAND AND WORLD" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="29"
