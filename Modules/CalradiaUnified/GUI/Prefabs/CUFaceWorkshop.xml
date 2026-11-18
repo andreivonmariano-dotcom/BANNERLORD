@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <!-- Read-only ribbon. The actual BodyGeneratorView retains focus,
+         mouse capture, keyboard bindings, orbit and face sliders. -->
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent"
+            DoNotPassEventsToChildren="false">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE0"
+                WidthSizePolicy="Fixed" SuggestedWidth="480"
+                HeightSizePolicy="Fixed" SuggestedHeight="170"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="18" PositionYOffset="112"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C79B5EFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="480"
+                HeightSizePolicy="Fixed" SuggestedHeight="3"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="18" PositionYOffset="112"/>
+        <TextWidget Text="@Title" Color="#FFE2ABFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="450"
+                    HeightSizePolicy="Fixed" SuggestedHeight="28"
+                    PositionXOffset="36" PositionYOffset="125"/>
+        <TextWidget Text="@Role" Color="#FCEBD0FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="450"
+                    HeightSizePolicy="Fixed" SuggestedHeight="25"
+                    PositionXOffset="36" PositionYOffset="159"/>
+        <TextWidget Text="@Culture" Color="#DDE4EDFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="450"
+                    HeightSizePolicy="Fixed" SuggestedHeight="25"
+                    PositionXOffset="36" PositionYOffset="187"/>
+        <TextWidget Text="@Household" Color="#FCEBD0FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="450"
+                    HeightSizePolicy="Fixed" SuggestedHeight="25"
+                    PositionXOffset="36" PositionYOffset="215"/>
+        <TextWidget Text="@Notice" Color="#BAC8D9FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="450"
+                    HeightSizePolicy="Fixed" SuggestedHeight="48"
+                    PositionXOffset="36" PositionYOffset="245"/>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>
