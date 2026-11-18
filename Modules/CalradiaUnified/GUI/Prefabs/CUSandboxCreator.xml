@@ -85,7 +85,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="555"
                         HeightSizePolicy="Fixed" SuggestedHeight="39"
                         PositionXOffset="34" PositionYOffset="27" />
-            <TextWidget Text="CREATE YOUR CALRADIAN LIFE" Color="#D7D0C2FF"
+            <TextWidget Text="PART 1 OF 2: STARTING CONDITIONS" Color="#D7D0C2FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="475"
                         HeightSizePolicy="Fixed" SuggestedHeight="34"
                         PositionXOffset="545" PositionYOffset="32" />
@@ -93,7 +93,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="150"
                         HeightSizePolicy="Fixed" SuggestedHeight="34"
                         PositionXOffset="1092" PositionYOffset="32" />
-            <TextWidget Text="YOUR STORY" Color="#D2A965FF"
+            <TextWidget Text="YOUR START" Color="#D2A965FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="208"
                         HeightSizePolicy="Fixed" SuggestedHeight="30"
                         PositionXOffset="33" PositionYOffset="114" />
@@ -115,36 +115,19 @@
                             VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
+            
             <ButtonWidget Brush="ButtonBrush"
                           DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="209" HeightSizePolicy="Fixed"
                           SuggestedHeight="49" PositionXOffset="33"
-                          PositionYOffset="219" Command.Click="ExecuteAppearance" IsSelected="@IsAppearanceSelected">
-              <Children>
-                <Widget Sprite="BlankWhiteSquare_9" Color="#C9A269FF"
-                        IsVisible="@IsAppearanceSelected" WidthSizePolicy="Fixed"
-                        SuggestedWidth="5" HeightSizePolicy="StretchToParent"
-                        HorizontalAlignment="Left"/>
-                <TextWidget Text="02   Appearance" Color="#F6E9D2FF"
-                            WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center"
-                            VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
-                          DoNotPassEventsToChildren="true"
-                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
-                          SuggestedWidth="209" HeightSizePolicy="Fixed"
-                          SuggestedHeight="49" PositionXOffset="33"
-                          PositionYOffset="279" Command.Click="ExecuteHousehold" IsSelected="@IsHouseholdSelected">
+                          PositionYOffset="219" Command.Click="ExecuteHousehold" IsSelected="@IsHouseholdSelected">
               <Children>
                 <Widget Sprite="BlankWhiteSquare_9" Color="#C9A269FF"
                         IsVisible="@IsHouseholdSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="03   Household" Color="#F6E9D2FF"
+                <TextWidget Text="02   Household" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -156,13 +139,13 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="209" HeightSizePolicy="Fixed"
                           SuggestedHeight="49" PositionXOffset="33"
-                          PositionYOffset="339" Command.Click="ExecuteResources" IsSelected="@IsResourcesSelected">
+                          PositionYOffset="279" Command.Click="ExecuteResources" IsSelected="@IsResourcesSelected">
               <Children>
                 <Widget Sprite="BlankWhiteSquare_9" Color="#C9A269FF"
                         IsVisible="@IsResourcesSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="04   Resources" Color="#F6E9D2FF"
+                <TextWidget Text="03   Resources" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -174,13 +157,13 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="209" HeightSizePolicy="Fixed"
                           SuggestedHeight="49" PositionXOffset="33"
-                          PositionYOffset="399" Command.Click="ExecuteLocation" IsSelected="@IsLocationSelected">
+                          PositionYOffset="339" Command.Click="ExecuteLocation" IsSelected="@IsLocationSelected">
               <Children>
                 <Widget Sprite="BlankWhiteSquare_9" Color="#C9A269FF"
                         IsVisible="@IsLocationSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="05   Kingdom &amp; fief" Color="#F6E9D2FF"
+                <TextWidget Text="04   Kingdom &amp; world" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -192,13 +175,13 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="209" HeightSizePolicy="Fixed"
                           SuggestedHeight="49" PositionXOffset="33"
-                          PositionYOffset="459" Command.Click="ExecuteReview" IsSelected="@IsReviewSelected">
+                          PositionYOffset="399" Command.Click="ExecuteReview" IsSelected="@IsReviewSelected">
               <Children>
                 <Widget Sprite="BlankWhiteSquare_9" Color="#C9A269FF"
                         IsVisible="@IsReviewSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="06   Review" Color="#F6E9D2FF"
+                <TextWidget Text="05   Review and continue" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -210,7 +193,7 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="209" HeightSizePolicy="Fixed"
                           SuggestedHeight="52" PositionXOffset="33"
-                          PositionYOffset="544" Command.Click="ExecuteToggleAdvanced">
+                          PositionYOffset="494" Command.Click="ExecuteToggleAdvanced">
               <Children>
                 <TextWidget Text="@AdvancedToggleLabel" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
@@ -279,7 +262,7 @@
                           SuggestedHeight="42" PositionXOffset="623"
                           PositionYOffset="459" Command.Click="ExecuteSaveNumber" IsVisible="@IsNumber">
               <Children>
-                <TextWidget Text="Confirm amount" Color="#F6E9D2FF"
+                <TextWidget Text="Enter exact value" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -364,7 +347,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="620"
                         HeightSizePolicy="Fixed" SuggestedHeight="32"
                         PositionXOffset="299" PositionYOffset="584" />
-            <TextWidget Text="CAMPAIGN PLAN" Color="#E6C07FFF"
+            <TextWidget Text="STARTING PLAN" Color="#E6C07FFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="262"
                         HeightSizePolicy="Fixed" SuggestedHeight="39"
                         PositionXOffset="990" PositionYOffset="121" />
@@ -449,7 +432,7 @@
                           SuggestedHeight="50" PositionXOffset="963"
                           PositionYOffset="630" Command.Click="ExecuteApplyAndContinue" IsVisible="@IsReviewPage">
               <Children>
-                <TextWidget Text="BEGIN CAMPAIGN" Color="#F6E9D2FF"
+                <TextWidget Text="NEXT: NATIVE CREATOR" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
