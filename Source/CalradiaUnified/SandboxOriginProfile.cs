@@ -16,7 +16,7 @@ namespace CalradiaUnified
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
         public static readonly string[] Roles =
-            { "Wanderer", "Soldier", "Knight", "Lord", "King" };
+            { "Wanderer", "Soldier", "Knight", "Lord", "King", "Admiral" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
@@ -31,6 +31,10 @@ namespace CalradiaUnified
             { "Mercy", "Valor", "Honor", "Generosity", "Calculating" };
 
         public bool Enabled;
+        // The normal Sandbox button opens the CU visual front-end by default.
+        // Set false in the profile to recover the untouched native wizard.
+        public bool OverhauledCreatorEnabled = true;
+        public string StartingCulture = "";
         // Dangerous creation actions require three independent opt-ins.
         public bool NativeStageEnabled;
         public bool RealFamilyEnabled;
@@ -142,6 +146,12 @@ namespace CalradiaUnified
                 case "Enabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     Enabled = b; return true;
+                case "OverhauledCreatorEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    OverhauledCreatorEnabled = b; return true;
+                case "StartingCulture":
+                    if (!Identifier(value, 80)) return false;
+                    StartingCulture = value; return true;
                 case "NativeStageEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     NativeStageEnabled = b; return true;
@@ -325,6 +335,9 @@ namespace CalradiaUnified
                 "# Family templates and appearance values are prepared; no NPC spawns in v0.16.",
                 "Version=CU_ORIGIN_1",
                 "Enabled=" + Enabled.ToString().ToLowerInvariant(),
+                "OverhauledCreatorEnabled=" +
+                    OverhauledCreatorEnabled.ToString().ToLowerInvariant(),
+                "StartingCulture=" + StartingCulture,
                 "NativeStageEnabled=" + NativeStageEnabled.ToString().ToLowerInvariant(),
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),

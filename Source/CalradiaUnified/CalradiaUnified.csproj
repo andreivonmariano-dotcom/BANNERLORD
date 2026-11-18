@@ -11,7 +11,7 @@
     <Deterministic>true</Deterministic>
     <UsePublicReferences Condition="'$(UsePublicReferences)' == ''">false</UsePublicReferences>
   </PropertyGroup>
-  <!-- Archive the discarded launcher Gauntlet prototype outside the runtime DLL. -->
+  <!-- The discarded launcher Gauntlet prototype is excluded from the DLL. -->
   <ItemGroup><Compile Remove="SandboxOriginPanel.cs" /></ItemGroup>
   <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
     <PackageReference Include="Bannerlord.ReferenceAssemblies" Version="1.5.7.125802" PrivateAssets="all" />
@@ -24,6 +24,7 @@
     <Reference Include="TaleWorlds.MountAndBlade"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.MountAndBlade.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Core"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Core.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Library"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Library.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="TaleWorlds.InputSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.ScreenSystem"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.ScreenSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.Engine.GauntletUI"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.Engine.GauntletUI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="TaleWorlds.GauntletUI"><HintPath>$(BannerlordGameDir)\bin\Win64_Shipping_Client\TaleWorlds.GauntletUI.dll</HintPath><Private>false</Private></Reference>

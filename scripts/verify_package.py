@@ -28,6 +28,9 @@ def verify(filename, version):
         # Back navigation. It is intentionally excluded from shipped builds.
         origin_prefab = prefix + "GUI/Prefabs/CUOriginPanel.xml"
         assert origin_prefab not in names, "Broken standalone origin UI must not ship"
+        new_creator = prefix + "GUI/Prefabs/CUSandboxCreator.xml"
+        assert new_creator in names, "New Sandbox creator movie missing"
+        assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
         assert all(not n.lower().endswith((".pdb", ".exe", ".cs", "not_compiled.txt")) for n in names), "Developer file"
         assert all(n in names for n in (base, manifest, ini, exporter)), "Required module file absent"
         assert [n for n in names if n.lower().endswith(".dll")] == [base], "Unexpected DLL count"

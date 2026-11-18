@@ -49,6 +49,9 @@ namespace CalradiaUnified
             observedNativeCreator = manager;
             try
             {
+                // Opens the custom front-end after the Sandbox character
+                // creation state is active. It is not a duplicate launcher item.
+                SandboxCreatorOverlay.Arm(manager);
                 manager.RegisterCharacterCreationContentHandler(
                     new NativeSandboxStageObserver(), 1600);
                 DiagnosticJournal.Event("cu_native_sandbox_creator",
@@ -73,8 +76,9 @@ namespace CalradiaUnified
                 if (manager == null) return;
                 try
                 {
-                    NativeStartingLifeMenus.TryAttach(manager,
-                        SandboxOriginProfile.Load(SandboxOriginProfile.UserPath));
+                    // The discontinued age-menu relinker is never used with
+                    // the independent custom front-end. The native graph
+                    // remains intact as the escape/recovery fallback.
                     DiagnosticJournal.Event("cu_native_sandbox_stage",
                         "total=" + manager.GetTotalStagesCount() +
                         "|narrative_menus=" + manager.NarrativeMenus.Count);
