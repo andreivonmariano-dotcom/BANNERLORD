@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent"
+            DoNotPassEventsToChildren="false">
+      <Children>
+        <!-- Overlay has no buttons, keyboard focus or input restrictions.
+             The engine-owned review view continues to render and rotate
+             the actual character in its native 3D SceneLayer. -->
+        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE9"
+                WidthSizePolicy="Fixed" SuggestedWidth="391"
+                HeightSizePolicy="Fixed" SuggestedHeight="244"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="25" PositionYOffset="146"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C79B5EFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="391"
+                HeightSizePolicy="Fixed" SuggestedHeight="3"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="25" PositionYOffset="146"/>
+        <TextWidget Text="@Title" Color="#FFE2ABFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="29"
+                    PositionXOffset="42" PositionYOffset="158"/>
+        <TextWidget Text="@Role" Color="#FFF0D8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="28"
+                    PositionXOffset="42" PositionYOffset="194"/>
+        <TextWidget Text="@NativeCulture" Color="#DDE4EDFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="28"
+                    PositionXOffset="42" PositionYOffset="225"/>
+        <TextWidget Text="@Spouse" Color="#FFF0D8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="30"
+                    PositionXOffset="42" PositionYOffset="258"/>
+        <TextWidget Text="@Children" Color="#DDE4EDFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="27"
+                    PositionXOffset="42" PositionYOffset="290"/>
+        <TextWidget Text="@World" Color="#FFE2ABFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="27"
+                    PositionXOffset="42" PositionYOffset="320"/>
+        <TextWidget Text="@Notice" Color="#BCCBDBFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="360"
+                    HeightSizePolicy="Fixed" SuggestedHeight="39"
+                    PositionXOffset="42" PositionYOffset="348"/>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>
