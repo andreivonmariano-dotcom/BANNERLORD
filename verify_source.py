@@ -81,7 +81,11 @@ assert (src/'SandboxFiefPolicy.cs').exists()
 assert (src/'SandboxStartingFief.cs').exists()
 assert not (src/'CUFaceGeneratorStageView.cs').exists()
 assert not (P/'Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml').exists()
-assert 'CharacterCreationStageView(' not in ''.join(p.read_text() for p in src.glob('*.cs'))
+# Only one opt-in CU stage of a UNIQUE type; no native FaceGen/Culture/View collision.
+stage=(src/'CUNativeOriginReviewStage.cs').read_text()
+assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
+assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob('*.cs'))==1
+assert 'CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in stage
 assert 'candidate.NativeStageEnabled=false;' in (src/'SandboxCreatorOverlay.cs').read_text()
 assert 'sandbox_start_contract' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'sandbox_appearance_engine_probe' in (src/'SandboxOriginBehavior.cs').read_text()
