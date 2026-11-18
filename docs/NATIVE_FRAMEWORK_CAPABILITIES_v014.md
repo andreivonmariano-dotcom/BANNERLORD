@@ -1,6 +1,6 @@
 # Native framework capabilities and settings UI for v0.14
 
-**Target:** Bannerlord PC v1.5.7. **Candidate status:** Gate B COMPILED_UNTESTED after the exact v0.14 Windows workflow succeeds. Game runtime and save/reload unverified.
+**Target:** Bannerlord PC v1.5.7. **Candidate status:** Gate B COMPILED_UNTESTED, verified by [Windows workflow 44249156647](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647) at commit `3606ba5faa2c69ba7065624d40002d787f74e970`. It passed 217 policy checks, 40 deterministic modeled campaigns, 78-module coverage, v1.5.7 reference compilation, and runtime ZIP checks with 0 compiler errors/warnings. Game runtime and save/reload unverified.
 
 ## Why no framework DLLs
 

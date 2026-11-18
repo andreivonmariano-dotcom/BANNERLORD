@@ -46,3 +46,14 @@ The collector only reads the game manifest, DLL identity and the last 250 local 
 ## v0.12.0 diagnostic gate
 
 After a campaign session, confirm that `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\finance.csv` contains castle and clan-summary rows from different day indices. Export from the in-game menu, then run the module's PowerShell helper to collect existing engine and crash logs. Attach the sanitized ZIP to [diagnostics issue #33](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/33), not the raw memory dump. A managed exception record is not a native crash report. Native game save/load and crash tests remain NOT RUN.
+
+## v0.14 native settings menu smoke test (still unexecuted)
+
+1. Keep all experimental settings false. Enter one town and one castle and open **CU: Configure Calradia Unified** from each.
+2. Visit Reports and Warnings, Economy and Recruitment, and Castle Management. Go back to the current settlement without leaving it unexpectedly.
+3. Disable and re-enable Supply warnings. The opposite option should replace the prior option. Set the low supply threshold to four days.
+4. Verify `%LOCALAPPDATA%\CalradiaUnified\calradia-user-config.ini` contains the changed keys and original comments/unknown settings remain intact.
+5. Exit and relaunch the same campaign. Confirm the values reload and old campaign save-state keys are undisturbed.
+6. Make the override file read-only and attempt another setting change. The menu should warn and leave the live setting unchanged. Restore permissions.
+7. Repeat menu entry after settlement ownership changes, a siege, a save/reload cycle and a new campaign. Check exported diagnostic events for exceptions.
+8. Enable each gameplay-changing control only in a disposable test campaign after proving the vanilla-only baseline. Report exact module version, game version, observed behavior and logs.

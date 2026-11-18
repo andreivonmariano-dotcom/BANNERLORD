@@ -1,6 +1,6 @@
 # Calradia Unified v0.14.0: native in-game settings, no third-party frameworks
 
-**Target:** Bannerlord PC v1.5.7. **Status:** v0.14.0 Gate B Windows build complete. Native in-game startup and save/load remain untested. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
+**Target:** Bannerlord PC v1.5.7. **Status:** v0.14.0 Gate B [Windows build 44249156647](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647) passed on commit `3606ba5faa2c69ba7065624d40002d787f74e970`. The run passed 217 independent policy checks, 14,600 modeled campaign days, a version-pinned game DLL build with 0 warnings and 0 errors, and ZIP CRC/identity checks. Native in-game startup and save/load remain untested. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
 
 ## New in v0.14
 
@@ -26,4 +26,6 @@ No Harmony, ButterLib, UIExtenderEx or MCM DLL, package or separate module is ne
 - [Full 78-mod priority register](Data/Reconstruction_Priority_78.csv)
 - [M0 real-game test procedure](docs/M0_TEST_PROCEDURE.md)
 
-**Release status:** COMPILED_UNTESTED only after a successful exact v0.14 workflow. Do not claim a real game launch, save/reload or MCM compatibility from reference-assembly compilation.
+**Verified artifact:** [v0.14.0 compiled, untested ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647/artifacts/14403381305). Compiled DLL SHA-256: `4668981a4b7d582ae0bfac3fd2bacfdfb10c91ab707d6bf44a93dd0a883683f3`; inner ZIP SHA-256: `e75c082c2112902cd921bdd04a459b25ec7d69f779fa8eb357c9dac41449fb2a`.
+
+**Release status:** COMPILED_UNTESTED after a successful exact v0.14 workflow. Do not claim a real game launch, save/reload or MCM compatibility from reference-assembly compilation.
