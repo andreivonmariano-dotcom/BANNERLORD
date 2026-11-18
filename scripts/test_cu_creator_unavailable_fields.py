@@ -53,7 +53,8 @@ assert not re.search(r'key\.StartsWith\("Sibling\.",StringComparison\.Ordinal\)\
 for reset in ('PlayerAge=-1;', 'StartingTown="";', 'EquipmentKit="Vanilla";',
               'SiblingCount=0;','NativeFaceWorkshopEnabled=false;'):
     assert reset in profile,reset
-assert '"PlayerAge" ||' not in overlay, "do not display a native-default button on disabled player age"
+native_default_section=overlay.split("public void ExecuteUseNative()",1)[1].split("public void ExecuteEditText()",1)[0]
+assert '"PlayerAge"' not in native_default_section, "do not offer native-default button on disabled age"
 
 # One five-tab CU flow, existing safe exit and real single native handoff
 # stay intact. No fake pre-campaign player Agent or character creator override.
