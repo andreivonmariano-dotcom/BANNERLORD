@@ -16,6 +16,22 @@ for action in ("ExecuteIdentity","ExecuteAppearance","ExecuteHousehold","Execute
                "ExecuteEquipment","ExecuteResources","ExecuteLocation","ExecuteReview"):
     assert action in all_buttons,action
 assert len(all_buttons)>=20
+xmlRoot=ET.parse(native).getroot()
+for action, page in (("ExecuteIdentity","Identity"),
+                     ("ExecuteAppearance","Appearance"),
+                     ("ExecuteHousehold","Household"),
+                     ("ExecuteProgression","Progression"),
+                     ("ExecuteEquipment","Equipment"),
+                     ("ExecuteResources","Resources"),
+                     ("ExecuteLocation","Location"),
+                     ("ExecuteReview","Review")):
+    controls=[w for w in xmlRoot.iter("ButtonWidget")
+              if w.get("Command.Click")==action]
+    assert len(controls)==1,action
+    assert controls[0].get("IsSelected")=="@Is"+page+"Selected",action
+    assert "Is"+page+"Selected" in overlay
+assert any(w.get("Text")=="@PageProgress" for w in xmlRoot.iter("TextWidget"))
+
 assert "NativeStageEnabled" in overlay and "candidate.NativeStageEnabled=false;" not in overlay
 assert "StartingFiefMode" in overlay and "StartingFiefId" in overlay
 assert "AllowStartingFiefTransfer" in overlay
