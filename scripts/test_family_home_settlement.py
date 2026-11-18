@@ -48,6 +48,8 @@ assert 'target.HeroesWithoutParty.Contains(child)' in home
 assert 'SandboxFamilyHomePolicy.CanPlaceMinor(' in home
 assert "child.PartyBelongedTo == null" in home
 assert "child.IsChild" in home
+assert "!spouse.IsAlive || !spouse.IsActive || spouse.IsDisabled" in home
+assert "!child.IsAlive || child.IsDisabled" in home
 assert "AddHeroToPartyAction" not in home
 assert "if (child.IsNotSpawned)" in home
 assert "child.ChangeState(Hero.CharacterStates.Active)" in home
