@@ -35,3 +35,9 @@ The supply warning threshold supports 0–15 days. The local recruitment daily c
 3. Toggle a report option in-game, confirm it changes activity without relaunch, save and restart, and verify the user override wins.
 4. Confirm missing, malformed and read-only profile file behavior. The mod must remain loadable and report write errors without activating a failed option.
 5. Exercise experimental controls only in a fresh test campaign. Save/reload, siege, ownership and mission exit remain unverified.
+
+## v0.15 experimental direct Gauntlet panel
+
+The optional **EXPERIMENTAL: Open native tabbed slider panel** action uses the game's own `ScreenBase`, `GauntletLayer`, `ViewModel` and `SliderWidget`. It has three section tabs, setting navigation, toggle actions and a numeric drag slider with an explicit **Save value** action. The slider does not write user settings during dragging. Changes are persisted only on Save. Source and XML packaging can pass CI without proving layout, keyboard/controller focus, widget binding or mouse input in Bannerlord v1.5.7.
+
+The original native category menus remain the fallback. The new panel must not be promoted out of EXPERIMENTAL until it renders, closes and persists correctly in the exact target game.

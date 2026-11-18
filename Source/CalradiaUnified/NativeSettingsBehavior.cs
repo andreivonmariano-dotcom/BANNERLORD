@@ -2,6 +2,7 @@ using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.Library;
+using TaleWorlds.ScreenSystem;
 
 namespace CalradiaUnified
 {
@@ -90,6 +91,9 @@ namespace CalradiaUnified
                     args => GameMenu.SwitchToMenu("cu_settings_main"), false);
             }
 
+            starter.AddGameMenuOption("cu_settings_main", "cu_settings_advanced_panel",
+                "EXPERIMENTAL: Open native tabbed slider panel",
+                args => true, args => OpenExperimentalPanel(), false);
             starter.AddGameMenuOption("cu_settings_main", "cu_settings_profile",
                 "Show profile settings location", args => true,
                 args => Notify(Settings.UserOverridePath), false);
@@ -166,6 +170,20 @@ namespace CalradiaUnified
                 option, direction, factor);
             Change(option.Key, value.ToString(
                 System.Globalization.CultureInfo.InvariantCulture), menu);
+        }
+
+        private void OpenExperimentalPanel()
+        {
+            try
+            {
+                ScreenManager.PushScreen(new NativeSettingsPanel(settings));
+                DiagnosticJournal.Event("gauntlet_settings_push", "screen_requested");
+            }
+            catch (Exception ex)
+            {
+                DiagnosticJournal.Exception("gauntlet_settings_failed", ex);
+                Notify("Tabbed panel could not open; use the native category menus.");
+            }
         }
 
         private void Change(string key, string value, string menu)
