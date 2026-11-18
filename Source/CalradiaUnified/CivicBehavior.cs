@@ -66,6 +66,7 @@ namespace CalradiaUnified
                     x => Safe(Aid), false);
                 RegisterPhysicalConvoyMenu(starter, menu);
                 RegisterGarrisonMenu(starter, menu);
+                RegisterFeudalMenu(starter, menu);
                 RegisterKingdomMenu(starter, menu);
                 RegisterDepotTradeMenu(starter, menu);
             }
@@ -243,6 +244,7 @@ namespace CalradiaUnified
                 }
                 TickPhysicalConvoys();
                 TickKingdomCouncil();
+                TickFeudalEstates();
                 advisorCount = 0;
             }
             catch (Exception e) { Log.Write("Civic daily tick error: " + e); }

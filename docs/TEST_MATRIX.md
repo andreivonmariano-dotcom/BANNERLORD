@@ -62,3 +62,13 @@ See [SIMULATOR.md](SIMULATOR.md).
 - **D-403:** Reject garrison training during a siege, in an unowned settlement, without an existing garrison, with insufficient gold or grain, at troop cap, or after daily training cap. Check that rejection changes no resource.
 - **E-203:** Save and reload with nonzero local and garrison daily counters, then attempt additional recruitment. Test older CU3 and CU4 saves separately for safe counter defaults.
 - **SIM-010:** Use the headless policy simulation to test new recruitment and training transaction limits across repeatable campaigns. Simulated save round-trips do not count as game save/load evidence.
+
+## v0.11 fiscal and garrison regression cases
+
+- **D-110:** In an owned castle with two healthy bound villages, inspect the CU budget briefing; record prosperity, hearths, **actual** lord-party and garrison wages, the proposed cap, and native clan-income breakdown. Do not report the forecast as real tax.
+- **D-111:** With `EnableAutoGarrisonWageCaps=true`, verify an unaffordable castle wage limit is *lowered* only when the result meets the defensive minimum. Confirm that a preexisting lower manual cap and an active siege are untouched. Record troop desertion and timing, if any.
+- **D-112:** Train an existing castle garrison automatically only under adequate gold, grain, budgeted troop costs, daily limits and no siege. Check the real roster and exact gold and grain debits.
+- **D-113:** With virtual harvest on, compare healthy and raided bound villages. Confirm added grain appears only in the CU depot and is limited by its capacity.
+- **D-114:** With abstract surplus sale on, verify gold gains equal grain sold at the configured price, no sale occurs below the reserve, and no physical caravan is claimed.
+- **E-110:** Save/reload with a fiscal cap, partially spent training quota, depot stock and sales. Check actual game side effects and don't claim M0 based on model round trips.
+- **SIM-110:** Seed the fiscal stress model with one castle, two villages, oversized garrison, oversized field party, and dual raids. Healthy affordable example must be positive, crisis cases must preserve negative-balance possibility.

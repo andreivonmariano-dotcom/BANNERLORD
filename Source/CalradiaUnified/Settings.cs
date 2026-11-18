@@ -61,6 +61,22 @@ namespace CalradiaUnified
         public bool EnableGarrisonTraining = false;
         public int GarrisonTrainingDailyCap = 4;
         public int GarrisonTrainingMaxTroops = 250;
+        // Fief budget is read-only by default. Auto changes remain experimental.
+        public bool EnableAutoGarrisonWageCaps = false;
+        public bool EnableAutoGarrisonTraining = false;
+        public bool EnableVillageHarvest = false;
+        public bool EnableSurplusEstateSales = false;
+        public int EstateTargetDailySurplus = 250;
+        public int EstateOtherCostsReserve = 150;
+        public int EstateMaxDailyGarrisonWage = 1800;
+        public int EstateMinimumDefensiveWage = 250;
+        public int EstateTargetGarrisonSize = 55;
+        public int EstateMinimumTrainingGold = 5000;
+        public int EstateHearthsPerGrain = 150;
+        public int EstateMaxHarvestPerDay = 10;
+        public int EstateGrainReserve = 30;
+        public int EstateMaxDailyGrainSale = 8;
+        public int EstateSalePricePerGrain = 18;
 
         public static Settings Load()
         {
@@ -122,6 +138,21 @@ namespace CalradiaUnified
                 else if (key == "EnableGarrisonTraining" && Boolean.TryParse(value, out b)) output.EnableGarrisonTraining = b;
                 else if (key == "GarrisonTrainingDailyCap" && Int32.TryParse(value, out n)) output.GarrisonTrainingDailyCap = Clamp(n, 2, 20);
                 else if (key == "GarrisonTrainingMaxTroops" && Int32.TryParse(value, out n)) output.GarrisonTrainingMaxTroops = Clamp(n, 20, 2000);
+                else if (key == "EnableAutoGarrisonWageCaps" && Boolean.TryParse(value, out b)) output.EnableAutoGarrisonWageCaps = b;
+                else if (key == "EnableAutoGarrisonTraining" && Boolean.TryParse(value, out b)) output.EnableAutoGarrisonTraining = b;
+                else if (key == "EnableVillageHarvest" && Boolean.TryParse(value, out b)) output.EnableVillageHarvest = b;
+                else if (key == "EnableSurplusEstateSales" && Boolean.TryParse(value, out b)) output.EnableSurplusEstateSales = b;
+                else if (key == "EstateTargetDailySurplus" && Int32.TryParse(value, out n)) output.EstateTargetDailySurplus = Clamp(n, 0, 5000);
+                else if (key == "EstateOtherCostsReserve" && Int32.TryParse(value, out n)) output.EstateOtherCostsReserve = Clamp(n, 0, 5000);
+                else if (key == "EstateMaxDailyGarrisonWage" && Int32.TryParse(value, out n)) output.EstateMaxDailyGarrisonWage = Clamp(n, 250, 10000);
+                else if (key == "EstateMinimumDefensiveWage" && Int32.TryParse(value, out n)) output.EstateMinimumDefensiveWage = Clamp(n, 0, 2000);
+                else if (key == "EstateTargetGarrisonSize" && Int32.TryParse(value, out n)) output.EstateTargetGarrisonSize = Clamp(n, 10, 300);
+                else if (key == "EstateMinimumTrainingGold" && Int32.TryParse(value, out n)) output.EstateMinimumTrainingGold = Clamp(n, 0, 500000);
+                else if (key == "EstateHearthsPerGrain" && Int32.TryParse(value, out n)) output.EstateHearthsPerGrain = Clamp(n, 50, 1000);
+                else if (key == "EstateMaxHarvestPerDay" && Int32.TryParse(value, out n)) output.EstateMaxHarvestPerDay = Clamp(n, 0, 100);
+                else if (key == "EstateGrainReserve" && Int32.TryParse(value, out n)) output.EstateGrainReserve = Clamp(n, 0, 1000);
+                else if (key == "EstateMaxDailyGrainSale" && Int32.TryParse(value, out n)) output.EstateMaxDailyGrainSale = Clamp(n, 0, 100);
+                else if (key == "EstateSalePricePerGrain" && Int32.TryParse(value, out n)) output.EstateSalePricePerGrain = Clamp(n, 1, 100);
                 else if (key == "GrainPerForage" && Int32.TryParse(value, out n)) output.GrainPerForage = Clamp(n, 1, 5);
             }
             return output;

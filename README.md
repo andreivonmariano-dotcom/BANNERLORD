@@ -1,47 +1,36 @@
-# Calradia Unified v0.10.0: depot and convoy accounting, M0 evidence, feature traceability
+# Calradia Unified v0.11.0: early-vassal budget, villages and garrison economics
 
-**Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Distribution target:** one `Modules/CalradiaUnified` folder, with no installer and no old third-party mod DLLs.
+**Target game:** Mount & Blade II: Bannerlord PC v1.5.7  
+**Release status:** source candidate pending the v0.11.0 GitHub Actions build. Neither actual game startup nor game save/load is verified.  
+**Package:** one `Modules/CalradiaUnified` folder and one compiled DLL, no installer or old third-party mod DLLs.
 
-## Actual project status
+## Early-vassal balance problem
 
-- [v0.8.0 successful hosted build](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335): the first version-pinned C# build compiled a real DLL and ran its configured tests. No in-game startup or save/load acceptance test was recorded.
-- **v0.9.0 compiled candidate:** [GitHub Actions run 44144214378](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44144214378) passed source validation, feature traceability checks, 143 independent C# policy checks, game-referenced compilation, and runtime ZIP packaging. The compiled DLL from that exact run has SHA-256 `dbd36730a810f62e2770fb882bae8deabeafa3518abf1ae09cd94de76b98d1ec`. Game startup and save/load remain untested.
-- Feature switches that mutate gameplay remain disabled by default. A successful new CI run confirms compilation and policy-test execution only.
+A castle and two villages should finance a **reasonable starting force** in a balanced starting scenario. An inherited 70-plus-mod load order gave the user daily deficits of **5,000 to 10,000 denars**. This is a reported experience, not a verified calculation on the current v1.5.7 configuration.
 
-**Simulator evidence:** [v0.9.1 GitHub Actions run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032) completed 40 seeded policy-world campaigns (14,600 modeled days, 154,714 checks), alongside 143 prior pure C# policy tests and a successful DLL compile (0 compiler errors, 0 warnings). [Download simulation JSON/report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44227235032/artifacts/14393492219). This is **model-only** verification and has no real game startup, pathfinding or save/load result.
+The new fiscal system uses the castle's prosperity and the hearths in its non-raided bound villages to forecast an indicative income. It compares the forecast against **actual clan lord-party wages and garrison wages** and recommends a wage cap that leaves a configured reserve. **The forecast is not Bannerlord's native tax calculation.** It deliberately avoids pretending that all oversized armies must produce positive income.
 
-**v0.10.0 build evidence:** [GitHub Actions run 44229623505](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505) successfully executed 156 independent C# policy tests, 40 simulator worlds across 14,600 modeled days (186,295 checks), and the pinned game-reference DLL compilation with zero warnings/errors. The [compiled ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505/artifacts/14394337024) and [simulator report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44229623505/artifacts/14394661345) are available as GitHub Actions artifacts. Both gameplay-changing features remain **COMPILED, not GAME_TESTED**.
+The model's illustrative reference case: castle prosperity **1,500**, two villages with **900 combined hearths**, forecast income **1,450/day**, clan field wage share **500**, other-cost allowance **150**, and garrison cap **550**. The resulting model balance is **+250/day**. An 8,500-denar garrison in that example would instead yield **−7,700/day** before any cap. These are example inputs, **not observed v1.5.7 revenue values**.
 
-## v0.10.0 recruitment and garrison changes
+## New v0.11.0 gameplay functions
 
-The next experimental gameplay candidate introduces two source-implemented mechanics:
+- **Fief fiscal briefing:** Every owned castle has an estimated tax/wage report in its menu. It reads the castle and its bound villages and prints actual game garrison and field-party wages alongside the *forecast*.
+- **Opt-in garrison wage budgeting:** `EnableAutoGarrisonWageCaps=false` by default. If enabled, it can **lower** an existing wage limit for a player-owned castle using the game's `SetGarrisonWagePaymentLimit` API. It skips sieges, preserves manually lower caps, and refuses a result below the configured minimum defensive wage. Lower limits can trigger unpaid-wage desertion, so test on a new campaign.
+- **Opt-in budgeted garrison training:** `EnableAutoGarrisonTraining=false`. Only an existing player-owned castle garrison is considered. Requires the previous `EnableGarrisonTraining` toggle, a safe settlement, adequate gold reserves, depot grain, a troop deficit, and a positive model budget after added wages. Creates at most two basic local soldiers per castle/day.
+- **Opt-in abstract village harvest:** `EnableVillageHarvest=false`. Healthy bound villages add bounded **virtual** grain to the castle depot according to hearths. It never takes goods from the vanilla village inventory. No harvest is granted for raided villages.
+- **Opt-in abstract estate wholesale:** `EnableSurplusEstateSales=false`. The estate sells only depot stock above a grain reserve and credits at most eight grain x 18 denars per day. Grain is subtracted from the saved depot ledger. No physical buyer or real caravan is spawned.
 
-- **Local recruitment daily cap:** A player-owned town or castle can hire up to two native-culture basic recruits per campaign day at 200 gold each, within the configured party size. An independent, saved per-settlement counter prevents menu spamming.
-- **Garrison defender training:** When enabled, an owned, unbesieged town or castle with an existing garrison can train two culture-specific basic defenders for **250 player gold and five grain from that settlement's depot**, subject to garrison size and daily limits. This adds actual soldiers to the existing `GarrisonParty.MemberRoster`; it is not an abstract troop count.
+These additions do not rewrite native castle/village tax income, vanilla garrison wage formulas, or the kingdom's AI army command system. The existing M1 guarded map convoys remain separate.
 
-Both mechanics are opt-in, and the garrison training toggle defaults to `false`. Local recruitment already used `EnableRecruitment=false`. Daily counters serialize with **CU5** state, which accepts older CU3 and CU4 council entries. Old campaign compatibility remains unverified until a real game save/load test is completed.
+## Build, test and traceability
 
-See [the implementation and test specification](docs/FEATURES_v010.md).
+The pinned [GitHub Actions workflow](.github/workflows/bannerlord-build.yml) runs independent C# policy tests and the headless simulator, compiles against v1.5.7 references and packages a `COMPILED_UNTESTED` module. See [Feudal budget design and scenarios](docs/FEUDAL_BUDGET_v011.md), [simulator](docs/SIMULATOR.md), [M0 startup procedure](docs/M0_TEST_PROCEDURE.md), [feature registry](Data/Feature_Registry.csv) and [78-mod tracker](Data/Migration_78.csv).
 
-## Campaign policy simulation
+**Test ladder:** simulation = modeled policy evidence. Compilation = Gate B. Real startup, settlement menus, wage-cap effects and game save/load remain Gates C–E and are not passed by CI.
 
-New in v0.9.1: [headless seeded campaign simulator](docs/SIMULATOR.md). It runs the production C# policy classes for depot capacity, convoy cargo, abstract shipments, resource conservation, troop costs, NPC decision safety and CU4 state round trips across thousands of modeled campaign days. GitHub Actions runs it before compiling the DLL and publishes a JSON report. The game-facing convoy now expires even if parked at an overfull destination.
+## Installation after successful build
 
-**Simulation checks are not Bannerlord runtime tests.** Actual party creation, movement, game startup, and game save/load still require a real game session.
-
-## Development workstreams
-
-1. **[M0: startup and save validation](docs/M0_TEST_PROCEDURE.md).** A read-only PowerShell collector can record module manifests, DLL hashes and logs from a Windows game installation. Only actual game observations can pass the runtime gates.
-2. **[M1: depot and real convoy hardening](docs/M1_IMPLEMENTATION_NOTES.md).** Real `MobileParty` convoys carry actual grain. Deposits and deliveries are bounded by depot capacity. Excess cargo stays in the party for a later unloading tick.
-3. **[Feature-level tracking](docs/FEATURE_STATUS_WORKFLOW.md).** `Data/Feature_Registry.csv` holds 15 current code features and 78 historical references with individual statuses. GitHub Actions validates its traceability and the source build.
-
-## Build
-
-See [`.github/workflows/bannerlord-build.yml`](.github/workflows/bannerlord-build.yml). The Windows workflow runs source checks, registry validation and .NET policy tests, restores version-pinned references, compiles a real DLL and packages only runtime files. The GitHub artifact is named `COMPILED_UNTESTED` until game startup, save/load and feature tests are actually observed.
-
-## Install candidate for supervised game testing
-
-Extract the compiled ZIP into the game installation root, preserving:
+Open the Actions run and download its `CalradiaUnified-v0.11.0-compiled-untested` artifact. Extract the inner module ZIP into the Bannerlord installation root, preserving:
 
 ```
 Modules/CalradiaUnified/SubModule.xml
@@ -49,13 +38,4 @@ Modules/CalradiaUnified/ModuleData/calradia-config.ini
 Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll
 ```
 
-Keep official game modules and Calradia Unified enabled. Back up prior saves and remove old Calradia Unified versions before testing. No installer is required. Follow the [M0 procedure](docs/M0_TEST_PROCEDURE.md) and record results in [issue #1](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/1).
-
-## Project records
-
-- [Full source instructions](PROJECT_INSTRUCTIONS.md) and [source policy](docs/SOURCE_OF_TRUTH.md)
-- [Roadmap](docs/ROADMAP.md) and [M1 tracking](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/2)
-- [78 original mod IDs](docs/78_MOD_COVERAGE.md) and [migration checklist](Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv)
-- [Test matrix](docs/TEST_MATRIX.md) and [release gate checklist](docs/RELEASE_CHECKLIST.md)
-
-**Scope:** The original 78 mods have not been fully reconstructed. `COMPILED` in the feature registry refers to source compiled in the historical v0.8.0 run, not to completed replacement parity or a passed game test.
+Back up the old module folder and saves. Start with all mutating fiscal switches disabled. Read the castle budget briefing, then activate one experimental feature at a time on a fresh campaign.

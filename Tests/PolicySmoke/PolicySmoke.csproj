@@ -17,5 +17,6 @@
     <Compile Include="../../Source/CalradiaUnified/DepotLedgerPolicy.cs" Link="DepotLedgerPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/LocalRecruitmentPolicy.cs" Link="LocalRecruitmentPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/GarrisonTrainingPolicy.cs" Link="GarrisonTrainingPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/FeudalBudgetPolicy.cs" Link="FeudalBudgetPolicy.cs" />
   </ItemGroup>
 </Project>

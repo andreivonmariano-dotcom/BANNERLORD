@@ -534,6 +534,8 @@ namespace CalradiaUnified.CampaignSimulator
                     var count = (int)summary.GetType().GetProperty("checks").GetValue(summary);
                     totalChecks += count;
                 }
+                var fiscal = FeudalStress.Run(seed, days, runs);
+                totalChecks += fiscal.Checks;
                 var report = new
                 {
                     status = "PASS", model = "Calradia Unified policy-level campaign simulator",
@@ -543,7 +545,7 @@ namespace CalradiaUnified.CampaignSimulator
                     seed, runs, daysPerRun = days,
                     simulatedDays = (long)runs * days,
                     deterministicExamples = examples,
-                    totalChecks, simulatedWorlds = results
+                    totalChecks, feudalStress = fiscal, simulatedWorlds = results
                 };
                 var payload = JsonSerializer.Serialize(report,
                     new JsonSerializerOptions { WriteIndented = true });

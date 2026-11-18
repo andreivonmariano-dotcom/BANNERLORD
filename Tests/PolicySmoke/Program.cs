@@ -243,6 +243,54 @@ internal static class Program
         Check("new daily counters survive CU5 reload",
             reloadedCounters.CouncilFor("town_a").LocalToday == 1 &&
             reloadedCounters.CouncilFor("town_a").GarrisonToday == 2);
+        Check("estate forecast castle + two healthy villages",
+            FeudalBudgetPolicy.EstimateEstateIncome(1500, 900) == 1450);
+        Check("estate forecast ignores negative unknown input",
+            FeudalBudgetPolicy.EstimateEstateIncome(-10, 900) == 0);
+        Check("wage cap leaves positive target",
+            FeudalBudgetPolicy.WageBudget(1450, 500, 150, 250, 1800) == 550);
+        Check("wage cap refuses unaffordable field party",
+            FeudalBudgetPolicy.WageBudget(1450, 7000, 150, 250, 1800) == 0);
+        Check("healthy castle projected net after cap",
+            FeudalBudgetPolicy.ProjectedBalance(1450, 500, 550, 150, 0) == 250);
+        Check("overstaffed castle baseline loses 10k possible",
+            FeudalBudgetPolicy.ProjectedBalance(1450, 500, 10000, 150, 0) < -5000);
+        Check("garrison cap may reduce unlimited prior expense",
+            FeudalBudgetPolicy.MayLowerWageCap(true, true, true, false, 8000, 550, 250));
+        Check("never lower garrison wages during siege",
+            !FeudalBudgetPolicy.MayLowerWageCap(true, true, true, true, 8000, 550, 250));
+        Check("do not raise an existing manual cap",
+            !FeudalBudgetPolicy.MayLowerWageCap(true, true, true, false, 300, 550, 250));
+        Check("zero current cap untouched",
+            !FeudalBudgetPolicy.MayLowerWageCap(true, true, true, false, 0, 550, 250));
+        Check("reject a garrison cap below defensive threshold",
+            !FeudalBudgetPolicy.MayLowerWageCap(true, true, true, false, 8000, 200, 250));
+        Check("harvest respects depot free space",
+            FeudalBudgetPolicy.VillageHarvest(900, 5, 150, 10) == 5);
+        Check("raided villages produce no extra grain",
+            FeudalBudgetPolicy.VillageHarvest(0, 100, 150, 10) == 0);
+        Check("harvest stops when depot full",
+            FeudalBudgetPolicy.VillageHarvest(900, 0, 150, 10) == 0);
+        Check("surplus sale respects reserve and daily cap",
+            FeudalBudgetPolicy.SurplusSale(65, 30, 8) == 8);
+        Check("surplus sale never drains protected grain",
+            FeudalBudgetPolicy.SurplusSale(30, 30, 8) == 0);
+        Check("automated garrison training only with fiscal room",
+            FeudalBudgetPolicy.AffordableTraining(true, true, false,
+                1450, 500, 450, 550, 150, 250, 50,
+                10000, 5000, 40, 55));
+        Check("automated garrison stops when wages reach cap",
+            !FeudalBudgetPolicy.AffordableTraining(true, true, false,
+                1450, 500, 525, 550, 150, 250, 50,
+                10000, 5000, 40, 55));
+        Check("automated garrison stops during siege",
+            !FeudalBudgetPolicy.AffordableTraining(true, true, true,
+                1450, 500, 450, 550, 150, 250, 50,
+                10000, 5000, 40, 55));
+        Check("automated garrison obeys player gold reserve",
+            !FeudalBudgetPolicy.AffordableTraining(true, true, false,
+                1450, 500, 450, 550, 150, 250, 50,
+                3000, 5000, 40, 55));
         Console.WriteLine("PASS: " + passed + " gameplay policy checks");
     }
 }

@@ -37,3 +37,7 @@ These are three independently testable features. The historical mods remain unma
 - `CU-M4-001`: Gold-and-grain-funded defenders added to an existing garrison.
 
 These features are new source work with independent C# policy tests and simulation scenarios. They must pass a pinned build and actual supervised game tests before their runtime status can be advanced beyond compilation.
+
+## v0.11.0 fiscal work
+
+New source feature IDs: `CU-M1-006` fiscal estimate, `CU-M1-007` virtual village harvest, `CU-M1-008` surplus wholesale sale, and `CU-M4-002` budgeted garrison wage caps and automatic training. These are not full replacements for their historical mod inspirations. A policy simulator result counts only as modeled acceptance, not real native tax or garrison wage behavior.
