@@ -37,7 +37,7 @@ function Copy-Text([string]$source, [string]$relative) {
 try {
   $local = Join-Path $env:LOCALAPPDATA 'CalradiaUnified'
   $diag = Join-Path $local 'Diagnostics'
-  foreach ($n in @('finance.csv','finance.csv.previous','events.csv','exceptions.csv','exceptions.csv.previous')) {
+  foreach ($n in @('finance.csv','finance.csv.previous','events.csv','events.csv.previous','exceptions.csv','exceptions.csv.previous')) {
     Copy-Text (Join-Path $diag $n) ("mod/" + $n)
   }
   Copy-Text (Join-Path $local 'calradia-unified.log') 'mod/calradia-unified.log'

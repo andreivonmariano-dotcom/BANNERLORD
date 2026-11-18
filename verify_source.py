@@ -74,6 +74,10 @@ assert 'DiagnosticJournal.Exception' in (src/'KingdomAutonomyBehavior.cs').read_
 assert 'EnableDiagnostics=true' in conf
 assert (P/'scripts/Export-CU-Diagnostics.ps1').exists()
 assert (P/'scripts/analyze_diagnostics.py').exists()
+assert (P/'scripts/validate_runtime_evidence.py').exists()
+assert (P/'scripts/Run-CU-Runtime-Preflight.ps1').exists()
+assert (P/'docs/V015_RUNTIME_ACCEPTANCE.md').exists()
+assert 'events.csv.previous' in (P/'scripts/Export-CU-Diagnostics.ps1').read_text()
 assert 'FeudalBudgetPolicy.cs' in (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').read_text()
 assert (P/'Tests/CampaignSimulator/FeudalStress.cs').exists()
 assert 'RegisterFeudalMenu(starter, menu)' in (src/'CivicBehavior.cs').read_text()

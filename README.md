@@ -29,3 +29,11 @@ No Harmony, ButterLib, UIExtenderEx or MCM DLL, package or separate module is ne
 **Verified artifact:** [v0.15.0 compiled, untested ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647/artifacts/14403381305). Compiled DLL SHA-256: `4668981a4b7d582ae0bfac3fd2bacfdfb10c91ab707d6bf44a93dd0a883683f3`; inner ZIP SHA-256: `e75c082c2112902cd921bdd04a459b25ec7d69f779fa8eb357c9dac41449fb2a`.
 
 **Release status:** COMPILED_UNTESTED after a successful exact v0.14 workflow. Do not claim a real game launch, save/reload or MCM compatibility from reference-assembly compilation.
+
+## v0.15 runtime acceptance
+
+- [Full 64-setting catalog and Gauntlet panel test matrix](docs/V015_RUNTIME_ACCEPTANCE.md)
+- [Windows read-only preflight](scripts/Run-CU-Runtime-Preflight.ps1)
+- [Runtime session and menu event validator](scripts/validate_runtime_evidence.py)
+
+The code/packaging runner does not execute Bannerlord. Run tests against the actual installed game to establish Gate C, D and E. Runtime evidence cannot be inferred from simulated campaigns.
