@@ -36,7 +36,7 @@ for child,parent in (("Family","First"),("FamilyConfirm","Family"),
     assert re.search(r"NewPage\(nativeAge,\s*"+child+
                      r",\s*"+parent+r",",page),child
 assert 'new NativeSandboxStageObserver()' in origin
-assert 'NativeStartingLifeMenus.TryAttach(manager,' in origin
+assert 'NativeStartingLifeMenus.TryAttach(manager,' not in origin
 assert 'OnCharacterCreationInitializedEvent' in origin
 assert 'OnBeforeInitialModuleScreenSetAsRoot' not in module
 assert '"CU_Sandbox_Origin"' not in module

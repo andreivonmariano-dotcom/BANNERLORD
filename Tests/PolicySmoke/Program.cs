@@ -399,8 +399,19 @@ internal static class Program
         nativeFamilyPreset.TrySet("SiblingCount", "2");
         Check("native sibling-only preset validates without text edits",
             nativeFamilyPreset.IsValid(20, out var siblingProblem));
+        Check("the visual creator defaults on, with an explicit native fallback",
+            new SandboxOriginProfile().OverhauledCreatorEnabled &&
+            new SandboxOriginProfile().TrySet("OverhauledCreatorEnabled","false") &&
+            !SandboxOriginProfile.Parse("OverhauledCreatorEnabled=false").OverhauledCreatorEnabled);
+        Check("culture preferences are bounded profile data only",
+            origin.TrySet("StartingCulture","empire") &&
+            !origin.TrySet("StartingCulture","bad culture id"));
+        Check("Admiral is a selectable profile but requires separate naval integration",
+            Array.IndexOf(SandboxOriginProfile.Roles,"Admiral")>=0 &&
+            SandboxRolePolicy.BonusRecruits("Admiral")==0 &&
+            !SandboxRolePolicy.MatchesNativeStatus("Admiral",true,true));
         Check("new sandbox origin disabled by default", !origin.Enabled);
-        Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
+        Check("sandbox roles six source choices", SandboxOriginProfile.Roles.Length == 6 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "King") >= 0);
         Check("three risky v0.17 features remain default-off",
