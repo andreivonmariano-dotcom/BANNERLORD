@@ -12,7 +12,11 @@ menu=(ROOT/"Source/CalradiaUnified/SandboxMainMenuEntry.cs").read_text()
 entry=(ROOT/"Source/CalradiaUnified/SubModule.cs").read_text()
 root=ET.parse(p).getroot()
 assert root.tag=="Prefab"
-assert any(n.tag=="ImageWidget" and n.get("Brush")=="Frame9" for n in root.iter())
+assert any(n.tag=="Widget" and n.get("Sprite")=="BlankWhiteSquare_9"
+           and n.get("Color","").startswith("#")
+           for n in root.iter())
+assert any(n.tag=="TextWidget" and n.get("Text")=="@FamilySummary"
+           for n in root.iter())
 clicks=[]
 binding=set()
 sliders=0
