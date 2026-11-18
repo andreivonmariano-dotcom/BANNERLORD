@@ -145,6 +145,15 @@ jobs:
         run: |
           dotnet restore Source/CalradiaUnified/CalradiaUnified.csproj -p:UsePublicReferences=true 2>&1 | Tee-Object -FilePath BuildResults/game-restore.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Inspect exact v1.5.7 native character creator API
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path scripts/Inspect-CU-Creator-API.ps1).Path,[ref]$tokens,[ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) { throw ("Native creator audit syntax: " + ($parseErrors -join ', ')) }
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Creator-API.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Compile game module against reference assemblies
         shell: pwsh
         run: |
@@ -257,3 +266,11 @@ jobs:
           name: CalradiaUnified-v0.29.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore
+
+      - name: Upload native creator API metadata
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CalradiaUnified-v0.30-native-creator-api-audit
+          path: BuildResults/character-creation-api-v157.txt
+          if-no-files-found: warn
