@@ -47,7 +47,7 @@ $Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.29.0-compiled-un
 
 The `scripts/Test-CU-Playthrough.ps1` script now accepts `-RequireNativeReview` for the **explicit opt-in new game only** and `-ExpectedPortraits 3` after **CU: View my household portraits** has been opened for a player, spouse and one daughter in the **same logged new-game session**. These switches detect missing actual view loading and wrong real-family row counts, respectively.
 
-**Safety:** Native FaceGen/Culture/Review/Options views stay untouched. The additional CU 3D review is a distinct opt-in stage, **OFF by default**. It is not a single continuous CU/native creator. See [v0.29 real-game acceptance protocol](V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md).
+**Safety:** Native FaceGen/Culture/Review/Options views stay untouched. The additional CU 3D review is a distinct opt-in stage which wraps the native review without inheriting its registration attribute, **OFF by default**. It is not a single continuous CU/native creator. See [v0.29 real-game acceptance protocol](V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md).
 
 ## Historical verified example: v0.28.0, 18 November 2026
 
