@@ -64,6 +64,11 @@ namespace CalradiaUnified
         public int Troops;
         public int PlayerAge = -1;
         public string StartingTown = "";
+        // A named fief or selected class of fortification may be granted
+        // after the native King/Vassal Advanced Start has completed.
+        public string StartingFiefMode = "Native";
+        public string StartingFiefId = "";
+        public bool AllowStartingFiefTransfer;
         public bool RelocateAtStart;
         public string EquipmentKit = "Vanilla";
         public bool SpouseEnabled;
@@ -234,6 +239,15 @@ namespace CalradiaUnified
                 case "StartingTown":
                     if (!Identifier(value, 80)) return false;
                     StartingTown = value; return true;
+                case "StartingFiefMode":
+                    if (!Allowed(value, SandboxFiefPolicy.Modes)) return false;
+                    StartingFiefMode = value; return true;
+                case "StartingFiefId":
+                    if (!Identifier(value, 80)) return false;
+                    StartingFiefId = value; return true;
+                case "AllowStartingFiefTransfer":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    AllowStartingFiefTransfer = b; return true;
                 case "RelocateAtStart":
                     if (!Boolean.TryParse(value, out b)) return false;
                     RelocateAtStart = b; return true;
@@ -342,6 +356,14 @@ namespace CalradiaUnified
                 error = "Player must be an adult.";
                 return false;
             }
+            string fiefError = SandboxFiefPolicy.ValidateRequest(Role,
+                StartingFiefMode, StartingFiefId,
+                AllowStartingFiefTransfer);
+            if (fiefError.Length != 0)
+            {
+                error = "Starting fief request: " + fiefError;
+                return false;
+            }
             if (SpouseEnabled && !PersonName(SpouseName))
             {
                 error = "Spouse needs a valid name.";
@@ -376,6 +398,8 @@ namespace CalradiaUnified
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
+                ", fief=" + (StartingFiefMode == "Native" ? "native" :
+                    StartingFiefMode + ":" + StartingFiefId) +
                 ", town=" + (StartingTown.Length == 0 ? "native" : StartingTown) +
                 ", stat overrides=" + Overrides.Count +
                 ". Profile applies to a NEW Sandbox campaign only.";
@@ -414,6 +438,10 @@ namespace CalradiaUnified
                 "Troops=" + Troops,
                 "PlayerAge=" + PlayerAge,
                 "StartingTown=" + StartingTown,
+                "StartingFiefMode=" + StartingFiefMode,
+                "StartingFiefId=" + StartingFiefId,
+                "AllowStartingFiefTransfer=" +
+                    AllowStartingFiefTransfer.ToString().ToLowerInvariant(),
                 "RelocateAtStart=" + RelocateAtStart.ToString().ToLowerInvariant(),
                 "EquipmentKit=" + EquipmentKit,
                 "SpouseEnabled=" + SpouseEnabled.ToString().ToLowerInvariant(),
