@@ -122,6 +122,8 @@ namespace CalradiaUnified
 
                 bool spouseAtHome = spouse.StayingInSettlement == target &&
                     spouse.CurrentSettlement == target;
+                if (spouseAtHome)
+                    spouse.UpdateLastKnownClosestSettlement(target);
 
                 foreach (Hero child in player.Children)
                 {
@@ -180,7 +182,11 @@ namespace CalradiaUnified
                         placed = child.StayingInSettlement == target &&
                             child.CurrentSettlement == target;
                     }
-                    if (placed) childrenPlaced++;
+                    if (placed)
+                    {
+                        childrenPlaced++;
+                        child.UpdateLastKnownClosestSettlement(target);
+                    }
                     else childrenSkipped++;
                     DiagnosticJournal.Event("cu_family_child_home",
                         "child=" + child.StringId +
