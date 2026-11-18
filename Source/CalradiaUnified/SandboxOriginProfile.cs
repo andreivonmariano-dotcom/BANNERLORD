@@ -257,11 +257,6 @@ namespace CalradiaUnified
                 error = "Player must be an adult.";
                 return false;
             }
-            if (ChildCount > 0 && !SpouseEnabled)
-            {
-                error = "Starting children require a starting spouse.";
-                return false;
-            }
             if (SpouseEnabled && !PersonName(SpouseName))
             {
                 error = "Spouse needs a valid name.";
@@ -272,7 +267,7 @@ namespace CalradiaUnified
                 var child = Children[i];
                 if (!PersonName(child.Name) || child.Age < 0 ||
                     child.Age > playerAge - 16 ||
-                    child.Age > SpouseAge - 16)
+                    (SpouseEnabled && child.Age > SpouseAge - 16))
                 {
                     error = "Child ages must fit both parents' ages and valid names.";
                     return false;

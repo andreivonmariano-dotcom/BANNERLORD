@@ -40,7 +40,7 @@ User file: `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
 | ChildCount | 0..6 | Stored only, each Child.N.Name/Age/Gender/Culture/FaceSeed/EquipmentKit editable |
 | SiblingCount | 0..4 | Stored only, matching Sibling.N.* fields |
 
-For every child, selected child age must be at least 16 years less than both parent ages. The editor refuses children without a spouse, invalid ages, disallowed names, and unsafe text. Each configured relative remains a **template** until the native Hero and family lifecycle implementation receives save/load and age-validation tests.
+Each child must be at least 16 years younger than the player. If a starting spouse is configured, the child must also be at least 16 years younger than that spouse. Single-parent, widowed, and unmarried-with-children profiles are permitted. The editor refuses invalid ages, disallowed names, and unsafe text. Each configured relative remains a **template** until the native Hero and family lifecycle implementation receives save/load and age-validation tests.
 
 ## Why the feature is staged
 

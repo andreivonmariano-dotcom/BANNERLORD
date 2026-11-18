@@ -126,8 +126,7 @@ namespace CalradiaUnified
                 "Begin with spouse template", args => !Editing.SpouseEnabled,
                 args => Update("SpouseEnabled", "true"), false);
             starter.AddGameMenuOption("cu_origin_family", "cu_spouse_disable",
-                "Begin alone", args => Editing.SpouseEnabled &&
-                    Editing.ChildCount == 0,
+                "Begin without spouse", args => Editing.SpouseEnabled,
                 args => Update("SpouseEnabled", "false"), false);
             for (int count = 0; count <= 6; count++)
             {
@@ -135,7 +134,7 @@ namespace CalradiaUnified
                 int value = count;
                 starter.AddGameMenuOption("cu_origin_family", "cu_children_" + n,
                     "Choose " + n + " child templates",
-                    args => Editing.SpouseEnabled && Editing.ChildCount != value,
+                    args => Editing.ChildCount != value,
                     args => Update("ChildCount", n), false);
             }
             AddText(starter, "cu_origin_family", "spouse_name",

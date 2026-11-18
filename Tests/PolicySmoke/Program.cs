@@ -362,9 +362,9 @@ internal static class Program
             origin.TrySet("Child.1.Age", "30") &&
             !origin.IsValid(34, out var childAgeError));
         origin.TrySet("Child.1.Age", "8");
-        Check("sandbox rejects child without spouse",
+        Check("sandbox supports single parent with existing children",
             origin.TrySet("SpouseEnabled", "false") &&
-            !origin.IsValid(34, out var noSpouseError));
+            origin.IsValid(34, out var noSpouseError));
         origin.TrySet("SpouseEnabled", "true");
         Check("sandbox reject bad hero name",
             !origin.TrySet("SpouseName", "Bad\nName"));

@@ -26,3 +26,5 @@ The built-in native menu currently edits common choices. Names, ages and appeara
 ## Pre-game creator entry point (experimental)
 
 An **experimental** `CU: Design Next Sandbox Character` button is registered on the game's initial main menu. It opens the module's native Gauntlet creator. Edit role, spouse templates, six children, siblings, attributes, skills and focus, traits, equipment IDs and starting place **before** launching a new Sandbox. The creator saves the same separate origin profile, not the active game. The in-campaign origin editor remains a fallback. The panel has passed no actual-game rendering or controller tests.
+
+Starting families support a single parent with children, a spouse and children, a spouse without children, no family, or siblings only. Family creation remains profile data until an actual v1.5.7 save-persistent hero creation mechanism has passed in-game tests.
