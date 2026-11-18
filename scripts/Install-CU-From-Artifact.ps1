@@ -4,7 +4,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$GameRoot,
     [Parameter(Mandatory=$true)][string]$ArtifactZip,
-    [string]$ExpectedVersion = "v0.19.0",
+    [string]$ExpectedVersion = "v0.20.0",
     [switch]$ReplaceExisting
 )
 $ErrorActionPreference = "Stop"
