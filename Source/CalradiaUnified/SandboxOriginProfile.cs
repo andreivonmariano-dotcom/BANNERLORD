@@ -81,6 +81,10 @@ namespace CalradiaUnified
         // clan with real parent links. No existing hero is married directly.
         public string SpouseBackground = "Commoner";
         public string SpouseBirthClanId = "";
+        // Where the generated household lives at campaign start.
+        // Only native, owned and safe fortified settlements qualify.
+        public string FamilyHomeMode = "OwnedFief";
+        public string FamilyHomeId = "";
         public string SpouseFaceSeed = "";
         public string SpouseEquipmentKit = "Vanilla";
         public int ChildCount;
@@ -148,6 +152,8 @@ namespace CalradiaUnified
             StartingFiefMode="Native";
             AllowStartingFiefTransfer=false;
             StartingFiefId="";
+            FamilyHomeMode="OwnedFief";
+            FamilyHomeId="";
         }
 
         public static string UserPath
@@ -302,6 +308,13 @@ namespace CalradiaUnified
                 case "SpouseBirthClanId":
                     if (!Identifier(value, 80)) return false;
                     SpouseBirthClanId = value; return true;
+                case "FamilyHomeMode":
+                    if (!Allowed(value,SandboxFamilyHomePolicy.Modes))
+                        return false;
+                    FamilyHomeMode=value; return true;
+                case "FamilyHomeId":
+                    if (!Identifier(value,80)) return false;
+                    FamilyHomeId=value; return true;
                 case "SpouseFaceSeed":
                     if (!Identifier(value, 80)) return false;
                     SpouseFaceSeed = value; return true;
@@ -401,6 +414,13 @@ namespace CalradiaUnified
                 error = familyOriginError;
                 return false;
             }
+            string residenceError = SandboxFamilyHomePolicy.ValidateRequest(
+                FamilyHomeMode,FamilyHomeId,SpouseEnabled);
+            if (residenceError.Length != 0)
+            {
+                error = residenceError;
+                return false;
+            }
             for (int i = 0; i < ChildCount; i++)
             {
                 var child = Children[i];
@@ -484,6 +504,8 @@ namespace CalradiaUnified
                 "SpouseCulture=" + SpouseCulture,
                 "SpouseBackground=" + SpouseBackground,
                 "SpouseBirthClanId=" + SpouseBirthClanId,
+                "FamilyHomeMode=" + FamilyHomeMode,
+                "FamilyHomeId=" + FamilyHomeId,
                 "SpouseFaceSeed=" + SpouseFaceSeed,
                 "SpouseEquipmentKit=" + SpouseEquipmentKit,
                 "ChildCount=" + ChildCount,
