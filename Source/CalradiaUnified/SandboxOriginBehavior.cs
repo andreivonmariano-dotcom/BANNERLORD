@@ -81,6 +81,37 @@ namespace CalradiaUnified
                 if (manager == null) return;
                 try
                 {
+                    // This opt-in stage has a distinct CharacterCreationStageBase
+                    // type and a distinct view attribute. No native stage is
+                    // removed and NO FaceGen, Culture, Review or Options view
+                    // registration is replaced. Default disabled until the
+                    // player's live v1.5.7 acceptance test passes.
+                    var originProfile = SandboxOriginProfile.Load(
+                        SandboxOriginProfile.UserPath);
+                    bool nativeComplete =
+                        manager.GetStage<CharacterCreationCultureStage>() != null &&
+                        manager.GetStage<CharacterCreationFaceGeneratorStage>() != null &&
+                        manager.GetStage<CharacterCreationReviewStage>() != null &&
+                        manager.GetStage<CharacterCreationOptionsStage>() != null;
+                    if (originProfile.Enabled &&
+                        originProfile.NativeIntegrationReviewEnabled &&
+                        nativeComplete &&
+                        manager.GetStage<CUNativeOriginReviewStage>() == null)
+                    {
+                        manager.AddStage(new CUNativeOriginReviewStage());
+                        DiagnosticJournal.Event("cu_native_review_attached",
+                            "added_unique_final_stage=true" +
+                            "|native_culture_face_review_options_intact=true" +
+                            "|3d=native_review_view");
+                    }
+                    else
+                    {
+                        DiagnosticJournal.Event("cu_native_review_skipped",
+                            "opt_in=" +
+                            originProfile.NativeIntegrationReviewEnabled +
+                            "|profile_active=" + originProfile.Enabled +
+                            "|native_stages_complete=" + nativeComplete);
+                    }
                     // The discontinued age-menu relinker is never used with
                     // the independent custom front-end. The native graph
                     // remains intact as the escape/recovery fallback.
