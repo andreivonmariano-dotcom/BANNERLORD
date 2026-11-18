@@ -87,6 +87,28 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_native_sandbox_stage",
                         "total=" + manager.GetTotalStagesCount() +
                         "|narrative_menus=" + manager.NarrativeMenus.Count);
+                    // Direct engine-surface evidence for the next creator:
+                    // the 3D face editor must live inside CharacterCreationState.
+                    // This probe does not delete stages or replace any view.
+                    bool faceStage = manager.GetStage<CharacterCreationFaceGeneratorStage>()
+                        != null;
+                    bool cultureStage = manager.GetStage<CharacterCreationCultureStage>()
+                        != null;
+                    bool narrativeStage = manager.GetStage<CharacterCreationNarrativeStage>()
+                        != null;
+                    bool reviewStage = manager.GetStage<CharacterCreationReviewStage>()
+                        != null;
+                    var nativeFaceView = Type.GetType(
+                        "SandBox.GauntletUI.CharacterCreation." +
+                        "CharacterCreationFaceGeneratorView, SandBox.GauntletUI",
+                        false);
+                    DiagnosticJournal.Event("sandbox_appearance_engine_probe",
+                        "face_stage=" + faceStage +
+                        "|culture_stage=" + cultureStage +
+                        "|narrative_stage=" + narrativeStage +
+                        "|review_stage=" + reviewStage +
+                        "|native_face_view_loaded=" + (nativeFaceView != null) +
+                        "|stage_changes=none");
                     foreach (var menu in manager.NarrativeMenus)
                     {
                         if (menu == null) continue;
