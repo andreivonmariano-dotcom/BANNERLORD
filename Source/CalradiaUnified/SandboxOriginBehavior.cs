@@ -38,9 +38,10 @@ namespace CalradiaUnified
                 this, ObserveNativeCharacterCreation);
         }
 
-        // Observe the real Sandbox creation graph without replacing its
-        // character, culture, age, story, review, Back, or Next handlers.
-        // A future built-in page must be linked to these actual menu IDs.
+        // The engine initializes the native narrative graph after receiving
+        // OnCharacterCreationInitializedEvent. Register a read-only content
+        // handler so the diagnostics reflect the COMPLETE graph, not an empty
+        // or partially registered set of menus.
         private void ObserveNativeCharacterCreation(CharacterCreationManager manager)
         {
             if (!IsStandaloneSandbox() || manager == null ||
@@ -48,25 +49,59 @@ namespace CalradiaUnified
             observedNativeCreator = manager;
             try
             {
-                int count = manager.NarrativeMenus.Count;
+                manager.RegisterCharacterCreationContentHandler(
+                    new NativeSandboxStageObserver(), 1600);
                 DiagnosticJournal.Event("cu_native_sandbox_creator",
-                    "narrative_menus=" + count + "|game_mode=Sandbox");
-                foreach (var menu in manager.NarrativeMenus)
-                {
-                    if (menu == null) continue;
-                    DiagnosticJournal.Event("cu_native_sandbox_menu",
-                        "id=" + menu.StringId +
-                        "|input=" + menu.InputMenuId +
-                        "|output=" + menu.OutputMenuId);
-                }
-                DiagnosticJournal.Event("cu_native_sandbox_stage",
-                    "current=" + (manager.CurrentStage == null ? "none"
-                        : manager.CurrentStage.GetType().Name) +
-                    "|total=" + manager.GetTotalStagesCount());
+                    "observer_registered=true|mutates_stages=false");
             }
             catch (Exception e)
             {
-                DiagnosticJournal.Exception("native_sandbox_graph", e);
+                DiagnosticJournal.Exception("native_sandbox_observer_register", e);
+            }
+        }
+
+        private sealed class NativeSandboxStageObserver :
+            ICharacterCreationContentHandler
+        {
+            public void InitializeContent(CharacterCreationManager manager)
+            {
+                // Native handlers own all stage content and choices.
+            }
+
+            public void AfterInitializeContent(CharacterCreationManager manager)
+            {
+                if (manager == null) return;
+                try
+                {
+                    DiagnosticJournal.Event("cu_native_sandbox_stage",
+                        "total=" + manager.GetTotalStagesCount() +
+                        "|narrative_menus=" + manager.NarrativeMenus.Count);
+                    foreach (var menu in manager.NarrativeMenus)
+                    {
+                        if (menu == null) continue;
+                        DiagnosticJournal.Event("cu_native_sandbox_menu",
+                            "id=" + menu.StringId +
+                            "|input=" + menu.InputMenuId +
+                            "|output=" + menu.OutputMenuId);
+                    }
+                }
+                catch (Exception e)
+                {
+                    DiagnosticJournal.Exception("native_sandbox_graph", e);
+                }
+            }
+
+            public void OnStageCompleted(CharacterCreationStageBase stage)
+            {
+                if (stage != null)
+                    DiagnosticJournal.Event("cu_native_sandbox_stage_completed",
+                        stage.GetType().Name);
+            }
+
+            public void OnCharacterCreationFinalize(CharacterCreationManager manager)
+            {
+                DiagnosticJournal.Event("cu_native_sandbox_finish",
+                    "native_handler_finished=true|no_custom_ui");
             }
         }
 
