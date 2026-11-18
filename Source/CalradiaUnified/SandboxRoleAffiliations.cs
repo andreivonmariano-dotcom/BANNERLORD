@@ -27,9 +27,9 @@ namespace CalradiaUnified
                 return "native_affiliation_retained";
             if (!SandboxRolePolicy.CanRequestAffiliation(profile.Role,false,true))
                 return "no_role_contract";
-            var kingdom=Kingdom.All.FirstOrDefault(k => k != null &&
+            var kingdom=Kingdom.All.Where(k => k != null &&
                 k.Culture == player.Culture &&
-                k.RulingClan != null);
+                k.RulingClan != null).OrderBy(k => k.StringId).FirstOrDefault();
             if (kingdom == null) return "matching_native_kingdom_missing";
             try
             {

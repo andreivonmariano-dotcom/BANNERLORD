@@ -50,3 +50,9 @@ A soldier contract and knightly vassalage are genuine campaign affiliation mecha
 Create or edit `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` prior to a new Sandbox with `Version=CU_ORIGIN_1`, `Enabled=false`, `NativeStageEnabled=true`, `RealFamilyEnabled=false`, and `RoleAffiliationsEnabled=false`. The native pages appear only if the v1.5.7 graph exposes exactly one compatible age narrative menu. The game retains the original Sandbox entry, not a separate Calradia Unified main-menu creator. Selecting a role sets Enabled true. Family and role contracts require separate choices in the new pages. Stop at the first UI error and preserve the diagnostic ZIP for analysis.
 
 Individual relative names and detailed attributes are presently editable through the separate profile format, not complete native portrait or text-entry stages. Labeled equipment kits do not currently auto-equip a character. Starting settlement relocation and direct facial sliders remain unfinished. This is an experimental integration milestone, not all requested Sandbox functionality completed.
+
+## Final-page activation safety (v0.17 revision)
+
+Role selection saves only the role label. The profile is activated after selecting an explicit **Keep vanilla political status** or **Experimental native service** choice on the last native Starting Life page, not as soon as the role page is visited. The corresponding new-game flag is still persisted as a profile preference, so an already active profile must be disabled before testing a different fresh Sandbox.
+
+Role-based recruits and renown now require an exact confirmed native action result, not just kingdom membership. A pre-existing native clan affiliation stays intact and receives no duplicate start-package grants on the basis of a name alone. Default family templates are selected in stable StringId order. A child younger than 18 is not explicitly reclassified as an adult lord.

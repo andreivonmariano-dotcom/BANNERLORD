@@ -472,10 +472,8 @@ namespace CalradiaUnified
                     hero.AddInfluenceWithKingdom(profile.Influence -
                         Clan.PlayerClan.Influence);
                 }
-                bool realRank = SandboxRolePolicy.MatchesNativeStatus(
-                    profile.Role, Clan.PlayerClan.Kingdom != null,
-                    Clan.PlayerClan.Kingdom != null &&
-                    Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
+                bool realRank = SandboxRolePolicy.ConfirmedNativeStanding(
+                    profile.Role, affiliation);
                 int troops = profile.RoleAffiliationsEnabled && realRank
                     ? Math.Max(profile.Troops,
                         SandboxRolePolicy.BonusRecruits(profile.Role))

@@ -33,6 +33,16 @@ namespace CalradiaUnified
                 default: return 0;
             }
         }
+        /// <summary>Only the exact native action outcome grants a bonus.</summary>
+        public static bool ConfirmedNativeStanding(string role, string result)
+        {
+            if (role == "King") return result == "native_king_confirmed";
+            if (role == "Soldier") return result == "native_mercenary_contract";
+            if (role == "Knight" || role == "Lord")
+                return result == "native_vassal_contract";
+            return role == "Wanderer" &&
+                result == "independent_wanderer";
+        }
         public static bool CanRequestAffiliation(string role, bool inKingdom,
             bool optedIn)
         {

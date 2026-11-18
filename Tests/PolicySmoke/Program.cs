@@ -347,6 +347,19 @@ internal static class Program
             SandboxRolePolicy.BonusRecruits("Knight") == 2 &&
             SandboxRolePolicy.BonusRecruits("King") == 8 &&
             SandboxRolePolicy.StarterRenown("Knight") == 40);
+        Check("role bonuses require confirmed native contract result",
+            SandboxRolePolicy.ConfirmedNativeStanding("Soldier",
+                "native_mercenary_contract") &&
+            !SandboxRolePolicy.ConfirmedNativeStanding("Soldier",
+                "native_affiliation_retained") &&
+            !SandboxRolePolicy.ConfirmedNativeStanding("Knight",
+                "native_mercenary_contract") &&
+            SandboxRolePolicy.ConfirmedNativeStanding("Knight",
+                "native_vassal_contract") &&
+            SandboxRolePolicy.ConfirmedNativeStanding("King",
+                "native_king_confirmed") &&
+            !SandboxRolePolicy.ConfirmedNativeStanding("King",
+                "king_requires_official_advanced_start"));
         Check("native affiliations require explicit opt-in",
             SandboxRolePolicy.CanRequestAffiliation("Soldier", false, true) &&
             !SandboxRolePolicy.CanRequestAffiliation("Soldier", true, true) &&

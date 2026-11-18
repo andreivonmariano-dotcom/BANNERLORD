@@ -141,7 +141,8 @@ namespace CalradiaUnified
             if (result == null)
                 throw new InvalidOperationException("HeroCreator returned null");
             result.SetName(new TextObject(name),new TextObject(name));
-            result.SetNewOccupation(Occupation.Lord);
+            // An infant hero must not be forced into an adult Lord occupation.
+            if (age >= 18) result.SetNewOccupation(Occupation.Lord);
             return result;
         }
 
@@ -164,11 +165,12 @@ namespace CalradiaUnified
                     explicitTemplate.Culture != culture) return null;
                 return explicitTemplate;
             }
-            return CharacterObject.All.FirstOrDefault(c =>
+            return CharacterObject.All.Where(c =>
                 c != null && c.IsTemplate && c.IsFemale == female &&
                 c.Culture == culture &&
                 (c.Occupation == Occupation.Lord ||
-                 c.Occupation == Occupation.Wanderer));
+                 c.Occupation == Occupation.Wanderer))
+                .OrderBy(c => c.StringId).FirstOrDefault();
         }
     }
 }

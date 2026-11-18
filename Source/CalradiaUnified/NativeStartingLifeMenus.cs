@@ -57,7 +57,7 @@ namespace CalradiaUnified
                 string selected = value;
                 AddOption(role, "role_" + selected, selected,
                     "Choose your starting identity. Kingdom status is verified in-game.",
-                    () => SaveChoices(new[] {Pair("Role",selected),Pair("Enabled","true")}));
+                    () => SaveChoices(new[] {Pair("Role",selected)}));
             }
             var family = NewPage(nativeAge, Family, First, FamilyConfirm,
                 "Starting Life: Family", "Choose the family present in your new Sandbox.");
@@ -128,14 +128,19 @@ namespace CalradiaUnified
                 nativeAge.OutputMenuId,
                 "Starting Life: Service and Political Rank",
                 "Choose whether Calradia Unified requests actual native service.");
+            // A complete route through the Starting Life pages is required
+            // before the next-game profile is activated. An abandoned role
+            // selection does not automatically grant gold or troops.
             AddOption(affiliation, "service_native",
                 "Keep vanilla political status",
                 "No kingdom action or role-based renown is applied.",
-                () => SaveChoices(new[] {Pair("RoleAffiliationsEnabled","false")}));
+                () => SaveChoices(new[] {
+                    Pair("RoleAffiliationsEnabled","false"),Pair("Enabled","true")}));
             AddOption(affiliation, "service_experimental",
                 "EXPERIMENTAL: Begin with matching native service",
                 "Soldier becomes a mercenary clan. Knight and Lord seek a vassal contract. King must be a native ruler.",
-                () => SaveChoices(new[] {Pair("RoleAffiliationsEnabled","true")}));
+                () => SaveChoices(new[] {
+                    Pair("RoleAffiliationsEnabled","true"),Pair("Enabled","true")}));
 
             bool removed = false;
             var added = new List<string>();
