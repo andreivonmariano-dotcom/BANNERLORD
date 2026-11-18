@@ -939,6 +939,16 @@ namespace CalradiaUnified
                     "available at fresh Sandbox start. Set sibling count to zero.");
                 return;
             }
+            // SpecificOwned has two separate edits: choose mode, then type
+            // ID. Validate the complete request only at final acceptance.
+            string homeError = SandboxFamilyHomePolicy.ValidateRequest(
+                candidate.FamilyHomeMode,candidate.FamilyHomeId,
+                candidate.SpouseEnabled);
+            if (homeError.Length != 0)
+            {
+                SetStatus("Family home request: " + homeError);
+                return;
+            }
             string fiefError = SandboxFiefPolicy.ValidateRequest(
                 candidate.Role, candidate.StartingFiefMode,
                 candidate.StartingFiefId,
