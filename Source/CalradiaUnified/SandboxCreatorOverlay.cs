@@ -253,6 +253,9 @@ namespace CalradiaUnified
                 new Field("Identity","StartingKingdomId",
                     "Starting kingdom (required for Lord, King, Soldier and Knight)",
                     "choice",choices:SandboxOriginProfile.KingdomIds),
+                new Field("Identity","NativeIntegrationReviewEnabled",
+                    "Preview CU choices inside Bannerlord's 3D review",
+                    "boolean"),
                 new Field("Identity","PlayerAge",
                     "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
@@ -378,6 +381,8 @@ namespace CalradiaUnified
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+            if (key == "NativeIntegrationReviewEnabled")
+                return advancedFieldsVisible;
             if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
                     profile.SpouseBackground == "NobleChosen";
@@ -533,6 +538,8 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(LandSummary,"LandSummary");
             OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
             OnPropertyChangedWithValue(FamilyHomeSummary,"FamilyHomeSummary");
+            OnPropertyChangedWithValue(NativeNextSummary,"NativeNextSummary");
+            OnPropertyChangedWithValue(SpousePreviewSummary,"SpousePreviewSummary");
             OnPropertyChangedWithValue(StartNotice,"StartNotice");
             OnPropertyChangedWithValue(Status,"Status");
         }
@@ -564,6 +571,7 @@ namespace CalradiaUnified
                 string key=Current.Key;
                 if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
+                if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="SpouseEnabled") return "Choose Yes to request a real spouse. No spouse means no starting children.";
                 if (key=="SpouseGender") return "Auto uses the opposite gender after your native character is finalized.";
@@ -601,10 +609,10 @@ namespace CalradiaUnified
             get
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
-                if (page=="Household") return "Choose a spouse and exact child count. Every number change saves immediately. Your children's ages and genders appear in the plan.";
+                if (page=="Household") return "Design a real starting family: spouse, noble ancestry, children and ages. Only registered native Heroes receive portraits after creation.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
                 if (page=="Location") return "Set your family's home in a town or castle, then choose your fief policy. No party recall is needed for infants.";
-                return "Part 1 of 2 is complete. Bannerlord handles culture, 3D appearance, origins, age and difficulty next.";
+                return "Your starting life is ready. Continue to Bannerlord's true culture, live 3D body editor and native origins. Opt-in CU 3D review runs after difficulty.";
             }
         }
         [DataSourceProperty] public string SelectedLabel
@@ -704,6 +712,25 @@ namespace CalradiaUnified
                 return profile.SpouseBackground + " spouse / " +
                     profile.ChildCount +
                     (profile.ChildCount==1 ? " child" : " children");
+            }
+        }
+        [DataSourceProperty] public string SpousePreviewSummary
+        {
+            get
+            {
+                if (!profile.SpouseEnabled)
+                    return "Marriage not selected";
+                return profile.SpouseName + ", " + profile.SpouseAge +
+                    ", " + profile.SpouseGender;
+            }
+        }
+        [DataSourceProperty] public string NativeNextSummary
+        {
+            get
+            {
+                return profile.NativeIntegrationReviewEnabled ?
+                    "NATIVE 3D REVIEW: OPT-IN ON" :
+                    "LIVE 3D FACE: NATIVE NEXT";
             }
         }
         [DataSourceProperty] public string ChildPreview
@@ -993,6 +1020,7 @@ namespace CalradiaUnified
                 "|family_home_id="+profile.FamilyHomeId+
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
+                "|native_cu_review="+profile.NativeIntegrationReviewEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }

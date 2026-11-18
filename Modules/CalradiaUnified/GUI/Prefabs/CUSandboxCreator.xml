@@ -41,6 +41,14 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="297"
                     HeightSizePolicy="Fixed" SuggestedHeight="520"
                     PositionXOffset="968" PositionYOffset="96" />
+            <Widget Sprite="BlankWhiteSquare_9" Color="#1E2A36EE"
+                    WidthSizePolicy="Fixed" SuggestedWidth="272"
+                    HeightSizePolicy="Fixed" SuggestedHeight="118"
+                    PositionXOffset="982" PositionYOffset="305" />
+            <Widget Sprite="BlankWhiteSquare_9" Color="#31404FFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="272"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    PositionXOffset="982" PositionYOffset="306" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#25313CFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="1250"
                     HeightSizePolicy="Fixed" SuggestedHeight="56"
@@ -127,7 +135,7 @@
                         IsVisible="@IsHouseholdSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="02   Household" Color="#F6E9D2FF"
+                <TextWidget Text="02   Bloodline" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -145,7 +153,7 @@
                         IsVisible="@IsResourcesSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="03   Resources" Color="#F6E9D2FF"
+                <TextWidget Text="03   Fortune" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -163,7 +171,7 @@
                         IsVisible="@IsLocationSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="04   Kingdom &amp; world" Color="#F6E9D2FF"
+                <TextWidget Text="04   Land &amp; home" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -181,7 +189,7 @@
                         IsVisible="@IsReviewSelected" WidthSizePolicy="Fixed"
                         SuggestedWidth="5" HeightSizePolicy="StretchToParent"
                         HorizontalAlignment="Left"/>
-                <TextWidget Text="05   Review and continue" Color="#F6E9D2FF"
+                <TextWidget Text="05   Review your house" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -347,10 +355,14 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="620"
                         HeightSizePolicy="Fixed" SuggestedHeight="32"
                         PositionXOffset="299" PositionYOffset="584" />
-            <TextWidget Text="STARTING PLAN" Color="#E6C07FFF"
+            <TextWidget Text="YOUR HOUSE CHRONICLE" Color="#E6C07FFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="262"
                         HeightSizePolicy="Fixed" SuggestedHeight="39"
                         PositionXOffset="990" PositionYOffset="121" />
+            <TextWidget Text="@NativeNextSummary" Color="#A7BCD0FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="267"
+                        HeightSizePolicy="Fixed" SuggestedHeight="26"
+                        PositionXOffset="988" PositionYOffset="155" />
             <TextWidget Text="STARTING ROLE" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="25"
@@ -367,11 +379,15 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
                         HeightSizePolicy="Fixed" SuggestedHeight="32"
                         PositionXOffset="990" PositionYOffset="336" />
+            <TextWidget Text="@SpousePreviewSummary" Color="#DCE2EAFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="252"
+                        HeightSizePolicy="Fixed" SuggestedHeight="28"
+                        PositionXOffset="990" PositionYOffset="359" />
             <TextWidget Text="@ChildPreview" Color="#E8C17DFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
-                        HeightSizePolicy="Fixed" SuggestedHeight="43"
-                        PositionXOffset="990" PositionYOffset="369" />
-            <TextWidget Text="LAND, WORLD AND HOME" Color="#C9A46CFF"
+                        HeightSizePolicy="Fixed" SuggestedHeight="30"
+                        PositionXOffset="990" PositionYOffset="391" />
+            <TextWidget Text="LAND AND RESIDENCE" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="29"
                         PositionXOffset="990" PositionYOffset="426" />

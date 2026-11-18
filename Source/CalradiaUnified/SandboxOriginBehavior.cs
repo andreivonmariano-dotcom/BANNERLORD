@@ -11,7 +11,10 @@ using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.ScreenSystem;
 using TaleWorlds.ObjectSystem;
+using TaleWorlds.ModuleManager;
+using SandBox.View.CharacterCreation;
 
 namespace CalradiaUnified
 {
@@ -81,6 +84,65 @@ namespace CalradiaUnified
                 if (manager == null) return;
                 try
                 {
+                    // This opt-in stage has a distinct CharacterCreationStageBase
+                    // type and a distinct view attribute. No native stage is
+                    // removed and NO FaceGen, Culture, Review or Options view
+                    // registration is replaced. Default disabled until the
+                    // player's live v1.5.7 acceptance test passes.
+                    var originProfile = SandboxOriginProfile.Load(
+                        SandboxOriginProfile.UserPath);
+                    bool nativeComplete =
+                        manager.GetStage<CharacterCreationCultureStage>() != null &&
+                        manager.GetStage<CharacterCreationFaceGeneratorStage>() != null &&
+                        manager.GetStage<CharacterCreationReviewStage>() != null &&
+                        manager.GetStage<CharacterCreationOptionsStage>() != null;
+                    // CharacterCreationScreen discovers stage views only
+                    // from active assemblies referencing SandBox.View.
+                    // Mirror that exact public engine discovery check BEFORE
+                    // adding a stage that otherwise could have a blank view.
+                    bool viewDiscoverable = false;
+                    try
+                    {
+                        var ownAssembly =
+                            typeof(CUNativeOriginReviewStageView).Assembly;
+                        var attributeAssembly =
+                            typeof(CharacterCreationStageViewAttribute).Assembly;
+                        var attr = (CharacterCreationStageViewAttribute)
+                            Attribute.GetCustomAttribute(
+                                typeof(CUNativeOriginReviewStageView),
+                                typeof(CharacterCreationStageViewAttribute),
+                                false);
+                        viewDiscoverable = attr != null &&
+                            attr.StageType == typeof(CUNativeOriginReviewStage) &&
+                            (ownAssembly == attributeAssembly ||
+                             attributeAssembly.GetActiveReferencingGameAssembliesSafe()
+                                 .Contains(ownAssembly));
+                    }
+                    catch (Exception error)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_view_discovery_probe",error);
+                    }
+                    if (originProfile.Enabled &&
+                        originProfile.NativeIntegrationReviewEnabled &&
+                        nativeComplete && viewDiscoverable &&
+                        manager.GetStage<CUNativeOriginReviewStage>() == null)
+                    {
+                        manager.AddStage(new CUNativeOriginReviewStage());
+                        DiagnosticJournal.Event("cu_native_review_attached",
+                            "added_unique_final_stage=true" +
+                            "|native_culture_face_review_options_intact=true" +
+                            "|3d=native_review_view");
+                    }
+                    else
+                    {
+                        DiagnosticJournal.Event("cu_native_review_skipped",
+                            "opt_in=" +
+                            originProfile.NativeIntegrationReviewEnabled +
+                            "|profile_active=" + originProfile.Enabled +
+                            "|native_stages_complete=" + nativeComplete +
+                            "|view_discoverable=" + viewDiscoverable);
+                    }
                     // The discontinued age-menu relinker is never used with
                     // the independent custom front-end. The native graph
                     // remains intact as the escape/recovery fallback.
@@ -107,8 +169,9 @@ namespace CalradiaUnified
                         "|narrative_stage=" + narrativeStage +
                         "|review_stage=" + reviewStage +
                         "|view_resolution=not_inspected" +
-                        "|cu_stage_registration=disabled" +
-                        "|stage_changes=none");
+                        "|cu_native_review_appended=" +
+                        (manager.GetStage<CUNativeOriginReviewStage>() != null) +
+                        "|face_view_replacement=false");
                     foreach (var menu in manager.NarrativeMenus)
                     {
                         if (menu == null) continue;
@@ -134,7 +197,9 @@ namespace CalradiaUnified
             public void OnCharacterCreationFinalize(CharacterCreationManager manager)
             {
                 DiagnosticJournal.Event("cu_native_sandbox_finish",
-                    "native_handler_finished=true|no_custom_ui");
+                    "native_handler_finished=true" +
+                    "|native_review_opt_in=" +
+                    (manager.GetStage<CUNativeOriginReviewStage>() != null));
             }
         }
 
@@ -191,6 +256,40 @@ namespace CalradiaUnified
                         returnMenu = from;
                         GameMenu.SwitchToMenu("cu_origin_main");
                     }, false);
+                starter.AddGameMenuOption(from,
+                    "cu_family_portraits_" + from,
+                    "CU: View my household portraits",
+                    args => Hero.MainHero != null &&
+                        (Hero.MainHero.Spouse != null ||
+                         (Hero.MainHero.Children != null &&
+                          Hero.MainHero.Children.Count > 0)),
+                    args =>
+                    {
+                        try
+                        {
+                            ScreenManager.PushScreen(
+                                new CUFamilyPortraitScreen());
+                        }
+                        catch (Exception error)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_family_portrait_screen_failed",error);
+                            try
+                            {
+                                if (ScreenManager.TopScreen is
+                                    CUFamilyPortraitScreen)
+                                    ScreenManager.PopScreen();
+                            }
+                            catch (Exception secondary)
+                            {
+                                DiagnosticJournal.Exception(
+                                    "cu_family_portrait_screen_recovery",
+                                    secondary);
+                            }
+                            Notify("Household gallery could not open; " +
+                                "native Clan screen remains available.");
+                        }
+                    },false);
                 // Explicit repair for existing saves. The player must stand
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to

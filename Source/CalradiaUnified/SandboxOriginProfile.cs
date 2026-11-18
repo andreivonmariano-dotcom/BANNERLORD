@@ -39,6 +39,9 @@ namespace CalradiaUnified
         // Face editing remains native until a verified state-specific bridge exists.
         // Dangerous creation actions require three independent opt-ins.
         public bool NativeStageEnabled;
+        // A SEPARATE, opt-in review stage appends AFTER native Options.
+        // Never substitute a native FaceGen/Culture stage view.
+        public bool NativeIntegrationReviewEnabled;
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
@@ -144,6 +147,7 @@ namespace CalradiaUnified
         {
             Enabled=false;
             NativeStageEnabled=false;
+            NativeIntegrationReviewEnabled=false;
             RealFamilyEnabled=false;
             RoleAffiliationsEnabled=false;
             SpouseEnabled=false;
@@ -210,6 +214,9 @@ namespace CalradiaUnified
                 case "NativeStageEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     NativeStageEnabled = b; return true;
+                case "NativeIntegrationReviewEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    NativeIntegrationReviewEnabled = b; return true;
                 case "RealFamilyEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     RealFamilyEnabled = b; return true;
@@ -468,6 +475,8 @@ namespace CalradiaUnified
                     OverhauledCreatorEnabled.ToString().ToLowerInvariant(),
                 "StartingCulture=" + StartingCulture,
                 "NativeStageEnabled=" + NativeStageEnabled.ToString().ToLowerInvariant(),
+                "NativeIntegrationReviewEnabled=" +
+                    NativeIntegrationReviewEnabled.ToString().ToLowerInvariant(),
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,

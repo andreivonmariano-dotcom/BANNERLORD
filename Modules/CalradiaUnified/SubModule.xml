@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Family Residence at Owned Castle or Town Candidate" />
+  <Name value="Calradia Unified - Native 3D Origin Review and Family Portraits Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.28.0" />
+  <Version value="v0.29.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.28.0 place generated household at owned town or castle without recruiting infants
+name: Calradia Unified 1.5.7 - v0.29.0 opt-in native 3D origin review and real-family portrait gallery
 on:
   workflow_dispatch:
   push:
@@ -80,6 +80,9 @@ jobs:
       - name: Guard real castle home for spouse and nonactive minor children
         shell: pwsh
         run: python scripts/test_family_home_settlement.py
+      - name: Audit opt-in native 3D origin review and actual Hero family portraits
+        shell: pwsh
+        run: python scripts/test_native_origin_review_and_portraits.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
@@ -153,7 +156,7 @@ jobs:
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
       - name: Verify ZIP paths, CRC, DLL identity and hashes
         shell: pwsh
-        run: python scripts/verify_package.py Output/CalradiaUnified_v0.28.0_COMPILED_UNTESTED.zip --version v0.28.0
+        run: python scripts/verify_package.py Output/CalradiaUnified_v0.29.0_COMPILED_UNTESTED.zip --version v0.29.0
       - name: Test installer with nested GitHub artifact ZIP
         shell: pwsh
         run: |
@@ -162,7 +165,7 @@ jobs:
           New-Item -ItemType Directory -Force -Path $native | Out-Null
           '<Module><Id value="Native"/></Module>' | Set-Content -LiteralPath (Join-Path $native "SubModule.xml")
           $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
-          Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.28.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
+          Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.29.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer
           $module = Join-Path $fake "Modules/CalradiaUnified"
           if (-not (Test-Path -LiteralPath (Join-Path $module "SubModule.xml"))) { throw "Missing installed manifest" }
@@ -180,7 +183,7 @@ jobs:
           $before = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
           $rejected = $false
           try {
-            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.29.0' -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
           } catch {
             $rejected = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
           }
@@ -189,7 +192,7 @@ jobs:
           if ($after -ne $before -or (Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
             throw 'Wrong-hash artifact must never change an installed mod or its backups.'
           }
-          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 $hash -ReplaceExisting
+          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.29.0' -ExpectedDllSha256 $hash -ReplaceExisting
           $events = Join-Path (Get-Location) 'BuildResults/sample-playthrough-events.csv'
           @(
             'utc,context,detail',
@@ -201,10 +204,13 @@ jobs:
             '2026-11-18T13:00:03Z,cu_family_spouse_created,id=spouse_1|clan=player_faction',
             '2026-11-18T13:00:04Z,cu_family_child_created,id=child_1|age=1',
             '2026-11-18T13:00:05Z,cu_family_verification,result=PASS|requested_children=1|created_children=1',
-            '2026-11-18T13:00:06Z,sandbox_start_contract,result=PASS|requested_children=1|children=1'
+            '2026-11-18T13:00:06Z,sandbox_start_contract,result=PASS|requested_children=1|children=1',
+            '2026-11-18T13:00:07Z,cu_native_review_attached,added_unique_final_stage=true',
+            '2026-11-18T13:00:08Z,cu_native_review_view_loaded,native_player_3d=true|native_review_view_reused=true',
+            '2026-11-18T13:00:09Z,cu_family_portraits_open,actual_hero_portraits=3|read_only=true'
           ) | Set-Content -LiteralPath $events -Encoding UTF8
           $report = Join-Path (Get-Location) 'BuildResults/sample-playthrough-report.json'
-          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedVersion 'v0.28.0' -ExpectedDllSha256 $hash -ExpectedChildren 1 -EventsCsv $events -ExceptionsCsv (Join-Path (Get-Location) 'BuildResults/no-exceptions.csv') -ReportJson $report -Assert
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedVersion 'v0.29.0' -ExpectedDllSha256 $hash -ExpectedChildren 1 -EventsCsv $events -ExceptionsCsv (Join-Path (Get-Location) 'BuildResults/no-exceptions.csv') -ReportJson $report -Assert
           $r = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
           if ($r.status -ne 'PASS' -or $r.child_created_events -ne 1 -or $r.expected_children -ne 1 -or -not $r.ci_hash_pinned) {
             throw 'The current campaign audit did not ignore historical child events.'
@@ -214,18 +220,32 @@ jobs:
             ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 2 -EventsCsv $events -Assert
           } catch { $mismatchWasRejected = $true }
           if (-not $mismatchWasRejected) { throw 'Expected child mismatch should fail in assertion mode.' }
-          Write-Output 'PASS: pinned CI hash before game mutation, read-only one-child audit, historical session filter and mismatch rejection'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 1 -RequireNativeReview -ExpectedPortraits 3 -EventsCsv $events -Assert
+          $portraitMismatchRejected = $false
+          try {
+            ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedPortraits 4 -EventsCsv $events -Assert
+          } catch { $portraitMismatchRejected = $true }
+          if (-not $portraitMismatchRejected) { throw 'A fake fourth family portrait must fail.' }
+          $nativeMissing = Join-Path (Get-Location) 'BuildResults/sample-native-missing-events.csv'
+          @(Get-Content -LiteralPath $events | Where-Object { $_ -notmatch 'cu_native_review_' }) |
+              Set-Content -LiteralPath $nativeMissing -Encoding UTF8
+          $nativeMismatchRejected = $false
+          try {
+            ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -RequireNativeReview -EventsCsv $nativeMissing -Assert
+          } catch { $nativeMismatchRejected = $true }
+          if (-not $nativeMismatchRejected) { throw 'Missing opt-in native 3D stage must fail.' }
+          Write-Output 'PASS: pinned CI hash, latest-session one child, exact three Hero portraits, required native stage and negative audit fixtures'
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.28.0-compiled-untested
-          path: Output/CalradiaUnified_v0.28.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.29.0-compiled-untested
+          path: Output/CalradiaUnified_v0.29.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.28.0-simulation-report
+          name: CalradiaUnified-v0.29.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -234,6 +254,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.28.0-build-errors
+          name: CalradiaUnified-v0.29.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

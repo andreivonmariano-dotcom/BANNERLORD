@@ -54,5 +54,10 @@ assert 'cu_family_inherited_appearance' in family
 assert 'GetCharacterTemplateForOffspring(mother, father,' in family
 assert 'cu_family_verification' in family
 assert 'sandbox_start_contract' in origin
-assert 'CharacterCreationStageView(' not in "".join(p.read_text() for p in src.glob("*.cs"))
+stage=(src/"CUNativeOriginReviewStage.cs").read_text()
+assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
+assert sum(p.read_text().count('[CharacterCreationStageView(')
+           for p in src.glob("*.cs")) == 1
+assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" not in stage
+assert "CharacterCreationStageView(typeof(CharacterCreationCultureStage))" not in stage
 print("PASS: generated commoner/noble spouse, chosen/eligible native birth clan, Vlandian alias and parent-blended child appearance (STATIC ONLY)")

@@ -48,7 +48,10 @@ assert any(w.get("Text")=="PART 1 OF 2: STARTING CONDITIONS"
 assert any(w.get("Text")=="NEXT: NATIVE CREATOR"
            for w in xml.iter("TextWidget"))
 assert 'candidate.NativeStageEnabled=false;' in ui
-assert 'CharacterCreationStageView(' not in ''.join(
-    p.read_text() for p in source.glob("*.cs"))
+stage=(source/"CUNativeOriginReviewStage.cs").read_text()
+assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
+assert sum(p.read_text().count("[CharacterCreationStageView(")
+           for p in source.glob("*.cs")) == 1
+assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" not in stage
 assert 'DiagnosticJournal.Event("sandbox_start_contract"' in behavior
 print("PASS: saved numeric values, fresh child count, five nonduplicated CU steps and explicit native wizard transition (STATIC ONLY)")

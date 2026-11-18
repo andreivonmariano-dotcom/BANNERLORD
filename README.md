@@ -1,6 +1,17 @@
-# Calradia Unified v0.28.0 | Family Homes in Native Castles and Towns
+# Calradia Unified v0.29.0 | Native 3D Origin Review and Real Family Portraits
 
-**Target game:** Mount & Blade II: Bannerlord PC v1.5.7.125802. **Status:** COMPILED_UNTESTED for family residence. The underlying spouse and child creator succeeded in an earlier real campaign, but v0.28 placement still needs a live game and save/reload test.
+**Target game:** Mount & Blade II: Bannerlord PC v1.5.7.125802. **Status:** COMPILED_UNTESTED for v0.29 UI and the v0.28 family-home feature. Previous in-game evidence validated genuine spouse and children, but the new stage, portrait gallery and save persistence still need separate Bannerlord playtests.
+
+### New in v0.29
+
+The starting-conditions creator uses clearer five-chapter navigation, explicit spouse and child summary text and a handoff cue to **the game's own live 3D face editor**. It never replaces native culture, face, background, banner, clan naming, review or difficulty screens. The fully unified single-screen creator is **not complete**.
+
+Under **More options** on Starting Life, the experimental setting `Preview CU choices inside Bannerlord's 3D review` can append one distinct origin-review stage **after native difficulty**. It wraps Bannerlord's real rotatable 3D player review through its native stage-listener contract, has a nonfocus CU summary layer, and is **OFF by default**. The CU stage has no inherited native Review-stage registration. The original v0.22 duplicate FaceGen view remains banned. If engine view discovery fails, the extra page is skipped and logged. If the CU summary prefab fails, the base 3D review remains available.
+
+After an actual family exists, native town/castle menus show **CU: View my household portraits**. The gallery reads the real main character, native spouse and player-linked children, plus age, parents and recorded home. Images use native Hero body data. It never creates preview relatives, ages children, or recruits infants. Missing baby visuals must not become fake adult heroes.
+
+Read [v0.29 native UI and portrait runtime acceptance](docs/V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md) and the [permanent PowerShell installation and playthrough standard](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). Both the standard gameplay audit and its optional `-RequireNativeReview` / `-ExpectedPortraits` checks run under Windows PowerShell 5.1.
+
 
 ## Standard Windows PowerShell install and playthrough report
 

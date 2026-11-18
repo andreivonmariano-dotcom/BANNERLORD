@@ -31,6 +31,11 @@ def verify(filename, version):
         new_creator = prefix + "GUI/Prefabs/CUSandboxCreator.xml"
         assert new_creator in names, "New Sandbox creator movie missing"
         assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
+        # The opt-in stage has a UNIQUE type; native FaceGen remains intact.
+        for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml"):
+            path = prefix + "GUI/Prefabs/" + name
+            assert path in names, "Required new native or family movie missing: " + name
+            assert ET.fromstring(archive.read(path)).tag == "Prefab", "Invalid native/family XML"
         # Never ship the experimental view that conflicted with native
         # character creation during the user's v0.22 culture-stage crash.
         assert prefix+"GUI/Prefabs/CUFaceStageHeader.xml" not in names, "Unsafe FaceGen header retained"
