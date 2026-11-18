@@ -77,6 +77,10 @@ namespace CalradiaUnified
         public int SpouseAge = 30;
         public string SpouseGender = "Auto";
         public string SpouseCulture = "";
+        // A NEW spouse is generated. Noble modes can provide a native birth
+        // clan with real parent links. No existing hero is married directly.
+        public string SpouseBackground = "Commoner";
+        public string SpouseBirthClanId = "";
         public string SpouseFaceSeed = "";
         public string SpouseEquipmentKit = "Vanilla";
         public int ChildCount;
@@ -269,7 +273,15 @@ namespace CalradiaUnified
                     SpouseGender = value; return true;
                 case "SpouseCulture":
                     if (!Identifier(value, 80)) return false;
-                    SpouseCulture = value; return true;
+                    SpouseCulture = SandboxFamilyOriginPolicy
+                        .NormalizeCultureId(value); return true;
+                case "SpouseBackground":
+                    if (!Allowed(value, SandboxFamilyOriginPolicy.Backgrounds))
+                        return false;
+                    SpouseBackground = value; return true;
+                case "SpouseBirthClanId":
+                    if (!Identifier(value, 80)) return false;
+                    SpouseBirthClanId = value; return true;
                 case "SpouseFaceSeed":
                     if (!Identifier(value, 80)) return false;
                     SpouseFaceSeed = value; return true;
@@ -362,6 +374,13 @@ namespace CalradiaUnified
                 error = "Spouse needs a valid name.";
                 return false;
             }
+            string familyOriginError = SandboxFamilyOriginPolicy.Validate(
+                SpouseBackground,SpouseBirthClanId,SpouseEnabled);
+            if (familyOriginError.Length != 0)
+            {
+                error = familyOriginError;
+                return false;
+            }
             for (int i = 0; i < ChildCount; i++)
             {
                 var child = Children[i];
@@ -387,7 +406,8 @@ namespace CalradiaUnified
             return "role=" + Role + ", " + (Gold < 0 ? "native gold" : Gold + " gold") +
                 ", " + (Influence < 0 ? "native influence" : Influence + " influence") +
                 ", " + Troops + " additional troops, kit=" + EquipmentKit +
-                ", family=" + (SpouseEnabled ? "spouse " + SpouseName : "none") +
+                ", family=" + (SpouseEnabled ?
+                    SpouseBackground + " spouse " + SpouseName : "none") +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
@@ -442,6 +462,8 @@ namespace CalradiaUnified
                 "SpouseAge=" + SpouseAge,
                 "SpouseGender=" + SpouseGender,
                 "SpouseCulture=" + SpouseCulture,
+                "SpouseBackground=" + SpouseBackground,
+                "SpouseBirthClanId=" + SpouseBirthClanId,
                 "SpouseFaceSeed=" + SpouseFaceSeed,
                 "SpouseEquipmentKit=" + SpouseEquipmentKit,
                 "ChildCount=" + ChildCount,
