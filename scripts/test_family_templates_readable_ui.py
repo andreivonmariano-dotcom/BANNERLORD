@@ -22,6 +22,9 @@ assert "cu_family_template_scan" in family
 assert "total_gender_templates=" in family
 assert "local_templates=" in family
 assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
+assert "cu_family_marriage_gate" in family
+assert "player_can_marry=" in family
+assert "spouse_can_marry=" in family
 assert "MarriageAction.Apply(player,spouseHero,false)" in family
 assert "spouseHero.Spouse != player" in family
 assert "spouseHero.Clan != Clan.PlayerClan" in family
