@@ -530,6 +530,14 @@ namespace CalradiaUnified
                     Notify("Starting fief request could not be fulfilled: " +
                         fiefOutcome);
 
+                // Native Advanced Start can supply independent companions.
+                // They are not the player's requested spouse or children.
+                // Record this before any family heroes are created.
+                DiagnosticJournal.Event("cu_native_companion_snapshot",
+                    "clan_companions=" + Clan.PlayerClan.Companions.Count +
+                    "|ids=" + String.Join(",",
+                        Clan.PlayerClan.Companions.Select(h =>
+                            h == null ? "null" : h.StringId)));
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
