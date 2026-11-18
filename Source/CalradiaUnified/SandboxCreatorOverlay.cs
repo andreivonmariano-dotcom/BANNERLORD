@@ -369,6 +369,7 @@ namespace CalradiaUnified
         {
             if (field.Page != page) return false;
             string key=field.Key;
+            if (page=="Review") return false;
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
@@ -415,7 +416,7 @@ namespace CalradiaUnified
                 key=="StartSwiftTravel")
                 return advancedFieldsVisible;
             if (key=="StartingCulture")
-                return true;
+                return advancedFieldsVisible;
             return true;
         }
 
@@ -515,6 +516,11 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(NumberMaximum,"NumberMaximum");
             OnPropertyChangedWithValue(pendingNumber,"PendingNumber");
             OnPropertyChangedWithValue(ProfileSummary,"ProfileSummary");
+            OnPropertyChangedWithValue(RoleSummary,"RoleSummary");
+            OnPropertyChangedWithValue(FamilySummary,"FamilySummary");
+            OnPropertyChangedWithValue(LandSummary,"LandSummary");
+            OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
+            OnPropertyChangedWithValue(StartNotice,"StartNotice");
             OnPropertyChangedWithValue(Status,"Status");
         }
 
@@ -533,14 +539,16 @@ namespace CalradiaUnified
         [DataSourceProperty] public string AdvancedToggleLabel
         {
             get { return advancedFieldsVisible ?
-                "Hide advanced settings" : "Show advanced settings"; }
+                "Fewer options" : "More options"; }
         }
         [DataSourceProperty] public string FieldHelp
         {
             get
             {
                 if (Current==null)
-                    return "All basic choices complete. Use the page navigation or begin your new Sandbox.";
+                    return page=="Appearance" ?
+                        "Next, Bannerlord will open its real culture and 3D face editor. No duplicate changes are needed here." :
+                        "Review the requested starting life and family on the right. Begin the campaign to apply them.";
                 string key=Current.Key;
                 if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
@@ -586,7 +594,14 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string SelectedLabel
         {
-            get { return Current==null ? "" : Current.Label; }
+            get
+            {
+                if (Current==null && page=="Appearance")
+                    return "Live character appearance follows this setup";
+                if (Current==null && page=="Review")
+                    return "Confirm your starting plan on the right";
+                return Current==null ? "" : Current.Label;
+            }
         }
         [DataSourceProperty] public string SelectedValue
         {
@@ -594,8 +609,14 @@ namespace CalradiaUnified
             {
                 if(Current==null) return "";
                 string value=RawValue(Current.Key);
-                if(value=="-1" || value=="") return "Use the native/default value";
+                if(value=="-1" || value=="") return "Keep the native default";
                 if(Current.Kind=="number") return pendingNumber.ToString();
+                if(Current.Kind=="boolean")
+                    return value=="true" ? "YES" : "NO";
+                if(Current.Key=="StartingKingdomId")
+                    return value.Length>0 ?
+                        CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value):
+                        "Choose a kingdom";
                 return value;
             }
         }
@@ -604,9 +625,10 @@ namespace CalradiaUnified
             get
             {
                 int count=VisibleFields.Length;
-                return page == "Review" ? "READY TO START A NEW CAMPAIGN" :
-                    count==0 ? "No quick settings on this page" :
-                    "CHOICE "+(selectedIndex+1)+" OF "+count;
+                return page=="Review" ? "READY TO BEGIN" :
+                    page=="Appearance" && count==0 ? "NATIVE 3D EDITOR NEXT" :
+                    count==0 ? "NO EXTRA SETTINGS" :
+                    "SETTING "+(selectedIndex+1)+" / "+count;
             }
         }
         [DataSourceProperty] public bool IsNumber
@@ -647,21 +669,63 @@ namespace CalradiaUnified
             }
         }
         [DataSourceProperty] public string Status {get {return status;} }
+        [DataSourceProperty] public string RoleSummary
+        {
+            get
+            {
+                var kingdom = String.IsNullOrEmpty(profile.StartingKingdomId) ?
+                    "" : "  /  " + CultureInfo.InvariantCulture.TextInfo
+                        .ToTitleCase(profile.StartingKingdomId);
+                return profile.Role + kingdom;
+            }
+        }
+        [DataSourceProperty] public string FamilySummary
+        {
+            get
+            {
+                if (!profile.SpouseEnabled)
+                    return "Unmarried, no children";
+                return "Spouse planned  /  " + profile.ChildCount +
+                    (profile.ChildCount==1 ? " child" : " children");
+            }
+        }
+        [DataSourceProperty] public string LandSummary
+        {
+            get
+            {
+                if (profile.StartingFiefMode=="Native")
+                    return "Native starting holdings";
+                return profile.StartingFiefMode=="Specific" ?
+                    "Requested: " + profile.StartingFiefId :
+                    "Requested: " + profile.StartingFiefMode;
+            }
+        }
+        [DataSourceProperty] public string WorldSummary
+        {
+            get
+            {
+                return profile.StartingScenario=="none" ?
+                    "Normal Sandbox world" : profile.StartingScenario;
+            }
+        }
+        [DataSourceProperty] public string StartNotice
+        {
+            get
+            {
+                return profile.SpouseEnabled ?
+                    "Family requests apply after native character creation. " +
+                    "The result must be verified in Clan." :
+                    "Culture, face, age and background are still handled " +
+                    "by Bannerlord after this screen.";
+            }
+        }
         [DataSourceProperty] public string ProfileSummary
         {
             get
             {
-                return profile.Role+" | kingdom: "+
-                    (String.IsNullOrEmpty(profile.StartingKingdomId) ?
-                        "none":profile.StartingKingdomId)+
-                    " | spouse: "+(profile.SpouseEnabled ? "requested" : "no")+
-                    " | children: "+profile.ChildCount+
-                    " | family: "+(profile.RealFamilyEnabled ?
-                        "requested":"off")+
-                    " | starting fief: "+profile.StartingFiefMode+
-                    (profile.StartingFiefMode=="Specific" ?
-                        " / "+profile.StartingFiefId:"")+
-                    " | native world: "+profile.StartingScenario;
+                return "Starting plan: " + RoleSummary +
+                    " | " + FamilySummary +
+                    " | " + LandSummary;
             }
         }
 

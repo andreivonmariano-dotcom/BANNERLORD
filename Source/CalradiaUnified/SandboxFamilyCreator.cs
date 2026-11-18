@@ -47,15 +47,9 @@ namespace CalradiaUnified
             if (profile.SpouseEnabled && spouseTemplate == null)
                 return "spouse_template_missing";
 
-            var templates = new List<CharacterObject>();
-            for (int i = 0; i < profile.ChildCount; i++)
-            {
-                var child = profile.Children[i];
-                var source = FindTemplate(player,child.Culture,
-                    child.Gender == "Female",child.FaceSeed);
-                if (source == null) return "child_template_missing:" + (i+1);
-                templates.Add(source);
-            }
+            // Native offspring templates depend on BOTH actual parent heroes.
+            // Resolve each source after the spouse exists, rather than treating
+            // a minor child like a random wanderer/noble from CharacterObject.All.
             // Siblings need the player's actual parents. If Bannerlord has no
             // registered parent heroes, creating strangers and calling them
             // siblings is not acceptable.
@@ -80,13 +74,33 @@ namespace CalradiaUnified
                 {
                     spouseHero = Create(spouseTemplate,profile.SpouseName,
                         profile.SpouseAge);
+                    // A fallback native noble source can have another culture.
+                    // The requested culture is applied to the new hero only,
+                    // never to the donor character from the campaign.
+                    var desiredCulture = ResolveCulture(player,
+                        profile.SpouseCulture);
+                    if (desiredCulture == null)
+                        throw new InvalidOperationException(
+                            "Requested spouse culture missing");
+                    spouseHero.Culture = desiredCulture;
                     // Apply the game's marriage action. This synchronizes clan,
                     // spouse references and the native marriage event.
                     // Native MarriageAction silently returns for unsuitable
                     // couples. Check that condition and both references, never
                     // claim a decorative spouse was successfully created.
-                    if (!Campaign.Current.Models.MarriageModel
-                        .IsCoupleSuitableForMarriage(player,spouseHero))
+                    bool nativeEligible = Campaign.Current.Models.MarriageModel
+                        .IsCoupleSuitableForMarriage(player,spouseHero);
+                    DiagnosticJournal.Event("cu_family_marriage_gate",
+                        "native_eligible=" + nativeEligible +
+                        "|player_age=" + player.Age +
+                        "|spouse_age=" + spouseHero.Age +
+                        "|player_can_marry=" + player.CanMarry() +
+                        "|spouse_can_marry=" + spouseHero.CanMarry() +
+                        "|player_clan=" + (player.Clan == null ?
+                            "none" : player.Clan.StringId) +
+                        "|spouse_clan=" + (spouseHero.Clan == null ?
+                            "none" : spouseHero.Clan.StringId));
+                    if (!nativeEligible)
                         throw new InvalidOperationException(
                             "Native marriage rules rejected the created spouse");
                     MarriageAction.Apply(player,spouseHero,false);
@@ -106,10 +120,28 @@ namespace CalradiaUnified
                 for (int i = 0; i < profile.ChildCount; i++)
                 {
                     var childProfile=profile.Children[i];
-                    Hero child=Create(templates[i],childProfile.Name,
-                        childProfile.Age);
                     Hero mother = player.IsFemale ? player : spouseHero;
                     Hero father = player.IsFemale ? spouseHero : player;
+                    if (mother == null || father == null)
+                        throw new InvalidOperationException(
+                            "Child requires both verified native parent heroes");
+                    var childTemplate = Campaign.Current.Models.HeroCreationModel
+                        .GetCharacterTemplateForOffspring(mother, father,
+                            childProfile.Gender == "Female");
+                    if (childTemplate == null)
+                        throw new InvalidOperationException(
+                            "Native offspring template unavailable for child " + (i+1));
+                    Hero child = HeroCreator.CreateChild(childTemplate,
+                        player.HomeSettlement, Clan.PlayerClan, childProfile.Age);
+                    if (child == null)
+                        throw new InvalidOperationException(
+                            "Native CreateChild returned null");
+                    child.SetName(new TextObject(childProfile.Name),
+                        new TextObject(childProfile.Name));
+                    DiagnosticJournal.Event("cu_family_child_source",
+                        "index=" + (i+1) +
+                        "|template=" + childTemplate.StringId +
+                        "|native_offspring_model=true");
                     child.Mother=mother;
                     child.Father=father;
                     if (mother != null && !mother.Children.Contains(child))
@@ -191,31 +223,101 @@ namespace CalradiaUnified
             return result;
         }
 
+        private static CultureObject ResolveCulture(Hero player,string cultureId)
+        {
+            if (String.IsNullOrEmpty(cultureId)) return player.Culture;
+            return MBObjectManager.Instance.GetObject<CultureObject>(cultureId);
+        }
+
+        /// <summary>
+        /// Prefer an exact native template. Some supported game versions ship
+        /// few or no IsTemplate noble records for a given sex/culture. The
+        /// last-resort donor is an existing living noble's CharacterObject.
+        /// HeroCreator clones that character into a NEW Hero and leaves the
+        /// source person untouched. Never substitute a troop/party member.
+        /// </summary>
         private static CharacterObject FindTemplate(Hero player,string cultureId,
             bool female,string requestedTemplateId)
         {
-            CultureObject culture=player.Culture;
-            if (!String.IsNullOrEmpty(cultureId))
+            var culture = ResolveCulture(player,cultureId);
+            if (culture == null)
             {
-                var resolved=MBObjectManager.Instance.GetObject<CultureObject>(cultureId);
-                if (resolved == null) return null;
-                culture=resolved;
+                DiagnosticJournal.Event("cu_family_template_scan",
+                    "status=culture_missing|id=" + cultureId);
+                return null;
             }
+
             if (!String.IsNullOrEmpty(requestedTemplateId))
             {
-                var explicitTemplate=
-                    MBObjectManager.Instance.GetObject<CharacterObject>(requestedTemplateId);
-                if (explicitTemplate == null || !explicitTemplate.IsTemplate ||
-                    explicitTemplate.IsFemale != female ||
-                    explicitTemplate.Culture != culture) return null;
-                return explicitTemplate;
+                var requested = MBObjectManager.Instance
+                    .GetObject<CharacterObject>(requestedTemplateId);
+                bool allowed = requested != null &&
+                    requested.IsFemale == female &&
+                    !requested.IsBasicTroop &&
+                    (requested.IsTemplate || requested.IsHero) &&
+                    requested.Culture != null;
+                DiagnosticJournal.Event("cu_family_template_scan",
+                    "mode=explicit|requested=" + requestedTemplateId +
+                    "|valid=" + allowed);
+                return allowed ? requested : null;
             }
-            return CharacterObject.All.Where(c =>
-                c != null && c.IsTemplate && c.IsFemale == female &&
-                c.Culture == culture &&
-                (c.Occupation == Occupation.Lord ||
-                 c.Occupation == Occupation.Wanderer))
-                .OrderBy(c => c.StringId).FirstOrDefault();
+
+            var templates = CharacterObject.All.Where(c =>
+                c != null && c.IsTemplate && !c.IsBasicTroop &&
+                c.IsFemale == female && c.Culture != null).ToArray();
+            var local = templates.Where(c => c.Culture == culture).ToArray();
+            var preferred = local.Where(c =>
+                c.Occupation == Occupation.Lord ||
+                c.Occupation == Occupation.Wanderer).ToArray();
+
+            CharacterObject source = preferred
+                .OrderBy(c => c.StringId,StringComparer.Ordinal)
+                .FirstOrDefault();
+            string method = "local_named_template";
+            if (source == null)
+            {
+                source = local.OrderBy(c => c.StringId,StringComparer.Ordinal)
+                    .FirstOrDefault();
+                method = "local_any_template";
+            }
+
+            if (source == null)
+            {
+                source = Hero.AllAliveHeroes.Where(h =>
+                    h != null && h != player && h.IsActive && h.IsLord &&
+                    h.IsFemale == female && h.Culture == culture &&
+                    h.CharacterObject != null)
+                    .OrderBy(h => h.StringId,StringComparer.Ordinal)
+                    .Select(h => h.CharacterObject).FirstOrDefault();
+                method = "local_existing_lord_clone";
+            }
+
+            if (source == null)
+            {
+                source = templates.OrderBy(c => c.StringId,StringComparer.Ordinal)
+                    .FirstOrDefault();
+                method = "foreign_native_template";
+            }
+
+            if (source == null)
+            {
+                source = Hero.AllAliveHeroes.Where(h =>
+                    h != null && h != player && h.IsActive && h.IsLord &&
+                    h.IsFemale == female && h.CharacterObject != null)
+                    .OrderBy(h => h.StringId,StringComparer.Ordinal)
+                    .Select(h => h.CharacterObject).FirstOrDefault();
+                method = "foreign_existing_lord_clone";
+            }
+
+            DiagnosticJournal.Event("cu_family_template_scan",
+                "culture=" + culture.StringId +
+                "|female=" + female +
+                "|total_gender_templates=" + templates.Length +
+                "|local_templates=" + local.Length +
+                "|preferred_local=" + preferred.Length +
+                "|method=" + (source == null ? "none" : method) +
+                "|source=" + (source == null ? "none" : source.StringId));
+            return source;
         }
     }
 }
