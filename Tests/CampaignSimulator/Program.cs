@@ -43,6 +43,7 @@ namespace CalradiaUnified.CampaignSimulator
         private int trainedGarrison;
         private int produced;
         private int lost;
+        private int consumedGrain;
         private int spentGold;
         private int spentInfluence;
         private int nextPartyId;
@@ -84,7 +85,7 @@ namespace CalradiaUnified.CampaignSimulator
         {
             return playerGrain + state.Depots.Sum(x => x.Grain) +
                 state.Shipments.Where(x => !x.Physical).Sum(x => x.Grain) +
-                parties.Values.Sum(x => x.ActualCargo) + lost;
+                parties.Values.Sum(x => x.ActualCargo) + lost + consumedGrain;
         }
 
         private void AssertInvariant()
@@ -207,6 +208,7 @@ namespace CalradiaUnified.CampaignSimulator
             gold -= 250;
             spentGold += 250;
             depot.Grain -= 5;
+            consumedGrain += 5;
             garrisonTroops += 2;
             record.GarrisonToday += 2;
             trainedGarrison += 2;
@@ -429,7 +431,8 @@ namespace CalradiaUnified.CampaignSimulator
                 delivered, convoyLosses, partialUnloads, reloads,
                 npcDecisions, recruitmentEvents, localRecruits,
                 trainedGarrison, tradeEvents, investments,
-                generatedGrain = produced, accountedLoss = lost,
+                generatedGrain = produced, consumedByGarrisonTraining = consumedGrain,
+                accountedLoss = lost,
                 activeShipments = state.Shipments.Count
             };
         }
