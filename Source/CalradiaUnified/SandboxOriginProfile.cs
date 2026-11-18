@@ -356,14 +356,6 @@ namespace CalradiaUnified
                 error = "Player must be an adult.";
                 return false;
             }
-            string fiefError = SandboxFiefPolicy.ValidateRequest(Role,
-                StartingFiefMode, StartingFiefId,
-                AllowStartingFiefTransfer);
-            if (fiefError.Length != 0)
-            {
-                error = "Starting fief request: " + fiefError;
-                return false;
-            }
             if (SpouseEnabled && !PersonName(SpouseName))
             {
                 error = "Spouse needs a valid name.";
