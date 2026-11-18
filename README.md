@@ -1,6 +1,6 @@
 # Calradia Unified v0.16.0: Expanded Sandbox Origin Designer
 
-**Target:** Bannerlord PC v1.5.7, one-folder standalone module, no historical DLLs. **Gate B pending on this branch.** The official game's Advanced Starting Options remain authoritative for King, Vassal, Mercenary and other kingdom standing.
+**Target:** Bannerlord PC v1.5.7, one-folder standalone module, no historical DLLs. **Gate B COMPILED_UNTESTED:** [Windows CI #44256086670](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670) passed at commit `04e0da222859c3c7a8b1e58e0cb9be88d66a38fe`, 552 independent policy checks, 40 simulated campaigns (14,600 days), zero compiler warnings/errors, XML and runtime ZIP integrity validation. **No real Bannerlord game test.** The official game's Advanced Starting Options remain authoritative for King, Vassal, Mercenary and other kingdom standing.
 
 ## New Sandbox Origin Designer
 
@@ -28,3 +28,5 @@ The built-in native menu currently edits common choices. Names, ages and appeara
 An **experimental** `CU: Design Next Sandbox Character` button is registered on the game's initial main menu. It opens the module's native Gauntlet creator. Edit role, spouse templates, six children, siblings, attributes, skills and focus, traits, equipment IDs and starting place **before** launching a new Sandbox. The creator saves the same separate origin profile, not the active game. The in-campaign origin editor remains a fallback. The panel has passed no actual-game rendering or controller tests.
 
 Starting families support a single parent with children, a spouse and children, a spouse without children, no family, or siblings only. Family creation remains profile data until an actual v1.5.7 save-persistent hero creation mechanism has passed in-game tests.
+
+**Compiled v0.16 module:** [CalradiaUnified-v0.16.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670/artifacts/14406421335). DLL SHA-256 `c4844140bf9be56a6caf73610dfeebd128bf9a6dd04fa4f446ef4203f3c005c9`. The release stage remains Gate B until real game startup, profile application, family and UI behavior, and save/load evidence are recorded.

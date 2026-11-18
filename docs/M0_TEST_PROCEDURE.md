@@ -61,3 +61,15 @@ After a campaign session, confirm that `%LOCALAPPDATA%\CalradiaUnified\Diagnosti
 ## v0.15 full catalog and optional Gauntlet screen
 
 See [V015_RUNTIME_ACCEPTANCE.md](V015_RUNTIME_ACCEPTANCE.md) for the installed-game preflight, nine-category coverage, three-tab Gauntlet panel, slider and save/reload matrix. As of this source revision every M0 in-game item remains **NOT RUN**. A GitHub Actions build does not perform a native Bannerlord gameplay test.
+
+## v0.16 Expanded Sandbox origin game acceptance (not yet run)
+
+1. In the official Bannerlord v1.5.7 launcher, use the compiled v0.16 candidate with the three official modules. Confirm the title-screen **CU: Design Next Sandbox Character** entry appears without duplicates after returning from a campaign.
+2. Open the five-tab experimental origin panel. Change the role, family profile, gold, one attribute, one trait, and an exact known game item ID. Close and reopen. Check `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` for correct persisted values. Record screen images and input results.
+3. Start a separate **new Sandbox**, not Story Mode. Test first with `Enabled=false`, then with an enabled profile in another disposable new game. Compare the native hero gold, influence, troop roster, attributes, skills, focus, traits and item inventory to requested profile values.
+4. Save, exit and reload the enabled campaign. Compare the inventory and gold before and after reload, and confirm the origin is not applied twice. Check the `CU_v016_origin_applied` save flag through event evidence, not assumed success.
+5. Choose an official King/Vassal Advanced Start and verify its native kingdom status remains correct. Selecting a "King" profile alone must never create a fake kingdom.
+6. Verify any spouse/child profile fields do not claim to create real family heroes. Check a single-parent profile, spouse and children, and invalid ages. Actual family creation and relocation remain unimplemented.
+7. Repeat the previous M0 mission-entry, siege, ownership-change and scene-departure regressions, comparing against an official-only control and collecting sanitized diagnostic ZIPs.
+
+**Gate C/D/E status: NOT RUN.** Native UI XML and reference DLL compilation are Gate B only.

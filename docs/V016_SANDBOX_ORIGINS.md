@@ -1,6 +1,6 @@
 # v0.16 Expanded Sandbox Origin Designer
 
-**Target:** Bannerlord PC v1.5.7. **Status:** source candidate until exact Windows CI passes; native runtime unverified.
+**Target:** Bannerlord PC v1.5.7. **Status:** Gate B COMPILED_UNTESTED. [Windows CI #44256086670](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670) passed at commit `04e0da222859c3c7a8b1e58e0cb9be88d66a38fe`: 552 policy checks, v1.5.7 reference build with zero compiler warnings/errors, six runtime files including two native UI XML prefabs, 40 simulated campaigns. Native startup, visual editor behavior and save/load unverified.
 
 ## Native baseline we keep
 
@@ -44,7 +44,7 @@ Each child must be at least 16 years younger than the player. If a starting spou
 
 ## Why the feature is staged
 
-Kingdom status, family links, Hero birthdays, clan membership, child growth, faces, inventories and location are all persisted native objects. Mutating them incorrectly at game start can corrupt an ongoing campaign. The first release focuses on an independently tested profile schema, user-prepared family templates, and guarded new-game-only player resources, progression and inventory. The real game must still verify exact effects and save/load. Full family generation and player progression are next after exact game lifecycle verification.
+Kingdom status, family links, Hero birthdays, clan membership, child growth, faces, inventories and location are all persisted native objects. Mutating them incorrectly at game start can corrupt an ongoing campaign. The first release focuses on an independently tested profile schema, user-prepared family templates, and guarded new-game-only player resources, progression and inventory. The real game must still verify exact effects and save/load. Actual family-hero creation, safe equip actions, player-age edits and real starting-town movement remain future milestones. Player progression setters are compiled, but their effects need exact game lifecycle verification.
 
 ## Real v1.5.7 tests not yet run
 

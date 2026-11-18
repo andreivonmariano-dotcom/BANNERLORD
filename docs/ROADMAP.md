@@ -2,7 +2,7 @@
 
 **Version:** 1.0 (18 November 2026)  
 **Target baseline:** Bannerlord PC v1.5.7; War Sails is a separate test track  
-**Status:** v0.15.0 Windows compile and runtime ZIP verification passed ([run 44251639925](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44251639925)); native game launch, settings UI render, campaign function and save persistence remain unverified  
+**Status:** v0.16.0 Sandbox origin designer compiled ([run 44256086670](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670)); native game launch, origin UI render, clan/family mutations and save persistence remain unverified  
 **Inventory:** 78 unique historical mod IDs, grouped into nine feature areas. Counts per primary milestone are `M0 7`, `M1 7`, `M2 5`, `M3 3`, `M4 4`, `M5 17`, `M6 18`, `M7 17`. M8 and M9 are shared tracks; no IDs are double-counted.
 
 ## Working order
