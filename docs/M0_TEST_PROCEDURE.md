@@ -87,3 +87,19 @@ and `RoleAffiliationsEnabled`. Turn on only one experiment at a time.
 4. Role test: In a separate new game set `RoleAffiliationsEnabled=true`. Verify Soldier receives a real **mercenary clan** contract, Knight and Lord receive real **vassal clan** status, and King works **only if** the native Advanced Start established a ruling clan. A label alone must never grant a crown.
 5. Check a single-parent start, existing native spouse, missing character template, unsupported native parents for siblings, and a mismatched King role. All must refuse the dangerous operation without creating false relatives or titles.
 6. Inspect diagnostics and compare renown, recruits, faction map, clan UI, hero biographies and the exact same save after restart. Do not promote Gate C, D or E from compilation alone.
+
+## v0.18 normal-Sandbox overhauled screen, first real UI test
+
+**Gate C–E: NOT RUN.** The compiled candidate enters through the normal Sandbox character-creation state and overlays its seven-section Gauntlet screen.
+
+1. Install v0.18 on a copy or disposable new Sandbox, ensuring the new DLL is unblocked. Use the official three base modules and disable War Sails for this first UI test.
+2. Select **Sandbox** on the ordinary main menu. Confirm **CALRADIA UNIFIED | DESIGN YOUR SANDBOX** appears *before any culture/age choice*. Confirm there is no separate Calradia Unified main-menu button.
+3. Check all seven left-side pages, text width, button labels, visible selection, mouse clicks, and text inquiries. Use both your native monitor resolution and 1920x1080 if available.
+4. Press **Escape** directly from the first page. Confirm the window closes and the game's original creator becomes usable. Start another new Sandbox to test a second clean initialization.
+5. Select **Return to native**, then inspect that no origin bonuses are applied to a new game. The cancellation gate must block grants even if profile persistence failed.
+6. Test identity Soldier or Knight, spouse template, one child, an attribute value, a base-game item ID, gold, and town preference. Choose **Review > Apply / continue**.
+7. Confirm the native game screen under it can finish appearance, naming and campaign creation. Verify profile file, exactly one new-game application, and a clean save/reload.
+8. Keep real-family and role-affiliation experimental switches **off** until the UI works. Test each separately on new disposable saves after the baseline.
+9. If the overlay traps the game, set `OverhauledCreatorEnabled=false` and `Enabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`, restart, and use native Sandbox. Preserve the diagnostic journal and screenshots.
+
+This is the first stage of the **entire creator replacement**, not an assertion that every native finalization or visual face-editing function has been reimplemented.

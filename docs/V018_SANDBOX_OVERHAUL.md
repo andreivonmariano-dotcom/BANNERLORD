@@ -1,6 +1,6 @@
 # Calradia Unified v0.18 | Overhauled Sandbox front-end
 
-**Target:** Bannerlord PC v1.5.7.125802. **Status:** Candidate. New Gauntlet rendering and mouse/controller input require an actual in-game test.
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** Gate B COMPILED_UNTESTED. [Windows CI #44278537058](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44278537058) passed 570 independent policy checks, the static layout/escape audit, v1.5.7 reference compilation with zero errors and warnings, and runtime ZIP checks. New Gauntlet rendering and mouse/controller input still require an actual in-game test.
 
 ## New flow
 

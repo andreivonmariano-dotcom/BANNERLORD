@@ -1,6 +1,6 @@
 # Calradia Unified v0.18.0 | Custom Sandbox creator front-end
 
-**Target:** Bannerlord PC v1.5.7.125802. **Verification:** Windows compile and static interface checks pending. Real UI and save/load still untested.
+**Target:** Bannerlord PC v1.5.7.125802. **Verification:** Gate B **COMPILED_UNTESTED**, [Windows build #44278537058](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44278537058) passed 570 independent policy checks, 40 modeled campaigns (14,600 days), source/GUI XML verification, an installed-artifact smoke test, and reference compilation with zero warnings/errors. No real user-interface or save-load test has been performed. Real UI and save/load still untested.
 
 The game's normal **Sandbox** button now prepares a custom full-screen Calradia Unified character-creation interface directly on the native Sandbox character-creation state. There is no separate main-menu entry. The front-end uses dedicated pages for identity, family, progression, equipment, resources, starting location and review.
 
@@ -13,3 +13,5 @@ The game's normal **Sandbox** button now prepares a custom full-screen Calradia 
 The custom creator launches once per Sandbox character-creation session. To disable it after a rendering failure, set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`. The profile is **not automatically activated on page selection**. Cancelling keeps the native start. The experimental family and kingdom actions remain disabled by default.
 
 See [v0.18 visual flow and acceptance](docs/V018_SANDBOX_OVERHAUL.md). Previous native Starting Life age-menu injection has been retired to avoid the post-age failure.
+
+**v0.18 compiled candidate:** [Download the GitHub artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44278537058/artifacts/14416545228). The GitHub download wraps the module ZIP inside another ZIP, so extract both layers. Compiled DLL SHA-256: `893af9a64e6e8d49e0ab7745a7c344aeefcb63e358e9e34203877c96eadf87c3`.
