@@ -72,6 +72,16 @@ internal static class Program
             SandboxOriginProfile.Parse("StartingFiefMode=Specific\n" +
                 "StartingFiefId=castle_x\nAllowStartingFiefTransfer=true")
                 .StartingFiefId == "castle_x");
+        Check("automatic spouse gender yields opposite of male player",
+            SandboxFamilyPolicy.ResolveSpouseFemale("Auto",false));
+        Check("automatic spouse gender yields opposite of female player",
+            !SandboxFamilyPolicy.ResolveSpouseFemale("Auto",true));
+        Check("explicit spouse female and male choices respected",
+            SandboxFamilyPolicy.ResolveSpouseFemale("Female",false) &&
+            !SandboxFamilyPolicy.ResolveSpouseFemale("Male",true));
+        Check("family profile defaults automatic spouse gender",
+            new SandboxOriginProfile().SpouseGender == "Auto" &&
+            SandboxOriginProfile.Parse("SpouseGender=Auto").SpouseGender == "Auto");
         Check("exact shortage threshold", SupplyPolicy.IsLowFood(3, 3));
         Check("unknown supply not shortage", !SupplyPolicy.IsLowFood(-1, 3));
         Check("ample food not shortage", !SupplyPolicy.IsLowFood(4, 3));
