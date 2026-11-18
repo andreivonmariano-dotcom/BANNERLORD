@@ -20,6 +20,10 @@ namespace CalradiaUnified
         {
             if (profile == null || !profile.RealFamilyEnabled || player == null ||
                 Clan.PlayerClan == null) return "not_enabled";
+            // Automatic selection avoids a same-sex default when the player's
+            // sex is not known until the native appearance stage has finished.
+            bool spouseFemale = profile.SpouseGender == "Auto" ?
+                !player.IsFemale : profile.SpouseGender == "Female";
             string reason;
             if (!profile.IsValid((int)player.Age, out reason))
                 return "invalid_family:" + reason;
@@ -27,8 +31,8 @@ namespace CalradiaUnified
                 player.Spouse != null, profile.ChildCount,
                 player.Children != null && player.Children.Count > 0,
                 profile.SiblingCount, player.Father != null ||
-                    player.Mother != null, profile.SpouseGender == "Female" ==
-                    player.IsFemale, true);
+                    player.Mother != null,
+                spouseFemale == player.IsFemale, true);
             if (guard.Length > 0) return guard;
             for (int i = 0; i < profile.ChildCount; i++)
                 if (!SandboxFamilyPolicy.ValidChildAge(
@@ -39,7 +43,7 @@ namespace CalradiaUnified
             // templates cannot be resolved up front.
             var spouseTemplate = profile.SpouseEnabled ?
                 FindTemplate(player,profile.SpouseCulture,
-                    profile.SpouseGender == "Female",profile.SpouseFaceSeed) : null;
+                    spouseFemale,profile.SpouseFaceSeed) : null;
             if (profile.SpouseEnabled && spouseTemplate == null)
                 return "spouse_template_missing";
 
@@ -78,13 +82,26 @@ namespace CalradiaUnified
                         profile.SpouseAge);
                     // Apply the game's marriage action. This synchronizes clan,
                     // spouse references and the native marriage event.
+                    // Native MarriageAction silently returns for unsuitable
+                    // couples. Check that condition and both references, never
+                    // claim a decorative spouse was successfully created.
+                    if (!Campaign.Current.Models.MarriageModel
+                        .IsCoupleSuitableForMarriage(player,spouseHero))
+                        throw new InvalidOperationException(
+                            "Native marriage rules rejected the created spouse");
                     MarriageAction.Apply(player,spouseHero,false);
                     if (player.Spouse != spouseHero ||
                         spouseHero.Spouse != player)
                         throw new InvalidOperationException(
                             "Native marriage did not establish both spouse references");
+                    if (spouseHero.Clan != Clan.PlayerClan)
+                        throw new InvalidOperationException(
+                            "Spouse was not moved into the player's clan");
                     DiagnosticJournal.Event("cu_family_spouse_created",
-                        "id=" + spouseHero.StringId);
+                        "id=" + spouseHero.StringId +
+                        "|age=" + spouseHero.Age +
+                        "|gender=" + (spouseHero.IsFemale ? "Female" : "Male") +
+                        "|clan=" + spouseHero.Clan.StringId);
                 }
                 for (int i = 0; i < profile.ChildCount; i++)
                 {
@@ -99,6 +116,12 @@ namespace CalradiaUnified
                         mother.Children.Add(child);
                     if (father != null && !father.Children.Contains(child))
                         father.Children.Add(child);
+                    if (child.Father != father || child.Mother != mother ||
+                        child.Clan != Clan.PlayerClan ||
+                        !father.Children.Contains(child) ||
+                        !mother.Children.Contains(child))
+                        throw new InvalidOperationException(
+                            "Child was created without complete native family links");
                     madeChildren++;
                     DiagnosticJournal.Event("cu_family_child_created",
                         "id=" + child.StringId + "|age=" + childProfile.Age);
@@ -126,12 +149,34 @@ namespace CalradiaUnified
                 // One-shot application is committed before creation.
                 // Never retry a partial family on another game tick.
                 DiagnosticJournal.Exception("cu_family_partial_creation",e);
-                return "partial:" + madeChildren + " children," +
-                    madeSiblings + " siblings";
+                DiagnosticJournal.Event("cu_family_partial_result",
+                    "spouse_hero_created=" + (spouseHero != null) +
+                    "|married=" + (player.Spouse == spouseHero && spouseHero != null) +
+                    "|created_children=" + madeChildren +
+                    "|requested_children=" + profile.ChildCount);
+                return "partial:" + e.GetType().Name +
+                    ":spouse_hero=" + (spouseHero != null) +
+                    ":children=" + madeChildren + "/" + profile.ChildCount;
             }
 
-            return "spouse=" + (spouseHero == null ? "none" : spouseHero.StringId) +
-                "|children=" + madeChildren + "|siblings=" + madeSiblings;
+            bool verified = (!profile.SpouseEnabled ||
+                    (player.Spouse == spouseHero && spouseHero != null &&
+                     spouseHero.Clan == Clan.PlayerClan)) &&
+                (madeChildren == profile.ChildCount) &&
+                (madeSiblings == profile.SiblingCount);
+            DiagnosticJournal.Event("cu_family_verification",
+                "result=" + (verified ? "PASS" : "FAIL") +
+                "|requested_spouse=" + profile.SpouseEnabled +
+                "|actual_spouse=" + (player.Spouse == null ?
+                    "none" : player.Spouse.StringId) +
+                "|requested_children=" + profile.ChildCount +
+                "|actual_children=" + (player.Children == null ?
+                    0 : player.Children.Count) +
+                "|created_children=" + madeChildren);
+            return verified ?
+                "spouse=" + (spouseHero == null ? "none" : spouseHero.StringId) +
+                    "|children=" + madeChildren + "|siblings=" + madeSiblings :
+                "failed:family_reference_mismatch";
         }
 
         private static Hero Create(CharacterObject source,string name,int age)
