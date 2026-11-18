@@ -41,3 +41,7 @@ These features are new source work with independent C# policy tests and simulati
 ## v0.11.0 fiscal work
 
 New source feature IDs: `CU-M1-006` fiscal estimate, `CU-M1-007` virtual village harvest, `CU-M1-008` surplus wholesale sale, and `CU-M4-002` budgeted garrison wage caps and automatic training. These are not full replacements for their historical mod inspirations. A policy simulator result counts only as modeled acceptance, not real native tax or garrison wage behavior.
+
+## v0.11.0 executed evidence
+
+The source feature inventory now holds 21 compiled code features and 78 historical references. The four fiscal source features reached Gate B in [run 44232872459](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459). Their real-game behavior is pending. The regression issue [#32](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32) tracks the user's reported first-vassal deficit without asserting a specific historical mod caused it.

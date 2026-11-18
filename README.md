@@ -1,8 +1,10 @@
 # Calradia Unified v0.11.0: early-vassal budget, villages and garrison economics
 
 **Target game:** Mount & Blade II: Bannerlord PC v1.5.7  
-**Release status:** source candidate pending the v0.11.0 GitHub Actions build. Neither actual game startup nor game save/load is verified.  
+**Release status:** v0.11.0 compiled candidate. Actual game startup and save/load remain unverified.  
 **Package:** one `Modules/CalradiaUnified` folder and one compiled DLL, no installer or old third-party mod DLLs.
+
+**v0.11.0 hosted build:** [run 44232872459](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459), source commit `38c274a06f0c544ac93c574a3fdd35eebf13c342`, passed **176 independent C# policy checks** and **303,098 model assertions** over 40 seeded 365-day campaigns, and compiled the game module with **0 warnings / 0 errors**. [Compiled candidate](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459/artifacts/14396465903) | [simulation report](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459/artifacts/14395682930). The four new features are **Gate B COMPILED, not GAME_TESTED**. The user-reported castle-and-villages deficit is under [issue #32](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32) pending native finance evidence.
 
 ## Early-vassal balance problem
 

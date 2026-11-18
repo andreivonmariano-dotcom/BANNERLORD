@@ -70,3 +70,11 @@ The headless simulator runs these cases over seeded campaigns. It checks stock b
 ## Release safety
 
 All four modifying settings default to \`false\`. The council fiscal report is read-only. Do not claim that this patch cures the user's specific 70-mod balance issue without collecting a v1.5.7 daily income breakdown and testing a campaign with the relevant historical modifications. Keep Gates C, D and E open until real play evidence exists.
+
+## First executed validation
+
+[GitHub Actions run 44232872459](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459) completed the v0.11 source and model checks. It executed **176 C# policy checks** and **303,098 simulated checks** across **40 seeded model campaigns, totaling 14,600 model days**. Both the compilation and model stages passed. Compiler warnings: **0**. Compiler errors: **0**.
+
+The model confirmed the exact **+250** healthy illustrative daily budget and identified expected losses under oversized garrison or field wages and village raids. It did not calculate actual v1.5.7 settlement tax receipts or perform a game save/load. In-game comparison is recorded as [issue #28](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/28) and the original deficit report as [issue #32](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/32).
+
+Four source features `CU-M1-006`, `CU-M1-007`, `CU-M1-008`, `CU-M4-002` reached **Gate B** on this run. They are not full reconstructions of the referenced third-party mods.

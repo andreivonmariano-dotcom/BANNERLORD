@@ -2,7 +2,7 @@
 
 **Version:** 1.0 (18 November 2026)  
 **Target baseline:** Bannerlord PC v1.5.7; War Sails is a separate test track  
-**Status:** v0.8.0 hosted DLL build passed; game launch, campaign function and persistence remain unverified  
+**Status:** v0.11.0 hosted DLL build and estate simulator passed (run 44232872459); game launch, campaign function and persistence remain unverified  
 **Inventory:** 78 unique historical mod IDs, grouped into nine feature areas. Counts per primary milestone are `M0 7`, `M1 7`, `M2 5`, `M3 3`, `M4 4`, `M5 17`, `M6 18`, `M7 17`. M8 and M9 are shared tracks; no IDs are double-counted.
 
 ## Working order

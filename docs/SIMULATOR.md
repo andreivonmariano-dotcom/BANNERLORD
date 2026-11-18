@@ -51,3 +51,9 @@ The following report is tied to commit \`3bf3f1d99f828611b829312128c3a7c3374db37
 - **Highest gate reached:** B. No game-engine startup, actual MobileParty, Taleworlds campaign save/load, combat or scene test ran.
 
 **Caveat:** The current model abstracts NPC party routing, vanilla battle events, settlements and cargo ownership. It detects policy and accounting inconsistencies under the modeled conditions. The numerical check count measures executed model assertions, not unique game features.
+
+## v0.11.0 estate budget stress cases
+
+`Tests/CampaignSimulator/FeudalStress.cs` runs beside the original campaign-policy model. For each seed/day it tests a healthy one-castle two-village budget, an 8,500-denar garrison, an 8,000-denar field party, both villages raided, and a depot grain harvest/sale cycle with conserved stock and bounded abstract proceeds. The healthy `+250/day` target refers only to the stated forecast coefficients, not actual Bannerlord tax income. The oversized scenarios intentionally retain negative outcomes.
+
+The first v0.11.0 run, [44232872459](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44232872459), passed **303,098** combined model checks over 40 x 365 days, with **176** independent C# policy checks and a successful compiled DLL. Model evidence cannot pass C/D/E in-game gates.
