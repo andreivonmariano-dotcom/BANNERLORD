@@ -100,6 +100,25 @@ internal static class Program
             SandboxOriginProfile.Parse("SpouseEnabled=true\n"+
                 "SpouseBackground=NobleChosen\n"+
                 "SpouseBirthClanId=clan_x").SpouseBirthClanId == "clan_x");
+        Check("active marriageable generated couple passes preflight",
+            SandboxGeneratedMarriagePolicy.Check(
+                true,true,true,true,true,true,true) == "");
+        Check("native fresh NotSpawned hero is refused",
+            SandboxGeneratedMarriagePolicy.Check(
+                true,false,true,false,true,true,true) ==
+                "generated_spouse_not_active");
+        Check("born noble clan must be native-marriage-suitable",
+            SandboxGeneratedMarriagePolicy.Check(
+                true,true,true,true,true,false,true) ==
+                "spouse_birth_clan_invalid");
+        Check("native marriage eligibility must be verified after activation",
+            SandboxGeneratedMarriagePolicy.Check(
+                true,true,true,false,true,true,true) ==
+                "generated_spouse_not_eligible");
+        Check("native marriage fails on same-sex pair",
+            SandboxGeneratedMarriagePolicy.Check(
+                true,true,true,true,true,true,false) ==
+                "sex_pair_rejected");
         Check("automatic spouse gender yields opposite of male player",
             SandboxFamilyPolicy.ResolveSpouseFemale("Auto",false));
         Check("automatic spouse gender yields opposite of female player",
