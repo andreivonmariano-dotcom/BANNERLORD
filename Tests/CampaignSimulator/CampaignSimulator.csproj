@@ -8,6 +8,7 @@
   <ItemGroup>
     <Compile Include="../../Source/CalradiaUnified/CivicState.cs" Link="CivicState.cs"/>
     <Compile Include="../../Source/CalradiaUnified/CivicPolicy.cs" Link="CivicPolicy.cs"/>
+    <Compile Include="../../Source/CalradiaUnified/SupplyPolicy.cs" Link="SupplyPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/DepotLedgerPolicy.cs" Link="DepotLedgerPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/ConvoyPolicy.cs" Link="ConvoyPolicy.cs"/>
     <Compile Include="../../Source/CalradiaUnified/KingdomPolicy.cs" Link="KingdomPolicy.cs"/>
