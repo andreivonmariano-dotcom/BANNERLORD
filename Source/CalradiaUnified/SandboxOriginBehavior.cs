@@ -273,6 +273,18 @@ namespace CalradiaUnified
                         {
                             DiagnosticJournal.Exception(
                                 "cu_family_portrait_screen_failed",error);
+                            try
+                            {
+                                if (ScreenManager.TopScreen is
+                                    CUFamilyPortraitScreen)
+                                    ScreenManager.PopScreen();
+                            }
+                            catch (Exception secondary)
+                            {
+                                DiagnosticJournal.Exception(
+                                    "cu_family_portrait_screen_recovery",
+                                    secondary);
+                            }
                             Notify("Household gallery could not open; " +
                                 "native Clan screen remains available.");
                         }
