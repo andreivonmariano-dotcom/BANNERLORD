@@ -61,3 +61,9 @@ Kingdom status, family links, Hero birthdays, clan membership, child growth, fac
 In the **Design my NEXT Sandbox starting life** menu, select Family, Attributes/Skills/Focus/Traits or Equipment. Each choice opens a Bannerlord-native text inquiry with validation. The spouse's name and age, each child's name, age, gender and appearance seed, all core skill/attribute/focus/trait numbers and twelve item IDs can be edited without touching an existing campaign. Values remain templates for anything not yet supported by the guarded new-game application.
 
 The editor is registered only for a standalone Campaign game type. It refuses Story Mode.
+
+## Standalone pre-campaign creator (experimental)
+
+The `OnBeforeInitialModuleScreenSetAsRoot` entry point registers **CU: Design Next Sandbox Character** in the game's initial main menu. It creates an optional Gauntlet `SandboxOriginPanel` with five tabs: Identity, Family, Progression, Equipment, and Location. Numeric values are bounded with a slider and explicit Save, and names/face-seed strings use a native text inquiry. It writes only `sandbox-origin.ini`. The main-menu option is registered once per module lifetime. The in-campaign editor remains available as a fallback.
+
+**CI compilation and XML validation do not prove actual screen rendering.** Confirm the initial menu entry, rendering, tab controls, close/reopen, editor text input and exact same-profile persistence on the v1.5.7 game before release. New-game family hero creation, age adjustment, actual role affiliation, item auto-equipping and town relocation remain unimplemented.
