@@ -1,6 +1,6 @@
 # Native framework capabilities and settings UI for v0.14
 
-**Target:** Bannerlord PC v1.5.7. **Candidate status:** Gate A source only until the exact compiled workflow passes. Game runtime and save/reload unverified.
+**Target:** Bannerlord PC v1.5.7. **Candidate status:** Gate B COMPILED_UNTESTED after the exact v0.14 Windows workflow succeeds. Game runtime and save/reload unverified.
 
 ## Why no framework DLLs
 

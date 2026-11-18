@@ -1,6 +1,6 @@
 # Calradia Unified v0.14.0: native in-game settings, no third-party frameworks
 
-**Target:** Bannerlord PC v1.5.7. **Status:** source candidate pending the exact v0.14.0 Windows GitHub Actions Gate B run and real in-game launch. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
+**Target:** Bannerlord PC v1.5.7. **Status:** v0.14.0 Gate B Windows build complete. Native in-game startup and save/load remain untested. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
 
 ## New in v0.14
 

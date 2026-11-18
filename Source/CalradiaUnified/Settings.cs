@@ -103,8 +103,25 @@ namespace CalradiaUnified
             var output = new Settings();
             if (File.Exists(bundled))
                 ApplyLines(output, File.ReadAllLines(bundled));
-            if (File.Exists(userOverride))
-                ApplyLines(output, File.ReadAllLines(userOverride));
+            // The user profile is optional. A malformed, protected or oversized
+            // file should never prevent campaign behaviors from loading.
+            try
+            {
+                if (File.Exists(userOverride))
+                {
+                    if (new FileInfo(userOverride).Length > 128 * 1024)
+                        throw new InvalidDataException("User config is too large.");
+                    ApplyLines(output, File.ReadAllLines(userOverride));
+                }
+            }
+            catch (IOException ex)
+            {
+                Log.Write("User settings override ignored: " + ex.GetType().Name);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Log.Write("User settings override ignored: " + ex.GetType().Name);
+            }
             return output;
         }
 

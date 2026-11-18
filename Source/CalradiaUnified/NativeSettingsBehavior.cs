@@ -71,7 +71,7 @@ namespace CalradiaUnified
                     Settings.UserOverridePath), false);
             starter.AddGameMenuOption("cu_settings_main", "cu_config_exit",
                 "Return to settlement",
-                args => true, args => GameMenu.SwitchToMenu(returnMenu), true);
+                args => true, args => GameMenu.SwitchToMenu(returnMenu), false);
 
             AddToggle(starter, "cu_settings_reports", "supplies",
                 "Supply warnings", "EnableSupplyWarnings",
@@ -132,7 +132,7 @@ namespace CalradiaUnified
         {
             starter.AddGameMenuOption(menu, menu + "_back",
                 "Back to settings categories", args => true,
-                args => GameMenu.SwitchToMenu("cu_settings_main"), true);
+                args => GameMenu.SwitchToMenu("cu_settings_main"), false);
         }
 
         private void AddToggle(CampaignGameStarter starter, string menu,
