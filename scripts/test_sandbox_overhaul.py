@@ -43,6 +43,8 @@ assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert "game.GameStateManager.ActiveState is CharacterCreationState" in src
 assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
 assert "SandboxCreatorOverlay.Arm(manager)" in origin
+assert "Arm(native.CharacterCreationManager)" in src
+assert "SandboxCreatorOverlay.BlockNewGameProfile" in origin
 assert "SandboxCreatorOverlay.Tick()" in entry
 assert "new InitialStateOption(" not in entry
 assert "NativeStartingLifeMenus.TryAttach(manager" not in origin

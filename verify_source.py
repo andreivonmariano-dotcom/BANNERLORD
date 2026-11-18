@@ -67,6 +67,8 @@ assert 'SandboxCreatorOverlay.Arm(manager)' in (src/'SandboxOriginBehavior.cs').
 assert 'SandboxCreatorOverlay.Tick()' in (src/'SubModule.cs').read_text()
 assert (src/'SandboxCreatorOverlay.cs').exists()
 assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml').exists()
+assert ET.parse(P/'Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml').getroot().tag=='Prefab'
+assert (P/'scripts/test_sandbox_overhaul.py').exists()
 assert 'OverhauledCreatorEnabled' in (src/'SandboxOriginProfile.cs').read_text()
 assert 'SandboxFamilyCreator.TryCreate' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'SandboxRoleAffiliations.TryApply' in (src/'SandboxOriginBehavior.cs').read_text()

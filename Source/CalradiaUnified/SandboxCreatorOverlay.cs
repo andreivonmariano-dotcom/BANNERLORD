@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
@@ -37,8 +38,19 @@ namespace CalradiaUnified
 
         public static void Tick()
         {
-            if (attempted || pending == null) return;
+            // Some startup paths initialize the native state before the
+            // campaign event subscription. Detect that state directly too.
             var game = Game.Current;
+            if (pending == null && game != null && game.GameType != null &&
+                game.GameType.GetType() == typeof(Campaign) &&
+                game.GameStateManager != null &&
+                game.GameStateManager.ActiveState is CharacterCreationState)
+            {
+                var native = game.GameStateManager.ActiveState as CharacterCreationState;
+                if (native != null && native.CharacterCreationManager != null)
+                    Arm(native.CharacterCreationManager);
+            }
+            if (attempted || pending == null) return;
             if (game == null || game.GameStateManager == null ||
                 !(game.GameStateManager.ActiveState is CharacterCreationState))
                 return;

@@ -427,6 +427,12 @@ namespace CalradiaUnified
             // Save/load or partial action failure must not duplicate grants.
             applied = true;
             startedNewGame = false;
+            if (SandboxCreatorOverlay.BlockNewGameProfile)
+            {
+                DiagnosticJournal.Event("sandbox_creator_cancelled_no_grants",
+                    "native_start_only=true");
+                return;
+            }
             SandboxOriginProfile profile = SandboxOriginProfile.Load(
                 SandboxOriginProfile.UserPath);
             if (!profile.Enabled)
