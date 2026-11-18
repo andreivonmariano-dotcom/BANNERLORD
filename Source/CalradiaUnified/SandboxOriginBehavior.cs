@@ -546,6 +546,39 @@ namespace CalradiaUnified
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
 
+                // Acceptance is based on observed Bannerlord state, not a
+                // serialized choice, click handler or successful compilation.
+                var observedClan = Clan.PlayerClan;
+                var observedKingdom = observedClan.Kingdom;
+                string[] failures = SandboxStartContract.Validate(
+                    SandboxNativeStartOptions.StartTypeForRole(profile.Role),
+                    actualStart,
+                    profile.StartingKingdomId,
+                    observedKingdom == null ? "" : observedKingdom.StringId,
+                    observedKingdom != null &&
+                        observedKingdom.RulingClan == observedClan,
+                    observedClan.Settlements == null ?
+                        0 : observedClan.Settlements.Count,
+                    profile.SpouseEnabled,
+                    hero.Spouse != null,
+                    profile.ChildCount,
+                    hero.Children == null ? 0 : hero.Children.Count);
+                DiagnosticJournal.Event("sandbox_start_contract",
+                    "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
+                    "|role=" + profile.Role +
+                    "|native_type=" + actualStart +
+                    "|kingdom=" + (observedKingdom == null ?
+                        "none" : observedKingdom.StringId) +
+                    "|fiefs=" + (observedClan.Settlements == null ?
+                        0 : observedClan.Settlements.Count) +
+                    "|spouse_present=" + (hero.Spouse != null) +
+                    "|children=" + (hero.Children == null ?
+                        0 : hero.Children.Count) +
+                    "|failures=" + String.Join(",",failures));
+                if (failures.Length != 0)
+                    Notify("Calradia Unified starting conditions failed: " +
+                        String.Join(", ",failures));
+
                 // Relocation and direct face sliders remain disabled. The
                 // opt-in family helper uses native hero/marriage APIs.
                 DiagnosticJournal.Event("sandbox_origin_applied",
