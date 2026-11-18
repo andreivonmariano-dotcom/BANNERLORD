@@ -84,7 +84,7 @@ namespace CalradiaUnified
                 // creation finalization stages.
                 var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
                 SandBox.AdvancedStartOptions.AdvancedStartOptions options;
-                string reason;
+                string reason = "Origin profile is disabled.";
                 if (!profile.Enabled ||
                     !SandboxNativeStartOptions.TryPrepare(profile,out options,out reason))
                 {
