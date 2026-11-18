@@ -27,6 +27,19 @@ namespace CalradiaUnified
             string reason;
             if (!profile.IsValid((int)player.Age, out reason))
                 return "invalid_family:" + reason;
+            // Bannerlord's marriage model rejects inactive heroes. Check the
+            // player before allocating a new person to the campaign world.
+            if (profile.SpouseEnabled && !player.CanMarry())
+            {
+                DiagnosticJournal.Event("cu_family_preflight_refused",
+                    "reason=player_cannot_marry" +
+                    "|player_id=" + player.StringId +
+                    "|age=" + player.Age +
+                    "|state=" + player.HeroState +
+                    "|clan=" + (player.Clan == null ?
+                        "none" : player.Clan.StringId));
+                return "invalid_player_cannot_marry";
+            }
             string guard = SandboxFamilyPolicy.Guard(profile.SpouseEnabled,
                 player.Spouse != null, profile.ChildCount,
                 player.Children != null && player.Children.Count > 0,
@@ -138,9 +151,30 @@ namespace CalradiaUnified
                             "none" : player.Clan.StringId) +
                         "|spouse_clan=" + (spouseHero.Clan == null ?
                             "none" : spouseHero.Clan.StringId));
-                    if (!nativeEligible)
+                    // The vanilla marriage model requires both heroes to be
+                    // ACTIVE and clan-owned. Log the exact known prerequisites
+                    // before asking the model for the final decision.
+                    string prerequisite = SandboxGeneratedMarriagePolicy.Check(
+                        player.IsActive, spouseHero.IsActive,
+                        player.CanMarry(), spouseHero.CanMarry(),
+                        player.Clan != null && Campaign.Current.Models
+                            .MarriageModel.IsClanSuitableForMarriage(player.Clan),
+                        spouseHero.Clan != null && Campaign.Current.Models
+                            .MarriageModel.IsClanSuitableForMarriage(spouseHero.Clan),
+                        player.IsFemale != spouseHero.IsFemale);
+                    DiagnosticJournal.Event("cu_family_marriage_prerequisites",
+                        "result=" + (prerequisite.Length == 0 ? "PASS" : prerequisite) +
+                        "|spouse_state=" + spouseHero.HeroState +
+                        "|spouse_occupation=" + spouseHero.Occupation +
+                        "|spouse_is_template=" + spouseHero.IsTemplate +
+                        "|spouse_is_active=" + spouseHero.IsActive +
+                        "|spouse_character_age=" + spouseHero.CharacterObject.Age +
+                        "|spouse_can_marry=" + spouseHero.CanMarry());
+                    if (prerequisite.Length != 0 || !nativeEligible)
                         throw new InvalidOperationException(
-                            "Native marriage rules rejected the created spouse");
+                            "Native marriage refused: " +
+                            (prerequisite.Length == 0 ?
+                                "other_native_marriage_rule" : prerequisite));
                     MarriageAction.Apply(player,spouseHero,false);
                     if (player.Spouse != spouseHero ||
                         spouseHero.Spouse != player)
@@ -230,8 +264,17 @@ namespace CalradiaUnified
                 // One-shot application is committed before creation.
                 // Never retry a partial family on another game tick.
                 DiagnosticJournal.Exception("cu_family_partial_creation",e);
+                // A rejected marriage previously stranded an adult noble in
+                // a castle, leaving the user with no spouse and no children.
+                // Compensate ONLY while both spouse references are absent and
+                // no child has been created. Do not undo a real marriage.
+                string cleanup = "not_required";
+                if (spouseHero != null && madeChildren == 0 &&
+                    player.Spouse != spouseHero && spouseHero.Spouse != player)
+                    cleanup = CleanupUnmarriedGeneratedSpouse(spouseHero);
                 DiagnosticJournal.Event("cu_family_partial_result",
-                    "spouse_hero_created=" + (spouseHero != null) +
+                    "cleanup=" + cleanup +
+                    "|spouse_hero_created=" + (spouseHero != null) +
                     "|married=" + (player.Spouse == spouseHero && spouseHero != null) +
                     "|created_children=" + madeChildren +
                     "|requested_children=" + profile.ChildCount);
@@ -268,9 +311,58 @@ namespace CalradiaUnified
             if (result == null)
                 throw new InvalidOperationException("HeroCreator returned null");
             result.SetName(new TextObject(name),new TextObject(name));
-            // An infant hero must not be forced into an adult Lord occupation.
-            if (age >= 18) result.SetNewOccupation(Occupation.Lord);
+            // CreateSpecialHero constructs a NotSpawned Hero by default.
+            // Native IsSuitableForMarriage explicitly requires IsActive.
+            // Activating must precede MarriageAction, not follow it.
+            if (age >= 18)
+            {
+                result.SetNewOccupation(Occupation.Lord);
+                var originalState = result.HeroState;
+                if (!result.IsActive)
+                    result.ChangeState(Hero.CharacterStates.Active);
+                DiagnosticJournal.Event("cu_family_new_adult_activated",
+                    "hero=" + result.StringId +
+                    "|previous_state=" + originalState +
+                    "|state=" + result.HeroState +
+                    "|active=" + result.IsActive +
+                    "|occupation=" + result.Occupation +
+                    "|clan=" + (result.Clan == null ?
+                        "none" : result.Clan.StringId));
+            }
             return result;
+        }
+
+        private static string CleanupUnmarriedGeneratedSpouse(Hero spouse)
+        {
+            try
+            {
+                if (spouse.Spouse != null)
+                    return "refused:hero_has_spouse";
+                if (spouse.Father != null)
+                {
+                    spouse.Father.Children.Remove(spouse);
+                    spouse.Father = null;
+                }
+                if (spouse.Mother != null)
+                {
+                    spouse.Mother.Children.Remove(spouse);
+                    spouse.Mother = null;
+                }
+                DisableHeroAction.Apply(spouse);
+                spouse.Clan = null;
+                DiagnosticJournal.Event("cu_family_orphan_cleanup",
+                    "hero=" + spouse.StringId +
+                    "|state=" + spouse.HeroState +
+                    "|clan=" + (spouse.Clan == null ?
+                        "none" : spouse.Clan.StringId));
+                return "disabled_unmarried_hero";
+            }
+            catch (Exception cleanupError)
+            {
+                DiagnosticJournal.Exception("cu_family_orphan_cleanup_failed",
+                    cleanupError);
+                return "failed:" + cleanupError.GetType().Name;
+            }
         }
 
         private static CultureObject ResolveCulture(Hero player,string cultureId)
