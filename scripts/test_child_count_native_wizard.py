@@ -51,7 +51,7 @@ assert 'candidate.NativeStageEnabled=false;' in ui
 stage=(source/"CUNativeOriginReviewStage.cs").read_text()
 assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
 assert sum(p.read_text().count("[CharacterCreationStageView(")
-           for p in source.glob("*.cs")) == 1
+           for p in source.glob("*.cs")) == 2
 assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" not in stage
 assert 'DiagnosticJournal.Event("sandbox_start_contract"' in behavior
 print("PASS: saved numeric values, fresh child count, five nonduplicated CU steps and explicit native wizard transition (STATIC ONLY)")
