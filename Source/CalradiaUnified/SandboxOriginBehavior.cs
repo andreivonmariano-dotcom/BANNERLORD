@@ -11,6 +11,7 @@ using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.ScreenSystem;
 using TaleWorlds.ObjectSystem;
 
 namespace CalradiaUnified
@@ -222,6 +223,28 @@ namespace CalradiaUnified
                         returnMenu = from;
                         GameMenu.SwitchToMenu("cu_origin_main");
                     }, false);
+                starter.AddGameMenuOption(from,
+                    "cu_family_portraits_" + from,
+                    "CU: View my household portraits",
+                    args => Hero.MainHero != null &&
+                        (Hero.MainHero.Spouse != null ||
+                         (Hero.MainHero.Children != null &&
+                          Hero.MainHero.Children.Count > 0)),
+                    args =>
+                    {
+                        try
+                        {
+                            ScreenManager.PushScreen(
+                                new CUFamilyPortraitScreen());
+                        }
+                        catch (Exception error)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_family_portrait_screen_failed",error);
+                            Notify("Household gallery could not open; " +
+                                "native Clan screen remains available.");
+                        }
+                    },false);
                 // Explicit repair for existing saves. The player must stand
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to
