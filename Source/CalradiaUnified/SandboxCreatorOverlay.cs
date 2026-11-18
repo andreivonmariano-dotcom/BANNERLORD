@@ -258,7 +258,7 @@ namespace CalradiaUnified
                     "choice",choices:new[]{"","empire","vlandia","sturgia",
                         "aserai","khuzait","battania"}),
                 new Field("Identity","PlayerAge",
-                    "Starting age (-1 means native)","number",18,80),
+                    "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
                     "Begin married","boolean"),
                 new Field("Household","SpouseName",
@@ -277,7 +277,7 @@ namespace CalradiaUnified
                 new Field("Household","SiblingCount",
                     "Number of siblings (0-4)","number",0,4),
                 new Field("Equipment","EquipmentKit",
-                    "Starting equipment theme","choice",
+                    "Equipment theme (not applied yet)","choice",
                     choices:SandboxOriginProfile.Kits),
                 new Field("Resources","Gold",
                     "Starting gold (-1 means native)","number",0,2000000,1000),
@@ -440,8 +440,8 @@ namespace CalradiaUnified
             {
                 if (page=="Identity") return "Choose your actual native start. Lord means Vassal with a kingdom; King uses the engine's royal start. Admiral requires naval content.";
                 if (page=="Household") return "Spouse and children are created as native heroes after character creation. Siblings need existing native parents.";
-                if (page=="Progression") return "Set attributes, 18 skills, focus and personality traits for your new character.";
-                if (page=="Equipment") return "Select a kit theme and exact existing game item IDs.";
+                if (page=="Progression") return "Set skill, attribute, focus and personality values for a one-time post-creation update.";
+                if (page=="Equipment") return "Exact item IDs are granted after native setup. Equipment theme presets are not active yet.";
                 if (page=="Resources") return "Set your treasury, influence and basic native-culture recruits.";
                 if (page=="Location") return "Choose native world scenarios, factions, seed and modifiers. Town relocation is not implemented.";
                 return "Review your real start, kingdom and family choices. Apply launches that native scenario; a save test is still required.";
