@@ -515,6 +515,21 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "Lord requires native Vassal Advanced Start");
 
+                // Named fiefs are resolved only after the game exists.
+                // A startup castle/town choice is consent-gated and must
+                // belong to the actual selected starting kingdom.
+                string fiefOutcome = SandboxStartingFief.TryApply(profile,hero);
+                DiagnosticJournal.Event("sandbox_start_fief_result",
+                    "mode=" + profile.StartingFiefMode +
+                    "|requested_id=" + profile.StartingFiefId +
+                    "|result=" + fiefOutcome);
+                if (fiefOutcome.StartsWith("refused:",
+                    StringComparison.Ordinal) ||
+                    fiefOutcome.StartsWith("failed:",
+                    StringComparison.Ordinal))
+                    Notify("Starting fief request could not be fulfilled: " +
+                        fiefOutcome);
+
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
@@ -593,6 +608,7 @@ namespace CalradiaUnified
                         "none" : observedKingdom.StringId) +
                     "|fiefs=" + (observedClan.Settlements == null ?
                         0 : observedClan.Settlements.Count) +
+                    "|fief_request=" + fiefOutcome +
                     "|spouse_present=" + (hero.Spouse != null) +
                     "|children=" + (hero.Children == null ?
                         0 : hero.Children.Count) +
