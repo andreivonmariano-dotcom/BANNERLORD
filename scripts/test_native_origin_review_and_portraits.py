@@ -36,8 +36,10 @@ assert "CUNativeOriginReviewStageView :\n        CharacterCreationReviewStageVie
 assert 'GauntletLayer("CUOriginNativeReview", 2, false)' in native
 assert "summaryLayer.IsFocusLayer = false;" in native
 assert 'summaryLayer.LoadMovie(' in native
-assert "base.GetLayers()" in native
-assert "base.OnFinalize()" in native
+assert "new List<ScreenLayer>(nativeReview.GetLayers())" in native
+assert "((ICharacterCreationStageListener)nativeReview)" in native
+assert ".OnStageFinalize();" in native
+assert "base.GetLayers()" not in native
 assert "new BodyGeneratorView" not in views
 assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" not in views
 assert "CharacterCreationStageView(typeof(CharacterCreationCultureStage))" not in views

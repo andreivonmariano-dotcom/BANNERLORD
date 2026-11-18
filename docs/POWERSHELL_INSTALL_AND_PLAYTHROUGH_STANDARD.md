@@ -30,24 +30,24 @@ The artifact's name and module version are **not sufficient to identify a build*
 
 This snapshot **passed Windows compilation and automated policy tests, not a game UI or save-reload test**.
 
-- [Successful Windows run #44354027407](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44354027407).
-- [Download its exact compiled-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44354027407/artifacts/14448584377), named `CalradiaUnified-v0.29.0-compiled-untested`.
-- Pinned script/source commit `c2105758af771bdb0d9b0b43174bf571b53d8140`.
-- Built `CalradiaUnified.dll`: **235,520 bytes**, SHA-256 **`3c154496d74b26650f9b97e1dfb0a8e796733b42f2a8959701720d78c6b16cc9`**.
+- [Successful Windows run #44356196239](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44356196239).
+- [Download its exact compiled-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44356196239/artifacts/14452476589), named `CalradiaUnified-v0.29.0-compiled-untested`.
+- Pinned script/source commit `5de33a51501c63ecd8954f76f5d0d748f2831c0e`.
+- Built `CalradiaUnified.dll`: **236,032 bytes**, SHA-256 **`52464b6e8adc60cd0e2d2fd72a4c8afe86466f4e955e4f2baf46b9136585795a`**.
 - Verified **620 game-policy checks**, **40 simulations**, 0 C# warnings/errors, source-only Gauntlet/unique stage contract, complete packaged prefab list, CI-hash install refusal, negative PowerShell portrait/native-review assertions.
 
 For this exact artifact, use:
 
 ```powershell
 $ModuleVersion = 'v0.29.0'
-$SourceCommit = 'c2105758af771bdb0d9b0b43174bf571b53d8140'
-$ExpectedHash = '3c154496d74b26650f9b97e1dfb0a8e796733b42f2a8959701720d78c6b16cc9'
+$SourceCommit = '5de33a51501c63ecd8954f76f5d0d748f2831c0e'
+$ExpectedHash = '52464b6e8adc60cd0e2d2fd72a4c8afe86466f4e955e4f2baf46b9136585795a'
 $Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.29.0-compiled-untested.zip'
 ```
 
 The `scripts/Test-CU-Playthrough.ps1` script now accepts `-RequireNativeReview` for the **explicit opt-in new game only** and `-ExpectedPortraits 3` after **CU: View my household portraits** has been opened for a player, spouse and one daughter in the **same logged new-game session**. These switches detect missing actual view loading and wrong real-family row counts, respectively.
 
-**Safety:** Native FaceGen/Culture/Review/Options views stay untouched. The additional CU 3D review is a distinct opt-in stage, **OFF by default**. It is not a single continuous CU/native creator. See [v0.29 real-game acceptance protocol](V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md).
+**Safety:** Native FaceGen/Culture/Review/Options views stay untouched. The additional CU 3D review is a distinct opt-in stage which wraps the native review without inheriting its registration attribute, **OFF by default**. It is not a single continuous CU/native creator. See [v0.29 real-game acceptance protocol](V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md).
 
 ## Historical verified example: v0.28.0, 18 November 2026
 
