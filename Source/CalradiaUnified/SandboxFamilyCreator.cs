@@ -88,8 +88,19 @@ namespace CalradiaUnified
                     // Native MarriageAction silently returns for unsuitable
                     // couples. Check that condition and both references, never
                     // claim a decorative spouse was successfully created.
-                    if (!Campaign.Current.Models.MarriageModel
-                        .IsCoupleSuitableForMarriage(player,spouseHero))
+                    bool nativeEligible = Campaign.Current.Models.MarriageModel
+                        .IsCoupleSuitableForMarriage(player,spouseHero);
+                    DiagnosticJournal.Event("cu_family_marriage_gate",
+                        "native_eligible=" + nativeEligible +
+                        "|player_age=" + player.Age +
+                        "|spouse_age=" + spouseHero.Age +
+                        "|player_can_marry=" + player.CanMarry() +
+                        "|spouse_can_marry=" + spouseHero.CanMarry() +
+                        "|player_clan=" + (player.Clan == null ?
+                            "none" : player.Clan.StringId) +
+                        "|spouse_clan=" + (spouseHero.Clan == null ?
+                            "none" : spouseHero.Clan.StringId));
+                    if (!nativeEligible)
                         throw new InvalidOperationException(
                             "Native marriage rules rejected the created spouse");
                     MarriageAction.Apply(player,spouseHero,false);
