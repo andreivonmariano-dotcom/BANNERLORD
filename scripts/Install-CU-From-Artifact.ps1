@@ -4,12 +4,17 @@
 param(
     [Parameter(Mandatory=$true)][string]$GameRoot,
     [Parameter(Mandatory=$true)][string]$ArtifactZip,
-    [string]$ExpectedVersion = "v0.27.0",
+    [string]$ExpectedVersion = "v0.28.0",
+    [string]$ExpectedDllSha256 = "",
     [switch]$ReplaceExisting
 )
 $ErrorActionPreference = "Stop"
 $game = [IO.Path]::GetFullPath($GameRoot)
 $download = [IO.Path]::GetFullPath($ArtifactZip)
+$trustedHash = $ExpectedDllSha256.Trim().ToLowerInvariant()
+if ($trustedHash -and $trustedHash -notmatch '^[0-9a-f]{64}$') {
+    throw "ExpectedDllSha256 must contain exactly 64 hexadecimal characters."
+}
 $mods = Join-Path $game "Modules"
 if (-not (Test-Path -LiteralPath (Join-Path $mods "Native\SubModule.xml") -PathType Leaf)) {
     throw "Choose the installed Bannerlord game root containing Modules/Native/SubModule.xml."
@@ -53,6 +58,14 @@ try {
     if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf)) {
         throw "The expected compiled CalradiaUnified.dll is missing."
     }
+    # A version number alone cannot distinguish two successful CI builds.
+    # Verify the artifact against its chosen successful workflow BEFORE
+    # moving the existing module or modifying the game directory.
+    $sourceHash = (Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($trustedHash -and $sourceHash -ne $trustedHash) {
+        throw ("Artifact rejected BEFORE installation. Expected CI DLL SHA256: " +
+            $trustedHash + "; downloaded DLL SHA256: " + $sourceHash)
+    }
     if (Test-Path -LiteralPath $destination) {
         if (-not $ReplaceExisting) {
             throw ("Module already exists at " + $destination +
@@ -62,8 +75,9 @@ try {
             [DateTime]::UtcNow.ToString("yyyyMMdd_HHmmss_ffff"))
         Move-Item -LiteralPath $destination -Destination $backup
     }
-    Copy-Item -LiteralPath $source -Destination $destination -Recurse
+    # Remove partial copies on any failure and restore the backup.
     $installed = $true
+    Copy-Item -LiteralPath $source -Destination $destination -Recurse
     $dll = Join-Path $destination $dllRelative
     if (-not (Test-Path -LiteralPath (Join-Path $destination "SubModule.xml") -PathType Leaf)) {
         throw "The installed SubModule.xml is missing."
@@ -71,12 +85,19 @@ try {
     if (-not (Test-Path -LiteralPath $dll -PathType Leaf)) {
         throw "The installed DLL is missing."
     }
-    $expected = (Get-FileHash -LiteralPath $sourceDll -Algorithm SHA256).Hash
-    $actual = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash
-    if ($actual -ne $expected) { throw "Installed DLL hash mismatch." }
+    $actual = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+    if ($actual -ne $sourceHash) { throw "Installed DLL hash mismatch." }
+    if ($trustedHash -and $actual -ne $trustedHash) {
+        throw "Installed DLL does not match the selected CI SHA-256."
+    }
     Write-Output ("INSTALL PASS: " + $destination)
     Write-Output ("Manifest version: " + $manifest.Module.Version.value)
-    Write-Output ("Installed DLL SHA256: " + $actual.ToLowerInvariant())
+    Write-Output ("Installed DLL SHA256: " + $actual)
+    if ($trustedHash) {
+        Write-Output ("Verified DLL against pinned successful CI SHA256: " + $trustedHash)
+    } else {
+        Write-Warning "CI identity UNPINNED. Pass -ExpectedDllSha256 from the chosen successful workflow."
+    }
     if ($backup) { Write-Output ("Older module backed up at: " + $backup) }
     Write-Output "Fully close and reopen Bannerlord, then check Singleplayer > Mods."
     Write-Output "File installation is verified, not in-game loading or launcher detection."

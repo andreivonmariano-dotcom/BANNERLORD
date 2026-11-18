@@ -103,6 +103,53 @@ internal static class Program
         Check("active marriageable generated couple passes preflight",
             SandboxGeneratedMarriagePolicy.Check(
                 true,true,true,true,true,true,true) == "");
+        Check("family home defaults to a safe owned fief",
+            new SandboxOriginProfile().FamilyHomeMode=="OwnedFief");
+        Check("family home refuses unknown mode",
+            SandboxFamilyHomePolicy.ValidateRequest("None","",true) ==
+                "family_home_mode_invalid");
+        Check("family home exact settlement requires ID",
+            SandboxFamilyHomePolicy.ValidateRequest("SpecificOwned","",true) ==
+                "family_home_id_required");
+        var incompleteFamilyHome = new SandboxOriginProfile();
+        incompleteFamilyHome.TrySet("SpouseEnabled","true");
+        incompleteFamilyHome.TrySet("FamilyHomeMode","SpecificOwned");
+        Check("family residence mode can be saved before ID entry",
+            incompleteFamilyHome.IsValid(30,out var incompleteHomeError));
+        Check("family residence must be complete at final confirmation",
+            SandboxFamilyHomePolicy.ValidateRequest(
+                incompleteFamilyHome.FamilyHomeMode,
+                incompleteFamilyHome.FamilyHomeId,
+                incompleteFamilyHome.SpouseEnabled) ==
+                "family_home_id_required");
+        Check("family home accepts owned unbesieged fortified destination",
+            SandboxFamilyHomePolicy.ValidateSettlement(true,true,false,false)=="");
+        Check("family home refuses cross-clan siege or village",
+            SandboxFamilyHomePolicy.ValidateSettlement(false,true,false,false) ==
+                "not_player_clan_fief" &&
+            SandboxFamilyHomePolicy.ValidateSettlement(true,true,true,false) ==
+                "settlement_under_siege" &&
+            SandboxFamilyHomePolicy.ValidateSettlement(true,false,false,false) ==
+                "not_castle_or_town" &&
+            SandboxFamilyHomePolicy.ValidateSettlement(true,true,false,true) ==
+                "settlement_in_battle");
+        Check("a baby remains a minor without party after homing",
+            SandboxFamilyHomePolicy.CanPlaceMinor(true,true,true,true) &&
+            !SandboxFamilyHomePolicy.CanPlaceMinor(true,true,true,false) &&
+            !SandboxFamilyHomePolicy.CanPlaceMinor(true,true,false,true));
+        var familyHomeProfile = new SandboxOriginProfile();
+        familyHomeProfile.TrySet("FamilyHomeMode","SpecificOwned");
+        familyHomeProfile.TrySet("FamilyHomeId","castle_V1");
+        familyHomeProfile.TrySet("SpouseEnabled","true");
+        Check("family residence selected castle survives serialize",
+            SandboxOriginProfile.Parse(familyHomeProfile.Serialize())
+                .FamilyHomeMode=="SpecificOwned" &&
+            SandboxOriginProfile.Parse(familyHomeProfile.Serialize())
+                .FamilyHomeId=="castle_V1");
+        familyHomeProfile.ResetForNewCampaign();
+        Check("new campaign resets family home choice",
+            familyHomeProfile.FamilyHomeMode=="OwnedFief" &&
+            familyHomeProfile.FamilyHomeId=="");
         Check("native fresh NotSpawned hero is refused",
             SandboxGeneratedMarriagePolicy.Check(
                 true,false,true,false,true,true,true) ==

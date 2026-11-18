@@ -371,7 +371,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
                         HeightSizePolicy="Fixed" SuggestedHeight="43"
                         PositionXOffset="990" PositionYOffset="369" />
-            <TextWidget Text="LAND AND WORLD" Color="#C9A46CFF"
+            <TextWidget Text="LAND, WORLD AND HOME" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="29"
                         PositionXOffset="990" PositionYOffset="426" />
@@ -381,12 +381,16 @@
                         PositionXOffset="990" PositionYOffset="455" />
             <TextWidget Text="@WorldSummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="256"
-                        HeightSizePolicy="Fixed" SuggestedHeight="38"
-                        PositionXOffset="990" PositionYOffset="514" />
+                        HeightSizePolicy="Fixed" SuggestedHeight="24"
+                        PositionXOffset="990" PositionYOffset="501" />
+            <TextWidget Text="@FamilyHomeSummary" Color="#E8C17DFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="256"
+                        HeightSizePolicy="Fixed" SuggestedHeight="34"
+                        PositionXOffset="990" PositionYOffset="529" />
             <TextWidget Text="@StartNotice" Color="#C4BAA8FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="254"
-                        HeightSizePolicy="Fixed" SuggestedHeight="55"
-                        PositionXOffset="990" PositionYOffset="556" />
+                        HeightSizePolicy="Fixed" SuggestedHeight="47"
+                        PositionXOffset="990" PositionYOffset="565" />
             <ButtonWidget Brush="ButtonBrush"
                           DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"

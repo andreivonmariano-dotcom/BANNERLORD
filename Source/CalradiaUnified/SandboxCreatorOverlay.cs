@@ -287,6 +287,11 @@ namespace CalradiaUnified
                     "Starting influence (-1 means native)","number",0,100000,100),
                 new Field("Resources","Troops",
                     "Additional native-culture recruits","number",0,50),
+                new Field("Location","FamilyHomeMode",
+                    "Where should your family live?",
+                    "choice",choices:SandboxFamilyHomePolicy.Modes),
+                new Field("Location","FamilyHomeId",
+                    "Exact owned castle or town ID for your family","text"),
                 new Field("Location","StartingTown",
                     "Preferred starting settlement ID (relocation pending)","text"),
                 new Field("Location","StartingFiefMode",
@@ -392,6 +397,11 @@ namespace CalradiaUnified
                     parts[2]=="Name" || parts[2]=="Age" ||
                     parts[2]=="Gender";
             }
+            if (key=="FamilyHomeMode")
+                return profile.SpouseEnabled;
+            if (key=="FamilyHomeId")
+                return profile.SpouseEnabled &&
+                    profile.FamilyHomeMode=="SpecificOwned";
             if (key=="StartingFiefId")
                 return profile.StartingFiefMode=="Specific";
             if (key=="AllowStartingFiefTransfer")
@@ -522,6 +532,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(ChildPreview,"ChildPreview");
             OnPropertyChangedWithValue(LandSummary,"LandSummary");
             OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
+            OnPropertyChangedWithValue(FamilyHomeSummary,"FamilyHomeSummary");
             OnPropertyChangedWithValue(StartNotice,"StartNotice");
             OnPropertyChangedWithValue(Status,"Status");
         }
@@ -560,6 +571,8 @@ namespace CalradiaUnified
                 if (key=="SpouseBirthClanId") return "Use a real clan ID from your starting kingdom. A living married couple must be old enough to be your spouse's parents.";
                 if (key=="SpouseCulture") return "Leave blank to match your player culture, or select an official game culture ID. Vlandian is stored as vlandia.";
                 if (key=="ChildCount") return "Each campaign begins with zero children. Plus, minus and the slider save immediately. Set a number, then enter each child's name, age and sex.";
+                if (key=="FamilyHomeMode") return "OwnedFief: any safe castle or town you own. ClanHome: prefer your clan home. SpecificOwned: exact owned settlement. A baby is housed as a child, never recruited to a party.";
+                if (key=="FamilyHomeId") return "Enter the exact internal ID of a castle or town already owned by your clan. Unsafe, besieged or foreign holdings are refused.";
                 if (key=="StartingFiefMode") return "Native preserves Bannerlord's grants. Castle/Town/Specific can transfer land from a same-kingdom clan.";
                 if (key=="StartingFiefId") return "Enter an exact settlement ID from this game version. Unknown and foreign holdings are refused.";
                 if (key=="AllowStartingFiefTransfer") return "Required for a non-native starting fief. This can remove a holding from another clan.";
@@ -590,7 +603,7 @@ namespace CalradiaUnified
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
                 if (page=="Household") return "Choose a spouse and exact child count. Every number change saves immediately. Your children's ages and genders appear in the plan.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
-                if (page=="Location") return "Choose native fiefs or an approved same-kingdom transfer. Advanced world settings are optional.";
+                if (page=="Location") return "Set your family's home in a town or castle, then choose your fief policy. No party recall is needed for infants.";
                 return "Part 1 of 2 is complete. Bannerlord handles culture, 3D appearance, origins, age and difficulty next.";
             }
         }
@@ -727,15 +740,28 @@ namespace CalradiaUnified
             get
             {
                 return profile.StartingScenario=="none" ?
-                    "Normal Sandbox world" : profile.StartingScenario;
+                    "World: Normal Sandbox" :
+                    "World: " + profile.StartingScenario;
+            }
+        }
+        [DataSourceProperty] public string FamilyHomeSummary
+        {
+            get
+            {
+                if (!profile.SpouseEnabled)
+                    return "Home: no household";
+                if (profile.FamilyHomeMode=="SpecificOwned")
+                    return "Family home: " + profile.FamilyHomeId;
+                return profile.FamilyHomeMode=="ClanHome" ?
+                    "Family home: clan's owned seat" :
+                    "Family home: owned town or castle";
             }
         }
         [DataSourceProperty] public string StartNotice
         {
             get
             {
-                return "PART 2: Bannerlord culture, 3D face, origins, " +
-                    "age and difficulty. Family applies at finalization.";
+                return "NEXT: native culture, face, origins, age and difficulty. A minor stays a child, never a party troop.";
             }
         }
         [DataSourceProperty] public string ProfileSummary
@@ -913,6 +939,16 @@ namespace CalradiaUnified
                     "available at fresh Sandbox start. Set sibling count to zero.");
                 return;
             }
+            // SpecificOwned has two separate edits: choose mode, then type
+            // ID. Validate the complete request only at final acceptance.
+            string homeError = SandboxFamilyHomePolicy.ValidateRequest(
+                candidate.FamilyHomeMode,candidate.FamilyHomeId,
+                candidate.SpouseEnabled);
+            if (homeError.Length != 0)
+            {
+                SetStatus("Family home request: " + homeError);
+                return;
+            }
             string fiefError = SandboxFiefPolicy.ValidateRequest(
                 candidate.Role, candidate.StartingFiefMode,
                 candidate.StartingFiefId,
@@ -953,6 +989,8 @@ namespace CalradiaUnified
                 "|family_requested="+profile.RealFamilyEnabled+
                 "|spouse_requested="+profile.SpouseEnabled+
                 "|child_count="+profile.ChildCount+
+                "|family_home_mode="+profile.FamilyHomeMode+
+                "|family_home_id="+profile.FamilyHomeId+
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
