@@ -308,10 +308,9 @@ namespace CalradiaUnified
                 new Field("Location","StartCivilUnrest","World: civil unrest","boolean"),
                 new Field("Location","StartRecruitShortage","World: recruit shortage","boolean"),
                 new Field("Location","StartSwiftTravel","World: swift travel","boolean"),
-                new Field("Review","RealFamilyEnabled",
-                    "EXPERIMENTAL: create real spouse and children","boolean"),
-                new Field("Review","RoleAffiliationsEnabled",
-                    "EXPERIMENTAL: request native military contracts","boolean")
+                new Field("Review","Role",
+                    "Confirmed native starting role","choice",
+                    choices:SandboxOriginProfile.Roles)
             };
             foreach (string attribute in SandboxOriginProfile.Attributes)
                 f.Add(new Field("Progression","Attribute."+attribute,
@@ -468,7 +467,8 @@ namespace CalradiaUnified
             get
             {
                 int count=fields.Count(f=>f.Page==page);
-                return "Field "+(selectedIndex+1)+" of "+count;
+                return page == "Review" ? "CONFIRM YOUR NEW CALRADIAN LIFE" :
+                    "Field "+(selectedIndex+1)+" of "+count;
             }
         }
         [DataSourceProperty] public bool IsNumber
