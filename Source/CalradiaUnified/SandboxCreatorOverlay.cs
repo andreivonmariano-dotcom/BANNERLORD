@@ -530,6 +530,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(ProfileSummary,"ProfileSummary");
             OnPropertyChangedWithValue(RoleSummary,"RoleSummary");
             OnPropertyChangedWithValue(FamilySummary,"FamilySummary");
+            OnPropertyChangedWithValue(ChildPreview,"ChildPreview");
             OnPropertyChangedWithValue(LandSummary,"LandSummary");
             OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
             OnPropertyChangedWithValue(StartNotice,"StartNotice");
@@ -598,7 +599,7 @@ namespace CalradiaUnified
             get
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
-                if (page=="Household") return "Generate a new spouse, choose commoner or noble ancestry, then select your children's names, ages and genders.";
+                if (page=="Household") return "Choose a spouse and exact child count. Every number change saves immediately. Your children's ages and genders appear in the plan.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
                 if (page=="Location") return "Choose native fiefs or an approved same-kingdom transfer. Advanced world settings are optional.";
                 return "Part 1 of 2 is complete. Bannerlord handles culture, 3D appearance, origins, age and difficulty next.";
@@ -698,13 +699,27 @@ namespace CalradiaUnified
             {
                 if (!profile.SpouseEnabled)
                     return "Unmarried, no children";
-                return profile.SpouseBackground + " spouse  /  " +
+                return profile.SpouseBackground + " spouse / " +
                     profile.ChildCount +
-                    (profile.ChildCount==1 ? " child" : " children") +
-                    (profile.ChildCount==1 ? " | " +
-                        profile.Children[0].Name + " (" +
-                        profile.Children[0].Gender + ", age " +
-                        profile.Children[0].Age + ")" : "");
+                    (profile.ChildCount==1 ? " child" : " children");
+            }
+        }
+        [DataSourceProperty] public string ChildPreview
+        {
+            get
+            {
+                if (!profile.SpouseEnabled || profile.ChildCount==0)
+                    return "No child requested";
+                if (profile.ChildCount==1)
+                {
+                    var child=profile.Children[0];
+                    return child.Name + "  |  " + child.Gender +
+                        "  |  age " + child.Age;
+                }
+                return String.Join(", ",
+                    profile.Children.Take(Math.Min(2,profile.ChildCount))
+                        .Select(c=>c.Name)) +
+                    (profile.ChildCount>2 ? " and others" : "");
             }
         }
         [DataSourceProperty] public string LandSummary
