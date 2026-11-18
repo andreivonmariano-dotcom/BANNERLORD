@@ -22,7 +22,7 @@ assert 'SandboxFamilyHomePolicy.Modes' in overlay
 assert 'profile.FamilyHomeMode=="SpecificOwned"' in overlay
 assert "sandbox_creator_family_plan" in overlay
 assert 'string familyHome = family.StartsWith("spouse="' in origin
-assert "SandboxFamilyHome.TryPlace(profile,hero)" in origin
+assert "SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome)" in origin
 assert "SandboxFamilyHome.PlaceExistingFamilyAt(" in origin
 assert "cu_family_home_status" in origin
 assert '"cu_family_residence_here_" + from' in origin
@@ -34,6 +34,8 @@ assert "target.IsFortification" in home
 assert "target.IsUnderSiege" in home
 assert "target.Party.MapEvent" in home
 assert '"SpecificOwned"' in home
+assert "startingFiefOutcome.StartsWith(\"granted:\"" in home
+assert "UpdateLastKnownClosestSettlement(target)" in home
 assert 'StringComparer.Ordinal' in home
 
 # Teleport native adult, NEVER teleport a minor or modify its state.
