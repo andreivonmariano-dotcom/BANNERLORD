@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.25.0 generated spouse noble family and inherited child appearance
+name: Calradia Unified 1.5.7 - v0.25.0 activate native generated spouse before marriage and clean failed creations
 on:
   workflow_dispatch:
   push:
@@ -71,6 +71,9 @@ jobs:
       - name: Verify generated spouse clan ancestry and parent-blended child appearance
         shell: pwsh
         run: python scripts/test_generated_family.py
+      - name: Guard native generated spouse activation and orphan cleanup
+        shell: pwsh
+        run: python scripts/test_active_generated_marriage.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
