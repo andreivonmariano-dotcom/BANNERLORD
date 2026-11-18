@@ -52,15 +52,28 @@ namespace CalradiaUnified
         {
             // Keep the existing native review layer focused. The separate
             // CU summary has no commands and must not consume input.
-            summaryViewModel = new CUNativeOriginReviewVM(manager,
-                SandboxOriginProfile.Load(SandboxOriginProfile.UserPath));
-            summaryLayer = new GauntletLayer("CUOriginNativeReview", 2, false);
-            summaryLayer.IsFocusLayer = false;
-            summaryMovie = summaryLayer.LoadMovie(
-                "CUNativeOriginReview", summaryViewModel);
-            DiagnosticJournal.Event("cu_native_review_view_loaded",
-                "native_player_3d=true|native_review_view_reused=true" +
-                "|non_focus_summary=true|family_previews=planned_only");
+            try
+            {
+                summaryViewModel = new CUNativeOriginReviewVM(manager,
+                    SandboxOriginProfile.Load(SandboxOriginProfile.UserPath));
+                summaryLayer = new GauntletLayer("CUOriginNativeReview", 2, false);
+                summaryLayer.IsFocusLayer = false;
+                summaryMovie = summaryLayer.LoadMovie(
+                    "CUNativeOriginReview", summaryViewModel);
+                DiagnosticJournal.Event("cu_native_review_view_loaded",
+                    "native_player_3d=true|native_review_view_reused=true" +
+                    "|non_focus_summary=true|family_previews=planned_only");
+            }
+            catch (Exception error)
+            {
+                // This page's base native 3D review is still fully usable
+                // if our supplementary Gauntlet prefab fails to load.
+                summaryLayer = null;
+                summaryMovie = null;
+                summaryViewModel = null;
+                DiagnosticJournal.Exception(
+                    "cu_native_review_summary_fallback",error);
+            }
         }
 
         public override IEnumerable<ScreenLayer> GetLayers()
@@ -72,12 +85,24 @@ namespace CalradiaUnified
 
         protected override void OnFinalize()
         {
-            if (summaryLayer != null && summaryMovie != null)
-                summaryLayer.ReleaseMovie(summaryMovie);
-            summaryMovie = null;
-            summaryViewModel = null;
-            summaryLayer = null;
-            base.OnFinalize();
+            try
+            {
+                if (summaryLayer != null && summaryMovie != null)
+                    summaryLayer.ReleaseMovie(summaryMovie);
+            }
+            catch (Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_native_review_summary_release",error);
+            }
+            finally
+            {
+                summaryMovie = null;
+                summaryViewModel = null;
+                summaryLayer = null;
+                // Always finalize native 3D player visuals and camera.
+                base.OnFinalize();
+            }
         }
     }
 
