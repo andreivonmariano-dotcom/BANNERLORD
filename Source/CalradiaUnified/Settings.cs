@@ -223,6 +223,11 @@ namespace CalradiaUnified
             {
                 SettingsMenuPolicy.WriteOverride(path, key, normalized);
                 ApplyLines(this, new[] { key + "=" + normalized });
+                if (key == "EnableDiagnostics")
+                {
+                    DiagnosticJournal.Enabled = EnableDiagnostics;
+                    if (EnableDiagnostics) DiagnosticJournal.InstallManagedExceptionHooks();
+                }
                 error = "";
                 return true;
             }

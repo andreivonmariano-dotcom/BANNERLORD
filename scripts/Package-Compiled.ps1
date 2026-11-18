@@ -19,6 +19,11 @@ $stage = Join-Path $root 'Modules\CalradiaUnified'
 if (Test-Path $stage) { Remove-Item $stage -Recurse -Force }
 New-Item -ItemType Directory -Path $stage -Force | Out-Null
 Copy-Item $manifest (Join-Path $stage 'SubModule.xml')
+# Only our own native Gauntlet movie XML is packaged; no third-party UI asset.
+$gui = Join-Path $module 'GUI'
+if (Test-Path -LiteralPath $gui) {
+    Copy-Item $gui (Join-Path $stage 'GUI') -Recurse
+}
 Copy-Item (Join-Path $module 'ModuleData') (Join-Path $stage 'ModuleData') -Recurse
 # The read-only crash/finance ZIP exporter ships inside the one-folder module.
 Copy-Item (Join-Path $ProjectRoot 'scripts\Export-CU-Diagnostics.ps1')  (Join-Path $stage 'ModuleData\Export-CU-Diagnostics.ps1')

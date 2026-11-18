@@ -1,31 +1,32 @@
-# Calradia Unified v0.14.0: native in-game settings, no third-party frameworks
+# Calradia Unified v0.15.0 | Complete settings catalog and experimental Gauntlet UI
 
-**Target:** Bannerlord PC v1.5.7. **Status:** v0.14.0 Gate B [Windows build 44249156647](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647) passed on commit `3606ba5faa2c69ba7065624d40002d787f74e970`. The run passed 217 independent policy checks, 14,600 modeled campaign days, a version-pinned game DLL build with 0 warnings and 0 errors, and ZIP CRC/identity checks. Native in-game startup and save/load remain untested. This includes all v0.13 castle finance, staff transfer, and 78-mod priority work.
+**Target:** Bannerlord PC v1.5.7, no installer, one `Modules/CalradiaUnified` folder and one custom DLL. **Highest evidence: Gate B COMPILED_UNTESTED.** The [v0.15 Windows run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44251639925) verified source, 78 historic module IDs, **530 independent policy checks**, 40 deterministic simulated campaigns (14,600 days and 303,098 checks), game-reference compilation (0 errors, 0 warnings), and packaged ZIP integrity.
 
-## New in v0.14
+## v0.15 changes
 
-Enter a **town or castle** and choose **CU: Configure Calradia Unified**. The new native Bannerlord campaign menu contains three pages: Reports and Warnings, Economy and Recruitment, and Castle Management. Each flag has an Enable or Disable choice with the opposite state automatically hidden. Two supported numeric controls can be increased or decreased one step at a time.
+- All **64** declared configuration settings from `Settings.cs`: **24 Boolean feature flags and 40 bounded numerical values**, across nine native campaign-menu categories.
+- Each setting has a separate detail page. Experimental flags require opening that page before choosing Enable. Defaults are unchanged, and autonomous orders and convoys are still **off** by default.
+- New **EXPERIMENTAL** native Gauntlet screen with three tab buttons, selected setting navigation, Boolean toggle, and a native slider with an explicit Save action. Its XML is packaged inside the same module folder and has **not** been verified in the real game.
+- Persistent per-user settings at `%LOCALAPPDATA%\CalradiaUnified\calradia-user-config.ini`. It overrides the bundled `ModuleData/calradia-config.ini`, leaves the installed module unchanged and updates active shared settings only after a successful write.
+- New runtime-evidence validator and Windows preflight script, with conservative status classifications that do not assert game startup, visual rendering or save/load without observed in-game evidence.
 
-Changes write to a user-owned file at `%LOCALAPPDATA%\\CalradiaUnified\\calradia-user-config.ini` and take effect within the same campaign. This **does not write to the installed module directory**. Old `ModuleData/calradia-config.ini` values remain the baseline and are overridden only by saved user settings. Unknown user-edited keys and comments are preserved. Failed saves do not change live settings.
+### Opening settings
 
-Existing dangerous automated orders, experimental convoys, auto garrison training, and other advanced controls remain off by default and are not exposed through the native menu. The native menu, profile persistence and startup still need game testing.
+Enter a town or castle. Choose **CU: Configure Calradia Unified** for the nine-category native settings menu. From its main page choose **EXPERIMENTAL: Open native tabbed slider panel** to try the three-tab screen in a disposable test campaign. The native menu remains the fallback.
 
-## Internal equivalents rather than copied frameworks
+## Historical frameworks: external DLLs remain unnecessary
 
-- **Harmony:** existing safe native campaign event hooks, no arbitrary method patcher.
-- **ButterLib:** existing local log, managed exceptions and diagnostic export.
-- **UIExtenderEx:** add campaign UI through official native game menu registration. No Gauntlet widget patcher.
-- **MCM:** new native in-game settings categories, opt-in toggles, numeric controls and persistent user overrides. No general third-party settings extension API.
+- **Harmony:** native campaign event handlers only, no general method patching API.
+- **ButterLib:** local logging, managed exceptions, diagnostic ZIPs, no ButterLib API compatibility.
+- **UIExtenderEx:** official native menu and a self-contained Gauntlet prefab, no arbitrary third-party prefab patching.
+- **MCM:** the project's own settings controls and persistence, no compatible MCM plugin API.
 
-No Harmony, ButterLib, UIExtenderEx or MCM DLL, package or separate module is needed.
+## Game-only acceptance
 
-## Existing documentation
+- [v0.15 startup, nine-category, native slider and save/load test matrix](docs/V015_RUNTIME_ACCEPTANCE.md)
+- [Windows installed-game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
+- [Session and settings event analysis](scripts/validate_runtime_evidence.py)
+- [Original 78-mod priority register](Data/Reconstruction_Priority_78.csv)
+- [Castle management controls and limitations](docs/V013_CASTLE_MANAGEMENT.md)
 
-- [Native settings and framework capability limits](docs/NATIVE_FRAMEWORK_CAPABILITIES_v014.md)
-- [Castle management v0.13 acceptance](docs/V013_CASTLE_MANAGEMENT.md)
-- [Full 78-mod priority register](Data/Reconstruction_Priority_78.csv)
-- [M0 real-game test procedure](docs/M0_TEST_PROCEDURE.md)
-
-**Verified artifact:** [v0.14.0 compiled, untested ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647/artifacts/14403381305). Compiled DLL SHA-256: `4668981a4b7d582ae0bfac3fd2bacfdfb10c91ab707d6bf44a93dd0a883683f3`; inner ZIP SHA-256: `e75c082c2112902cd921bdd04a459b25ec7d69f779fa8eb357c9dac41449fb2a`.
-
-**Release status:** COMPILED_UNTESTED after a successful exact v0.14 workflow. Do not claim a real game launch, save/reload or MCM compatibility from reference-assembly compilation.
+**Verified compiled ZIP:** [CalradiaUnified-v0.15.0-compiled-untested](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44251639925/artifacts/14403429717). Do not call the module game-tested or released until Bannerlord v1.5.7 launcher, screen rendering, gameplay, and same-save persistence have been verified.

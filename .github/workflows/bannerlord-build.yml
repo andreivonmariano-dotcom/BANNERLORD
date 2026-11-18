@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.14.0 native in-game settings and standalone framework equivalents
+name: Calradia Unified 1.5.7 - v0.15.0 complete catalog settings and runtime diagnostics
 on:
   workflow_dispatch:
   push:
@@ -33,6 +33,22 @@ jobs:
       - name: Validate 78-module reconstruction priorities
         shell: pwsh
         run: python scripts/test_priority_ranking.py
+      - name: Audit all 64 settings against source parser ranges
+        shell: pwsh
+        run: python scripts/validate_settings_catalog.py
+      - name: Audit native Gauntlet XML against ViewModel bindings
+        shell: pwsh
+        run: python scripts/test_gauntlet_bindings.py
+      - name: Verify runtime evidence analyzer rejects unproven game claims
+        shell: pwsh
+        run: python scripts/validate_runtime_evidence.py --self-test
+      - name: Validate Windows runtime preflight script syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path scripts/Run-CU-Runtime-Preflight.ps1).Path, [ref]$tokens, [ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) { throw ("PowerShell preflight syntax errors: " + ($parseErrors -join '; ')) }
       - name: Test diagnostic export reader
         shell: pwsh
         run: python scripts/analyze_diagnostics.py --self-test
@@ -84,18 +100,18 @@ jobs:
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
       - name: Verify ZIP paths, CRC, DLL identity and hashes
         shell: pwsh
-        run: python scripts/verify_package.py Output/CalradiaUnified_v0.14.0_COMPILED_UNTESTED.zip --version v0.14.0
+        run: python scripts/verify_package.py Output/CalradiaUnified_v0.15.0_COMPILED_UNTESTED.zip --version v0.15.0
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-compiled-untested
-          path: Output/CalradiaUnified_v0.14.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.15.0-compiled-untested
+          path: Output/CalradiaUnified_v0.15.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-simulation-report
+          name: CalradiaUnified-v0.15.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -104,6 +120,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.14.0-build-errors
+          name: CalradiaUnified-v0.15.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

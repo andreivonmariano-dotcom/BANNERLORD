@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Native Settings and Castle Management Candidate" />
+  <Name value="Calradia Unified - Complete Settings and Castle Management Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.14.0" />
+  <Version value="v0.15.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

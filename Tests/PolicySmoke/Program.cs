@@ -307,13 +307,41 @@ internal static class Program
         Check("manual wage cap no layoffs", !CastleManagementPolicy.CanApplyCap(true, true, true, false, 2000, 1000, 250, 1100));
         Check("manual wage cap siege rejected", !CastleManagementPolicy.CanApplyCap(true, true, true, true, 2000, 1000, 250, 900));
         Check("manual wage cap disabled", !CastleManagementPolicy.CanApplyCap(false, true, true, false, 2000, 1000, 250, 900));
+        var catalogKeys = new System.Collections.Generic.HashSet<string>();
+        foreach (var option in SettingsCatalog.All)
+        {
+            Check("catalog has unique field " + option.Key,
+                catalogKeys.Add(option.Key));
+            Check("catalog field matches Settings type " + option.Key,
+                typeof(Settings).GetField(option.Key) != null &&
+                typeof(Settings).GetField(option.Key).FieldType ==
+                (option.Boolean ? typeof(bool) : typeof(int)));
+            Check("catalog default value is valid " + option.Key,
+                SettingsCatalog.TryNormalize(option.Key,
+                    SettingsCatalog.Read(new Settings(), option), out var normalizedDefault));
+            if (!option.Boolean)
+            {
+                Check("catalog numeric upper bound " + option.Key,
+                    !SettingsCatalog.TryNormalize(option.Key,
+                        ((long)option.Max + 1).ToString(), out var tooBig));
+                Check("catalog numeric lower bound " + option.Key,
+                    !SettingsCatalog.TryNormalize(option.Key,
+                        ((long)option.Min - 1).ToString(), out var tooSmall));
+                Check("catalog numeric clamp " + option.Key,
+                    SettingsCatalog.Next(option.Max, option, 1, 10) == option.Max &&
+                    SettingsCatalog.Next(option.Min, option, -1, 10) == option.Min);
+            }
+        }
+        Check("catalog covers every public configurable value",
+            catalogKeys.Count == 64);
         Check("settings allow-list accepts reporting toggles",
             SettingsMenuPolicy.TryNormalize("EnableSupplyWarnings", "false", out var normalizedBool)
             && normalizedBool == "false");
         Check("settings allow-list rejects external patch switch",
             !SettingsMenuPolicy.TryNormalize("EnableHarmonyPatching", "true", out var unknown));
-        Check("settings allow-list rejects dangerous patrol activation",
-            !SettingsMenuPolicy.TryNormalize("EnableAutonomousClanPatrol", "true", out var forbidden));
+        Check("settings catalog exposes risky patrol under explicit experimental state",
+            SettingsMenuPolicy.TryNormalize("EnableAutonomousClanPatrol", "true", out var forbidden)
+            && SettingsCatalog.Find("EnableAutonomousClanPatrol").Experimental);
         Check("settings rejects malformed bool",
             !SettingsMenuPolicy.TryNormalize("EnableEconomy", "yes", out var badBool));
         Check("settings accepts maximum day threshold",

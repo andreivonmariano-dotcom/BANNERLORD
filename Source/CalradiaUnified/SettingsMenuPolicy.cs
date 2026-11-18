@@ -14,43 +14,7 @@ namespace CalradiaUnified
     {
         public static bool TryNormalize(string key, string raw, out string normalized)
         {
-            normalized = null;
-            if (key == null || raw == null) return false;
-            switch (key)
-            {
-                case "EnableSupplyWarnings":
-                case "EnableArmyWarnings":
-                case "EnableNpcAdvisory":
-                case "EnableCivicSystems":
-                case "EnableEconomy":
-                case "EnableRecruitment":
-                case "EnableDepotTrade":
-                case "EnableManualGarrisonTransfers":
-                case "EnableManualGarrisonWageCaps":
-                case "EnableGarrisonTraining":
-                    bool b;
-                    if (!Boolean.TryParse(raw, out b)) return false;
-                    normalized = b ? "true" : "false";
-                    return true;
-                case "SupplyWarningDays":
-                    return NormalizeInt(raw, 0, 15, out normalized);
-                case "LocalRecruitDailyCap":
-                    return NormalizeInt(raw, 1, 20, out normalized);
-                default:
-                    return false;
-            }
-        }
-
-        private static bool NormalizeInt(string raw, int min, int max,
-            out string normalized)
-        {
-            normalized = null;
-            int n;
-            if (!Int32.TryParse(raw, NumberStyles.Integer,
-                CultureInfo.InvariantCulture, out n) || n < min || n > max)
-                return false;
-            normalized = n.ToString(CultureInfo.InvariantCulture);
-            return true;
+            return SettingsCatalog.TryNormalize(key, raw, out normalized);
         }
 
         public static string UpdateLines(string existing, string key, string value)

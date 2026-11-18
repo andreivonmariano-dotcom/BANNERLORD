@@ -1,4 +1,5 @@
-# Native framework capabilities and settings UI for v0.14
+# Historical v0.14 native settings design
+For the current v0.15 settings catalog and Gauntlet panel, see [V015_NATIVE_SETTINGS_CAPABILITIES.md](V015_NATIVE_SETTINGS_CAPABILITIES.md).
 
 **Target:** Bannerlord PC v1.5.7. **Candidate status:** Gate B COMPILED_UNTESTED, verified by [Windows workflow 44249156647](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44249156647) at commit `3606ba5faa2c69ba7065624d40002d787f74e970`. It passed 217 policy checks, 40 deterministic modeled campaigns, 78-module coverage, v1.5.7 reference compilation, and runtime ZIP checks with 0 compiler errors/warnings. Game runtime and save/reload unverified.
 
@@ -26,7 +27,7 @@ The supply warning threshold supports 0–15 days. The local recruitment daily c
 3. UI save writes a temporary file in the local settings directory and commits it by replace/rename. The memory value updates only after disk success. A failed write does not change the current setting.
 4. A user can remove the local override file to return to the bundled defaults. No campaign save data keys were changed.
 
-**Safety:** native menus expose only a strict allow-list. Autonomous NPC movement and physical convoy toggles are intentionally not editable here. Experimental economy, recruitment and castle actions remain disabled until the user explicitly turns one on.
+**Safety:** native menus expose the audited catalog of all 64 existing public settings with strict type and range constraints. Autonomous NPC movement and physical convoy toggles are marked experimental with a detail page before activation. Experimental economy, recruitment and castle actions remain disabled until the user explicitly turns one on.
 
 ## Verification still required
 
@@ -35,3 +36,9 @@ The supply warning threshold supports 0–15 days. The local recruitment daily c
 3. Toggle a report option in-game, confirm it changes activity without relaunch, save and restart, and verify the user override wins.
 4. Confirm missing, malformed and read-only profile file behavior. The mod must remain loadable and report write errors without activating a failed option.
 5. Exercise experimental controls only in a fresh test campaign. Save/reload, siege, ownership and mission exit remain unverified.
+
+## v0.15 experimental direct Gauntlet panel
+
+The optional **EXPERIMENTAL: Open native tabbed slider panel** action uses the game's own `ScreenBase`, `GauntletLayer`, `ViewModel` and `SliderWidget`. It has three section tabs, setting navigation, toggle actions and a numeric drag slider with an explicit **Save value** action. The slider does not write user settings during dragging. Changes are persisted only on Save. Source and XML packaging can pass CI without proving layout, keyboard/controller focus, widget binding or mouse input in Bannerlord v1.5.7.
+
+The original native category menus remain the fallback. The new panel must not be promoted out of EXPERIMENTAL until it renders, closes and persists correctly in the exact target game.

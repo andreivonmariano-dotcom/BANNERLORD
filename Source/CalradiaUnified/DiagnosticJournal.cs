@@ -153,7 +153,8 @@ namespace CalradiaUnified
             {
                 Directory.CreateDirectory(output);
                 foreach (string name in new[] { "finance.csv", "events.csv",
-                    "exceptions.csv", "finance.csv.previous", "exceptions.csv.previous" })
+                    "exceptions.csv", "finance.csv.previous", "events.csv.previous",
+                    "exceptions.csv.previous" })
                 {
                     string source = Path.Combine(Root, name);
                     if (File.Exists(source))

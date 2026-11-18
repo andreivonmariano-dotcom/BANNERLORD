@@ -57,3 +57,7 @@ After a campaign session, confirm that `%LOCALAPPDATA%\CalradiaUnified\Diagnosti
 6. Make the override file read-only and attempt another setting change. The menu should warn and leave the live setting unchanged. Restore permissions.
 7. Repeat menu entry after settlement ownership changes, a siege, a save/reload cycle and a new campaign. Check exported diagnostic events for exceptions.
 8. Enable each gameplay-changing control only in a disposable test campaign after proving the vanilla-only baseline. Report exact module version, game version, observed behavior and logs.
+
+## v0.15 full catalog and optional Gauntlet screen
+
+See [V015_RUNTIME_ACCEPTANCE.md](V015_RUNTIME_ACCEPTANCE.md) for the installed-game preflight, nine-category coverage, three-tab Gauntlet panel, slider and save/reload matrix. As of this source revision every M0 in-game item remains **NOT RUN**. A GitHub Actions build does not perform a native Bannerlord gameplay test.

@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="820" HeightSizePolicy="Fixed"
+                SuggestedHeight="570" HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <TextWidget Text="CALRADIA UNIFIED | SETTINGS" WidthSizePolicy="Fixed"
+                        SuggestedWidth="680" HeightSizePolicy="Fixed" SuggestedHeight="52"
+                        PositionYOffset="15" HorizontalAlignment="Center" />
+            <TextWidget Text="Native Bannerlord UI. Experimental panel; press Close to return."
+                        WidthSizePolicy="Fixed" SuggestedWidth="760" HeightSizePolicy="Fixed"
+                        SuggestedHeight="32" PositionYOffset="65" HorizontalAlignment="Center" />
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="190"
+                          HeightSizePolicy="Fixed" SuggestedHeight="46"
+                          PositionXOffset="78" PositionYOffset="115"
+                          Command.Click="ExecuteCoreTab">
+              <Children><TextWidget Text="Core &amp; supply"/></Children>
+            </ButtonWidget>
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="190"
+                          HeightSizePolicy="Fixed" SuggestedHeight="46"
+                          PositionXOffset="310" PositionYOffset="115"
+                          Command.Click="ExecuteKingdomTab">
+              <Children><TextWidget Text="Economy &amp; clan"/></Children>
+            </ButtonWidget>
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="190"
+                          HeightSizePolicy="Fixed" SuggestedHeight="46"
+                          PositionXOffset="542" PositionYOffset="115"
+                          Command.Click="ExecuteCastleTab">
+              <Children><TextWidget Text="Castles &amp; estates"/></Children>
+            </ButtonWidget>
+            <TextWidget Text="@TabName" PositionYOffset="176"
+                        WidthSizePolicy="Fixed" SuggestedWidth="720"
+                        HeightSizePolicy="Fixed" SuggestedHeight="40"
+                        HorizontalAlignment="Center"/>
+            <TextWidget Text="@SettingName" PositionYOffset="222"
+                        WidthSizePolicy="Fixed" SuggestedWidth="720"
+                        HeightSizePolicy="Fixed" SuggestedHeight="40"
+                        HorizontalAlignment="Center"/>
+            <TextWidget Text="@SettingValue" PositionYOffset="267"
+                        WidthSizePolicy="Fixed" SuggestedWidth="720"
+                        HeightSizePolicy="Fixed" SuggestedHeight="40"
+                        HorizontalAlignment="Center"/>
+            <SliderWidget IsVisible="@IsNumeric" PositionYOffset="310"
+                          WidthSizePolicy="Fixed" SuggestedWidth="460"
+                          HeightSizePolicy="Fixed" SuggestedHeight="34"
+                          HorizontalAlignment="Center"
+                          MinValueInt="@Minimum" MaxValueInt="@Maximum"
+                          ValueInt="@PendingValue" />
+            <ButtonWidget IsVisible="@IsNumeric" WidthSizePolicy="Fixed"
+                          SuggestedWidth="100" HeightSizePolicy="Fixed"
+                          SuggestedHeight="42" PositionXOffset="90" PositionYOffset="361"
+                          Command.Click="ExecuteDecrease"><Children>
+                <TextWidget Text="Decrease"/></Children></ButtonWidget>
+            <ButtonWidget IsVisible="@IsNumeric" WidthSizePolicy="Fixed"
+                          SuggestedWidth="100" HeightSizePolicy="Fixed"
+                          SuggestedHeight="42" PositionXOffset="220" PositionYOffset="361"
+                          Command.Click="ExecuteIncrease"><Children>
+                <TextWidget Text="Increase"/></Children></ButtonWidget>
+            <ButtonWidget IsVisible="@IsNumeric" WidthSizePolicy="Fixed"
+                          SuggestedWidth="130" HeightSizePolicy="Fixed"
+                          SuggestedHeight="42" PositionXOffset="350" PositionYOffset="361"
+                          Command.Click="ExecuteApply"><Children>
+                <TextWidget Text="Save value"/></Children></ButtonWidget>
+            <ButtonWidget IsVisible="@IsBoolean" WidthSizePolicy="Fixed"
+                          SuggestedWidth="170" HeightSizePolicy="Fixed"
+                          SuggestedHeight="42" PositionXOffset="510" PositionYOffset="361"
+                          Command.Click="ExecuteToggle"><Children>
+                <TextWidget Text="Toggle option"/></Children></ButtonWidget>
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="160"
+                          HeightSizePolicy="Fixed" SuggestedHeight="42"
+                          PositionXOffset="135" PositionYOffset="435"
+                          Command.Click="ExecutePreviousSetting"><Children>
+                <TextWidget Text="Previous setting"/></Children></ButtonWidget>
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="160"
+                          HeightSizePolicy="Fixed" SuggestedHeight="42"
+                          PositionXOffset="330" PositionYOffset="435"
+                          Command.Click="ExecuteNextSetting"><Children>
+                <TextWidget Text="Next setting"/></Children></ButtonWidget>
+            <ButtonWidget WidthSizePolicy="Fixed" SuggestedWidth="140"
+                          HeightSizePolicy="Fixed" SuggestedHeight="42"
+                          PositionXOffset="530" PositionYOffset="435"
+                          Command.Click="ExecuteClose"><Children>
+                <TextWidget Text="Close"/></Children></ButtonWidget>
+            <TextWidget Text="@Status" PositionYOffset="501"
+                        WidthSizePolicy="Fixed" SuggestedWidth="740"
+                        HeightSizePolicy="Fixed" SuggestedHeight="40"
+                        HorizontalAlignment="Center"/>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

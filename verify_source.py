@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.14.0'
+assert manifest.find('Version').get('value')=='v0.15.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -57,6 +57,14 @@ assert 'new DiagnosticBehavior(config)' in (src/'SubModule.cs').read_text()
 assert 'new NativeSettingsBehavior(config)' in (src/'SubModule.cs').read_text()
 assert (src/'NativeSettingsBehavior.cs').exists()
 assert (src/'SettingsMenuPolicy.cs').exists()
+assert (src/'SettingsCatalog.cs').exists()
+assert (src/'NativeSettingsPanel.cs').exists()
+assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUSettingsPanel.xml').exists()
+assert ET.parse(P/'Modules/CalradiaUnified/GUI/Prefabs/CUSettingsPanel.xml').getroot().tag=='Prefab'
+assert 'NativeSettingsPanel' in (src/'NativeSettingsBehavior.cs').read_text()
+assert 'SettingsCatalog.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
+assert 'SettingsCatalog.Groups' in (src/'NativeSettingsBehavior.cs').read_text()
+assert 'SettingsCatalog.All' in (src/'NativeSettingsBehavior.cs').read_text()
 assert 'Settings LoadFromPaths' in (src/'Settings.cs').read_text()
 assert 'SettingsMenuPolicy.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'calradia-user-config.ini' in (src/'Settings.cs').read_text()
@@ -66,6 +74,12 @@ assert 'DiagnosticJournal.Exception' in (src/'KingdomAutonomyBehavior.cs').read_
 assert 'EnableDiagnostics=true' in conf
 assert (P/'scripts/Export-CU-Diagnostics.ps1').exists()
 assert (P/'scripts/analyze_diagnostics.py').exists()
+assert (P/'scripts/validate_runtime_evidence.py').exists()
+assert (P/'scripts/validate_settings_catalog.py').exists()
+assert (P/'scripts/test_gauntlet_bindings.py').exists()
+assert (P/'scripts/Run-CU-Runtime-Preflight.ps1').exists()
+assert (P/'docs/V015_RUNTIME_ACCEPTANCE.md').exists()
+assert 'events.csv.previous' in (P/'scripts/Export-CU-Diagnostics.ps1').read_text()
 assert 'FeudalBudgetPolicy.cs' in (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').read_text()
 assert (P/'Tests/CampaignSimulator/FeudalStress.cs').exists()
 assert 'RegisterFeudalMenu(starter, menu)' in (src/'CivicBehavior.cs').read_text()
