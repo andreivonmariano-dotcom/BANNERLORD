@@ -700,7 +700,11 @@ namespace CalradiaUnified
                     return "Unmarried, no children";
                 return profile.SpouseBackground + " spouse  /  " +
                     profile.ChildCount +
-                    (profile.ChildCount==1 ? " child" : " children");
+                    (profile.ChildCount==1 ? " child" : " children") +
+                    (profile.ChildCount==1 ? " | " +
+                        profile.Children[0].Name + " (" +
+                        profile.Children[0].Gender + ", age " +
+                        profile.Children[0].Age + ")" : "");
             }
         }
         [DataSourceProperty] public string LandSummary
@@ -726,11 +730,8 @@ namespace CalradiaUnified
         {
             get
             {
-                return profile.SpouseEnabled ?
-                    "Family requests apply after native character creation. " +
-                    "The result must be verified in Clan." :
-                    "Culture, face, age and background are still handled " +
-                    "by Bannerlord after this screen.";
+                return "PART 2: Bannerlord culture, 3D face, origins, " +
+                    "age and difficulty. Family applies at finalization.";
             }
         }
         [DataSourceProperty] public string ProfileSummary
@@ -925,6 +926,15 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("sandbox_creator_profile_refused",error);
                 return;
             }
+            // Only committed values are accepted. Record the actual list
+            // passed to the native post-creation family constructor.
+            DiagnosticJournal.Event("sandbox_creator_family_plan",
+                "spouse=" + candidate.SpouseEnabled +
+                "|child_count=" + candidate.ChildCount +
+                "|children=" + String.Join(";",
+                    candidate.Children.Take(candidate.ChildCount)
+                        .Select(c => c.Name + ":" + c.Gender + ":" + c.Age)) +
+                "|next=native_culture_appearance_origins_age_difficulty");
             if(!candidate.Save(SandboxOriginProfile.UserPath,out error))
             {
                 SetStatus("Profile not activated: "+error+
@@ -937,9 +947,11 @@ namespace CalradiaUnified
                 "role="+profile.Role+
                 "|kingdom="+profile.StartingKingdomId+
                 "|family_requested="+profile.RealFamilyEnabled+
+                "|spouse_requested="+profile.SpouseEnabled+
+                "|child_count="+profile.ChildCount+
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
-                "|hand_off=native_appearance_and_finish");
+                "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }
 
