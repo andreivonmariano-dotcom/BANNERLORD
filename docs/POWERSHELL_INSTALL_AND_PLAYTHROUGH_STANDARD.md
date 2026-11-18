@@ -26,6 +26,26 @@ Before writing installation commands in a future chat, use the connected GitHub 
 
 The artifact's name and module version are **not sufficient to identify a build**. Two different successful `v0.25.0` runs produced two different DLL hashes in the user's earlier tests. Never choose a ZIP only by latest filesystem timestamp. Do not invent an expected SHA-256. If the hash is unavailable, identify the build as unpinned and **do not label its identity verified against CI**.
 
+## Current verified build example, 18 November 2026
+
+For the current `v0.28.0` **compiled-untested** family-home candidate, the PowerShell procedure itself passed its Windows CI tests:
+
+- [Successful Windows run #44344074361](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44344074361).
+- [Download the exact CI artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44344074361/artifacts/14444967381). Downloaded filename: `CalradiaUnified-v0.28.0-compiled-untested.zip`.
+- Immutable source script commit: `556ea16188d779011173abdf445933d50f28b839`.
+- Compiled DLL SHA-256: `e2ce111eb114cc388dcb52d1db97c343986e0d3155be34d20e208329a0743a22`. DLL size: 224,256 bytes.
+- CI executed **617 policy checks**, **40 simulations**, parsed both PowerShell scripts, verified wrong-hash refusal **before modifying installation**, and tested latest-session one-child report and count rejection. C# compile produced zero warnings/errors.
+
+For that artifact, the three variable assignments in the generic block below become:
+
+```powershell
+$ModuleVersion = 'v0.28.0'
+$SourceCommit = '556ea16188d779011173abdf445933d50f28b839'
+$ExpectedHash = 'e2ce111eb114cc388dcb52d1db97c343986e0d3155be34d20e208329a0743a22'
+```
+
+Do not reuse this hash for a later v0.28 build or any newer version. The module's game behavior, automatic family residence, and save persistence still require actual playtesting.
+
 ## Standard paste-ready installation block
 
 Replace only the three uppercase placeholders and the selected ZIP filename with values verified for the actual successful run.
