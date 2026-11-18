@@ -59,8 +59,10 @@ namespace CalradiaUnified
             // Do not start creating unrelated heroes if the correct source
             // templates cannot be resolved up front.
             var spouseTemplate = profile.SpouseEnabled ?
+                // Generated family mode does not reuse stale explicit
+                // face-template IDs from earlier versions of the editor.
                 FindTemplate(player,profile.SpouseCulture,
-                    spouseFemale,profile.SpouseFaceSeed) : null;
+                    spouseFemale,"") : null;
             if (profile.SpouseEnabled && spouseTemplate == null)
                 return "spouse_template_missing";
 
