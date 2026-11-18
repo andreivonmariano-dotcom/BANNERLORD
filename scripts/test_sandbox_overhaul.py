@@ -8,9 +8,11 @@ ROOT=Path(__file__).resolve().parent.parent
 p=ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml"
 src=(ROOT/"Source/CalradiaUnified/SandboxCreatorOverlay.cs").read_text()
 origin=(ROOT/"Source/CalradiaUnified/SandboxOriginBehavior.cs").read_text()
+menu=(ROOT/"Source/CalradiaUnified/SandboxMainMenuEntry.cs").read_text()
 entry=(ROOT/"Source/CalradiaUnified/SubModule.cs").read_text()
 root=ET.parse(p).getroot()
 assert root.tag=="Prefab"
+assert any(n.tag=="ImageWidget" and n.get("Brush")=="Frame9" for n in root.iter())
 clicks=[]
 binding=set()
 sliders=0
@@ -19,6 +21,8 @@ for element in root.iter():
     if element.tag=="ButtonWidget":
         command=element.get("Command.Click")
         assert command
+        assert element.get("Brush")=="ButtonBrush",command
+        assert element.get("DoNotPassEventsToChildren")=="true",command
         clicks.append(command)
         texts=[x for x in element.iter() if x.tag=="TextWidget"]
         assert len(texts)==1,(command,len(texts))
@@ -41,12 +45,21 @@ assert set(["ExecuteIdentity","ExecuteHousehold","ExecuteProgression",
             "ExecuteApplyAndContinue"]).issubset(clicks)
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
-assert "game.GameStateManager.ActiveState is CharacterCreationState" in src
+assert "AdvancedStartOptionsManager.CreateCampaignStartOptions()" in src
+assert "new SandBoxGameManager(" in src
+assert "MBGameManager.StartNewGame(" in src
 assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
-assert "SandboxCreatorOverlay.Arm(manager)" in origin
-assert "Arm(native.CharacterCreationManager)" in src
+assert "SandboxCreatorOverlay.Arm(manager)" not in origin
+assert "new NativeSandboxStageObserver()" in origin
+assert "Arm(native.CharacterCreationManager)" not in src
 assert "SandboxCreatorOverlay.BlockNewGameProfile" in origin
 assert "SandboxCreatorOverlay.Tick()" in entry
+assert "OnBeforeInitialModuleScreenSetAsRoot()" in entry
+assert "SandboxMainMenuEntry.Install()" in entry
+assert "SandBoxNewGame" in menu
+assert "OverrideInitialStateOption" in menu
+assert "option.DoAction == CustomClick" in menu
+assert "new InitialStateOption(" in menu
 assert "new InitialStateOption(" not in entry
 assert "NativeStartingLifeMenus.TryAttach(manager" not in origin
-print("PASS: native Sandbox entry, seven custom pages, safe text width, keyboard exit, profile commit and native fallback")
+print("PASS: direct SandBoxNewGame override, default native startup, skinned controls, Escape and opt-out")
