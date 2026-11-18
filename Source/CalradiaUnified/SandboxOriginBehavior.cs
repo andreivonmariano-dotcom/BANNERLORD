@@ -608,6 +608,7 @@ namespace CalradiaUnified
                     "|influence_target=" + profile.Influence +
                     "|troops=" + profile.Troops +
                     "|family_status=" + family +
+                    "|start_contract_passed=" + (failures.Length == 0) +
                     "|appearance_template_lookup_only=true" +
                     "|relocation_pending=true" +
                     "|progression_requested=" + profile.Overrides.Count +
