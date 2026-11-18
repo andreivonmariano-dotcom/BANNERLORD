@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+            DoNotPassEventsToChildren="false">
+      <Children>
+        <!-- Only a passive header: no buttons, focus, or pointer commands.
+             FaceGen's real GauntletLayer and 3D SceneLayer remain intact. -->
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="1040"
+                HeightSizePolicy="Fixed" SuggestedHeight="76"
+                HorizontalAlignment="Center" VerticalAlignment="Top">
+          <Children>
+            <ImageWidget Brush="Frame9"
+                         WidthSizePolicy="StretchToParent"
+                         HeightSizePolicy="StretchToParent"/>
+            <TextWidget Text="@Title"
+                        WidthSizePolicy="Fixed" SuggestedWidth="1020"
+                        HeightSizePolicy="Fixed" SuggestedHeight="34"
+                        PositionXOffset="10" PositionYOffset="5"
+                        HorizontalAlignment="Center"/>
+            <TextWidget Text="@Hint"
+                        WidthSizePolicy="Fixed" SuggestedWidth="1010"
+                        HeightSizePolicy="Fixed" SuggestedHeight="28"
+                        PositionXOffset="16" PositionYOffset="42"/>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

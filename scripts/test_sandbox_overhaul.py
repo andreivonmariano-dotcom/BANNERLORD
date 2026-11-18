@@ -39,7 +39,7 @@ for c in set(clicks):
 for b in binding:
     assert re.search(r"\bpublic\s+(?:bool|int|string)\s+"+
                      re.escape(b)+r"\b",src),b
-assert set(["ExecuteIdentity","ExecuteHousehold","ExecuteProgression",
+assert set(["ExecuteIdentity","ExecuteAppearance","ExecuteHousehold","ExecuteProgression",
             "ExecuteEquipment","ExecuteResources","ExecuteLocation",
             "ExecuteReview","ExecuteReturnToNative",
             "ExecuteApplyAndContinue"]).issubset(clicks)
