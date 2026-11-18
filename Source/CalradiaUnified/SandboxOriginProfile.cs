@@ -414,13 +414,9 @@ namespace CalradiaUnified
                 error = familyOriginError;
                 return false;
             }
-            string residenceError = SandboxFamilyHomePolicy.ValidateRequest(
-                FamilyHomeMode,FamilyHomeId,SpouseEnabled);
-            if (residenceError.Length != 0)
-            {
-                error = residenceError;
-                return false;
-            }
+            // A SpecificOwned home ID is entered on the NEXT field in the
+            // creator. Allow intermediate edits and check completeness at
+            // final acceptance instead; otherwise the choice is impossible.
             for (int i = 0; i < ChildCount; i++)
             {
                 var child = Children[i];
