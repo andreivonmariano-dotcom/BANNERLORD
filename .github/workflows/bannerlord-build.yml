@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.12.0 exportable finance and crash diagnostics
+name: Calradia Unified 1.5.7 - v0.13.0 castle finance and manual garrison controls
 on:
   workflow_dispatch:
   push:
@@ -82,14 +82,14 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.12.0-compiled-untested
-          path: Output/CalradiaUnified_v0.12.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.13.0-compiled-untested
+          path: Output/CalradiaUnified_v0.13.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.12.0-simulation-report
+          name: CalradiaUnified-v0.13.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -98,6 +98,6 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.12.0-build-errors
+          name: CalradiaUnified-v0.13.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore

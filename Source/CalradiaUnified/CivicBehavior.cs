@@ -67,6 +67,7 @@ namespace CalradiaUnified
                     x => Safe(Aid), false);
                 RegisterPhysicalConvoyMenu(starter, menu);
                 RegisterGarrisonMenu(starter, menu);
+                RegisterCastleManagementMenu(starter, menu);
                 RegisterFeudalMenu(starter, menu);
                 RegisterKingdomMenu(starter, menu);
                 RegisterDepotTradeMenu(starter, menu);

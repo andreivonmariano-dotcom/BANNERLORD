@@ -291,6 +291,22 @@ internal static class Program
             !FeudalBudgetPolicy.AffordableTraining(true, true, false,
                 1450, 500, 450, 550, 150, 250, 50,
                 3000, 5000, 40, 55));
+        Check("castle required income", CastleManagementPolicy.RequiredIncome(500, 750, 150, 250) == 1650);
+        Check("castle modeled shortfall", CastleManagementPolicy.ModeledShortfall(1450, 1650) == 200);
+        Check("castle shortfall zero", CastleManagementPolicy.ModeledShortfall(1650, 1650) == 0);
+        Check("castle required rejects negative", CastleManagementPolicy.RequiredIncome(-1, 750, 150, 250) == 0);
+        Check("castle required saturates", CastleManagementPolicy.RequiredIncome(int.MaxValue, 10, 0, 0) == int.MaxValue);
+        Check("manual transfer disabled", !CastleManagementPolicy.CanMove(false, true, true, false, true, true, 5, 40, 50, 5));
+        Check("manual transfer bounded", CastleManagementPolicy.CanMove(true, true, true, false, true, true, 5, 40, 50, 5));
+        Check("manual transfer low source rejected", !CastleManagementPolicy.CanMove(true, true, true, false, true, true, 4, 40, 50, 5));
+        Check("manual transfer siege rejected", !CastleManagementPolicy.CanMove(true, true, true, true, true, true, 5, 40, 50, 5));
+        Check("manual transfer foreign rejected", !CastleManagementPolicy.CanMove(true, false, true, false, true, true, 5, 40, 50, 5));
+        Check("manual transfer full destination rejected", !CastleManagementPolicy.CanMove(true, true, true, false, true, true, 5, 46, 50, 5));
+        Check("manual transfer missing garrison rejected", !CastleManagementPolicy.CanMove(true, true, true, false, false, true, 5, 40, 50, 5));
+        Check("manual wage cap allowed", CastleManagementPolicy.CanApplyCap(true, true, true, false, 2000, 1000, 250, 900));
+        Check("manual wage cap no layoffs", !CastleManagementPolicy.CanApplyCap(true, true, true, false, 2000, 1000, 250, 1100));
+        Check("manual wage cap siege rejected", !CastleManagementPolicy.CanApplyCap(true, true, true, true, 2000, 1000, 250, 900));
+        Check("manual wage cap disabled", !CastleManagementPolicy.CanApplyCap(false, true, true, false, 2000, 1000, 250, 900));
         Check("diagnostic CSV escapes quotes and comma",
             DiagnosticJournal.CsvField("castle,\"test\"") == "\"castle,\"\"test\"\"\"");
         Check("diagnostic path redactor accepts empty", DiagnosticJournal.StripPersonalPath("") == "");
