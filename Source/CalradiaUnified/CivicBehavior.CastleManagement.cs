@@ -62,6 +62,13 @@ namespace CalradiaUnified
                 g.MemberRoster == null || p.MemberRoster == null) return false;
             var from = toGarrison ? p.MemberRoster : g.MemberRoster;
             var to = toGarrison ? g.MemberRoster : p.MemberRoster;
+            int sourceIndex = from.FindIndexOfTroop(troop);
+            if (sourceIndex < 0) return false;
+            var sourceElement = from.GetElementCopyAtIndex(sourceIndex);
+            // Keep wounded units and accumulated XP intact until their full
+            // per-troop roster state can be transferred without data loss.
+            if (sourceElement.WoundedNumber != 0 || sourceElement.Xp != 0)
+                return false;
             int cap = toGarrison ? settings.GarrisonTrainingMaxTroops :
                 settings.RecruitmentMaxPartySize;
             return CastleManagementPolicy.CanMove(
@@ -80,9 +87,9 @@ namespace CalradiaUnified
             var to = toGarrison ? g : p;
             int fromBefore = from.GetTroopCount(troop);
             int toBefore = to.GetTroopCount(troop);
-            from.AddToCounts(troop, -CastleManagementPolicy.TransferBatch);
             try
             {
+                from.AddToCounts(troop, -CastleManagementPolicy.TransferBatch);
                 to.AddToCounts(troop, CastleManagementPolicy.TransferBatch);
                 if (from.GetTroopCount(troop) != fromBefore -
                     CastleManagementPolicy.TransferBatch ||

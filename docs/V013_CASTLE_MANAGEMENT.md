@@ -8,7 +8,7 @@ The existing read-only castle wage briefing now displays modeled daily income re
 
 The new castle management menu reports the actual existing garrison troop count and wages, native-culture basic troop holdings in the player party and garrison, current wage limit, and forecast-affordable limit.
 
-`EnableManualGarrisonTransfers=false` is the default. Turning it on exposes *manual* transfer of five existing native-culture basic recruits from the player's actual roster to an existing castle garrison, and back. Transfers reject enemy castles, siege state, missing parties, missing troop type, insufficient source troops, and destination caps. They do not create troops, call party movement, or charge gold.
+`EnableManualGarrisonTransfers=false` is the default. Turning it on exposes *manual* transfer of five existing native-culture basic recruits from the player's actual roster to an existing castle garrison, and back. Transfers reject enemy castles, siege state, missing parties, missing troop type, insufficient source troops, and destination caps. They refuse source troop stacks containing wounded recruits or stored experience until accurate roster-state preservation is implemented. They do not create troops, call party movement, or charge gold.
 
 `EnableManualGarrisonWageCaps=false` is the default. The manual action lowers a castle wage limit only if the recommended modeled limit meets the defensive minimum, is below its existing positive limit, and is **at least the garrison's current observed wages**. It does not dismiss troops or raise the player's existing manual wage limit.
 

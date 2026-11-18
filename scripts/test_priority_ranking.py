@@ -19,7 +19,7 @@ for r in ranking:
     reuse=int(r['existing_source_reuse'])
     assert all(1<=n<=5 for n in (value,effort,risk))
     assert 0<=reuse<=3
-    assert 5*value+3*reuse-2*effort-2*risk==int(r['priority_score'])
+    assert 5*value+3*reuse-2*effort-4*risk==int(r['priority_score'])
     assert r['phase'] in {'EARLY_AFTER_M0','MID','LATER','DEFER'}
     assert r['verification']=='HISTORICAL_UNVERIFIED'
     assert r['reason']
