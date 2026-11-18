@@ -404,6 +404,7 @@ internal static class Program
             var broken = SandboxOriginProfile.Load(originTemp);
             broken.ChildCount = 1;
             broken.SpouseEnabled = false;
+            broken.Children[0].Age = 50;
             string previous = System.IO.File.ReadAllText(originTemp);
             Check("invalid sandbox family cannot overwrite profile",
                 !broken.Save(originTemp, out saveError) &&
