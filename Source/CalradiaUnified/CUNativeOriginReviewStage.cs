@@ -32,7 +32,7 @@ namespace CalradiaUnified
         CharacterCreationStageViewBase
     {
         // Composition is deliberate. The native review view itself carries
-        // [CharacterCreationStageView(typeof(CharacterCreationReviewStage))].
+        // an inherited stage-view attribute mapping to native Review.
         // Inheriting it can expose the inherited attribute during
         // CharacterCreationScreen's inherit:true reflection scan.
         // Keeping this class directly under the attribute-free BASE avoids
