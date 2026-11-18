@@ -4,6 +4,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
 using TaleWorlds.Localization;
+using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 
 namespace CalradiaUnified
