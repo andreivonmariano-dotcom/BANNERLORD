@@ -369,6 +369,7 @@ namespace CalradiaUnified
         {
             if (field.Page != page) return false;
             string key=field.Key;
+            if (page=="Review") return false;
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
@@ -415,7 +416,7 @@ namespace CalradiaUnified
                 key=="StartSwiftTravel")
                 return advancedFieldsVisible;
             if (key=="StartingCulture")
-                return true;
+                return advancedFieldsVisible;
             return true;
         }
 
@@ -538,14 +539,16 @@ namespace CalradiaUnified
         [DataSourceProperty] public string AdvancedToggleLabel
         {
             get { return advancedFieldsVisible ?
-                "Hide advanced settings" : "Show advanced settings"; }
+                "Fewer options" : "More options"; }
         }
         [DataSourceProperty] public string FieldHelp
         {
             get
             {
                 if (Current==null)
-                    return "All basic choices complete. Use the page navigation or begin your new Sandbox.";
+                    return page=="Appearance" ?
+                        "Next, Bannerlord will open its real culture and 3D face editor. No duplicate changes are needed here." :
+                        "Review the requested starting life and family on the right. Begin the campaign to apply them.";
                 string key=Current.Key;
                 if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
@@ -591,7 +594,14 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string SelectedLabel
         {
-            get { return Current==null ? "" : Current.Label; }
+            get
+            {
+                if (Current==null && page=="Appearance")
+                    return "Live character appearance follows this setup";
+                if (Current==null && page=="Review")
+                    return "Confirm your starting plan on the right";
+                return Current==null ? "" : Current.Label;
+            }
         }
         [DataSourceProperty] public string SelectedValue
         {
@@ -615,8 +625,9 @@ namespace CalradiaUnified
             get
             {
                 int count=VisibleFields.Length;
-                return page == "Review" ? "READY TO START A NEW CAMPAIGN" :
-                    count==0 ? "No quick settings on this page" :
+                return page=="Review" ? "READY TO BEGIN" :
+                    page=="Appearance" && count==0 ? "NATIVE 3D EDITOR NEXT" :
+                    count==0 ? "NO EXTRA SETTINGS" :
                     "SETTING "+(selectedIndex+1)+" / "+count;
             }
         }
