@@ -86,6 +86,12 @@ stage=(src/'CUNativeOriginReviewStage.cs').read_text()
 assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
 assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob('*.cs'))==1
 assert 'CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in stage
+assert (src/'CUFamilyPortraitGallery.cs').exists()
+assert (P/'scripts/test_native_origin_review_and_portraits.py').exists()
+for prefab in ('CUNativeOriginReview.xml','CUFamilyPortraits.xml'):
+    path=P/'Modules/CalradiaUnified/GUI/Prefabs'/prefab
+    assert path.exists()
+    assert ET.parse(path).getroot().tag=='Prefab'
 assert 'candidate.NativeStageEnabled=false;' in (src/'SandboxCreatorOverlay.cs').read_text()
 assert 'sandbox_start_contract' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'sandbox_appearance_engine_probe' in (src/'SandboxOriginBehavior.cs').read_text()
