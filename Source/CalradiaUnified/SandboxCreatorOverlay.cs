@@ -215,8 +215,8 @@ namespace CalradiaUnified
 
         private static readonly string[] Pages =
         {
-            "Identity", "Appearance", "Household", "Progression",
-            "Equipment", "Resources", "Location", "Review"
+            "Identity", "Appearance", "Household", "Resources",
+            "Location", "Review"
         };
 
         private readonly Action close;
@@ -226,6 +226,7 @@ namespace CalradiaUnified
         private int selectedIndex;
         private int pendingNumber;
         private string status="";
+        private bool advancedFieldsVisible;
 
         public SandboxCreatorViewModel(Action close)
         {
@@ -257,9 +258,7 @@ namespace CalradiaUnified
                     "Culture preference (native stage still confirms)",
                     "choice",choices:new[]{"","empire","vlandia","sturgia",
                         "aserai","khuzait","battania"}),
-                new Field("Appearance","NativeStageEnabled",
-                    "Experimental: CU frame on native live 3D face editor",
-                    "boolean"),
+
                 new Field("Identity","PlayerAge",
                     "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
@@ -269,8 +268,8 @@ namespace CalradiaUnified
                 new Field("Household","SpouseAge",
                     "Spouse age","number",18,70),
                 new Field("Household","SpouseGender",
-                    "Spouse gender","choice",
-                    choices:new[]{"Female","Male"}),
+                    "Spouse gender (Auto selects the opposite gender)",
+                    "choice",choices:new[]{"Auto","Female","Male"}),
                 new Field("Household","SpouseCulture",
                     "Spouse culture ID","text"),
                 new Field("Household","SpouseFaceSeed",
@@ -279,8 +278,8 @@ namespace CalradiaUnified
                     "Number of children (0-6)","number",0,6),
                 new Field("Household","SiblingCount",
                     "Number of siblings (0-4)","number",0,4),
-                new Field("Equipment","EquipmentKit",
-                    "Equipment theme (not applied yet)","choice",
+                new Field("Resources","EquipmentKit",
+                    "Advanced: equipment theme (not applied yet)","choice",
                     choices:SandboxOriginProfile.Kits),
                 new Field("Resources","Gold",
                     "Starting gold (-1 means native)","number",0,2000000,1000),
@@ -324,17 +323,17 @@ namespace CalradiaUnified
                     choices:SandboxOriginProfile.Roles)
             };
             foreach (string attribute in SandboxOriginProfile.Attributes)
-                f.Add(new Field("Progression","Attribute."+attribute,
+                f.Add(new Field("Resources","Attribute."+attribute,
                     "Attribute: "+attribute,"number",1,10));
             foreach (string skill in SandboxOriginProfile.Skills)
             {
-                f.Add(new Field("Progression","Skill."+skill,
+                f.Add(new Field("Resources","Skill."+skill,
                     "Skill: "+skill,"number",0,330,5));
-                f.Add(new Field("Progression","Focus."+skill,
+                f.Add(new Field("Resources","Focus."+skill,
                     "Focus: "+skill,"number",0,5));
             }
             foreach (string trait in SandboxOriginProfile.Traits)
-                f.Add(new Field("Progression","Trait."+trait,
+                f.Add(new Field("Resources","Trait."+trait,
                     "Personality: "+trait,"number",-2,2));
             for (int i=1;i<=SandboxOriginProfile.MaxChildren;i++)
             {
@@ -361,16 +360,75 @@ namespace CalradiaUnified
                     choices:new[]{"Female","Male"}));
             }
             for (int slot=1;slot<=12;slot++)
-                f.Add(new Field("Equipment","Item."+slot,
+                f.Add(new Field("Resources","Item."+slot,
                     "Exact game item ID "+slot,"text"));
             return f;
+        }
+
+        private bool IsAvailable(Field field)
+        {
+            if (field.Page != page) return false;
+            string key=field.Key;
+            if (key == "StartingKingdomId")
+                return SandboxNativeStartOptions.RequiresKingdom(
+                    SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+            if (key == "SpouseName" || key == "SpouseAge" ||
+                key == "SpouseGender" || key == "SpouseCulture" ||
+                key == "SpouseFaceSeed")
+                return profile.SpouseEnabled &&
+                    (advancedFieldsVisible || key != "SpouseCulture" &&
+                    key != "SpouseFaceSeed");
+            if (key == "ChildCount") return profile.SpouseEnabled;
+            if (key.StartsWith("Child.",StringComparison.Ordinal))
+            {
+                var parts=key.Split('.');
+                int index;
+                if (!Int32.TryParse(parts[1],out index) ||
+                    index>profile.ChildCount) return false;
+                return advancedFieldsVisible ||
+                    parts[2]=="Name" || parts[2]=="Age" ||
+                    parts[2]=="Gender";
+            }
+            if (key=="StartingFiefId")
+                return profile.StartingFiefMode=="Specific";
+            if (key=="AllowStartingFiefTransfer")
+                return profile.StartingFiefMode!="Native";
+            if (key=="ScenarioFaction1")
+                return profile.StartingScenario=="LastStand" ||
+                    profile.StartingScenario=="InvasionId" ||
+                    profile.StartingScenario=="unitedempire";
+            if (key=="ScenarioFaction2")
+                return profile.StartingScenario=="twofactionwar";
+            if (key=="ScenarioVariant")
+                return profile.StartingScenario=="alternativecalradia";
+            if (key=="WorldSeed" || key=="StartingTown" ||
+                key=="PlayerAge" || key=="SiblingCount" ||
+                key=="EquipmentKit" ||
+                key.StartsWith("Sibling.",StringComparison.Ordinal) ||
+                key.StartsWith("Skill.",StringComparison.Ordinal) ||
+                key.StartsWith("Focus.",StringComparison.Ordinal) ||
+                key.StartsWith("Attribute.",StringComparison.Ordinal) ||
+                key.StartsWith("Trait.",StringComparison.Ordinal) ||
+                key.StartsWith("Item.",StringComparison.Ordinal) ||
+                key=="StartFastMode" || key=="StartBanditSurge" ||
+                key=="StartCivilUnrest" || key=="StartRecruitShortage" ||
+                key=="StartSwiftTravel")
+                return advancedFieldsVisible;
+            if (key=="StartingCulture")
+                return true;
+            return true;
+        }
+
+        private Field[] VisibleFields
+        {
+            get { return fields.Where(IsAvailable).ToArray(); }
         }
 
         private Field Current
         {
             get
             {
-                var choices=fields.Where(f=>f.Page==page).ToArray();
+                var choices=VisibleFields;
                 return choices.Length>0 ? choices[Math.Min(selectedIndex,
                     choices.Length-1)] : null;
             }
@@ -428,6 +486,8 @@ namespace CalradiaUnified
             if(field!=null && field.Kind=="number")
                 pendingNumber=Math.Max(field.Min,Math.Min(field.Max,pendingNumber));
             OnPropertyChangedWithValue(PageTitle,"PageTitle");
+            OnPropertyChangedWithValue(AdvancedToggleLabel,"AdvancedToggleLabel");
+            OnPropertyChangedWithValue(FieldHelp,"FieldHelp");
             OnPropertyChangedWithValue(PageProgress,"PageProgress");
             OnPropertyChangedWithValue(IsIdentitySelected,"IsIdentitySelected");
             OnPropertyChangedWithValue(IsAppearanceSelected,"IsAppearanceSelected");
@@ -454,6 +514,32 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty] public string PageTitle { get { return page; } }
+        [DataSourceProperty] public string AdvancedToggleLabel
+        {
+            get { return advancedFieldsVisible ?
+                "Hide advanced settings" : "Show advanced settings"; }
+        }
+        [DataSourceProperty] public string FieldHelp
+        {
+            get
+            {
+                if (Current==null)
+                    return "All basic choices complete. Use the page navigation or begin your new Sandbox.";
+                string key=Current.Key;
+                if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
+                if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
+                if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
+                if (key=="SpouseEnabled") return "Choose Yes to request a real spouse. No spouse means no starting children.";
+                if (key=="SpouseGender") return "Auto uses the opposite gender after your native character is finalized.";
+                if (key=="ChildCount") return "Choose children, then enter their names, ages and genders. Parents must satisfy the game's rules.";
+                if (key=="StartingFiefMode") return "Native preserves Bannerlord's grants. Castle/Town/Specific can transfer land from a same-kingdom clan.";
+                if (key=="StartingFiefId") return "Enter an exact settlement ID from this game version. Unknown and foreign holdings are refused.";
+                if (key=="AllowStartingFiefTransfer") return "Required for a non-native starting fief. This can remove a holding from another clan.";
+                if (key=="StartingScenario") return "Choose the world's starting conditions. Default is closest to normal Sandbox.";
+                if (key=="Gold" || key=="Influence") return "Use default to keep the resources granted by the native starting role.";
+                return "Adjust this value, then save. Advanced settings are optional and may need separate gameplay verification.";
+            }
+        }
         [DataSourceProperty] public string PageProgress
         {
             get
@@ -474,14 +560,12 @@ namespace CalradiaUnified
         {
             get
             {
-                if (page=="Identity") return "Choose a real native start. Lord means Vassal with a chosen kingdom; King requests a native ruler start."; 
-                if (page=="Appearance") return "Opt-in CU heading on the live 3D FaceGen stage. The existing face editor remains responsible for sliders and body changes.";
-                if (page=="Household") return "Spouse and children are created as native heroes after character creation. Siblings need existing native parents.";
-                if (page=="Progression") return "Set skill, attribute, focus and personality values for a one-time post-creation update.";
-                if (page=="Equipment") return "Exact item IDs are granted after native setup. Equipment theme presets are not active yet.";
-                if (page=="Resources") return "Set your treasury, influence and basic native-culture recruits.";
-                if (page=="Location") return "Choose a founding castle/town or exact settlement ID within your starting kingdom. Transfers require explicit consent. World scenarios follow.";
-                return "Review your real start, kingdom and family choices. Apply launches that native scenario; a save test is still required.";
+                if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
+                if (page=="Appearance") return "The native 3D editor will appear next, after campaign initialization. No unsafe replacement is installed.";
+                if (page=="Household") return "Begin married or independent. Family fields appear only when relevant. Real spouse and child links are checked later.";
+                if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
+                if (page=="Location") return "Choose native fiefs or an approved same-kingdom transfer. Advanced world settings are optional.";
+                return "Review your choices. The game still owns its culture, face and background stages.";
             }
         }
         [DataSourceProperty] public string SelectedLabel
@@ -503,9 +587,10 @@ namespace CalradiaUnified
         {
             get
             {
-                int count=fields.Count(f=>f.Page==page);
-                return page == "Review" ? "CONFIRM YOUR NEW CALRADIAN LIFE" :
-                    "Field "+(selectedIndex+1)+" of "+count;
+                int count=VisibleFields.Length;
+                return page == "Review" ? "READY TO START A NEW CAMPAIGN" :
+                    count==0 ? "No quick settings on this page" :
+                    "CHOICE "+(selectedIndex+1)+" OF "+count;
             }
         }
         [DataSourceProperty] public bool IsNumber
@@ -559,7 +644,7 @@ namespace CalradiaUnified
                     " | starting fief: "+profile.StartingFiefMode+
                     (profile.StartingFiefMode=="Specific" ?
                         " / "+profile.StartingFiefId:"")+
-                    " | native ASO: "+profile.StartingScenario;
+                    " | native world: "+profile.StartingScenario;
             }
         }
 
@@ -573,21 +658,29 @@ namespace CalradiaUnified
         public void ExecuteIdentity() {Switch("Identity");}
         public void ExecuteAppearance() {Switch("Appearance");}
         public void ExecuteHousehold() {Switch("Household");}
-        public void ExecuteProgression() {Switch("Progression");}
-        public void ExecuteEquipment() {Switch("Equipment");}
+
         public void ExecuteResources() {Switch("Resources");}
         public void ExecuteLocation() {Switch("Location");}
         public void ExecuteReview() {Switch("Review");}
+        public void ExecuteToggleAdvanced()
+        {
+            advancedFieldsVisible=!advancedFieldsVisible;
+            selectedIndex=0;
+            SetStatus(advancedFieldsVisible ?
+                "Advanced options shown. These are optional and some remain experimental." :
+                "Quick setup active. Only relevant starting choices are shown.");
+            Refresh();
+        }
 
         public void ExecuteNextField()
         {
-            int count=fields.Count(f=>f.Page==page);
+            int count=VisibleFields.Length;
             if(count>0) selectedIndex=(selectedIndex+1)%count;
             Refresh();
         }
         public void ExecutePreviousField()
         {
-            int count=fields.Count(f=>f.Page==page);
+            int count=VisibleFields.Length;
             if(count>0) selectedIndex=(selectedIndex+count-1)%count;
             Refresh();
         }
@@ -676,8 +769,9 @@ namespace CalradiaUnified
         {
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
             candidate.Enabled=true;
-            // Preserve the explicit Appearance page opt-in. Native defaults
-            // remain unchanged until the player enables the CU face header.
+            // Crash recovery: never request competing CharacterCreationStageView
+            // handlers. The original native FaceGen owns appearance in v0.23.
+            candidate.NativeStageEnabled=false;
             // A deliberate spouse/children choice is an actual native family
             // request. Do not leave users with a decorative family profile.
             candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
