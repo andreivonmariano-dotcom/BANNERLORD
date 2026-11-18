@@ -1,7 +1,7 @@
 # Calradia Unified v0.21.0 | Native start verification candidate
 
 **Target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
-**Current status:** Gate B COMPILED_UNTESTED. [Successful Windows CI #44300017383](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300017383): 578 pure gameplay-policy checks passed, 40 simulated campaigns completed, and 0 compiler warnings/errors. This is **not** a completed single-screen Sandbox overhaul.
+**Current status:** Gate B COMPILED_UNTESTED. [Successful Windows CI #44300627835](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300627835): 578 pure gameplay-policy checks passed, 40 simulated campaigns completed, and 0 compiler warnings/errors. This is **not** a completed single-screen Sandbox overhaul.
 
 ## Intended complete creator
 
@@ -27,7 +27,7 @@ Read [v0.20 actual start/family test procedure](docs/V020_NATIVE_START_FAMILY_AC
 ## Build and test rules
 
 - [Windows CI](.github/workflows/bannerlord-build.yml) checks source structure, policy tests, engine-reference compilation, package integrity and nested-ZIP installation.
-- [Compiled, untested v0.21 module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300017383/artifacts/14424539435), intended for diagnostic testing only. It does not implement the integrated face editor.
+- [Compiled, untested v0.21 module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44300627835/artifacts/14426620218), intended for diagnostic testing only. It does not implement the integrated face editor.
 - [Pure acceptance logic](Source/CalradiaUnified/SandboxStartContract.cs) runs in `Tests/PolicySmoke` with no Bannerlord game process.
 - [In-game diagnostics](Source/CalradiaUnified/SandboxOriginBehavior.cs) observe the actual v1.5.7 campaign and creator stages.
 - [Acceptance specification](docs/V021_UNIFIED_CREATOR_ENGINE_MAP.md) separates compile, 3D-preview, native-start, family, save/reload and UI polish checks.
