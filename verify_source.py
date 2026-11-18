@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.18.0'
+assert manifest.find('Version').get('value')=='v0.19.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -63,7 +63,7 @@ assert (src/'SandboxRoleAffiliations.cs').exists()
 assert (src/'NativeStartingLifeMenus.cs').exists()
 assert (src/'SandboxFamilyCreator.cs').exists()
 assert 'NativeStartingLifeMenus.TryAttach' not in (src/'SandboxOriginBehavior.cs').read_text()
-assert 'SandboxCreatorOverlay.Arm(manager)' in (src/'SandboxOriginBehavior.cs').read_text()
+assert 'SandboxCreatorOverlay.Arm(manager)' not in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'SandboxCreatorOverlay.Tick()' in (src/'SubModule.cs').read_text()
 assert (src/'SandboxCreatorOverlay.cs').exists()
 assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml').exists()
@@ -77,7 +77,9 @@ assert (src/'SandboxOriginPanel.cs').exists()
 assert (P/'scripts/test_sandbox_origin_panel.py').exists()
 assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUOriginPanel.xml').exists()
 assert 'CU_Sandbox_Origin' not in (src/'SubModule.cs').read_text()
-assert 'OnBeforeInitialModuleScreenSetAsRoot' not in (src/'SubModule.cs').read_text()
+assert 'OnBeforeInitialModuleScreenSetAsRoot' in (src/'SubModule.cs').read_text()
+assert 'SandBoxNewGame' in (src/'SandboxMainMenuEntry.cs').read_text()
+assert 'OverrideInitialStateOption' in (src/'SandboxMainMenuEntry.cs').read_text()
 assert 'OnCharacterCreationInitializedEvent' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'cu_native_sandbox_menu' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'OnNewGameCreatedEvent' in (src/'SandboxOriginBehavior.cs').read_text()

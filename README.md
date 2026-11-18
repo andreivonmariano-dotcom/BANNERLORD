@@ -1,17 +1,31 @@
-# Calradia Unified v0.18.0 | Custom Sandbox creator front-end
+# Calradia Unified v0.19.0 | Direct Sandbox start candidate
 
-**Target:** Bannerlord PC v1.5.7.125802. **Verification:** Gate B **COMPILED_UNTESTED**, [Windows build #44278537058](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44278537058) passed 570 independent policy checks, 40 modeled campaigns (14,600 days), source/GUI XML verification, an installed-artifact smoke test, and reference compilation with zero warnings/errors. No real user-interface or save-load test has been performed. Real UI and save/load still untested.
+**Target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
+**Development branch:** [feature/v019-direct-sandbox-entry](https://github.com/andreivonmariano-dotcom/BANNERLORD/tree/feature/v019-direct-sandbox-entry).
+**Status:** **Gate B COMPILED_UNTESTED**, not a game-tested release. [Successful Windows CI #44289665260](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289665260): 570 C# policy checks, 40 modeled campaigns, 0 compiler warnings/errors, ZIP integrity and nested artifact installer simulation passed.
 
-The game's normal **Sandbox** button now prepares a custom full-screen Calradia Unified character-creation interface directly on the native Sandbox character-creation state. There is no separate main-menu entry. The front-end uses dedicated pages for identity, family, progression, equipment, resources, starting location and review.
+## Change requested after the confirmed v0.18 screen failure
 
-- Configurable role: Wanderer, Soldier, Knight, Lord, King or Admiral. The Admiral selection is only a profile role until War Sails integration is tested. A King label does not bypass native ruling-clan creation.
-- Family: spouse, children and siblings with names, ages, gender and optional appearance template IDs. Actual hero creation remains a separate explicit opt-in.
-- Six attributes, 18 skills, focus points, five traits, existing item IDs, equipment themes, gold, influence, troops and a preferred town.
-- A native Escape-key exit and always-present **Return to native creator** action. The previous locked-screen prototype is absent.
-- **Apply and continue** saves the profile for the new Sandbox and returns to Bannerlord's underlying appearance/finalization screens. This safe hand-off is still necessary. It is not yet a complete independent replacement for game-provided culture/face/finish logic.
+Clicking **Sandbox** in the Bannerlord main menu must open **Calradia Unified's own creator immediately**. The built-in **Default Start / Advanced Start** selection page must not appear during this path.
 
-The custom creator launches once per Sandbox character-creation session. To disable it after a rendering failure, set `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`. The profile is **not automatically activated on page selection**. Cancelling keeps the native start. The experimental family and kingdom actions remain disabled by default.
+The replacement intercepts the existing `SandBoxNewGame` menu action rather than adding another option or opening over a native character creation state. The custom editor collects identity, household, progression, equipment, starting resources, starting town and review data.
 
-See [v0.18 visual flow and acceptance](docs/V018_SANDBOX_OVERHAUL.md). Previous native Starting Life age-menu injection has been retired to avoid the post-age failure.
+Pressing **Apply / continue** commits an origin profile and starts a new *default-scenario* Sandbox through the v1.5.7 engine API, without showing the built-in start-type chooser. Pressing **Escape** cancels back to the main menu. An explicit opt-out, `OverhauledCreatorEnabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`, restores Bannerlord's original Sandbox action.
 
-**v0.18 compiled candidate:** [Download the GitHub artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44278537058/artifacts/14416545228). The GitHub download wraps the module ZIP inside another ZIP, so extract both layers. Compiled DLL SHA-256: `893af9a64e6e8d49e0ab7745a7c344aeefcb63e358e9e34203877c96eadf87c3`.
+**Completion boundary:** This bypasses the Default/Advanced choice, but **does not yet replace** the game's intro cinematic, native culture/face controls, clan naming or final confirmation screens. Custom royal status, naval command, family heroes and non-default ASO scenarios remain experimental or unimplemented. The v0.18 floating-text user screenshot is real evidence of UI failure. The new native-brush controls must pass an observed click and screenshot test before they can be called functional.
+
+## Installation and verification
+
+The goal is still one paste-ready `Modules/CalradiaUnified` folder containing the module manifest, one `CalradiaUnified.dll`, configuration and the native UI prefab. The build runs static XML/policy checks, a Windows v1.5.7 reference compile, runtime-archive verification and an installer simulation.
+
+Read [v0.19 direct Sandbox entry and acceptance procedure](docs/V019_DIRECT_SANDBOX_ENTRY.md), [the v0.18 user-reported failure](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41), and [the full feature registry](Data/Feature_Registry.csv). **Compiled v0.19 candidate:** [GitHub Actions artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289665260/artifacts/14420293511). GitHub's download wraps the module ZIP inside a ZIP. Compiled DLL SHA-256: `d351ebd48553bd86a8e456c14ad4202fdbf0fc96d13715b8be9bfbaa2b8070f0`. Source is under [draft PR #42](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/42).
+
+## Existing systems
+
+The earlier independent supply, depots, economy, recruitment, garrisons, NPC orders, native settings, origin profile and diagnostics remain in the source tree. Most gameplay-changing settings are disabled by default. No source or CI success proves that these features are game-tested. The historical 78 mods are tracked as reconstruction references rather than complete replacements.
+
+- [Build workflow](.github/workflows/bannerlord-build.yml)
+- [Installed game preflight](scripts/Run-CU-Runtime-Preflight.ps1)
+- [Feature registry](Data/Feature_Registry.csv)
+- [Native test procedure](docs/M0_TEST_PROCEDURE.md)
+- [78-mod coverage](docs/78_MOD_COVERAGE.md)

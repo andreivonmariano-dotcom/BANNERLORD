@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
+using SandBox;
+using SandBox.AdvancedStartOptions;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.CampaignSystem.Settlements;
@@ -10,74 +12,49 @@ using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
+using TaleWorlds.MountAndBlade;
 
 namespace CalradiaUnified
 {
     /// <summary>
-    /// A custom screen opened by the REAL Sandbox creation state, not a second
-    /// launcher option. Native state persists below as a tested escape path.
+    /// Main-menu Sandbox front end for Bannerlord v1.5.7. The normal
+    /// SandBoxNewGame click opens this screen BEFORE the built-in
+    /// Default Start / Advanced Start selector is constructed.
     /// </summary>
     public static class SandboxCreatorOverlay
     {
-        private static CharacterCreationManager pending;
-        private static bool attempted;
+        private static bool creatorOpen;
+        private static bool launchQueued;
         private static bool cancelled;
 
         public static bool BlockNewGameProfile { get { return cancelled; } }
 
-        public static void Arm(CharacterCreationManager manager)
+        public static void OpenFromMainMenu(Action nativeStart)
         {
-            if (manager == null || Object.ReferenceEquals(pending, manager))
-                return;
-            pending = manager;
-            attempted = false;
-            cancelled = false;
-            DiagnosticJournal.Event("sandbox_creator_armed",
-                "normal_sandbox_entry=true");
-        }
-
-        public static void Tick()
-        {
-            // Some startup paths initialize the native state before the
-            // campaign event subscription. Detect that state directly too.
-            var game = Game.Current;
-            if (pending == null && game != null && game.GameType != null &&
-                game.GameType.GetType() == typeof(Campaign) &&
-                game.GameStateManager != null &&
-                game.GameStateManager.ActiveState is CharacterCreationState)
-            {
-                var native = game.GameStateManager.ActiveState as CharacterCreationState;
-                if (native != null && native.CharacterCreationManager != null)
-                    Arm(native.CharacterCreationManager);
-            }
-            if (attempted || pending == null) return;
-            if (game == null || game.GameStateManager == null ||
-                !(game.GameStateManager.ActiveState is CharacterCreationState))
-                return;
-            var creationState =
-                game.GameStateManager.ActiveState as CharacterCreationState;
-            if (creationState == null ||
-                !Object.ReferenceEquals(creationState.CharacterCreationManager,pending))
-                return;
-            if (ScreenManager.TopScreen == null) return;
+            if (creatorOpen || launchQueued) return;
             var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
-            attempted = true;
             if (!profile.OverhauledCreatorEnabled)
             {
                 DiagnosticJournal.Event("sandbox_creator_native_fallback",
-                    "profile_opt_out=true");
+                    "main_menu_opt_out=true");
+                if (nativeStart != null) nativeStart();
                 return;
             }
+
             try
             {
+                if (ScreenManager.TopScreen == null)
+                    throw new InvalidOperationException("Main menu screen not active");
+                creatorOpen = true;
+                cancelled = false;
                 ScreenManager.PushScreen(new SandboxCreatorScreen());
                 DiagnosticJournal.Event("sandbox_creator_screen_requested",
-                    "native_creation_state_underneath=true");
+                    "entry=SandBoxNewGame|pre_game=true|native_selector_skipped=true");
             }
             catch (Exception error)
             {
-                DiagnosticJournal.Exception("sandbox_creator_screen_failed",error);
-                cancelled = true;
+                creatorOpen = false;
+                DiagnosticJournal.Exception("sandbox_creator_screen_failed", error);
                 try
                 {
                     if (ScreenManager.TopScreen is SandboxCreatorScreen)
@@ -88,21 +65,59 @@ namespace CalradiaUnified
                     DiagnosticJournal.Exception("sandbox_creator_recovery_failed",
                         secondary);
                 }
+                // The only fallback is the preserved original menu action.
+                // Do not trap the player on a broken custom screen.
+                if (nativeStart != null) nativeStart();
             }
         }
 
-        public static void Accept() { cancelled = false; }
+        public static void Tick()
+        {
+            if (!launchQueued || ScreenManager.TopScreen is SandboxCreatorScreen)
+                return;
+            launchQueued = false;
+            try
+            {
+                // Same no-selection startup as Bannerlord v1.5.7's
+                // GauntletCampaignStartingOptionsView.OnConfirm.
+                // The game then owns its normal cinematic and character
+                // creation finalization stages.
+                var options = AdvancedStartOptionsManager.CreateCampaignStartOptions();
+                MBGameManager.StartNewGame(new SandBoxGameManager(
+                    () => new Campaign(CampaignGameMode.Campaign,
+                        options.GetChangedOptions())));
+                DiagnosticJournal.Event("sandbox_direct_game_start_requested",
+                    "route=default|native_start_selector_skipped=true");
+            }
+            catch (Exception error)
+            {
+                DiagnosticJournal.Exception("sandbox_direct_game_start_failed",
+                    error);
+            }
+        }
+
+        public static void Accept()
+        {
+            cancelled = false;
+            if (creatorOpen) launchQueued = true;
+            creatorOpen = false;
+            DiagnosticJournal.Event("sandbox_creator_pre_game_accepted",
+                "queue_native_campaign_start=true");
+        }
+
         public static void Cancel()
         {
             cancelled = true;
+            creatorOpen = false;
+            launchQueued = false;
             DiagnosticJournal.Event("sandbox_creator_exit",
-                "native_character_creation_resumed=true");
+                "returned_to_main_menu=true|campaign_not_started=true");
         }
 
         public static void Clear()
         {
-            pending = null;
-            attempted = false;
+            creatorOpen = false;
+            launchQueued = false;
             cancelled = false;
         }
     }
@@ -468,6 +483,7 @@ namespace CalradiaUnified
 
         private void Switch(string next)
         {
+            DiagnosticJournal.Event("sandbox_creator_page_clicked", "page=" + next);
             page=next;
             selectedIndex=0;
             Refresh();

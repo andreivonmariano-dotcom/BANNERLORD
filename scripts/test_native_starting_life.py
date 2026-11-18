@@ -38,7 +38,8 @@ for child,parent in (("Family","First"),("FamilyConfirm","Family"),
 assert 'new NativeSandboxStageObserver()' in origin
 assert 'NativeStartingLifeMenus.TryAttach(manager,' not in origin
 assert 'OnCharacterCreationInitializedEvent' in origin
-assert 'OnBeforeInitialModuleScreenSetAsRoot' not in module
+assert 'OnBeforeInitialModuleScreenSetAsRoot' in module
+assert 'SandboxMainMenuEntry.Install()' in module
 assert '"CU_Sandbox_Origin"' not in module
 for key in ("NativeStageEnabled","RealFamilyEnabled","RoleAffiliationsEnabled"):
     assert re.search(r"public bool "+key+r";",profile)

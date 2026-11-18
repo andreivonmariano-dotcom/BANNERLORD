@@ -49,13 +49,12 @@ namespace CalradiaUnified
             observedNativeCreator = manager;
             try
             {
-                // Opens the custom front-end after the Sandbox character
-                // creation state is active. It is not a duplicate launcher item.
-                SandboxCreatorOverlay.Arm(manager);
+                // The custom editor now launches from SandBoxNewGame itself.
+                // Keep this observer read-only for native stage diagnostics.
                 manager.RegisterCharacterCreationContentHandler(
                     new NativeSandboxStageObserver(), 1600);
                 DiagnosticJournal.Event("cu_native_sandbox_creator",
-                    "observer_registered=true|mutates_stages=false");
+                    "observer_registered=true|mutates_stages=false|custom_entry=main_menu");
             }
             catch (Exception e)
             {
