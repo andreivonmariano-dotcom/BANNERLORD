@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Experimental Native Face Workshop Candidate" />
+  <Name value="Calradia Unified - Locked Sandbox Flow and Read-only Unavailable Controls Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.31.0" />
+  <Version value="v0.33.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

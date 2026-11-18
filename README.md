@@ -1,3 +1,15 @@
+# Calradia Unified v0.33.0 | Locked Sandbox Flow and Honest Feature Availability
+
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** new UI candidate, native screens still follow the CU pregame creator. The real one-screen integration is not delivered by v0.33.
+
+The five chapters remain **Starting Life → Bloodline → Fortune → Land & Home → Review Your House**. The read-only controls for **starting age, siblings, equipment theme and preferred starting town** now say **Unavailable in this build** with a reason. None of these can be edited in the pregame CU screen. Old unsupported requests are cleared on every new Sandbox. Supported spouse/children, native role/kingdom, resources and fief options remain editable. The 3D preview remains the **real engine-owned player renderer**, and the final requirement is a persistent player model across the future native-state CU shell. No fake pregame portrait was added.
+
+See [v0.33 UX decisions](docs/V033_THREE_LOCKED_CREATOR_UI_DECISIONS.md) and [v0.32 frozen flow contract](docs/V032_LOCKED_SANDBOX_CREATOR_FLOW.md). This branch changes the CU pregame field UI, but it does not remove the separate native character creation that currently follows review.
+
+---
+
+## Previous v0.31 prototype
+
 # Calradia Unified v0.31.0 | Experimental Native 3D Face Workshop
 
 **Target:** Bannerlord PC v1.5.7.125802. **Status:** [Windows CI #44362408521](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44362408521) passed at commit `f7574effec028ac4d52de2ac8397666ee28b9c76`, **Gate B COMPILED_UNTESTED**. The game-facing workshop and save/reload remain untested. **The second native character wizard still appears**.

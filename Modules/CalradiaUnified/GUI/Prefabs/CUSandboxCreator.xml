@@ -347,6 +347,11 @@
                             VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
+            <TextWidget Text="UNAVAILABLE IN THIS BUILD" Color="#D8A27AFF"
+                        IsVisible="@IsUnavailable" WidthSizePolicy="Fixed"
+                        SuggestedWidth="600" HeightSizePolicy="Fixed"
+                        SuggestedHeight="42" PositionXOffset="309"
+                        PositionYOffset="440" />
             <TextWidget Text="@FieldHelp" Color="#E6D8BEFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="608"
                         HeightSizePolicy="Fixed" SuggestedHeight="64"
