@@ -548,6 +548,16 @@ internal static class Program
         Check("family defaults use valid hero names",
             new SandboxOriginProfile().TrySet("ChildCount", "2") &&
             new SandboxOriginProfile().Children[0].Name == "Alden");
+        var nativeReviewOptIn = new SandboxOriginProfile();
+        Check("native CU 3D review is off by default",
+            !nativeReviewOptIn.NativeIntegrationReviewEnabled);
+        nativeReviewOptIn.TrySet("NativeIntegrationReviewEnabled","true");
+        Check("native CU 3D review opt-in survives exact profile serialization",
+            SandboxOriginProfile.Parse(nativeReviewOptIn.Serialize())
+                .NativeIntegrationReviewEnabled);
+        nativeReviewOptIn.ResetForNewCampaign();
+        Check("native CU 3D review does not silently carry into new games",
+            !nativeReviewOptIn.NativeIntegrationReviewEnabled);
         var priorCampaign = new SandboxOriginProfile();
         priorCampaign.TrySet("Role","Lord");
         priorCampaign.TrySet("SpouseEnabled","true");
