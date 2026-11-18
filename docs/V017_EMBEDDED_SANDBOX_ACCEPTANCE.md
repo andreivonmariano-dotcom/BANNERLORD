@@ -13,7 +13,7 @@ The standalone main-menu creator stays removed. A character-creation content han
 - **Equipment:** Vanilla, Traveler, Soldier, Knight, Royal, Custom
 - **Political consent:** keep native clan status or request real mercenary/vassal service
 
-These pages use **native narrative Back/Next**, not custom Gauntlet buttons. The code checks for a single compatible age menu and rolls back added menu IDs on registration failure. Its current version of the native graph must be verified on the running target game. The new stages are disabled by default, not yet proven visually.
+These pages use **native narrative Back/Next**, not custom Gauntlet buttons. The code checks for a single compatible age menu, rejects empty or self-referential Back/Next destinations, and rolls back added menu IDs on registration failure. Its current version of the native graph must be verified on the running target game. The new stages are disabled by default, not yet proven visually.
 
 Other exact skill, trait, spouse name, individual child names, and item IDs remain valid in the existing origin profile. They are not yet all separate interactive native wizard controls.
 

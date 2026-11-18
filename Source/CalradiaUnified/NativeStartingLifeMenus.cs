@@ -39,8 +39,18 @@ namespace CalradiaUnified
                 return false;
             }
             var nativeAge = ages[0];
-            if (String.IsNullOrEmpty(nativeAge.StringId))
+            if (String.IsNullOrEmpty(nativeAge.StringId) ||
+                String.IsNullOrEmpty(nativeAge.InputMenuId) ||
+                String.IsNullOrEmpty(nativeAge.OutputMenuId) ||
+                nativeAge.InputMenuId == nativeAge.StringId ||
+                nativeAge.OutputMenuId == nativeAge.StringId ||
+                nativeAge.CharacterCreationMenuOptions == null ||
+                !nativeAge.CharacterCreationMenuOptions.Any())
+            {
+                DiagnosticJournal.Event("cu_life_attach_skipped",
+                    "native_age_menu_graph_incomplete");
                 return false;
+            }
 
             // Build every object before modifying the existing native graph.
             var rewrittenAge = new NarrativeMenu(nativeAge.StringId,

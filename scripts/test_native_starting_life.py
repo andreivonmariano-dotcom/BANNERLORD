@@ -27,6 +27,14 @@ assert 'Pair("RoleAffiliationsEnabled","false"),Pair("Enabled","true")' in page
 assert 'Pair("RoleAffiliationsEnabled","true"),Pair("Enabled","true")' in page
 assert 'if (creator == null || profile == null || !profile.NativeStageEnabled)' in page
 assert 'ages.Count != 1' in page
+assert 'String.IsNullOrEmpty(nativeAge.InputMenuId)' in page
+assert 'String.IsNullOrEmpty(nativeAge.OutputMenuId)' in page
+assert 'native_age_menu_graph_incomplete' in page
+for child,parent in (("Family","First"),("FamilyConfirm","Family"),
+                     ("Resources","FamilyConfirm"),("Equipment","Resources"),
+                     ("Affiliation","Equipment")):
+    assert re.search(r"NewPage\(nativeAge,\s*"+child+
+                     r",\s*"+parent+r",",page),child
 assert 'new NativeSandboxStageObserver()' in origin
 assert 'NativeStartingLifeMenus.TryAttach(manager,' in origin
 assert 'OnCharacterCreationInitializedEvent' in origin

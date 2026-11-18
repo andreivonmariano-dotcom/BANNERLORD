@@ -1,6 +1,6 @@
 # Calradia Unified v0.17.0 | Native Sandbox Starting Life candidate
 
-**Target:** Bannerlord PC v1.5.7. **Gate B COMPILED_UNTESTED:** [Windows CI 44273145331](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44273145331) passed 563 independent policy checks and 14,600 simulated campaign days with zero compile errors and warnings. No native character-creation play test or family save/load acceptance yet. The broken separate main-menu screen remains removed.
+**Target:** Bannerlord PC v1.5.7. **Gate B COMPILED_UNTESTED:** [Windows CI 44273145331](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44273145331) passed 567 independent policy checks and 14,600 simulated campaign days with zero compile errors and warnings. No native character-creation play test or family save/load acceptance yet. The broken separate main-menu screen remains removed.
 
 The new native Sandbox wizard extension, real family hero creation, and actual kingdom-affiliation changes are each **experimental and independently disabled by default**. The existing `sandbox-origin.ini` remains the settings source at `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
 
@@ -24,3 +24,5 @@ RoleAffiliationsEnabled=false
 3. Start the normal **Sandbox** option. The character-creation age menu should lead into the six new Starting Life pages. Test Back and Next. Selecting **Keep vanilla political status** on the final Starting Life page activates the profile. Merely choosing a role does not activate it.
 4. The **EXPERIMENTAL** family/affiliation pages have separate consent options. Keep both off until the native page navigation works and a game-test save is disposable.
 5. The completed wizard and family-state changes still need live Bannerlord testing. The equipment kit and chosen town remain templates rather than automatic world changes.
+
+The native-stage linker refuses to run if the game reports an incomplete age-menu graph. A skipped integration leaves the original Sandbox character creator in place. It does not prove the extra pages appear correctly on every supported game configuration.
