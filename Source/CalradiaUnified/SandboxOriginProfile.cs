@@ -31,8 +31,8 @@ namespace CalradiaUnified
             { "Mercy", "Valor", "Honor", "Generosity", "Calculating" };
 
         public bool Enabled;
-        // The normal Sandbox button opens the CU visual front-end by default.
-        // Set false in the profile to recover the untouched native wizard.
+        // Clicking Sandbox in the main menu opens the CU creator directly.
+        // Set false to restore the original Default/Advanced Start selector.
         public bool OverhauledCreatorEnabled = true;
         public string StartingCulture = "";
         // Dangerous creation actions require three independent opt-ins.
