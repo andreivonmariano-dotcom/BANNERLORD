@@ -428,6 +428,15 @@ namespace CalradiaUnified
             if(field!=null && field.Kind=="number")
                 pendingNumber=Math.Max(field.Min,Math.Min(field.Max,pendingNumber));
             OnPropertyChangedWithValue(PageTitle,"PageTitle");
+            OnPropertyChangedWithValue(PageProgress,"PageProgress");
+            OnPropertyChangedWithValue(IsIdentitySelected,"IsIdentitySelected");
+            OnPropertyChangedWithValue(IsAppearanceSelected,"IsAppearanceSelected");
+            OnPropertyChangedWithValue(IsHouseholdSelected,"IsHouseholdSelected");
+            OnPropertyChangedWithValue(IsProgressionSelected,"IsProgressionSelected");
+            OnPropertyChangedWithValue(IsEquipmentSelected,"IsEquipmentSelected");
+            OnPropertyChangedWithValue(IsResourcesSelected,"IsResourcesSelected");
+            OnPropertyChangedWithValue(IsLocationSelected,"IsLocationSelected");
+            OnPropertyChangedWithValue(IsReviewSelected,"IsReviewSelected");
             OnPropertyChangedWithValue(PageDescription,"PageDescription");
             OnPropertyChangedWithValue(SelectedLabel,"SelectedLabel");
             OnPropertyChangedWithValue(SelectedValue,"SelectedValue");
@@ -445,6 +454,22 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty] public string PageTitle { get { return page; } }
+        [DataSourceProperty] public string PageProgress
+        {
+            get
+            {
+                int i=Array.IndexOf(Pages,page);
+                return "PAGE "+(i+1)+" / "+Pages.Length;
+            }
+        }
+        [DataSourceProperty] public bool IsIdentitySelected { get { return page=="Identity"; } }
+        [DataSourceProperty] public bool IsAppearanceSelected { get { return page=="Appearance"; } }
+        [DataSourceProperty] public bool IsHouseholdSelected { get { return page=="Household"; } }
+        [DataSourceProperty] public bool IsProgressionSelected { get { return page=="Progression"; } }
+        [DataSourceProperty] public bool IsEquipmentSelected { get { return page=="Equipment"; } }
+        [DataSourceProperty] public bool IsResourcesSelected { get { return page=="Resources"; } }
+        [DataSourceProperty] public bool IsLocationSelected { get { return page=="Location"; } }
+        [DataSourceProperty] public bool IsReviewSelected { get { return page=="Review"; } }
         [DataSourceProperty] public string PageDescription
         {
             get
