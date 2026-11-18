@@ -39,10 +39,16 @@ for c in set(clicks):
 for b in binding:
     assert re.search(r"\bpublic\s+(?:bool|int|string)\s+"+
                      re.escape(b)+r"\b",src),b
-assert set(["ExecuteIdentity","ExecuteAppearance","ExecuteHousehold","ExecuteProgression",
-            "ExecuteEquipment","ExecuteResources","ExecuteLocation",
-            "ExecuteReview","ExecuteReturnToNative",
-            "ExecuteApplyAndContinue"]).issubset(clicks)
+assert set(["ExecuteIdentity","ExecuteAppearance","ExecuteHousehold",
+            "ExecuteResources","ExecuteLocation","ExecuteReview",
+            "ExecuteToggleAdvanced","ExecuteReturnToNative",
+            "ExecuteApplyAndContinue","ExecuteNextField",
+            "ExecutePreviousField"]).issubset(clicks)
+assert "IsAvailable(Field field)" in src
+assert "VisibleFields" in src
+assert "AdvancedToggleLabel" in src
+assert "IsNotReviewPage" in src
+assert "candidate.NativeStageEnabled=false;" in src
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
 assert "SandboxNativeStartOptions.TryPrepare" in src

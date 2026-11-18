@@ -7,173 +7,175 @@
                 HeightSizePolicy="Fixed" SuggestedHeight="790"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <!-- Reuse the game frame brush for a distinct title, side rail,
-                 editing canvas and action footer. All remain behind input. -->
+            <!-- Bannerlord native brushes, with separate header, navigation,
+                 main editor, status strip and footer. No external sprites. -->
             <ImageWidget Brush="Frame9" WidthSizePolicy="StretchToParent"
-                         HeightSizePolicy="StretchToParent" />
+                         HeightSizePolicy="StretchToParent"/>
             <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
-                         SuggestedWidth="1240" HeightSizePolicy="Fixed"
-                         SuggestedHeight="78"
-                         PositionXOffset="20" PositionYOffset="8"/>
+                         SuggestedWidth="1250" HeightSizePolicy="Fixed"
+                         SuggestedHeight="79" PositionXOffset="15" PositionYOffset="8"/>
             <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
-                         SuggestedWidth="244" HeightSizePolicy="Fixed"
-                         SuggestedHeight="604"
-                         PositionXOffset="15" PositionYOffset="95"/>
+                         SuggestedWidth="245" HeightSizePolicy="Fixed"
+                         SuggestedHeight="585" PositionXOffset="14" PositionYOffset="96"/>
             <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
-                         SuggestedWidth="990" HeightSizePolicy="Fixed"
-                         SuggestedHeight="584"
-                         PositionXOffset="270" PositionYOffset="99"/>
+                         SuggestedWidth="991" HeightSizePolicy="Fixed"
+                         SuggestedHeight="583" PositionXOffset="270" PositionYOffset="98"/>
             <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
-                         SuggestedWidth="990" HeightSizePolicy="Fixed"
-                         SuggestedHeight="88"
-                         PositionXOffset="270" PositionYOffset="691"/>
-            <TextWidget Text="CALRADIA UNIFIED | FORGE YOUR CALRADIAN LIFE"
-                        WidthSizePolicy="Fixed" SuggestedWidth="1170"
-                        HeightSizePolicy="Fixed" SuggestedHeight="56"
-                        PositionXOffset="42" PositionYOffset="20"/>
-            <TextWidget Text="@PageProgress" WidthSizePolicy="Fixed"
-                        SuggestedWidth="180" HeightSizePolicy="Fixed"
-                        SuggestedHeight="35" PositionXOffset="1060"
-                        PositionYOffset="32"/>
+                         SuggestedWidth="1250" HeightSizePolicy="Fixed"
+                         SuggestedHeight="85" PositionXOffset="15" PositionYOffset="689"/>
+            <TextWidget Text="CALRADIA UNIFIED  |  YOUR CALRADIAN LIFE"
+                        WidthSizePolicy="Fixed" SuggestedWidth="1030"
+                        HeightSizePolicy="Fixed" SuggestedHeight="50"
+                        PositionXOffset="36" PositionYOffset="22"/>
+            <TextWidget Text="@PageProgress"
+                        WidthSizePolicy="Fixed" SuggestedWidth="160"
+                        HeightSizePolicy="Fixed" SuggestedHeight="34"
+                        PositionXOffset="1080" PositionYOffset="32"/>
+            <TextWidget Text="QUICK SETUP"
+                        WidthSizePolicy="Fixed" SuggestedWidth="212"
+                        HeightSizePolicy="Fixed" SuggestedHeight="35"
+                        PositionXOffset="30" PositionYOffset="103"/>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="145" Command.Click="ExecuteIdentity" IsSelected="@IsIdentitySelected">
+              <Children>
+                <TextWidget Text="01  Starting Life" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="209" Command.Click="ExecuteAppearance" IsSelected="@IsAppearanceSelected">
+              <Children>
+                <TextWidget Text="02  Appearance" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="273" Command.Click="ExecuteHousehold" IsSelected="@IsHouseholdSelected">
+              <Children>
+                <TextWidget Text="03  Family" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="337" Command.Click="ExecuteResources" IsSelected="@IsResourcesSelected">
+              <Children>
+                <TextWidget Text="04  Resources" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="401" Command.Click="ExecuteLocation" IsSelected="@IsLocationSelected">
+              <Children>
+                <TextWidget Text="05  Kingdom &amp; Fief" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="465" Command.Click="ExecuteReview" IsSelected="@IsReviewSelected">
+              <Children>
+                <TextWidget Text="06  Review" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="211" HeightSizePolicy="Fixed"
+                          SuggestedHeight="52" PositionXOffset="22"
+                          PositionYOffset="581" Command.Click="ExecuteToggleAdvanced" >
+              <Children>
+                <TextWidget Text="@AdvancedToggleLabel" WidthSizePolicy="StretchToParent"
+                            HeightSizePolicy="StretchToParent"
+                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
             <TextWidget Text="@PageTitle" WidthSizePolicy="Fixed"
-                        SuggestedWidth="930" HeightSizePolicy="Fixed"
-                        SuggestedHeight="60" PositionXOffset="285"
-                        PositionYOffset="120"/>
+                        SuggestedWidth="940" HeightSizePolicy="Fixed"
+                        SuggestedHeight="50" PositionXOffset="292" PositionYOffset="122"/>
             <TextWidget Text="@PageDescription" WidthSizePolicy="Fixed"
-                        SuggestedWidth="930" HeightSizePolicy="Fixed"
-                        SuggestedHeight="76" PositionXOffset="285"
-                        PositionYOffset="184"/>
+                        SuggestedWidth="931" HeightSizePolicy="Fixed"
+                        SuggestedHeight="75" PositionXOffset="292" PositionYOffset="176"/>
+            <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
+                         SuggestedWidth="934" HeightSizePolicy="Fixed"
+                         SuggestedHeight="235" PositionXOffset="287"
+                         PositionYOffset="258"/>
             <TextWidget Text="@SelectedPosition" WidthSizePolicy="Fixed"
-                        SuggestedWidth="880" HeightSizePolicy="Fixed"
-                        SuggestedHeight="40" PositionXOffset="300"
-                        PositionYOffset="275"/>
+                        SuggestedWidth="884" HeightSizePolicy="Fixed"
+                        SuggestedHeight="33" PositionXOffset="311" PositionYOffset="279"/>
             <TextWidget Text="@SelectedLabel" WidthSizePolicy="Fixed"
-                        SuggestedWidth="880" HeightSizePolicy="Fixed"
-                        SuggestedHeight="55" PositionXOffset="300"
-                        PositionYOffset="315"/>
+                        SuggestedWidth="882" HeightSizePolicy="Fixed"
+                        SuggestedHeight="49" PositionXOffset="311" PositionYOffset="315"/>
             <TextWidget Text="@SelectedValue" WidthSizePolicy="Fixed"
-                        SuggestedWidth="880" HeightSizePolicy="Fixed"
-                        SuggestedHeight="55" PositionXOffset="300"
-                        PositionYOffset="367"/>
+                        SuggestedWidth="882" HeightSizePolicy="Fixed"
+                        SuggestedHeight="51" PositionXOffset="311" PositionYOffset="365"/>
+            <TextWidget Text="@FieldHelp" WidthSizePolicy="Fixed"
+                        SuggestedWidth="879" HeightSizePolicy="Fixed"
+                        SuggestedHeight="69" PositionXOffset="311" PositionYOffset="417"/>
             <SliderWidget IsVisible="@IsNumber" WidthSizePolicy="Fixed"
-                          SuggestedWidth="650" HeightSizePolicy="Fixed"
-                          SuggestedHeight="35" PositionXOffset="330"
-                          PositionYOffset="435"
-                          MinValueInt="@NumberMinimum" MaxValueInt="@NumberMaximum"
-                          ValueInt="@PendingNumber"/>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="125"
-                          Command.Click="ExecuteIdentity" IsSelected="@IsIdentitySelected">
-              <Children>
-                <TextWidget Text="Identity" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-<ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="185"
-                          Command.Click="ExecuteAppearance" IsSelected="@IsAppearanceSelected">
-              <Children>
-                <TextWidget Text="Appearance" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="245"
-                          Command.Click="ExecuteHousehold" IsSelected="@IsHouseholdSelected">
-              <Children>
-                <TextWidget Text="Household" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="305"
-                          Command.Click="ExecuteProgression" IsSelected="@IsProgressionSelected">
-              <Children>
-                <TextWidget Text="Progression" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="365"
-                          Command.Click="ExecuteEquipment" IsSelected="@IsEquipmentSelected">
-              <Children>
-                <TextWidget Text="Equipment" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="425"
-                          Command.Click="ExecuteResources" IsSelected="@IsResourcesSelected">
-              <Children>
-                <TextWidget Text="Resources" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="485"
-                          Command.Click="ExecuteLocation" IsSelected="@IsLocationSelected">
-              <Children>
-                <TextWidget Text="Fief &amp; World" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="205"
-                          HeightSizePolicy="Fixed" SuggestedHeight="50"
-                          PositionXOffset="26" PositionYOffset="545"
-                          Command.Click="ExecuteReview" IsSelected="@IsReviewSelected">
-              <Children>
-                <TextWidget Text="Review" WidthSizePolicy="StretchToParent"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Center" VerticalAlignment="Center"/>
-              </Children>
-            </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="135"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="310" PositionYOffset="482"
+                          SuggestedWidth="675" HeightSizePolicy="Fixed"
+                          SuggestedHeight="30" PositionXOffset="322"
+                          PositionYOffset="503" MinValueInt="@NumberMinimum"
+                          MaxValueInt="@NumberMaximum" ValueInt="@PendingNumber"/>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="136" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="298" PositionYOffset="537"
                           Command.Click="ExecuteDecrease" IsVisible="@IsNumber">
               <Children>
-                <TextWidget Text="Decrease" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="-  Less" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="135"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="455" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="136" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="436" PositionYOffset="537"
                           Command.Click="ExecuteIncrease" IsVisible="@IsNumber">
               <Children>
-                <TextWidget Text="Increase" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="+  More" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="150"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="600" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="162" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="577" PositionYOffset="537"
                           Command.Click="ExecuteSaveNumber" IsVisible="@IsNumber">
               <Children>
-                <TextWidget Text="Save value" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Confirm value" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="154"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="762" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="165" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="748" PositionYOffset="537"
                           Command.Click="ExecuteUseNative" IsVisible="@IsNumber">
               <Children>
                 <TextWidget Text="Use default" WidthSizePolicy="StretchToParent"
@@ -181,87 +183,94 @@
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="420" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="178" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="435" PositionYOffset="537"
                           Command.Click="ExecutePreviousChoice" IsVisible="@IsChoice">
               <Children>
-                <TextWidget Text="Previous choice" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Previous" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="635" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="178" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="626" PositionYOffset="537"
                           Command.Click="ExecuteNextChoice" IsVisible="@IsChoice">
               <Children>
-                <TextWidget Text="Next choice" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Next option" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="220"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="500" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="205" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="515" PositionYOffset="537"
                           Command.Click="ExecuteToggle" IsVisible="@IsBoolean">
               <Children>
-                <TextWidget Text="Toggle yes / no" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Change Yes / No" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="220"
-                          HeightSizePolicy="Fixed" SuggestedHeight="52"
-                          PositionXOffset="500" PositionYOffset="482"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="205" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="515" PositionYOffset="537"
                           Command.Click="ExecuteEditText" IsVisible="@IsText">
               <Children>
-                <TextWidget Text="Edit text field" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Edit text" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
             <TextWidget Text="@Status" WidthSizePolicy="Fixed"
-                        SuggestedWidth="880" HeightSizePolicy="Fixed"
-                        SuggestedHeight="60" PositionXOffset="300"
-                        PositionYOffset="553"/>
+                        SuggestedWidth="912" HeightSizePolicy="Fixed"
+                        SuggestedHeight="44" PositionXOffset="300"
+                        PositionYOffset="588"/>
             <TextWidget Text="@ProfileSummary" WidthSizePolicy="Fixed"
-                        SuggestedWidth="880" HeightSizePolicy="Fixed"
-                        SuggestedHeight="54" PositionXOffset="300"
-                        PositionYOffset="624"/>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="211"
-                          HeightSizePolicy="Fixed" SuggestedHeight="54"
-                          PositionXOffset="280" PositionYOffset="703"
+                        SuggestedWidth="918" HeightSizePolicy="Fixed"
+                        SuggestedHeight="44" PositionXOffset="300" PositionYOffset="641"/>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="245" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="36" PositionYOffset="707"
                           Command.Click="ExecuteReturnToNative">
               <Children>
-                <TextWidget Text="Cancel / main menu" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Cancel and exit" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="166"
-                          HeightSizePolicy="Fixed" SuggestedHeight="54"
-                          PositionXOffset="509" PositionYOffset="703"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="182" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="335" PositionYOffset="707"
                           Command.Click="ExecutePreviousField">
               <Children>
-                <TextWidget Text="Previous field" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Back" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="166"
-                          HeightSizePolicy="Fixed" SuggestedHeight="54"
-                          PositionXOffset="690" PositionYOffset="703"
-                          Command.Click="ExecuteNextField">
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="182" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="538" PositionYOffset="707"
+                          Command.Click="ExecuteNextField" IsVisible="@IsNotReviewPage">
               <Children>
-                <TextWidget Text="Next field" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Continue" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="302"
-                          HeightSizePolicy="Fixed" SuggestedHeight="54"
-                          PositionXOffset="866" PositionYOffset="703"
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+                          UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                          SuggestedWidth="328" HeightSizePolicy="Fixed"
+                          SuggestedHeight="48" PositionXOffset="873" PositionYOffset="707"
                           Command.Click="ExecuteApplyAndContinue" IsVisible="@IsReviewPage">
               <Children>
                 <TextWidget Text="Begin your life" WidthSizePolicy="StretchToParent"

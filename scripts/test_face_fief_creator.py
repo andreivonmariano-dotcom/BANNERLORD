@@ -1,27 +1,25 @@
 #!/usr/bin/env python3
-"""v0.22 SOURCE-ONLY audit. Does not prove 3D face controls or fief results in-game."""
+"""v0.23 SOURCE-ONLY audit. Does not prove 3D face controls or fief results in-game."""
 from pathlib import Path
 import xml.etree.ElementTree as ET
 ROOT=Path(__file__).resolve().parent.parent
 src=ROOT/"Source/CalradiaUnified"
 overlay=(src/"SandboxCreatorOverlay.cs").read_text()
 profile=(src/"SandboxOriginProfile.cs").read_text()
-face=(src/"CUFaceGeneratorStageView.cs").read_text()
+family=(src/"SandboxFamilyCreator.cs").read_text()
 fief=(src/"SandboxStartingFief.cs").read_text()
 behavior=(src/"SandboxOriginBehavior.cs").read_text()
 native=(ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml")
-header=(ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml")
+# The unsafe FaceGen stage must be absent from the next build.
 all_buttons=[w.get("Command.Click") for w in ET.parse(native).getroot().iter("ButtonWidget")]
-for action in ("ExecuteIdentity","ExecuteAppearance","ExecuteHousehold","ExecuteProgression",
-               "ExecuteEquipment","ExecuteResources","ExecuteLocation","ExecuteReview"):
+for action in ("ExecuteIdentity","ExecuteAppearance","ExecuteHousehold",
+               "ExecuteResources","ExecuteLocation","ExecuteReview","ExecuteToggleAdvanced"):
     assert action in all_buttons,action
-assert len(all_buttons)>=20
+assert len(all_buttons)>=19
 xmlRoot=ET.parse(native).getroot()
 for action, page in (("ExecuteIdentity","Identity"),
                      ("ExecuteAppearance","Appearance"),
                      ("ExecuteHousehold","Household"),
-                     ("ExecuteProgression","Progression"),
-                     ("ExecuteEquipment","Equipment"),
                      ("ExecuteResources","Resources"),
                      ("ExecuteLocation","Location"),
                      ("ExecuteReview","Review")):
@@ -32,7 +30,16 @@ for action, page in (("ExecuteIdentity","Identity"),
     assert "Is"+page+"Selected" in overlay
 assert any(w.get("Text")=="@PageProgress" for w in xmlRoot.iter("TextWidget"))
 
-assert "NativeStageEnabled" in overlay and "candidate.NativeStageEnabled=false;" not in overlay
+assert "candidate.NativeStageEnabled=false;" in overlay
+assert not (src/"CUFaceGeneratorStageView.cs").exists()
+assert not (ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml").exists()
+assert "CharacterCreationStageView(" not in "".join(p.read_text() for p in src.glob("*.cs"))
+assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
+assert "SandboxFamilyPolicy.ResolveSpouseFemale(" in family
+assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
+assert "cu_family_verification" in family
+assert "cu_family_verification" in family
+assert 'new Field("Appearance","NativeStageEnabled"' not in overlay
 assert "StartingFiefMode" in overlay and "StartingFiefId" in overlay
 assert "AllowStartingFiefTransfer" in overlay
 for key in ("StartingFiefMode","StartingFiefId","AllowStartingFiefTransfer"):
@@ -43,13 +50,8 @@ assert "sandbox_start_fief_result" in behavior
 assert "ChangeOwnerOfSettlementAction.ApplyByGift" in fief
 assert "target.OwnerClan != Clan.PlayerClan" in fief
 assert "fief_outside_starting_kingdom" in (src/"SandboxFiefPolicy.cs").read_text()
-assert "SandboxOriginProfile.UserPath" in face
-assert "CharacterCreationFaceGeneratorView" in face
-assert "CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))" in face
-assert "base.GetLayers()" in face and "base.OnFinalize()" in face
-assert "cu_face_stage_native_wrapped" in face
-assert ET.parse(header).getroot().tag=="Prefab"
-assert any(w.get("Text")=="@Title" for w in ET.parse(header).getroot().iter("TextWidget"))
-assert "SandBox.View" in (src/"CalradiaUnified.csproj").read_text()
-assert "SandBox.GauntletUI" in (src/"CalradiaUnified.csproj").read_text()
-print("PASS: native FaceGen wrapper, eight tabs, explicit fief validation and ownership event guards (STATIC ONLY)")
+assert "SandBox.View" not in (src/"CalradiaUnified.csproj").read_text()
+assert "SandBox.GauntletUI" not in (src/"CalradiaUnified.csproj").read_text()
+assert any(w.get("Text")=="@FieldHelp" for w in xmlRoot.iter("TextWidget"))
+assert any(w.get("Text")=="@AdvancedToggleLabel" for w in xmlRoot.iter("TextWidget"))
+print("PASS: no FaceGen view hijack, six guided tabs, family eligibility and fief guards (STATIC ONLY)")

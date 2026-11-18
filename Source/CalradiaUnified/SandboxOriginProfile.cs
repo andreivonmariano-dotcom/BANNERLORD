@@ -36,6 +36,7 @@ namespace CalradiaUnified
         // Set false to restore the original Default/Advanced Start selector.
         public bool OverhauledCreatorEnabled = true;
         public string StartingCulture = "";
+        // Face editing remains native until a verified state-specific bridge exists.
         // Dangerous creation actions require three independent opt-ins.
         public bool NativeStageEnabled;
         public bool RealFamilyEnabled;
@@ -74,7 +75,7 @@ namespace CalradiaUnified
         public bool SpouseEnabled;
         public string SpouseName = "Companion";
         public int SpouseAge = 30;
-        public string SpouseGender = "Female";
+        public string SpouseGender = "Auto";
         public string SpouseCulture = "";
         public string SpouseFaceSeed = "";
         public string SpouseEquipmentKit = "Vanilla";
@@ -264,7 +265,7 @@ namespace CalradiaUnified
                     if (!Number(value, 18, 70, out n)) return false;
                     SpouseAge = n; return true;
                 case "SpouseGender":
-                    if (value != "Female" && value != "Male") return false;
+                    if (value != "Female" && value != "Male" && value != "Auto") return false;
                     SpouseGender = value; return true;
                 case "SpouseCulture":
                     if (!Identifier(value, 80)) return false;

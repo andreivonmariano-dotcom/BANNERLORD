@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.22.0'
+assert manifest.find('Version').get('value')=='v0.23.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -70,8 +70,10 @@ assert (src/'SandboxNativeStartOptions.cs').exists()
 assert (src/'SandboxStartContract.cs').exists()
 assert (src/'SandboxFiefPolicy.cs').exists()
 assert (src/'SandboxStartingFief.cs').exists()
-assert (src/'CUFaceGeneratorStageView.cs').exists()
-assert (P/'Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml').exists()
+assert not (src/'CUFaceGeneratorStageView.cs').exists()
+assert not (P/'Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml').exists()
+assert 'CharacterCreationStageView(' not in ''.join(p.read_text() for p in src.glob('*.cs'))
+assert 'candidate.NativeStageEnabled=false;' in (src/'SandboxCreatorOverlay.cs').read_text()
 assert 'sandbox_start_contract' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'sandbox_appearance_engine_probe' in (src/'SandboxOriginBehavior.cs').read_text()
 assert 'OnCharacterCreationIsOverEvent' in (src/'SandboxOriginBehavior.cs').read_text()

@@ -31,9 +31,9 @@ def verify(filename, version):
         new_creator = prefix + "GUI/Prefabs/CUSandboxCreator.xml"
         assert new_creator in names, "New Sandbox creator movie missing"
         assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
-        face_header = prefix + "GUI/Prefabs/CUFaceStageHeader.xml"
-        assert face_header in names, "Native CU face heading missing"
-        assert ET.fromstring(archive.read(face_header)).tag == "Prefab", "Invalid native CU face heading"
+        # Never ship the experimental view that conflicted with native
+        # character creation during the user's v0.22 culture-stage crash.
+        assert prefix+"GUI/Prefabs/CUFaceStageHeader.xml" not in names, "Unsafe FaceGen header retained"
         assert all(not n.lower().endswith((".pdb", ".exe", ".cs", "not_compiled.txt")) for n in names), "Developer file"
         assert all(n in names for n in (base, manifest, ini, exporter)), "Required module file absent"
         assert [n for n in names if n.lower().endswith(".dll")] == [base], "Unexpected DLL count"
