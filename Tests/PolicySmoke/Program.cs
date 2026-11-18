@@ -338,7 +338,9 @@ internal static class Program
         Check("roles cannot forge king or lord titles",
             !SandboxRolePolicy.MatchesNativeStatus("King", false, false) &&
             SandboxRolePolicy.MatchesNativeStatus("King", true, true) &&
-            !SandboxRolePolicy.MatchesNativeStatus("Lord", true, true));
+            !SandboxRolePolicy.MatchesNativeStatus("Lord", true, true) &&
+            !SandboxRolePolicy.MatchesNativeStatus("Knight", false, false) &&
+            SandboxRolePolicy.MatchesNativeStatus("Soldier", true, false));
         Check("role packages have distinct troops and renown",
             SandboxRolePolicy.BonusRecruits("Wanderer") == 0 &&
             SandboxRolePolicy.BonusRecruits("Soldier") == 4 &&

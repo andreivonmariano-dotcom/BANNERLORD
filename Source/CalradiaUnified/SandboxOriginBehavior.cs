@@ -472,7 +472,11 @@ namespace CalradiaUnified
                     hero.AddInfluenceWithKingdom(profile.Influence -
                         Clan.PlayerClan.Influence);
                 }
-                int troops = profile.RoleAffiliationsEnabled
+                bool realRank = SandboxRolePolicy.MatchesNativeStatus(
+                    profile.Role, Clan.PlayerClan.Kingdom != null,
+                    Clan.PlayerClan.Kingdom != null &&
+                    Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
+                int troops = profile.RoleAffiliationsEnabled && realRank
                     ? Math.Max(profile.Troops,
                         SandboxRolePolicy.BonusRecruits(profile.Role))
                     : profile.Troops;
@@ -481,10 +485,6 @@ namespace CalradiaUnified
                     hero.Culture != null && hero.Culture.BasicTroop != null)
                     MobileParty.MainParty.MemberRoster.AddToCounts(
                         hero.Culture.BasicTroop, troops);
-                bool realRank = SandboxRolePolicy.MatchesNativeStatus(
-                    profile.Role, Clan.PlayerClan.Kingdom != null,
-                    Clan.PlayerClan.Kingdom != null &&
-                    Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
                 if (profile.RoleAffiliationsEnabled && realRank)
                     Clan.PlayerClan.AddRenown(
                         SandboxRolePolicy.StarterRenown(profile.Role),false);

@@ -7,8 +7,9 @@ namespace CalradiaUnified
             bool rulingClan)
         {
             if (role == "King") return inKingdom && rulingClan;
-            if (role == "Lord") return inKingdom && !rulingClan;
-            return role == "Wanderer" || role == "Soldier" || role == "Knight";
+            if (role == "Lord" || role == "Knight" || role == "Soldier")
+                return inKingdom && !rulingClan;
+            return role == "Wanderer" && !inKingdom;
         }
         public static int BonusRecruits(string role)
         {
