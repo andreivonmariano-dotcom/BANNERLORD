@@ -19,6 +19,14 @@ namespace CalradiaUnified
                 return "native_marriage_same_gender_untested";
             return "";
         }
+        // Resolve unknown gender only after native character finalization.
+        public static bool ResolveSpouseFemale(string preferredGender,
+            bool playerIsFemale)
+        {
+            return preferredGender == "Auto" ? !playerIsFemale :
+                preferredGender == "Female";
+        }
+
         public static bool ValidChildAge(int childAge, int playerAge,
             bool hasSpouse, int spouseAge)
         {
