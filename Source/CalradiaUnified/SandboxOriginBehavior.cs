@@ -191,6 +191,24 @@ namespace CalradiaUnified
                         returnMenu = from;
                         GameMenu.SwitchToMenu("cu_origin_main");
                     }, false);
+                // Explicit repair for existing saves. The player must stand
+                // in their OWN castle or town to move the family there.
+                // This never changes the child HeroState or adds a minor to
+                // a party. It is not an automatic retroactive save migration.
+                starter.AddGameMenuOption(from,
+                    "cu_family_residence_here_" + from,
+                    "CU: Make this my family's home",
+                    args => Hero.MainHero != null &&
+                        Hero.MainHero.Spouse != null &&
+                        Clan.PlayerClan != null &&
+                        Settlement.CurrentSettlement != null &&
+                        Settlement.CurrentSettlement.OwnerClan ==
+                            Clan.PlayerClan &&
+                        Settlement.CurrentSettlement.IsFortification,
+                    args => Notify("Family residence: " +
+                        SandboxFamilyHome.PlaceExistingFamilyAt(
+                            Hero.MainHero, Settlement.CurrentSettlement)),
+                    false);
             }
             starter.AddGameMenuOption("cu_origin_main", "cu_origin_preview",
                 "Preview my next-game setup", args => true,
@@ -552,6 +570,21 @@ namespace CalradiaUnified
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
                 DiagnosticJournal.Event("cu_family_creation_status",
                     "requested=" + profile.RealFamilyEnabled + "|result=" + family);
+                // Native spouse and parent links must be verified first.
+                // Place the family at an OWNED castle/town only after the
+                // genuine marriage and children have been created.
+                string familyHome = family.StartsWith("spouse=",
+                    StringComparison.Ordinal) ?
+                    SandboxFamilyHome.TryPlace(profile,hero) :
+                    "skipped:family_not_verified";
+                DiagnosticJournal.Event("cu_family_home_status",
+                    "result=" + familyHome +
+                    "|requested_mode=" + profile.FamilyHomeMode +
+                    "|requested_id=" + profile.FamilyHomeId);
+                if (familyHome.StartsWith("failed:",StringComparison.Ordinal) ||
+                    familyHome.StartsWith("refused:",StringComparison.Ordinal))
+                    Notify("Family home could not be established: " +
+                        familyHome);
                 if (profile.RealFamilyEnabled && (
                     family == "not_enabled" ||
                     !family.StartsWith("spouse=",StringComparison.Ordinal)))
@@ -638,7 +671,9 @@ namespace CalradiaUnified
                 // Relocation and direct face sliders remain disabled. The
                 // opt-in family helper uses native hero/marriage APIs.
                 DiagnosticJournal.Event("sandbox_origin_applied",
-                    "role=" + profile.Role + "|gold_target=" + profile.Gold +
+                    "role=" + profile.Role +
+                    "|family_home=" + familyHome +
+                    "|gold_target=" + profile.Gold +
                     "|influence_target=" + profile.Influence +
                     "|troops=" + profile.Troops +
                     "|family_status=" + family +
