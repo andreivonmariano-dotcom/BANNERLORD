@@ -515,6 +515,11 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(NumberMaximum,"NumberMaximum");
             OnPropertyChangedWithValue(pendingNumber,"PendingNumber");
             OnPropertyChangedWithValue(ProfileSummary,"ProfileSummary");
+            OnPropertyChangedWithValue(RoleSummary,"RoleSummary");
+            OnPropertyChangedWithValue(FamilySummary,"FamilySummary");
+            OnPropertyChangedWithValue(LandSummary,"LandSummary");
+            OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
+            OnPropertyChangedWithValue(StartNotice,"StartNotice");
             OnPropertyChangedWithValue(Status,"Status");
         }
 
@@ -594,8 +599,14 @@ namespace CalradiaUnified
             {
                 if(Current==null) return "";
                 string value=RawValue(Current.Key);
-                if(value=="-1" || value=="") return "Use the native/default value";
+                if(value=="-1" || value=="") return "Keep the native default";
                 if(Current.Kind=="number") return pendingNumber.ToString();
+                if(Current.Kind=="boolean")
+                    return value=="true" ? "YES" : "NO";
+                if(Current.Key=="StartingKingdomId")
+                    return value.Length>0 ?
+                        CultureInfo.InvariantCulture.TextInfo.ToTitleCase(value):
+                        "Choose a kingdom";
                 return value;
             }
         }
@@ -606,7 +617,7 @@ namespace CalradiaUnified
                 int count=VisibleFields.Length;
                 return page == "Review" ? "READY TO START A NEW CAMPAIGN" :
                     count==0 ? "No quick settings on this page" :
-                    "CHOICE "+(selectedIndex+1)+" OF "+count;
+                    "SETTING "+(selectedIndex+1)+" / "+count;
             }
         }
         [DataSourceProperty] public bool IsNumber
@@ -647,21 +658,63 @@ namespace CalradiaUnified
             }
         }
         [DataSourceProperty] public string Status {get {return status;} }
+        [DataSourceProperty] public string RoleSummary
+        {
+            get
+            {
+                var kingdom = String.IsNullOrEmpty(profile.StartingKingdomId) ?
+                    "" : "  /  " + CultureInfo.InvariantCulture.TextInfo
+                        .ToTitleCase(profile.StartingKingdomId);
+                return profile.Role + kingdom;
+            }
+        }
+        [DataSourceProperty] public string FamilySummary
+        {
+            get
+            {
+                if (!profile.SpouseEnabled)
+                    return "Unmarried, no children";
+                return "Spouse planned  /  " + profile.ChildCount +
+                    (profile.ChildCount==1 ? " child" : " children");
+            }
+        }
+        [DataSourceProperty] public string LandSummary
+        {
+            get
+            {
+                if (profile.StartingFiefMode=="Native")
+                    return "Native starting holdings";
+                return profile.StartingFiefMode=="Specific" ?
+                    "Requested: " + profile.StartingFiefId :
+                    "Requested: " + profile.StartingFiefMode;
+            }
+        }
+        [DataSourceProperty] public string WorldSummary
+        {
+            get
+            {
+                return profile.StartingScenario=="none" ?
+                    "Normal Sandbox world" : profile.StartingScenario;
+            }
+        }
+        [DataSourceProperty] public string StartNotice
+        {
+            get
+            {
+                return profile.SpouseEnabled ?
+                    "Family requests apply after native character creation. " +
+                    "The result must be verified in Clan." :
+                    "Culture, face, age and background are still handled " +
+                    "by Bannerlord after this screen.";
+            }
+        }
         [DataSourceProperty] public string ProfileSummary
         {
             get
             {
-                return profile.Role+" | kingdom: "+
-                    (String.IsNullOrEmpty(profile.StartingKingdomId) ?
-                        "none":profile.StartingKingdomId)+
-                    " | spouse: "+(profile.SpouseEnabled ? "requested" : "no")+
-                    " | children: "+profile.ChildCount+
-                    " | family: "+(profile.RealFamilyEnabled ?
-                        "requested":"off")+
-                    " | starting fief: "+profile.StartingFiefMode+
-                    (profile.StartingFiefMode=="Specific" ?
-                        " / "+profile.StartingFiefId:"")+
-                    " | native world: "+profile.StartingScenario;
+                return "Starting plan: " + RoleSummary +
+                    " | " + FamilySummary +
+                    " | " + LandSummary;
             }
         }
 
