@@ -16,7 +16,8 @@ namespace CalradiaUnified
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
         public static readonly string[] Roles =
-            { "Wanderer", "Soldier", "Knight", "Lord", "King", "Admiral" };
+            { "Wanderer", "Soldier", "Knight", "Lord", "King", "Admiral",
+      "Trader", "Outlaw", "Beggar" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
@@ -40,6 +41,24 @@ namespace CalradiaUnified
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
+        // Native Advanced Start IDs, not culture IDs.
+        public static readonly string[] KingdomIds =
+            { "", "vlandia", "sturgia", "battania", "empire",
+              "empire_w", "empire_s", "khuzait", "aserai" };
+        public static readonly string[] Scenarios =
+            { "none", "unitedempire", "LastStand", "twofactionwar",
+              "InvasionId", "alternativecalradia" };
+        public string StartingKingdomId = "";
+        public string StartingScenario = "none";
+        public string ScenarioFaction1 = "";
+        public string ScenarioFaction2 = "";
+        public string ScenarioVariant = "alternativecalradiadefault";
+        public bool StartFastMode;
+        public bool StartBanditSurge;
+        public bool StartCivilUnrest;
+        public bool StartRecruitShortage;
+        public bool StartSwiftTravel;
+        public int WorldSeed = -1;
         public int Gold = -1;
         public int Influence = -1;
         public int Troops;
@@ -164,6 +183,41 @@ namespace CalradiaUnified
                 case "Role":
                     if (!Allowed(value, Roles)) return false;
                     Role = value; return true;
+                case "StartingKingdomId":
+                    if (!Allowed(value, KingdomIds)) return false;
+                    StartingKingdomId = value; return true;
+                case "StartingScenario":
+                    if (!Allowed(value, Scenarios)) return false;
+                    StartingScenario = value; return true;
+                case "ScenarioFaction1":
+                    if (!Allowed(value, KingdomIds)) return false;
+                    ScenarioFaction1 = value; return true;
+                case "ScenarioFaction2":
+                    if (!Allowed(value, KingdomIds)) return false;
+                    ScenarioFaction2 = value; return true;
+                case "ScenarioVariant":
+                    if (value != "alternativecalradiadefault" &&
+                        value != "alternativecalradiafractured" &&
+                        value != "alternativecalradiashattered") return false;
+                    ScenarioVariant = value; return true;
+                case "StartFastMode":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    StartFastMode = b; return true;
+                case "StartBanditSurge":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    StartBanditSurge = b; return true;
+                case "StartCivilUnrest":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    StartCivilUnrest = b; return true;
+                case "StartRecruitShortage":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    StartRecruitShortage = b; return true;
+                case "StartSwiftTravel":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    StartSwiftTravel = b; return true;
+                case "WorldSeed":
+                    if (!Number(value, -1, 2000000000, out n)) return false;
+                    WorldSeed = n; return true;
                 case "Gold":
                     if (!Number(value, -1, 2000000, out n)) return false;
                     Gold = n; return true;
@@ -320,6 +374,8 @@ namespace CalradiaUnified
                 ", " + Troops + " additional troops, kit=" + EquipmentKit +
                 ", family=" + (SpouseEnabled ? "spouse " + SpouseName : "none") +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
+                ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
+                ", scenario=" + StartingScenario +
                 ", town=" + (StartingTown.Length == 0 ? "native" : StartingTown) +
                 ", stat overrides=" + Overrides.Count +
                 ". Profile applies to a NEW Sandbox campaign only.";
@@ -332,7 +388,7 @@ namespace CalradiaUnified
                 "# CU sandbox origin profile v1. Configure before starting NEW Sandbox.",
                 "# -1 means do not overwrite native Gold, Influence or PlayerAge.",
                 "# Lord/King standing is granted by vanilla Advanced Starting Options.",
-                "# Family templates and appearance values are prepared; no NPC spawns in v0.16.",
+                "# v0.20: Explicit family requests are processed after native character creation.",
                 "Version=CU_ORIGIN_1",
                 "Enabled=" + Enabled.ToString().ToLowerInvariant(),
                 "OverhauledCreatorEnabled=" +
@@ -342,6 +398,17 @@ namespace CalradiaUnified
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,
+                "StartingKingdomId=" + StartingKingdomId,
+                "StartingScenario=" + StartingScenario,
+                "ScenarioFaction1=" + ScenarioFaction1,
+                "ScenarioFaction2=" + ScenarioFaction2,
+                "ScenarioVariant=" + ScenarioVariant,
+                "StartFastMode=" + StartFastMode.ToString().ToLowerInvariant(),
+                "StartBanditSurge=" + StartBanditSurge.ToString().ToLowerInvariant(),
+                "StartCivilUnrest=" + StartCivilUnrest.ToString().ToLowerInvariant(),
+                "StartRecruitShortage=" + StartRecruitShortage.ToString().ToLowerInvariant(),
+                "StartSwiftTravel=" + StartSwiftTravel.ToString().ToLowerInvariant(),
+                "WorldSeed=" + WorldSeed,
                 "Gold=" + Gold,
                 "Influence=" + Influence,
                 "Troops=" + Troops,

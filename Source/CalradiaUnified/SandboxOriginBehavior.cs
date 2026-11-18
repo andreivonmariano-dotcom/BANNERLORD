@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Extensions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
@@ -22,6 +23,7 @@ namespace CalradiaUnified
     {
         private bool applied;
         private bool startedNewGame;
+        private bool characterCreationComplete;
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
@@ -34,6 +36,10 @@ namespace CalradiaUnified
                 this, NewGameCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
+            // v1.5.7 fires ten completion phases. Native King/Vassal starts
+            // run at phase 8; our resources and family run at phase 9.
+            CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
+                this, CharacterCreationCompleted);
             CampaignEvents.OnCharacterCreationInitializedEvent.AddNonSerializedListener(
                 this, ObserveNativeCharacterCreation);
         }
@@ -406,19 +412,31 @@ namespace CalradiaUnified
             if (applied || !IsStandaloneSandbox()) return;
             // Arm only on a new Sandbox. A loaded save never runs this event.
             startedNewGame = true;
+            characterCreationComplete = false;
             DiagnosticJournal.Event("sandbox_origin_new_game_armed",
-                "waiting_for_native_main_hero");
+                "waiting_for_character_creation_phase_9");
+        }
+
+        private void CharacterCreationCompleted(int phase)
+        {
+            if (phase != 9 || applied || !IsStandaloneSandbox()) return;
+            characterCreationComplete = true;
+            startedNewGame = true;
+            DiagnosticJournal.Event("sandbox_origin_creation_complete",
+                "phase=9|native_advanced_start_has_run=true");
             TryApplyOnce();
         }
 
         private void TryApplyOnDailyTick()
         {
-            if (startedNewGame && !applied) TryApplyOnce();
+            if (characterCreationComplete && startedNewGame && !applied)
+                TryApplyOnce();
         }
 
         private void TryApplyOnce()
         {
-            if (!startedNewGame || applied || !IsStandaloneSandbox()) return;
+            if (!characterCreationComplete || !startedNewGame ||
+                applied || !IsStandaloneSandbox()) return;
             var hero = Hero.MainHero;
             if (hero == null || Clan.PlayerClan == null) return;
 
@@ -448,11 +466,17 @@ namespace CalradiaUnified
             }
             try
             {
-                // Real contracts use native ChangeKingdomAction and are opt-in.
-                // King status is never forged by a role label.
+                // The player start was already applied by native ASO at
+                // phase 8, including King/Vassal affiliation and starting fiefs.
+                string actualStart = Campaign.Current.AdvancedStartData == null ?
+                    "" : Campaign.Current.AdvancedStartData.GetStartType();
                 string affiliation = SandboxRoleAffiliations.TryApply(profile,hero);
                 DiagnosticJournal.Event("cu_role_affiliation_status",
-                    "role=" + profile.Role + "|status=" + affiliation);
+                    "role=" + profile.Role +
+                    "|native_start_type=" + actualStart +
+                    "|kingdom=" + (Clan.PlayerClan.Kingdom == null ?
+                        "none" : Clan.PlayerClan.Kingdom.StringId) +
+                    "|status=" + affiliation);
 
                 // Native ASO is the authority for king/vassal/mercenary
                 // affiliation. A role label must never forge king status.
@@ -469,6 +493,22 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "Lord requires native Vassal Advanced Start");
 
+                // Explicitly requested family is created after the native
+                // character and start kingdom exist.
+                string family = SandboxFamilyCreator.TryCreate(profile,hero);
+                DiagnosticJournal.Event("cu_family_creation_status",
+                    "requested=" + profile.RealFamilyEnabled + "|result=" + family);
+                if (profile.RealFamilyEnabled && (
+                    family == "not_enabled" ||
+                    !family.StartsWith("spouse=",StringComparison.Ordinal)))
+                    Notify("Family request could not be completed: " + family);
+                if ((profile.Role == "Lord" || profile.Role == "King") &&
+                    !SandboxRolePolicy.MatchesNativeStatus(profile.Role,
+                        Clan.PlayerClan.Kingdom != null,
+                        Clan.PlayerClan.Kingdom != null &&
+                        Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
+                    Notify("Start role was not applied: " + profile.Role);
+
                 if (profile.Gold >= 0)
                 {
                     int delta = profile.Gold - Math.Max(0, hero.Gold);
@@ -482,7 +522,11 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Influence);
                 }
                 bool realRank = SandboxRolePolicy.ConfirmedNativeStanding(
-                    profile.Role, affiliation);
+                    profile.Role, affiliation) ||
+                    SandboxRolePolicy.MatchesNativeStatus(profile.Role,
+                        Clan.PlayerClan.Kingdom != null,
+                        Clan.PlayerClan.Kingdom != null &&
+                        Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
                 int troops = profile.RoleAffiliationsEnabled && realRank
                     ? Math.Max(profile.Troops,
                         SandboxRolePolicy.BonusRecruits(profile.Role))
@@ -501,9 +545,6 @@ namespace CalradiaUnified
 
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
-
-                string family = SandboxFamilyCreator.TryCreate(profile,hero);
-                DiagnosticJournal.Event("cu_family_creation_status",family);
 
                 // Relocation and direct face sliders remain disabled. The
                 // opt-in family helper uses native hero/marriage APIs.

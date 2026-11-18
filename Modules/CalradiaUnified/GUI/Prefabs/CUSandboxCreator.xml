@@ -7,10 +7,26 @@
                 HeightSizePolicy="Fixed" SuggestedHeight="790"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <!-- Native Gauntlet frame; buttons use the built-in ButtonBrush.
-                 The pre-game screen must display actual hit surfaces. -->
+            <!-- Reuse the game frame brush for a distinct title, side rail,
+                 editing canvas and action footer. All remain behind input. -->
             <ImageWidget Brush="Frame9" WidthSizePolicy="StretchToParent"
                          HeightSizePolicy="StretchToParent" />
+            <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
+                         SuggestedWidth="1240" HeightSizePolicy="Fixed"
+                         SuggestedHeight="78"
+                         PositionXOffset="20" PositionYOffset="8"/>
+            <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
+                         SuggestedWidth="244" HeightSizePolicy="Fixed"
+                         SuggestedHeight="604"
+                         PositionXOffset="15" PositionYOffset="95"/>
+            <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
+                         SuggestedWidth="990" HeightSizePolicy="Fixed"
+                         SuggestedHeight="584"
+                         PositionXOffset="270" PositionYOffset="99"/>
+            <ImageWidget Brush="Frame9" WidthSizePolicy="Fixed"
+                         SuggestedWidth="990" HeightSizePolicy="Fixed"
+                         SuggestedHeight="88"
+                         PositionXOffset="270" PositionYOffset="691"/>
             <TextWidget Text="CALRADIA UNIFIED | DESIGN YOUR SANDBOX"
                         WidthSizePolicy="Fixed" SuggestedWidth="1170"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"
