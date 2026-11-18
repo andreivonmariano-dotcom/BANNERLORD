@@ -82,6 +82,9 @@ jobs:
       - name: Package DLL and runtime files only
         shell: pwsh
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
+      - name: Verify ZIP paths, CRC, DLL identity and hashes
+        shell: pwsh
+        run: python scripts/verify_package.py Output/CalradiaUnified_v0.13.0_COMPILED_UNTESTED.zip --version v0.13.0
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
