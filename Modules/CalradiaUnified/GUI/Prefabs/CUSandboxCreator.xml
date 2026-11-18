@@ -122,7 +122,7 @@
                           PositionXOffset="26" PositionYOffset="485"
                           Command.Click="ExecuteLocation">
               <Children>
-                <TextWidget Text="Fief & World" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Fief &amp; World" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
