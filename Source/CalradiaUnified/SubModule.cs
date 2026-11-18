@@ -12,6 +12,20 @@ namespace CalradiaUnified
     /// </summary>
     public sealed class SubModule : MBSubModuleBase
     {
+        protected override void OnBeforeInitialModuleScreenSetAsRoot()
+        {
+            base.OnBeforeInitialModuleScreenSetAsRoot();
+            try
+            {
+                SandboxMainMenuEntry.Install();
+            }
+            catch (Exception error)
+            {
+                DiagnosticJournal.Exception("sandbox_main_menu_override_failed", error);
+                Log.Write("Sandbox menu replacement failed: " + error);
+            }
+        }
+
         protected override void OnApplicationTick(float dt)
         {
             base.OnApplicationTick(dt);
@@ -33,11 +47,11 @@ namespace CalradiaUnified
                 if (DiagnosticJournal.Enabled)
                 {
                     DiagnosticJournal.InstallManagedExceptionHooks();
-                    DiagnosticJournal.Event("module_loaded", "version=0.18.0");
+                    DiagnosticJournal.Event("module_loaded", "version=0.19.0");
                 }
             }
             catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
-            Log.Write("Calradia Unified 0.18.0 initialized; diagnostics configured; no Harmony patches applied.");
+            Log.Write("Calradia Unified 0.19.0 initialized; diagnostics configured; no Harmony patches applied.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter starter)
