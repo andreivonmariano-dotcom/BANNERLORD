@@ -59,6 +59,9 @@ jobs:
       - name: Audit direct Sandbox creator with button brushes and Escape
         shell: pwsh
         run: python scripts/test_sandbox_overhaul.py
+      - name: Enforce locked five-page CU Sandbox creation flow
+        shell: pwsh
+        run: python scripts/test_locked_sandbox_flow.py
       - name: Verify real native starts and post-creation family effects
         shell: pwsh
         run: python scripts/test_native_start_handoff.py
