@@ -33,6 +33,22 @@ jobs:
       - name: Test diagnostic export reader
         shell: pwsh
         run: python scripts/analyze_diagnostics.py --self-test
+      - name: Test Windows diagnostic ZIP exporter
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $parseErrors = $null
+          $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path scripts/Export-CU-Diagnostics.ps1).Path, [ref]$tokens, [ref]$parseErrors)
+          if ($parseErrors.Count -gt 0) { throw ("PowerShell syntax errors: " + ($parseErrors -join '; ')) }
+          New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
+          ./scripts/Export-CU-Diagnostics.ps1 -OutZip "BuildResults/ci-crash-export.zip" -RecentHours 1
+          if (-not (Test-Path "BuildResults/ci-crash-export.zip")) { throw "Diagnostic collector did not produce a ZIP." }
+          $zip = [System.IO.Compression.ZipFile]::OpenRead((Resolve-Path "BuildResults/ci-crash-export.zip").Path)
+          try {
+            if (-not ($zip.Entries | Where-Object { $_.FullName -eq 'manifest.json' })) {
+              throw 'Diagnostic ZIP missing manifest.json'
+            }
+          } finally { $zip.Dispose() }
       - name: Restore .NET tests
         shell: pwsh
         run: |
