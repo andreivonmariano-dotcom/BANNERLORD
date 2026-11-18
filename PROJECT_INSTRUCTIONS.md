@@ -72,7 +72,7 @@ Modules/
             └── CalradiaUnified.dll
 ```
 
-Use the exact runtime file set required by the built feature. Keep sources, tests, old DLLs, `.pdb` files unless explicitly needed, NuGet packages, installer scripts, cache files, and development notes out of the player-facing ZIP. No Windows installer, registry changes, or executable bootstrapper should be required. A source repository can include build scripts and test data without placing them in the distributed module.
+Use the exact runtime file set required by the built feature. Keep sources, tests, old DLLs, `.pdb` files unless explicitly needed, NuGet packages, installer scripts, cache files, and development notes out of the player-facing ZIP. No bundled MSI, registry changes, or executable bootstrapper should be required. The user's preferred source-side PowerShell 5.1 installer and audit scripts are approved for artifact verification and log inspection, but stay outside the runtime ZIP. A source repository can include build scripts and test data without placing them in the distributed module.
 
 Keep the module ID and save data keys stable across compatible releases. Record intentional migrations and changed defaults. Avoid replacing an existing user installation without a backup instruction. Never call an uncompiled `SubModule.xml` package a working compiled release.
 
@@ -206,6 +206,21 @@ For internal unlisted crash logs, source archives, developer notes, and working 
 
 **Update the project:** “Read the current repository, identify the nearest functional blocker, complete one coherent milestone, run all accessible tests, update the tracker, and provide the resulting artifact and remaining game-only checks.”
 
+## Standing Windows PowerShell installation and runtime test standard
+
+**Decision adopted 18 November 2026.** The user prefers a repeatable PowerShell workflow for every Calradia Unified installation and playthrough test. Treat this as a permanent project rule across new ChatGPT chats. Read [the complete PowerShell SOP](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md) before preparing an install, asking for game evidence, or diagnosing a crash.
+
+- **Install the exact successful CI artifact.** Check the workflow run ID and its source commit, module version, compiled ZIP and *DLL SHA-256*. Different successful builds may have the same `v0.xx.0` version but different DLL hashes. Do not guess a hash or select a downloaded ZIP by newest timestamp alone.
+- **Use `scripts/Install-CU-From-Artifact.ps1` in Windows PowerShell 5.1**, passing `-GameRoot`, an exact `-ArtifactZip`, `-ExpectedVersion`, **`-ExpectedDllSha256`**, and `-ReplaceExisting` after the user has closed Bannerlord. The script must reject a wrong hash **before** moving the existing module, preserve a backup, and verify the installed DLL. It supports direct module ZIPs and GitHub's nested ZIP artifact. It is an optional source-side helper, **not** a bundled binary installer or substitute for the paste-ready CalradiaUnified module. No registry or save modifications.
+- **Run `scripts/Test-CU-Playthrough.ps1` in PowerShell after gameplay**. Prefer passing the same module version and expected CI hash. For a family test pass the chosen `-ExpectedChildren`, such as `1`. Anchor historic `events.csv` to its latest `sandbox_overhaul_accepted` and compare creator plan, native-loaded plan, real spouse and children, final `sandbox_start_contract`, family residence and exceptions. Never count events from previous campaigns as current evidence.
+- **Separate game and save/load acceptance.** A diagnostic `PASS` describes the observed log stream, not a direct read of the game scene or saved characters. After saving, fully exiting and reloading, inspect Clan and Encyclopedia for matching family members, ages, parent relationships, current settlement and no duplicates. The separate user-observed evidence upgrades the actual game and persistence gates.
+- **Crash evidence:** `scripts/Export-CU-Diagnostics.ps1` makes a read-only log ZIP. Review contents for personal data before sharing. Never upload private saves, dumps or credentials to the public repository.
+- **Each future coding response that produces a compiled candidate must include a PowerShell 5.1 install block and a matching playthrough diagnostic block.** Link the exact successful run, artifact and SHA-256. Show a `FAIL` or `INCOMPLETE` result accurately. Paste all `if/elseif/else` branches as one block to avoid the user's prior PS5.1 parser issue.
+- **CI must check the workflow itself.** Test PowerShell syntax, hash mismatch rejection before installation, nested artifact layout, module backup, synthetic newest-session events, child-count mismatch detection and JSON report status. Do not weaken these checks or claim that they launch the game.
+- **Preferred local game root recorded from the user:** `D:\Steam\steamapps\common\Mount & Blade II Bannerlord`. This is a convenience, not a secret or a guarantee that every future machine uses the same path.
+
+**Current development boundary:** The verified family code in v0.26 created a genuine married NobleRandom spouse and children. The v0.27 child-count repair and v0.28 family residence are separate later milestones. The upcoming **native-character-creation harmonization and Gauntlet redesign with 3D player/family previews** require new staged work. Do not revive the v0.22 competing native FaceGen view that crashed at the culture screen. Keep this SOP in force for their testing.
+
 ## Handoff record for each development milestone
 
 A development response or issue report should identify: goal; commit SHA; changed files; implementation details; tests executed with pass/fail counts; workflow run URL; binary artifact and its verification; highest test gate reached; known failures; next blocker. Exclude empty fields when they do not apply. Keep this record short enough to be actionable.
@@ -224,3 +239,5 @@ Maintain this document as the expanded technical policy. Maintain `CHATGPT_PROJE
 - User-established Calradia Unified goals: single-folder standalone module; no installer; historical 78-mod feature reconstruction; real campaign systems; truthful compilation and gameplay status.
 
 **Revision record:** Version 1.0, 18 November 2026. Initial Bannerlord-specialized source handbook, derived from the user's editorial reference and the current Calradia Unified project record.
+
+**Addendum, 18 November 2026:** Windows PowerShell 5.1 installation and runtime diagnostics are now the project default, with CI-pinned artifact hashes, safe replacement/backup, latest-Sandbox log isolation, and independent save/reload acceptance. See the linked SOP. This supersedes older 'no installer' wording only for optional source-side PowerShell scripts, not for bundling an executable installer with the mod.
