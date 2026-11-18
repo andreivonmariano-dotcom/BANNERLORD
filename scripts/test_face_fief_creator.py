@@ -35,7 +35,9 @@ assert not (src/"CUFaceGeneratorStageView.cs").exists()
 assert not (ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml").exists()
 assert "CharacterCreationStageView(" not in "".join(p.read_text() for p in src.glob("*.cs"))
 assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
-assert 'profile.SpouseGender == "Auto"' in family
+assert "SandboxFamilyPolicy.ResolveSpouseFemale(" in family
+assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family
+assert "cu_family_verification" in family
 assert "cu_family_verification" in family
 assert 'new Field("Appearance","NativeStageEnabled"' not in overlay
 assert "StartingFiefMode" in overlay and "StartingFiefId" in overlay
