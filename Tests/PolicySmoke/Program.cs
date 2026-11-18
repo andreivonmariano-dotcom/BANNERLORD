@@ -43,6 +43,35 @@ internal static class Program
             SandboxStartContract.Validate("default","default","","",
                 false,0,false,false,0,0).Length == 0);
 
+        Check("fief native default needs no transfer",
+            SandboxFiefPolicy.ValidateRequest("Wanderer", "Native",
+                "", false) == "");
+        Check("fief opt-in requires real native political role",
+            SandboxFiefPolicy.ValidateRequest("Wanderer", "Castle",
+                "", true) == "fief_role_ineligible");
+        Check("fief transfer refuses no consent",
+            SandboxFiefPolicy.ValidateRequest("Lord", "Specific",
+                "castle_test", false) == "fief_transfer_not_authorized");
+        Check("fief specific requires a settlement id",
+            SandboxFiefPolicy.ValidateRequest("King", "Specific",
+                "", true) == "fief_id_required");
+        Check("fief grant accepts kingdom castle request",
+            SandboxFiefPolicy.ValidateRequest("Lord", "Castle",
+                "", true) == "");
+        Check("fief grant blocks enemy fief",
+            SandboxFiefPolicy.ValidateTarget(true, false, false,
+                false, false) == "fief_outside_starting_kingdom");
+        Check("fief grant blocks sieged settlement",
+            SandboxFiefPolicy.ValidateTarget(true, true, true,
+                false, false) == "fief_contested");
+        Check("fief grant blocks villages",
+            SandboxFiefPolicy.ValidateTarget(false, true, false,
+                false, false) == "not_a_fortification");
+        Check("fief round-trip keeps exact settlement choice",
+            new SandboxOriginProfile().TrySet("StartingFiefMode","Specific") &&
+            SandboxOriginProfile.Parse("StartingFiefMode=Specific\n" +
+                "StartingFiefId=castle_x\nAllowStartingFiefTransfer=true")
+                .StartingFiefId == "castle_x");
         Check("exact shortage threshold", SupplyPolicy.IsLowFood(3, 3));
         Check("unknown supply not shortage", !SupplyPolicy.IsLowFood(-1, 3));
         Check("ample food not shortage", !SupplyPolicy.IsLowFood(4, 3));
