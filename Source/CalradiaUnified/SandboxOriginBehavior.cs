@@ -73,6 +73,8 @@ namespace CalradiaUnified
                 if (manager == null) return;
                 try
                 {
+                    NativeStartingLifeMenus.TryAttach(manager,
+                        SandboxOriginProfile.Load(SandboxOriginProfile.UserPath));
                     DiagnosticJournal.Event("cu_native_sandbox_stage",
                         "total=" + manager.GetTotalStagesCount() +
                         "|narrative_menus=" + manager.NarrativeMenus.Count);
