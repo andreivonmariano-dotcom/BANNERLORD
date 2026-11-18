@@ -425,7 +425,6 @@ namespace CalradiaUnified
             if (key=="WorldSeed" || key=="StartingTown" ||
                 key=="PlayerAge" || key=="SiblingCount" ||
                 key=="EquipmentKit" ||
-                key.StartsWith("Sibling.",StringComparison.Ordinal) ||
                 key.StartsWith("Skill.",StringComparison.Ordinal) ||
                 key.StartsWith("Focus.",StringComparison.Ordinal) ||
                 key.StartsWith("Attribute.",StringComparison.Ordinal) ||
