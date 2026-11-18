@@ -30,18 +30,18 @@ The artifact's name and module version are **not sufficient to identify a build*
 
 For the current `v0.28.0` **compiled-untested** family-home candidate, the PowerShell procedure itself passed its Windows CI tests:
 
-- [Successful Windows run #44344074361](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44344074361).
-- [Download the exact CI artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44344074361/artifacts/14444967381). Downloaded filename: `CalradiaUnified-v0.28.0-compiled-untested.zip`.
-- Immutable source script commit: `556ea16188d779011173abdf445933d50f28b839`.
-- Compiled DLL SHA-256: `e2ce111eb114cc388dcb52d1db97c343986e0d3155be34d20e208329a0743a22`. DLL size: 224,256 bytes.
+- [Successful Windows run #44345749188](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44345749188).
+- [Download the exact CI artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44345749188/artifacts/14445218238). Downloaded filename: `CalradiaUnified-v0.28.0-compiled-untested.zip`.
+- Immutable source script commit: `4c0b1c452b7d32ecee9e2cc6d969226f38574659`.
+- Compiled DLL SHA-256: `c182cc2ffb7fba279e59ac9413166e59b6bb3da49cb04b8ea98a64ce8b883b91`. DLL size: 224,256 bytes.
 - CI executed **617 policy checks**, **40 simulations**, parsed both PowerShell scripts, verified wrong-hash refusal **before modifying installation**, and tested latest-session one-child report and count rejection. C# compile produced zero warnings/errors.
 
 For that artifact, the three variable assignments in the generic block below become:
 
 ```powershell
 $ModuleVersion = 'v0.28.0'
-$SourceCommit = '556ea16188d779011173abdf445933d50f28b839'
-$ExpectedHash = 'e2ce111eb114cc388dcb52d1db97c343986e0d3155be34d20e208329a0743a22'
+$SourceCommit = '4c0b1c452b7d32ecee9e2cc6d969226f38574659'
+$ExpectedHash = 'c182cc2ffb7fba279e59ac9413166e59b6bb3da49cb04b8ea98a64ce8b883b91'
 ```
 
 Do not reuse this hash for a later v0.28 build or any newer version. The module's game behavior, automatic family residence, and save persistence still require actual playtesting.
