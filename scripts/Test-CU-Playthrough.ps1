@@ -6,6 +6,8 @@ param(
     [string]$ExpectedVersion = "",
     [string]$ExpectedDllSha256 = "",
     [ValidateRange(-1,6)][int]$ExpectedChildren = -1,
+    [switch]$RequireNativeReview,
+    [ValidateRange(-1,12)][int]$ExpectedPortraits = -1,
     [string]$EventsCsv = "",
     [string]$ExceptionsCsv = "",
     [string]$ReportJson = "",
@@ -107,6 +109,12 @@ $homeEvent = Event-Last $session 'cu_family_home_result'
 $homeStatus = Event-Last $session 'cu_family_home_status'
 $childEvents = @($session | Where-Object { $_.context -eq 'cu_family_child_created' })
 $spouse = Event-Last $session 'cu_family_spouse_created'
+$nativeReviewAttached = Event-Last $session 'cu_native_review_attached'
+$nativeReviewLoaded = Event-Last $session 'cu_native_review_view_loaded'
+$nativeReviewSkipped = Event-Last $session 'cu_native_review_skipped'
+$nativeReviewFallback = Event-Last $session 'cu_native_review_summary_fallback'
+$galleryOpened = Event-Last $session 'cu_family_portraits_open'
+$galleryFailed = Event-Last $session 'cu_family_portrait_screen_failed'
 
 $expected = $ExpectedChildren
 if ($expected -lt 0) {
@@ -146,6 +154,26 @@ if ($expected -ge 0 -and $null -ne $contract) {
             $childEvents.Count + ' (expected ' + $expected + ')')
     }
 }
+if ($RequireNativeReview) {
+    if ($null -eq $nativeReviewAttached -or $null -eq $nativeReviewLoaded) {
+        $skipped = if ($null -ne $nativeReviewSkipped) { $nativeReviewSkipped.detail } else { 'no skip logged' }
+        $issues.Add('Expected opt-in native 3D CU stage was not opened: ' + $skipped)
+    }
+    if ($null -ne $nativeReviewFallback) {
+        $issues.Add('Optional CU native review overlay could not load: ' +
+            $nativeReviewFallback.detail)
+    }
+}
+if ($ExpectedPortraits -ge 0) {
+    if ($null -eq $galleryOpened) {
+        $issues.Add('Expected real-Hero portrait gallery was not opened in this logged session')
+    } else {
+        Check-Number 'genuine Hero gallery rows' (Detail-Value $galleryOpened.detail 'actual_hero_portraits') $ExpectedPortraits $issues
+    }
+    if ($null -ne $galleryFailed) {
+        $issues.Add('Gauntlet family gallery failed: ' + $galleryFailed.detail)
+    }
+}
 $exceptions = @()
 if (Test-Path -LiteralPath $ExceptionsCsv -PathType Leaf) {
     $allExceptions = @(Import-Csv -LiteralPath $ExceptionsCsv)
@@ -176,6 +204,9 @@ if ($sessionUtc) {
     Write-Host "Family verification: $(if ($null -eq $verification) { 'not logged' } else { $verification.detail })"
     Write-Host "Start contract: $(if ($null -eq $contract) { 'not logged' } else { $contract.detail })"
     Write-Host "Family residence: $(if ($null -ne $homeEvent) { $homeEvent.detail } elseif ($null -ne $homeStatus) { $homeStatus.detail } else { 'not logged' })"
+    Write-Host "CU native review stage: $(if ($null -ne $nativeReviewLoaded) { 'view loaded' } elseif ($null -ne $nativeReviewAttached) { 'attached, view not logged' } elseif ($null -ne $nativeReviewSkipped) { $nativeReviewSkipped.detail } else { 'not logged' })"
+    Write-Host "CU native review summary fallback: $(if ($null -ne $nativeReviewFallback) { 'FAILED' } else { 'none logged' })"
+    Write-Host "Real Hero portrait gallery: $(if ($null -ne $galleryOpened) { $galleryOpened.detail } else { 'not opened in latest accepted start' })"
 } else {
     Write-Host 'No accepted custom Sandbox start found in events.csv.'
 }
@@ -204,6 +235,13 @@ $report = [ordered]@{
     contract_result = $contractOutcome
     family_verification = $familyOutcome
     family_home_result = $(if ($null -ne $homeEvent) { $homeEvent.detail } else { '' })
+    native_review_required = [bool]$RequireNativeReview
+    native_review_attached = ($null -ne $nativeReviewAttached)
+    native_review_loaded = ($null -ne $nativeReviewLoaded)
+    native_review_summary_fallback = ($null -ne $nativeReviewFallback)
+    expected_portraits = $ExpectedPortraits
+    portrait_gallery_opened = ($null -ne $galleryOpened)
+    portrait_gallery_rows = $(if ($null -ne $galleryOpened) { Detail-Value $galleryOpened.detail 'actual_hero_portraits' } else { '' })
     exceptions_in_scope = $exceptions.Count
     status = $outcome
     mismatches = $issues.ToArray()
