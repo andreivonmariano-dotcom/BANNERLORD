@@ -157,6 +157,10 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            // Never carry unimplemented draft requests into a new campaign.
+            PlayerAge=-1;
+            StartingTown="";
+            EquipmentKit="Vanilla";
             StartingFiefMode="Native";
             AllowStartingFiefTransfer=false;
             StartingFiefId="";
