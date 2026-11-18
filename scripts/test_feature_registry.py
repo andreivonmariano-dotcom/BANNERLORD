@@ -18,6 +18,6 @@ expect_failure(lambda r:r[1].update(feature_id=r[0]['feature_id']),'Duplicate fe
 expect_failure(lambda r:r[0].update(inspired_by_module_id='not-a-real-id'),'unknown historical mod')
 expect_failure(lambda r:r[0].update(status='GAME_TESTED',gameplay_evidence=''),'missing gameplay proof')
 expect_failure(lambda r:r[0].update(status='RELEASED',highest_gate='B'),'released without Gate G')
-expect_failure(lambda r:r[-1].update(status='COMPILED'),'unimplemented historical coverage')
+expect_failure(lambda r:next(x for x in r if x['feature_id'].startswith('HIST-')).update(status='COMPILED'),'unimplemented historical coverage')
 expect_failure(lambda r:r[0].update(source_path='missing.cs'),'missing source path')
 print('PASS: feature registry baseline and six negative schema/gate tests')
