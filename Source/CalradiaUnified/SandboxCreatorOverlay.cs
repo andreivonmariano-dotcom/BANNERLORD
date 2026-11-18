@@ -477,6 +477,10 @@ namespace CalradiaUnified
 
         private void Refresh()
         {
+            // Changing role, spouse count or fief mode can hide fields.
+            // Keep the cursor within the currently visible guided choices.
+            if (selectedIndex >= VisibleFields.Length)
+                selectedIndex = Math.Max(0, VisibleFields.Length-1);
             Field field=Current;
             int n;
             string value=field==null ? "" : RawValue(field.Key);
@@ -506,6 +510,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsChoice,"IsChoice");
             OnPropertyChangedWithValue(IsText,"IsText");
             OnPropertyChangedWithValue(IsReviewPage,"IsReviewPage");
+            OnPropertyChangedWithValue(IsNotReviewPage,"IsNotReviewPage");
             OnPropertyChangedWithValue(NumberMinimum,"NumberMinimum");
             OnPropertyChangedWithValue(NumberMaximum,"NumberMaximum");
             OnPropertyChangedWithValue(pendingNumber,"PendingNumber");
@@ -513,7 +518,18 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(Status,"Status");
         }
 
-        [DataSourceProperty] public string PageTitle { get { return page; } }
+        [DataSourceProperty] public string PageTitle
+        {
+            get
+            {
+                if(page=="Identity") return "Choose your starting life";
+                if(page=="Appearance") return "Your character's appearance";
+                if(page=="Household") return "A family in Calradia";
+                if(page=="Resources") return "Starting resources and skills";
+                if(page=="Location") return "Kingdom, fief and world";
+                return "Review your new campaign";
+            }
+        }
         [DataSourceProperty] public string AdvancedToggleLabel
         {
             get { return advancedFieldsVisible ?
@@ -610,6 +626,7 @@ namespace CalradiaUnified
             get { return Current!=null && Current.Kind=="text"; }
         }
         [DataSourceProperty] public bool IsReviewPage { get {return page=="Review";} }
+        [DataSourceProperty] public bool IsNotReviewPage { get {return page!="Review";} }
         [DataSourceProperty] public int NumberMinimum
         {
             get {return Current==null?0:Current.Min;}
@@ -675,14 +692,31 @@ namespace CalradiaUnified
         public void ExecuteNextField()
         {
             int count=VisibleFields.Length;
-            if(count>0) selectedIndex=(selectedIndex+1)%count;
-            Refresh();
+            if(selectedIndex+1<count)
+            {
+                selectedIndex++;
+                Refresh();
+                return;
+            }
+            int pageIndex=Array.IndexOf(Pages,page);
+            if(pageIndex>=0 && pageIndex+1<Pages.Length)
+                Switch(Pages[pageIndex+1]);
         }
         public void ExecutePreviousField()
         {
-            int count=VisibleFields.Length;
-            if(count>0) selectedIndex=(selectedIndex+count-1)%count;
-            Refresh();
+            if(selectedIndex>0)
+            {
+                selectedIndex--;
+                Refresh();
+                return;
+            }
+            int pageIndex=Array.IndexOf(Pages,page);
+            if(pageIndex>0)
+            {
+                Switch(Pages[pageIndex-1]);
+                selectedIndex=Math.Max(0,VisibleFields.Length-1);
+                Refresh();
+            }
         }
 
         private void SetStatus(string message)
