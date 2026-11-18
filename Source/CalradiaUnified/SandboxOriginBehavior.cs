@@ -14,6 +14,7 @@ using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 using TaleWorlds.ObjectSystem;
 using TaleWorlds.ModuleManager;
+using SandBox.View.CharacterCreation;
 
 namespace CalradiaUnified
 {
