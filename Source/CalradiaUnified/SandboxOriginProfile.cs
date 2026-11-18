@@ -72,7 +72,15 @@ namespace CalradiaUnified
             public string EquipmentKit;
             public OriginRelative(string kind, int index)
             {
-                Name = kind + " " + index;
+                // These must pass the same name validator used by Save().
+                // The old "Child 1" and "Sibling 1" defaults contained
+                // digits and silently rejected the native family presets.
+                string[] childNames =
+                    { "Alden", "Mira", "Rowan", "Elira", "Tomas", "Nadia" };
+                string[] siblingNames =
+                    { "Taran", "Leora", "Daric", "Elian" };
+                Name = kind == "Child"
+                    ? childNames[index - 1] : siblingNames[index - 1];
                 Age = kind == "Child" ? 6 + index : 24 + index;
                 Gender = index % 2 == 0 ? "Female" : "Male";
                 Culture = "";

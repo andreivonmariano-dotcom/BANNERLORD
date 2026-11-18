@@ -1,15 +1,17 @@
 # v0.17.0 native Sandbox Starting Life integration
 
-**Build target:** Bannerlord PC v1.5.7.125802. **Status:** Experimental, Gate B pending CI. No actual in-game integration or save/load test has been run for this candidate.
+**Build target:** Bannerlord PC v1.5.7.125802. **Status:** Gate B COMPILED_UNTESTED. [Windows build 44273145331](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44273145331) passed its policy and compilation tests. No actual in-game integration or save/load test has been run for this candidate.
 
 ## Q1. Native Starting Life pages
 
-The standalone main-menu creator stays removed. A character-creation content handler uses the game's existing `CharacterCreationManager` and `NarrativeMenu` system. With `NativeStageEnabled=true`, it finds the unique native age narrative menu, reconstructs that menu with identical options and visuals, then connects four additional native pages:
+The standalone main-menu creator stays removed. A character-creation content handler uses the game's existing `CharacterCreationManager` and `NarrativeMenu` system. With `NativeStageEnabled=true`, it finds the unique native age narrative menu, reconstructs that menu with identical options and visuals, then connects six additional native narrative pages:
 
 - **Starting identity:** Wanderer, Soldier, Knight, Lord, King
 - **Household:** alone, married, one child, two children, single parent, siblings
+- **Family consent:** preserve templates or attempt real hero generation
 - **Resources:** game default, 500, 2,000, 12,000, 50,000, 250,000 gold presets
 - **Equipment:** Vanilla, Traveler, Soldier, Knight, Royal, Custom
+- **Political consent:** keep native clan status or request real mercenary/vassal service
 
 These pages use **native narrative Back/Next**, not custom Gauntlet buttons. The code checks for a single compatible age menu and rolls back added menu IDs on registration failure. Its current version of the native graph must be verified on the running target game. The new stages are disabled by default, not yet proven visually.
 
@@ -56,3 +58,7 @@ Individual relative names and detailed attributes are presently editable through
 Role selection saves only the role label. The profile is activated after selecting an explicit **Keep vanilla political status** or **Experimental native service** choice on the last native Starting Life page, not as soon as the role page is visited. The corresponding new-game flag is still persisted as a profile preference, so an already active profile must be disabled before testing a different fresh Sandbox.
 
 Role-based recruits and renown now require an exact confirmed native action result, not just kingdom membership. A pre-existing native clan affiliation stays intact and receives no duplicate start-package grants on the basis of a name alone. Default family templates are selected in stable StringId order. A child younger than 18 is not explicitly reclassified as an adult lord.
+
+## Native family preset name regression
+
+The first implementation used `Child 1` and `Sibling 1` as placeholder hero names, but the existing name validator rejected digits. v0.17 now supplies valid default names for six children and four siblings. Independent tests cover the married-two-children, single-parent and sibling-only choices without custom text edits. These names can be edited in the profile prior to creating a new Sandbox. Runtime parentage and UI navigation are still unverified.

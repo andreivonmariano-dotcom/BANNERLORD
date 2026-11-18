@@ -381,6 +381,24 @@ internal static class Program
             SandboxFamilyPolicy.ValidChildAge(3,20,false,0) &&
             !SandboxFamilyPolicy.ValidChildAge(7,20,false,0) &&
             !SandboxFamilyPolicy.ValidChildAge(10,30,true,24));
+        Check("family defaults use valid hero names",
+            new SandboxOriginProfile().TrySet("ChildCount", "2") &&
+            new SandboxOriginProfile().Children[0].Name == "Alden");
+        var nativeFamilyPreset = new SandboxOriginProfile();
+        nativeFamilyPreset.TrySet("ChildCount", "2");
+        nativeFamilyPreset.TrySet("SpouseEnabled", "true");
+        nativeFamilyPreset.TrySet("Child.1.Age", "1");
+        nativeFamilyPreset.TrySet("Child.2.Age", "2");
+        Check("native married-two-children preset validates without text edits",
+            nativeFamilyPreset.IsValid(30, out var presetProblem));
+        nativeFamilyPreset.TrySet("SpouseEnabled", "false");
+        nativeFamilyPreset.TrySet("ChildCount", "1");
+        Check("native single-parent preset validates without text edits",
+            nativeFamilyPreset.IsValid(20, out var singleParentProblem));
+        nativeFamilyPreset.TrySet("ChildCount", "0");
+        nativeFamilyPreset.TrySet("SiblingCount", "2");
+        Check("native sibling-only preset validates without text edits",
+            nativeFamilyPreset.IsValid(20, out var siblingProblem));
         Check("new sandbox origin disabled by default", !origin.Enabled);
         Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&

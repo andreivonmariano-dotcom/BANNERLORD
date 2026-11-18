@@ -22,6 +22,9 @@ assert 'nativeAge.InputMenuId, First, nativeAge.Title' in page
 assert 'creator.DeleteNarrativeMenuWithId(nativeAge.StringId)' in page
 assert 'creator.AddNewMenu(nativeAge)' in page
 assert 'nativeAge.CharacterCreationMenuOptions' in page
+assert 'Pair("Enabled","true")' not in page.split('var family =')[0]
+assert 'Pair("RoleAffiliationsEnabled","false"),Pair("Enabled","true")' in page
+assert 'Pair("RoleAffiliationsEnabled","true"),Pair("Enabled","true")' in page
 assert 'if (creator == null || profile == null || !profile.NativeStageEnabled)' in page
 assert 'ages.Count != 1' in page
 assert 'new NativeSandboxStageObserver()' in origin
