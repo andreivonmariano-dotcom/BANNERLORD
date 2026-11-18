@@ -532,6 +532,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(ChildPreview,"ChildPreview");
             OnPropertyChangedWithValue(LandSummary,"LandSummary");
             OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
+            OnPropertyChangedWithValue(FamilyHomeSummary,"FamilyHomeSummary");
             OnPropertyChangedWithValue(StartNotice,"StartNotice");
             OnPropertyChangedWithValue(Status,"Status");
         }
@@ -738,19 +739,29 @@ namespace CalradiaUnified
         {
             get
             {
-                string scenario = profile.StartingScenario=="none" ?
-                    "Normal Sandbox world" : profile.StartingScenario;
-                return scenario + " | home: " +
-                    (profile.SpouseEnabled ? profile.FamilyHomeMode : "none");
+                return profile.StartingScenario=="none" ?
+                    "World: Normal Sandbox" :
+                    "World: " + profile.StartingScenario;
+            }
+        }
+        [DataSourceProperty] public string FamilyHomeSummary
+        {
+            get
+            {
+                if (!profile.SpouseEnabled)
+                    return "Home: no household";
+                if (profile.FamilyHomeMode=="SpecificOwned")
+                    return "Family home: " + profile.FamilyHomeId;
+                return profile.FamilyHomeMode=="ClanHome" ?
+                    "Family home: clan's owned seat" :
+                    "Family home: owned town or castle";
             }
         }
         [DataSourceProperty] public string StartNotice
         {
             get
             {
-                return "PART 2: Bannerlord culture, face, origins, age " +
-                    "and difficulty. Your family is placed at a safe home " +
-                    "after creation.";
+                return "NEXT: native culture, face, origins, age and difficulty. A minor stays a child, never a party troop.";
             }
         }
         [DataSourceProperty] public string ProfileSummary
