@@ -98,16 +98,16 @@ namespace CalradiaUnified
                         != null;
                     bool reviewStage = manager.GetStage<CharacterCreationReviewStage>()
                         != null;
-                    var nativeFaceView = Type.GetType(
-                        "SandBox.GauntletUI.CharacterCreation." +
-                        "CharacterCreationFaceGeneratorView, SandBox.GauntletUI",
-                        false);
+                    // Do not probe native screen view assembly loading
+                    // during creation-content initialization. At this point
+                    // an unloaded assembly says nothing about final UI state.
                     DiagnosticJournal.Event("sandbox_appearance_engine_probe",
                         "face_stage=" + faceStage +
                         "|culture_stage=" + cultureStage +
                         "|narrative_stage=" + narrativeStage +
                         "|review_stage=" + reviewStage +
-                        "|native_face_view_loaded=" + (nativeFaceView != null) +
+                        "|view_resolution=not_inspected" +
+                        "|cu_stage_registration=disabled" +
                         "|stage_changes=none");
                     foreach (var menu in manager.NarrativeMenus)
                     {
