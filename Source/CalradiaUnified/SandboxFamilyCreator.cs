@@ -23,8 +23,18 @@ namespace CalradiaUnified
             string reason;
             if (!profile.IsValid((int)player.Age, out reason))
                 return "invalid_family:" + reason;
-            if (profile.SpouseEnabled && player.Spouse != null)
-                return "spouse_already_exists";
+            string guard = SandboxFamilyPolicy.Guard(profile.SpouseEnabled,
+                player.Spouse != null, profile.ChildCount,
+                player.Children != null && player.Children.Count > 0,
+                profile.SiblingCount, player.Father != null ||
+                    player.Mother != null, profile.SpouseGender == "Female" ==
+                    player.IsFemale, true);
+            if (guard.Length > 0) return guard;
+            for (int i = 0; i < profile.ChildCount; i++)
+                if (!SandboxFamilyPolicy.ValidChildAge(
+                    profile.Children[i].Age, (int)player.Age,
+                    profile.SpouseEnabled, profile.SpouseAge))
+                    return "invalid_child_age:" + (i+1);
             // Do not start creating unrelated heroes if the correct source
             // templates cannot be resolved up front.
             var spouseTemplate = profile.SpouseEnabled ?
@@ -45,9 +55,7 @@ namespace CalradiaUnified
             // Siblings need the player's actual parents. If Bannerlord has no
             // registered parent heroes, creating strangers and calling them
             // siblings is not acceptable.
-            if (profile.SiblingCount > 0 &&
-                player.Father == null && player.Mother == null)
-                return "native_parents_missing_for_siblings";
+            // The policy gate refuses fake siblings with no real native parent.
             var siblingTemplates = new List<CharacterObject>();
             for (int i = 0; i < profile.SiblingCount; i++)
             {

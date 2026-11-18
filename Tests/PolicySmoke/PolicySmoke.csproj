@@ -26,5 +26,6 @@
     <Compile Include="../../Source/CalradiaUnified/SettingsCatalog.cs" Link="SettingsCatalog.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxOriginProfile.cs" Link="SandboxOriginProfile.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRolePolicy.cs" Link="SandboxRolePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
   </ItemGroup>
 </Project>

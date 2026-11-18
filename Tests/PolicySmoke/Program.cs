@@ -350,6 +350,22 @@ internal static class Program
             !SandboxRolePolicy.CanRequestAffiliation("Soldier", true, true) &&
             !SandboxRolePolicy.CanRequestAffiliation("Soldier", false, false) &&
             !SandboxRolePolicy.CanRequestAffiliation("King", false, true));
+        Check("family creator refuses duplicate native spouse",
+            SandboxFamilyPolicy.Guard(true,true,0,false,0,true,false,true)
+                == "existing_spouse");
+        Check("family creator refuses duplicate native children",
+            SandboxFamilyPolicy.Guard(false,false,2,true,0,true,false,true)
+                == "existing_children");
+        Check("family creator refuses fake siblings without parents",
+            SandboxFamilyPolicy.Guard(false,false,0,false,2,false,false,true)
+                == "native_parents_missing");
+        Check("family creator rejects untested same-sex native marriage",
+            SandboxFamilyPolicy.Guard(true,false,0,false,0,true,true,true)
+                == "native_marriage_same_gender_untested");
+        Check("single-parent child age validation",
+            SandboxFamilyPolicy.ValidChildAge(3,20,false,0) &&
+            !SandboxFamilyPolicy.ValidChildAge(7,20,false,0) &&
+            !SandboxFamilyPolicy.ValidChildAge(10,30,true,24));
         Check("new sandbox origin disabled by default", !origin.Enabled);
         Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&

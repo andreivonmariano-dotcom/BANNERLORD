@@ -481,9 +481,16 @@ namespace CalradiaUnified
                     hero.Culture != null && hero.Culture.BasicTroop != null)
                     MobileParty.MainParty.MemberRoster.AddToCounts(
                         hero.Culture.BasicTroop, troops);
-                if (profile.RoleAffiliationsEnabled)
+                bool realRank = SandboxRolePolicy.MatchesNativeStatus(
+                    profile.Role, Clan.PlayerClan.Kingdom != null,
+                    Clan.PlayerClan.Kingdom != null &&
+                    Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
+                if (profile.RoleAffiliationsEnabled && realRank)
                     Clan.PlayerClan.AddRenown(
                         SandboxRolePolicy.StarterRenown(profile.Role),false);
+                else if (profile.RoleAffiliationsEnabled)
+                    DiagnosticJournal.Event("cu_role_bonus_refused",
+                        "role=" + profile.Role + "|affiliation_not_confirmed");
 
                 ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
