@@ -335,10 +335,55 @@ internal static class Program
         Check("catalog covers every public configurable value",
             catalogKeys.Count == 64);
         var origin = new SandboxOriginProfile();
+        Check("roles cannot forge king or lord titles",
+            !SandboxRolePolicy.MatchesNativeStatus("King", false, false) &&
+            SandboxRolePolicy.MatchesNativeStatus("King", true, true) &&
+            !SandboxRolePolicy.MatchesNativeStatus("Lord", true, true) &&
+            !SandboxRolePolicy.MatchesNativeStatus("Knight", false, false) &&
+            SandboxRolePolicy.MatchesNativeStatus("Soldier", true, false));
+        Check("role packages have distinct troops and renown",
+            SandboxRolePolicy.BonusRecruits("Wanderer") == 0 &&
+            SandboxRolePolicy.BonusRecruits("Soldier") == 4 &&
+            SandboxRolePolicy.BonusRecruits("Knight") == 2 &&
+            SandboxRolePolicy.BonusRecruits("King") == 8 &&
+            SandboxRolePolicy.StarterRenown("Knight") == 40);
+        Check("native affiliations require explicit opt-in",
+            SandboxRolePolicy.CanRequestAffiliation("Soldier", false, true) &&
+            !SandboxRolePolicy.CanRequestAffiliation("Soldier", true, true) &&
+            !SandboxRolePolicy.CanRequestAffiliation("Soldier", false, false) &&
+            !SandboxRolePolicy.CanRequestAffiliation("King", false, true));
+        Check("family creator refuses duplicate native spouse",
+            SandboxFamilyPolicy.Guard(true,true,0,false,0,true,false,true)
+                == "existing_spouse");
+        Check("family creator refuses duplicate native children",
+            SandboxFamilyPolicy.Guard(false,false,2,true,0,true,false,true)
+                == "existing_children");
+        Check("family creator refuses fake siblings without parents",
+            SandboxFamilyPolicy.Guard(false,false,0,false,2,false,false,true)
+                == "native_parents_missing");
+        Check("family creator rejects untested same-sex native marriage",
+            SandboxFamilyPolicy.Guard(true,false,0,false,0,true,true,true)
+                == "native_marriage_same_gender_untested");
+        Check("single-parent child age validation",
+            SandboxFamilyPolicy.ValidChildAge(3,20,false,0) &&
+            !SandboxFamilyPolicy.ValidChildAge(7,20,false,0) &&
+            !SandboxFamilyPolicy.ValidChildAge(10,30,true,24));
         Check("new sandbox origin disabled by default", !origin.Enabled);
         Check("sandbox roles five source choices", SandboxOriginProfile.Roles.Length == 5 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "Wanderer") >= 0 &&
             Array.IndexOf(SandboxOriginProfile.Roles, "King") >= 0);
+        Check("three risky v0.17 features remain default-off",
+            !new SandboxOriginProfile().NativeStageEnabled &&
+            !new SandboxOriginProfile().RealFamilyEnabled &&
+            !new SandboxOriginProfile().RoleAffiliationsEnabled);
+        Check("profile opt-ins are strict booleans and survive roundtrip",
+            !origin.TrySet("NativeStageEnabled", "yes") &&
+            origin.TrySet("NativeStageEnabled", "true") &&
+            origin.TrySet("RealFamilyEnabled", "true") &&
+            origin.TrySet("RoleAffiliationsEnabled", "true") &&
+            SandboxOriginProfile.Parse(origin.Serialize()).NativeStageEnabled &&
+            SandboxOriginProfile.Parse(origin.Serialize()).RealFamilyEnabled &&
+            SandboxOriginProfile.Parse(origin.Serialize()).RoleAffiliationsEnabled);
         Check("sandbox default does not replace native treasury",
             origin.Gold == -1 && origin.Influence == -1);
         Check("sandbox reject invalid role", !origin.TrySet("Role", "God"));
