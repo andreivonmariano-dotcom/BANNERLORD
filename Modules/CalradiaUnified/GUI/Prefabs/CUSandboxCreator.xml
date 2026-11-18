@@ -251,7 +251,7 @@
                           SuggestedHeight="48" PositionXOffset="335" PositionYOffset="707"
                           Command.Click="ExecutePreviousField">
               <Children>
-                <TextWidget Text="Previous field" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Back" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
@@ -260,9 +260,9 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="182" HeightSizePolicy="Fixed"
                           SuggestedHeight="48" PositionXOffset="538" PositionYOffset="707"
-                          Command.Click="ExecuteNextField">
+                          Command.Click="ExecuteNextField" IsVisible="@IsNotReviewPage">
               <Children>
-                <TextWidget Text="Next field" WidthSizePolicy="StretchToParent"
+                <TextWidget Text="Continue" WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
