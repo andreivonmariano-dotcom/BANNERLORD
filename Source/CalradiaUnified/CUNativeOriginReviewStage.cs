@@ -29,8 +29,15 @@ namespace CalradiaUnified
     /// </summary>
     [CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]
     public sealed class CUNativeOriginReviewStageView :
-        CharacterCreationReviewStageView
+        CharacterCreationStageViewBase
     {
+        // Composition is deliberate. The native review view itself carries
+        // [CharacterCreationStageView(typeof(CharacterCreationReviewStage))].
+        // Inheriting it can expose the inherited attribute during
+        // CharacterCreationScreen's inherit:true reflection scan.
+        // Keeping this class directly under the attribute-free BASE avoids
+        // ever rebinding or competing with the game's own Review view.
+        private CharacterCreationReviewStageView nativeReview;
         private GauntletLayer summaryLayer;
         private GauntletMovieIdentifier summaryMovie;
         private CUNativeOriginReviewVM summaryViewModel;
@@ -46,12 +53,15 @@ namespace CalradiaUnified
             ControlCharacterCreationStageReturnInt getTotalCount,
             ControlCharacterCreationStageReturnInt getFurthestIndex,
             ControlCharacterCreationStageWithInt goToIndex)
-            : base(manager,affirmativeAction,affirmativeText,
-                negativeAction,negativeText,refreshAction,getCurrentIndex,
-                getTotalCount,getFurthestIndex,goToIndex)
+            : base(affirmativeAction, negativeAction, refreshAction,
+                getCurrentIndex, getTotalCount, getFurthestIndex, goToIndex)
         {
-            // Keep the existing native review layer focused. The separate
-            // CU summary has no commands and must not consume input.
+            // The engine-owned native review constructs and manages its
+            // REAL 3D player AgentVisuals, scene, camera and all input.
+            nativeReview = new CharacterCreationReviewStageView(
+                manager, affirmativeAction, affirmativeText,
+                negativeAction, negativeText, refreshAction,
+                getCurrentIndex, getTotalCount, getFurthestIndex, goToIndex);
             try
             {
                 summaryViewModel = new CUNativeOriginReviewVM(manager,
@@ -62,25 +72,66 @@ namespace CalradiaUnified
                     "CUNativeOriginReview", summaryViewModel);
                 DiagnosticJournal.Event("cu_native_review_view_loaded",
                     "native_player_3d=true|native_review_view_reused=true" +
+                    "|stage_registration=unique_noninherited" +
                     "|non_focus_summary=true|family_previews=planned_only");
             }
             catch (Exception error)
             {
-                // This page's base native 3D review is still fully usable
-                // if our supplementary Gauntlet prefab fails to load.
+                // The native review must remain navigable even if our
+                // supplementary XML has invalid brushes or unavailable fonts.
                 summaryLayer = null;
                 summaryMovie = null;
                 summaryViewModel = null;
                 DiagnosticJournal.Exception(
-                    "cu_native_review_summary_fallback",error);
+                    "cu_native_review_summary_fallback", error);
             }
+        }
+
+        public override void SetGenericScene(TaleWorlds.Engine.Scene scene)
+        {
+            nativeReview.SetGenericScene(scene);
         }
 
         public override IEnumerable<ScreenLayer> GetLayers()
         {
-            var layers = new List<ScreenLayer>(base.GetLayers());
+            var layers = new List<ScreenLayer>(nativeReview.GetLayers());
             if (summaryLayer != null) layers.Add(summaryLayer);
             return layers;
+        }
+
+        public override int GetVirtualStageCount()
+        {
+            return nativeReview.GetVirtualStageCount();
+        }
+
+        public override void Tick(float dt)
+        {
+            nativeReview.Tick(dt);
+        }
+
+        public override void NextStage()
+        {
+            nativeReview.NextStage();
+        }
+
+        public override void PreviousStage()
+        {
+            nativeReview.PreviousStage();
+        }
+
+        public override void GoToIndex(int index)
+        {
+            nativeReview.GoToIndex(index);
+        }
+
+        public override void LoadEscapeMenuMovie()
+        {
+            nativeReview.LoadEscapeMenuMovie();
+        }
+
+        public override void ReleaseEscapeMenuMovie()
+        {
+            nativeReview.ReleaseEscapeMenuMovie();
         }
 
         protected override void OnFinalize()
@@ -93,15 +144,26 @@ namespace CalradiaUnified
             catch (Exception error)
             {
                 DiagnosticJournal.Exception(
-                    "cu_native_review_summary_release",error);
+                    "cu_native_review_summary_release", error);
             }
             finally
             {
                 summaryMovie = null;
                 summaryViewModel = null;
                 summaryLayer = null;
-                // Always finalize native 3D player visuals and camera.
-                base.OnFinalize();
+                try
+                {
+                    // The native view's actual protected OnFinalize is
+                    // dispatched through its public stage-listener contract.
+                    // This clears its own AgentVisuals and scene layers.
+                    if (nativeReview != null)
+                        ((ICharacterCreationStageListener)nativeReview)
+                            .OnStageFinalize();
+                }
+                finally
+                {
+                    nativeReview = null;
+                }
             }
         }
     }
