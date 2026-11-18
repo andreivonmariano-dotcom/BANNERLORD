@@ -2,7 +2,7 @@
 <Module>
   <Name value="Calradia Unified - Marriage Activation and Cleanup Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.25.0" />
+  <Version value="v0.26.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
