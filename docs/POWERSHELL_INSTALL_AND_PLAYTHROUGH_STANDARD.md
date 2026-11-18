@@ -26,7 +26,31 @@ Before writing installation commands in a future chat, use the connected GitHub 
 
 The artifact's name and module version are **not sufficient to identify a build**. Two different successful `v0.25.0` runs produced two different DLL hashes in the user's earlier tests. Never choose a ZIP only by latest filesystem timestamp. Do not invent an expected SHA-256. If the hash is unavailable, identify the build as unpinned and **do not label its identity verified against CI**.
 
-## Current verified build example, 18 November 2026
+## Current compiled candidate: v0.29.0 native creator and real family portraits
+
+This snapshot **passed Windows compilation and automated policy tests, not a game UI or save-reload test**.
+
+- [Successful Windows run #44354027407](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44354027407).
+- [Download its exact compiled-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44354027407/artifacts/14448584377), named `CalradiaUnified-v0.29.0-compiled-untested`.
+- Pinned script/source commit `c2105758af771bdb0d9b0b43174bf571b53d8140`.
+- Built `CalradiaUnified.dll`: **235,520 bytes**, SHA-256 **`3c154496d74b26650f9b97e1dfb0a8e796733b42f2a8959701720d78c6b16cc9`**.
+- Verified **620 game-policy checks**, **40 simulations**, 0 C# warnings/errors, source-only Gauntlet/unique stage contract, complete packaged prefab list, CI-hash install refusal, negative PowerShell portrait/native-review assertions.
+
+For this exact artifact, use:
+
+```powershell
+$ModuleVersion = 'v0.29.0'
+$SourceCommit = 'c2105758af771bdb0d9b0b43174bf571b53d8140'
+$ExpectedHash = '3c154496d74b26650f9b97e1dfb0a8e796733b42f2a8959701720d78c6b16cc9'
+$Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.29.0-compiled-untested.zip'
+```
+
+The `scripts/Test-CU-Playthrough.ps1` script now accepts `-RequireNativeReview` for the **explicit opt-in new game only** and `-ExpectedPortraits 3` after **CU: View my household portraits** has been opened for a player, spouse and one daughter in the **same logged new-game session**. These switches detect missing actual view loading and wrong real-family row counts, respectively.
+
+**Safety:** Native FaceGen/Culture/Review/Options views stay untouched. The additional CU 3D review is a distinct opt-in stage, **OFF by default**. It is not a single continuous CU/native creator. See [v0.29 real-game acceptance protocol](V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md).
+
+## Historical verified example: v0.28.0, 18 November 2026
+
 
 For the current `v0.28.0` **compiled-untested** family-home candidate, the PowerShell procedure itself passed its Windows CI tests:
 
