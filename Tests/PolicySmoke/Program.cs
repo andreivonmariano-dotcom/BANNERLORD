@@ -324,12 +324,12 @@ internal static class Program
         Check("settings rejects negative recruit cap",
             !SettingsMenuPolicy.TryNormalize("LocalRecruitDailyCap", "-1", out var negative));
         Check("settings replace preserves unknown keys and comments",
-            SettingsMenuPolicy.UpdateLines("# user note\\nUnknownCustomOption=yes\\nEnableSupplyWarnings=true\\n",
+            SettingsMenuPolicy.UpdateLines("# user note\nUnknownCustomOption=yes\nEnableSupplyWarnings=true\n",
                 "EnableSupplyWarnings", "false").Contains("UnknownCustomOption=yes")
-            && SettingsMenuPolicy.UpdateLines("# user note\\nEnableSupplyWarnings=true\\n",
+            && SettingsMenuPolicy.UpdateLines("# user note\nEnableSupplyWarnings=true\n",
                 "EnableSupplyWarnings", "false").Contains("# user note"));
         Check("settings replace prevents duplicate definitions",
-            SettingsMenuPolicy.UpdateLines("EnableEconomy=true\\nEnableEconomy=true",
+            SettingsMenuPolicy.UpdateLines("EnableEconomy=true\nEnableEconomy=true",
                 "EnableEconomy", "false").Split(new[] {"EnableEconomy="},
                 StringSplitOptions.None).Length == 2);
         var tempSettings = System.IO.Path.Combine(
@@ -340,7 +340,7 @@ internal static class Program
             string baseline = System.IO.Path.Combine(tempSettings, "baseline.ini");
             string userIni = System.IO.Path.Combine(tempSettings, "user.ini");
             System.IO.File.WriteAllText(baseline,
-                "# default configuration\\nEnableEconomy=false\\nSupplyWarningDays=3\\n");
+                "# default configuration\nEnableEconomy=false\nSupplyWarningDays=3\n");
             var settings = Settings.LoadFromPaths(baseline, userIni);
             Check("settings start with safe baseline", !settings.EnableEconomy &&
                 settings.SupplyWarningDays == 3);
@@ -369,7 +369,7 @@ internal static class Program
                 !settings.TrySetMenuValue("EnableEconomy", "false",
                     "", out configError) && settings.EnableEconomy);
             Check("settings preserving unrelated user entries",
-                SettingsMenuPolicy.UpdateLines("# keep\\nExtraKey=hello\\n",
+                SettingsMenuPolicy.UpdateLines("# keep\nExtraKey=hello\n",
                     "EnableCivicSystems", "false").Contains("ExtraKey=hello"));
         }
         finally
