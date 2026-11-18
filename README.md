@@ -1,8 +1,10 @@
 # Calradia Unified v0.31.0 | Experimental Native 3D Face Workshop
 
-**Target:** Bannerlord PC v1.5.7.125802. **Status:** source candidate awaiting exact Windows CI and in-game testing. This work advances the single-screen CU creator, but **the second native character wizard still appears**.
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** [Windows CI #44362408521](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44362408521) passed at commit `f7574effec028ac4d52de2ac8397666ee28b9c76`, **Gate B COMPILED_UNTESTED**. The game-facing workshop and save/reload remain untested. **The second native character wizard still appears**.
 
 In **Sandbox → Starting Life → More options**, an optional **Experimental: edit live 3D face in CU workshop** choice adds a distinct CU stage after native difficulty. It composes Bannerlord's real `CharacterCreationFaceGeneratorView`, preserving the native BodyGenerator, model, face history, camera and face controls. A CU read-only context ribbon remains unfocused so the editor owns user input. The option is **off by default**, and the previous experimental CU review cannot be selected at the same time.
+
+The v0.31 DLL is 242,176 bytes, SHA-256 `23321aa2d6a0c049965d37e31496389500ca53f3c24821381290296855048be6`. The inner runtime ZIP passes CRC and one-DLL checks, SHA-256 `8916d60f93eedab9145f16082d265bf482e167db7d02429f14c06d62ac4c208c`. The verified CI run executed **627 independent C# policy checks** and compiled with **0 warnings / 0 errors**. These are build results, not native screen-rendering or gameplay test evidence.
 
 The new `NativeCreatorParityPolicy` guards all seven native stage prerequisites before the optional workshop can load. No native stage view is replaced, no child Heroes are created during preview, and the native character-creation sequence stays unchanged when the mode is disabled. The goal of a single CU creator from **Sandbox click to campaign map** remains open under [issue #44](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/44).
 
