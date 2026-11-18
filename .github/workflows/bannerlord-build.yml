@@ -33,6 +33,12 @@ jobs:
       - name: Validate 78-module reconstruction priorities
         shell: pwsh
         run: python scripts/test_priority_ranking.py
+      - name: Audit all 64 settings against source parser ranges
+        shell: pwsh
+        run: python scripts/validate_settings_catalog.py
+      - name: Audit native Gauntlet XML against ViewModel bindings
+        shell: pwsh
+        run: python scripts/test_gauntlet_bindings.py
       - name: Verify runtime evidence analyzer rejects unproven game claims
         shell: pwsh
         run: python scripts/validate_runtime_evidence.py --self-test

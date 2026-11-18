@@ -75,6 +75,8 @@ assert 'EnableDiagnostics=true' in conf
 assert (P/'scripts/Export-CU-Diagnostics.ps1').exists()
 assert (P/'scripts/analyze_diagnostics.py').exists()
 assert (P/'scripts/validate_runtime_evidence.py').exists()
+assert (P/'scripts/validate_settings_catalog.py').exists()
+assert (P/'scripts/test_gauntlet_bindings.py').exists()
 assert (P/'scripts/Run-CU-Runtime-Preflight.ps1').exists()
 assert (P/'docs/V015_RUNTIME_ACCEPTANCE.md').exists()
 assert 'events.csv.previous' in (P/'scripts/Export-CU-Diagnostics.ps1').read_text()
