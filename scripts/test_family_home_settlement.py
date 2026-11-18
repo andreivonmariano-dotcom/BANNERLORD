@@ -47,7 +47,10 @@ assert 'SandboxFamilyHomePolicy.CanPlaceMinor(' in home
 assert "child.PartyBelongedTo == null" in home
 assert "child.IsChild" in home
 assert "AddHeroToPartyAction" not in home
-assert "child.ChangeState(" not in home
+assert "if (child.IsNotSpawned)" in home
+assert "child.ChangeState(Hero.CharacterStates.Active)" in home
+assert "if (child.IsChild)" in home
+assert "child.StayingInSettlement = target;" in home
 assert "child.CharacterObject" not in home
 assert "HeroCreator.CreateChild(" in family
 assert '"cu_family_child_home"' in home
