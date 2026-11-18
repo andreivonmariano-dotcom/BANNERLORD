@@ -124,6 +124,8 @@ namespace CalradiaUnified
             if (spouse == null || spouse.Clan != Clan.PlayerClan ||
                 spouse.Spouse != player || spouse.IsPrisoner)
                 return "refused:spouse_not_player_clan_or_in_captivity";
+            if (!spouse.IsAlive || !spouse.IsActive || spouse.IsDisabled)
+                return "refused:spouse_not_active";
             if (spouse.PartyBelongedTo != null ||
                 spouse.PartyBelongedToAsPrisoner != null)
                 return "refused:spouse_in_party_or_captive";
@@ -154,7 +156,8 @@ namespace CalradiaUnified
                         correctParents;
                     bool noParty = child.PartyBelongedTo == null &&
                         child.PartyBelongedToAsPrisoner == null;
-                    if (!linkedToPlayer || !noParty || child.IsPrisoner)
+                    if (!linkedToPlayer || !noParty || child.IsPrisoner ||
+                        !child.IsAlive || child.IsDisabled)
                     {
                         childrenSkipped++;
                         continue;
