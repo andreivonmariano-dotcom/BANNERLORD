@@ -2,7 +2,7 @@
 
 **Target:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
 **Development branch:** [feature/v019-direct-sandbox-entry](https://github.com/andreivonmariano-dotcom/BANNERLORD/tree/feature/v019-direct-sandbox-entry).
-**Status:** source candidate, pending compilation and in-game validation. Not a certified playable release.
+**Status:** **Gate B COMPILED_UNTESTED**, not a game-tested release. [Successful Windows CI #44289351309](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289351309): 570 C# policy checks, 40 modeled campaigns, 0 compiler warnings/errors, ZIP integrity and nested artifact installer simulation passed.
 
 ## Change requested after the confirmed v0.18 screen failure
 
@@ -18,7 +18,7 @@ Pressing **Apply / continue** commits an origin profile and starts a new *defaul
 
 The goal is still one paste-ready `Modules/CalradiaUnified` folder containing the module manifest, one `CalradiaUnified.dll`, configuration and the native UI prefab. The build runs static XML/policy checks, a Windows v1.5.7 reference compile, runtime-archive verification and an installer simulation.
 
-Read [v0.19 direct Sandbox entry and acceptance procedure](docs/V019_DIRECT_SANDBOX_ENTRY.md), [the v0.18 user-reported failure](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41), and [the full feature registry](Data/Feature_Registry.csv). Exact compiled artifact links and hashes belong in the verified CI run, not in this pre-build document.
+Read [v0.19 direct Sandbox entry and acceptance procedure](docs/V019_DIRECT_SANDBOX_ENTRY.md), [the v0.18 user-reported failure](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/41), and [the full feature registry](Data/Feature_Registry.csv). **Compiled v0.19 candidate:** [GitHub Actions artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44289351309/artifacts/14421410332). GitHub's download wraps the module ZIP inside a ZIP. Compiled DLL SHA-256: `840ba763a79cbcb76355eefbaeaa348cd89bcb83110fb1738c62a2cd5c6927bb`. Source is under [draft PR #42](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/42).
 
 ## Existing systems
 
