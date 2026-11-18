@@ -38,7 +38,7 @@ namespace CalradiaUnified
         private void OnLaunch(CampaignGameStarter starter)
         {
             if (settings.EnableDiagnostics)
-                DiagnosticJournal.Event("campaign_session_launched", "version=0.16.0");
+                DiagnosticJournal.Event("campaign_session_launched", "version=0.16.1");
             if (starter == null) return;
             foreach (var menu in new[] { "town", "castle" })
                 starter.AddGameMenuOption(menu, "cu_export_diagnostics",

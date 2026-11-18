@@ -15,3 +15,5 @@ Set `Enabled=false` in `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` to re
 - [M0 actual game testing](docs/M0_TEST_PROCEDURE.md)
 
 This is a **corrective safety build**, not a completed native Sandbox redesign. No copied DLLs, Harmony or UIExtenderEx dependency.
+
+The discarded Sandbox Gauntlet prototype is explicitly excluded from the C# build. The new native Sandbox observation handler runs **after the engine finishes initializing its character-creation menu data**, and writes the real menu IDs without altering options or Back/Next. This is a controlled observation release, not the completed extended character-creation wizard.

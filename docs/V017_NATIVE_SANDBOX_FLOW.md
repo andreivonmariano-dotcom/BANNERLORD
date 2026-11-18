@@ -36,3 +36,7 @@ The exact insertion point and screen style must follow the real v1.5.7 graph, no
 - No new family heroes or map relocations are assumed ready until controlled in-game save/load tests.
 
 **Status:** corrective implementation with CI and gameplay verification tracked separately.
+
+## Safer native observation timing
+
+The campaign behavior registers an `ICharacterCreationContentHandler` on the official `OnCharacterCreationInitializedEvent`. Its `AfterInitializeContent` method records the complete narrative menu graph after the engine's own content providers have registered their menus. It records stage completion and finalization events. The handler does not add menus, change selected options, or modify stage boundaries. The failed standalone UI is omitted from the compiled assembly itself.
