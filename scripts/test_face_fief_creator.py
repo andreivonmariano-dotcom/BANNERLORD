@@ -34,7 +34,12 @@ assert not (src/"CUFaceGeneratorStageView.cs").exists()
 assert not (ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml").exists()
 stage=(src/"CUNativeOriginReviewStage.cs").read_text()
 assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
-assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob("*.cs"))==1
+registered=[p.read_text() for p in src.glob("*.cs")]
+assert sum(t.count('[CharacterCreationStageView(') for t in registered)==2
+assert '[CharacterCreationStageView(typeof(CUFaceWorkshopStage))]' in (
+    src/"CUFaceWorkshopStage.cs").read_text()
+assert all('CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))'
+           not in t for t in registered)
 assert 'CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in stage
 assert 'CharacterCreationStageView(typeof(CharacterCreationCultureStage))' not in stage
 assert "IsCoupleSuitableForMarriage(player,spouseHero)" in family

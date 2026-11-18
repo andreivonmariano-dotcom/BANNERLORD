@@ -256,6 +256,9 @@ namespace CalradiaUnified
                 new Field("Identity","NativeIntegrationReviewEnabled",
                     "Preview CU choices inside Bannerlord's 3D review",
                     "boolean"),
+                new Field("Identity","NativeFaceWorkshopEnabled",
+                    "Experimental: edit live 3D face in CU workshop",
+                    "boolean"),
                 new Field("Identity","PlayerAge",
                     "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
@@ -381,7 +384,8 @@ namespace CalradiaUnified
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
-            if (key == "NativeIntegrationReviewEnabled")
+            if (key == "NativeIntegrationReviewEnabled" ||
+                key == "NativeFaceWorkshopEnabled")
                 return advancedFieldsVisible;
             if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
@@ -572,6 +576,7 @@ namespace CalradiaUnified
                 if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
                 if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
+                if (key=="NativeFaceWorkshopEnabled") return "Experimental 3D prototype, OFF by default. Adds a CU-branded face editor after the native pages. Edits real player body properties, but this does NOT yet remove the native wizard. Do not enable together with CU 3D Review.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="SpouseEnabled") return "Choose Yes to request a real spouse. No spouse means no starting children.";
                 if (key=="SpouseGender") return "Auto uses the opposite gender after your native character is finalized.";
@@ -728,9 +733,11 @@ namespace CalradiaUnified
         {
             get
             {
-                return profile.NativeIntegrationReviewEnabled ?
-                    "NATIVE 3D REVIEW: OPT-IN ON" :
-                    "LIVE 3D FACE: NATIVE NEXT";
+                return profile.NativeFaceWorkshopEnabled ?
+                    "CU FACE WORKSHOP: EXPERIMENTAL" :
+                    (profile.NativeIntegrationReviewEnabled ?
+                        "NATIVE 3D REVIEW: OPT-IN ON" :
+                        "LIVE 3D FACE: NATIVE NEXT");
             }
         }
         [DataSourceProperty] public string ChildPreview
@@ -950,6 +957,12 @@ namespace CalradiaUnified
             // Crash recovery: never request competing CharacterCreationStageView
             // handlers. The original native FaceGen owns appearance in v0.23.
             candidate.NativeStageEnabled=false;
+            if (candidate.NativeFaceWorkshopEnabled &&
+                candidate.NativeIntegrationReviewEnabled)
+            {
+                SetStatus("Choose one experimental 3D stage: CU Face Workshop OR CU 3D Review.");
+                return;
+            }
             // A deliberate spouse/children choice is an actual native family
             // request. Do not leave users with a decorative family profile.
             candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
@@ -1021,6 +1034,7 @@ namespace CalradiaUnified
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
                 "|native_cu_review="+profile.NativeIntegrationReviewEnabled+
+                "|native_face_workshop="+profile.NativeFaceWorkshopEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }

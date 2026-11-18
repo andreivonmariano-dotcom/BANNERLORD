@@ -123,8 +123,77 @@ namespace CalradiaUnified
                         DiagnosticJournal.Exception(
                             "cu_native_view_discovery_probe",error);
                     }
+                    // The native 3D face workshop is another UNIQUE stage
+                    // type. It composes (never replaces) the true FaceGenerator
+                    // renderer and keeps its input focus. Default is OFF.
+                    bool faceWorkshopDiscoverable = false;
+                    try
+                    {
+                        var faceType = typeof(CUFaceWorkshopStageView);
+                        var faceAttr = (CharacterCreationStageViewAttribute)
+                            Attribute.GetCustomAttribute(faceType,
+                                typeof(CharacterCreationStageViewAttribute), false);
+                        var stageAssembly = faceType.Assembly;
+                        var attributeAssembly =
+                            typeof(CharacterCreationStageViewAttribute).Assembly;
+                        faceWorkshopDiscoverable = faceAttr != null &&
+                            faceAttr.StageType == typeof(CUFaceWorkshopStage) &&
+                            (stageAssembly == attributeAssembly ||
+                             attributeAssembly.GetActiveReferencingGameAssembliesSafe()
+                                 .Contains(stageAssembly));
+                    }
+                    catch (Exception error)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_face_workshop_view_discovery_probe", error);
+                    }
+                    var availableStages = new[]
+                    {
+                        manager.GetStage<CharacterCreationCultureStage>() != null ?
+                            "CharacterCreationCultureStage" : "",
+                        manager.GetStage<CharacterCreationFaceGeneratorStage>() != null ?
+                            "CharacterCreationFaceGeneratorStage" : "",
+                        manager.GetStage<CharacterCreationNarrativeStage>() != null ?
+                            "CharacterCreationNarrativeStage" : "",
+                        manager.GetStage<CharacterCreationBannerEditorStage>() != null ?
+                            "CharacterCreationBannerEditorStage" : "",
+                        manager.GetStage<CharacterCreationClanNamingStage>() != null ?
+                            "CharacterCreationClanNamingStage" : "",
+                        manager.GetStage<CharacterCreationReviewStage>() != null ?
+                            "CharacterCreationReviewStage" : "",
+                        manager.GetStage<CharacterCreationOptionsStage>() != null ?
+                            "CharacterCreationOptionsStage" : ""
+                    };
+                    var missingNative =
+                        NativeCreatorParityPolicy.MissingStages(availableStages);
+                    DiagnosticJournal.Event("cu_face_workshop_native_parity",
+                        "missing=" + String.Join(",", missingNative) +
+                        "|native_menus=" + manager.NarrativeMenus.Count);
+                    if (NativeCreatorParityPolicy.CanAddFaceWorkshop(
+                        originProfile.Enabled &&
+                        originProfile.NativeFaceWorkshopEnabled,
+                        true, originProfile.NativeIntegrationReviewEnabled,
+                        faceWorkshopDiscoverable, availableStages) &&
+                        manager.GetStage<CUFaceWorkshopStage>() == null)
+                    {
+                        manager.AddStage(new CUFaceWorkshopStage());
+                        DiagnosticJournal.Event("cu_face_workshop_attached",
+                            "unique_stage=true|native_face_generator_intact=true" +
+                            "|native_options_intact=true|3d=native_editor");
+                    }
+                    else
+                    {
+                        DiagnosticJournal.Event("cu_face_workshop_skipped",
+                            "opt_in=" + originProfile.NativeFaceWorkshopEnabled +
+                            "|native_complete=" + nativeComplete +
+                            "|unique_view_discoverable=" +
+                            faceWorkshopDiscoverable +
+                            "|conflicting_review=" +
+                            originProfile.NativeIntegrationReviewEnabled);
+                    }
                     if (originProfile.Enabled &&
                         originProfile.NativeIntegrationReviewEnabled &&
+                        !originProfile.NativeFaceWorkshopEnabled &&
                         nativeComplete && viewDiscoverable &&
                         manager.GetStage<CUNativeOriginReviewStage>() == null)
                     {

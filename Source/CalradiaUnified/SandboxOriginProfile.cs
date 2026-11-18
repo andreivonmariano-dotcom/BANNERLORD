@@ -42,6 +42,9 @@ namespace CalradiaUnified
         // A SEPARATE, opt-in review stage appends AFTER native Options.
         // Never substitute a native FaceGen/Culture stage view.
         public bool NativeIntegrationReviewEnabled;
+        // Experimental native face-editor composition within a CU stage.
+        // Off by default, separate from the v0.29 review trial.
+        public bool NativeFaceWorkshopEnabled;
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
@@ -148,6 +151,7 @@ namespace CalradiaUnified
             Enabled=false;
             NativeStageEnabled=false;
             NativeIntegrationReviewEnabled=false;
+            NativeFaceWorkshopEnabled=false;
             RealFamilyEnabled=false;
             RoleAffiliationsEnabled=false;
             SpouseEnabled=false;
@@ -217,6 +221,9 @@ namespace CalradiaUnified
                 case "NativeIntegrationReviewEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     NativeIntegrationReviewEnabled = b; return true;
+                case "NativeFaceWorkshopEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    NativeFaceWorkshopEnabled = b; return true;
                 case "RealFamilyEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     RealFamilyEnabled = b; return true;
@@ -477,6 +484,8 @@ namespace CalradiaUnified
                 "NativeStageEnabled=" + NativeStageEnabled.ToString().ToLowerInvariant(),
                 "NativeIntegrationReviewEnabled=" +
                     NativeIntegrationReviewEnabled.ToString().ToLowerInvariant(),
+                "NativeFaceWorkshopEnabled=" +
+                    NativeFaceWorkshopEnabled.ToString().ToLowerInvariant(),
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,

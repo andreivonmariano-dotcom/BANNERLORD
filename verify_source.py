@@ -19,7 +19,7 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.29.0'
+assert manifest.find('Version').get('value')=='v0.31.0'
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
@@ -81,10 +81,13 @@ assert (src/'SandboxFiefPolicy.cs').exists()
 assert (src/'SandboxStartingFief.cs').exists()
 assert not (src/'CUFaceGeneratorStageView.cs').exists()
 assert not (P/'Modules/CalradiaUnified/GUI/Prefabs/CUFaceStageHeader.xml').exists()
-# Only one opt-in CU stage of a UNIQUE type; no native FaceGen/Culture/View collision.
+# Two opt-in CU-only stages, each with one unique view. No native FaceGen/Culture collision.
 stage=(src/'CUNativeOriginReviewStage.cs').read_text()
+face=(src/'CUFaceWorkshopStage.cs').read_text()
 assert '[CharacterCreationStageView(typeof(CUNativeOriginReviewStage))]' in stage
-assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob('*.cs'))==1
+assert '[CharacterCreationStageView(typeof(CUFaceWorkshopStage))]' in face
+assert sum(p.read_text().count('[CharacterCreationStageView(') for p in src.glob('*.cs'))==2
+assert all('CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in p.read_text() for p in src.glob('*.cs'))
 assert 'CharacterCreationStageView(typeof(CharacterCreationFaceGeneratorStage))' not in stage
 assert (src/'CUFamilyPortraitGallery.cs').exists()
 assert (P/'scripts/test_native_origin_review_and_portraits.py').exists()

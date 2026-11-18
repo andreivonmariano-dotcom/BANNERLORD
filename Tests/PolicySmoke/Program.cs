@@ -12,6 +12,29 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native creator requires all seven game-owned stages",
+            NativeCreatorParityPolicy.MissingStages(
+                NativeCreatorParityPolicy.RequiredNativeStages).Length == 0);
+        Check("native creator rejects absent face generator",
+            Array.IndexOf(NativeCreatorParityPolicy.MissingStages(new[] {
+                "CharacterCreationCultureStage", "CharacterCreationOptionsStage"}),
+                "CharacterCreationFaceGeneratorStage") >= 0);
+        Check("experimental face workshop refuses missing native stages",
+            !NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
+                false, true, new[] { "CharacterCreationCultureStage" }));
+        Check("experimental face workshop refuses conflicting review",
+            !NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
+                true, true, NativeCreatorParityPolicy.RequiredNativeStages));
+        Check("experimental face workshop refuses missing view mapping",
+            !NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
+                false, false, NativeCreatorParityPolicy.RequiredNativeStages));
+        Check("experimental face workshop refuses default-off mode",
+            !NativeCreatorParityPolicy.CanAddFaceWorkshop(false, true,
+                false, true, NativeCreatorParityPolicy.RequiredNativeStages));
+        Check("experimental face workshop permits verified opt-in parity",
+            NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
+                false, true, NativeCreatorParityPolicy.RequiredNativeStages));
+
         Check("start contract accepts genuine Vlandian Lord with fief and spouse",
             SandboxStartContract.Validate("vassal","vassal","vlandia",
                 "vlandia",false,1,true,true,0,0).Length == 0);
