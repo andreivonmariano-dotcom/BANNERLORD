@@ -215,8 +215,7 @@ namespace CalradiaUnified
 
         private static readonly string[] Pages =
         {
-            "Identity", "Appearance", "Household", "Resources",
-            "Location", "Review"
+            "Identity", "Household", "Resources", "Location", "Review"
         };
 
         private readonly Action close;
@@ -234,10 +233,10 @@ namespace CalradiaUnified
             profile=SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
             // A stale prior profile must not become active simply from
             // visiting the new creator, including a cancelled new Sandbox.
-            profile.Enabled=false;
-            profile.NativeStageEnabled=false;
-            profile.RealFamilyEnabled=false;
-            profile.RoleAffiliationsEnabled=false;
+            profile.ResetForNewCampaign();
+            DiagnosticJournal.Event("sandbox_creator_fresh_start",
+                "spouse=false|children=0|fief=Native" +
+                "|next=native_culture_appearance_origins_age_difficulty");
             string error;
             if (!profile.Save(SandboxOriginProfile.UserPath,out error))
                 status="Profile could not be reset: "+error;
@@ -254,11 +253,6 @@ namespace CalradiaUnified
                 new Field("Identity","StartingKingdomId",
                     "Starting kingdom (required for Lord, King, Soldier and Knight)",
                     "choice",choices:SandboxOriginProfile.KingdomIds),
-                new Field("Appearance","StartingCulture",
-                    "Culture preference (native stage still confirms)",
-                    "choice",choices:new[]{"","empire","vlandia","sturgia",
-                        "aserai","khuzait","battania"}),
-
                 new Field("Identity","PlayerAge",
                     "Requested starting age (not applied yet)","number",18,80),
                 new Field("Household","SpouseEnabled",
@@ -423,8 +417,8 @@ namespace CalradiaUnified
                 key=="StartCivilUnrest" || key=="StartRecruitShortage" ||
                 key=="StartSwiftTravel")
                 return advancedFieldsVisible;
-            if (key=="StartingCulture")
-                return advancedFieldsVisible;
+            // Culture, face and age are selected once in the native wizard.
+            if (key=="StartingCulture") return false;
             return true;
         }
 
@@ -503,7 +497,6 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(FieldHelp,"FieldHelp");
             OnPropertyChangedWithValue(PageProgress,"PageProgress");
             OnPropertyChangedWithValue(IsIdentitySelected,"IsIdentitySelected");
-            OnPropertyChangedWithValue(IsAppearanceSelected,"IsAppearanceSelected");
             OnPropertyChangedWithValue(IsHouseholdSelected,"IsHouseholdSelected");
             OnPropertyChangedWithValue(IsProgressionSelected,"IsProgressionSelected");
             OnPropertyChangedWithValue(IsEquipmentSelected,"IsEquipmentSelected");
@@ -526,6 +519,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(ProfileSummary,"ProfileSummary");
             OnPropertyChangedWithValue(RoleSummary,"RoleSummary");
             OnPropertyChangedWithValue(FamilySummary,"FamilySummary");
+            OnPropertyChangedWithValue(ChildPreview,"ChildPreview");
             OnPropertyChangedWithValue(LandSummary,"LandSummary");
             OnPropertyChangedWithValue(WorldSummary,"WorldSummary");
             OnPropertyChangedWithValue(StartNotice,"StartNotice");
@@ -537,7 +531,6 @@ namespace CalradiaUnified
             get
             {
                 if(page=="Identity") return "Choose your starting life";
-                if(page=="Appearance") return "Your character's appearance";
                 if(page=="Household") return "A family in Calradia";
                 if(page=="Resources") return "Starting resources and skills";
                 if(page=="Location") return "Kingdom, fief and world";
@@ -554,9 +547,9 @@ namespace CalradiaUnified
             get
             {
                 if (Current==null)
-                    return page=="Appearance" ?
-                        "Next, Bannerlord will open its real culture and 3D face editor. No duplicate changes are needed here." :
-                        "Review the requested starting life and family on the right. Begin the campaign to apply them.";
+                    return "Part 2: Native culture, 3D appearance, origins, " +
+                        "age and difficulty follow. Your selected family " +
+                        "will be created after native finalization.";
                 string key=Current.Key;
                 if (key=="Role") return "Lord starts as a vassal. King starts as a ruler. This changes your real native starting conditions.";
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
@@ -566,7 +559,7 @@ namespace CalradiaUnified
                 if (key=="SpouseBackground") return "Commoner: no noble ancestors. NobleRandom: a generated child of a real noble couple in your kingdom. NobleChosen: type a clan ID.";
                 if (key=="SpouseBirthClanId") return "Use a real clan ID from your starting kingdom. A living married couple must be old enough to be your spouse's parents.";
                 if (key=="SpouseCulture") return "Leave blank to match your player culture, or select an official game culture ID. Vlandian is stored as vlandia.";
-                if (key=="ChildCount") return "Choose children, then enter their names, ages and genders. Parents must satisfy the game's rules.";
+                if (key=="ChildCount") return "Each campaign begins with zero children. Plus, minus and the slider save immediately. Set a number, then enter each child's name, age and sex.";
                 if (key=="StartingFiefMode") return "Native preserves Bannerlord's grants. Castle/Town/Specific can transfer land from a same-kingdom clan.";
                 if (key=="StartingFiefId") return "Enter an exact settlement ID from this game version. Unknown and foreign holdings are refused.";
                 if (key=="AllowStartingFiefTransfer") return "Required for a non-native starting fief. This can remove a holding from another clan.";
@@ -584,7 +577,6 @@ namespace CalradiaUnified
             }
         }
         [DataSourceProperty] public bool IsIdentitySelected { get { return page=="Identity"; } }
-        [DataSourceProperty] public bool IsAppearanceSelected { get { return page=="Appearance"; } }
         [DataSourceProperty] public bool IsHouseholdSelected { get { return page=="Household"; } }
         [DataSourceProperty] public bool IsProgressionSelected { get { return page=="Progression"; } }
         [DataSourceProperty] public bool IsEquipmentSelected { get { return page=="Equipment"; } }
@@ -596,19 +588,16 @@ namespace CalradiaUnified
             get
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
-                if (page=="Appearance") return "The native 3D editor will appear next, after campaign initialization. No unsafe replacement is installed.";
-                if (page=="Household") return "Generate a new spouse, choose commoner or noble ancestry, then select your children's names, ages and genders.";
+                if (page=="Household") return "Choose a spouse and exact child count. Every number change saves immediately. Your children's ages and genders appear in the plan.";
                 if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
                 if (page=="Location") return "Choose native fiefs or an approved same-kingdom transfer. Advanced world settings are optional.";
-                return "Review your choices. The game still owns its culture, face and background stages.";
+                return "Part 1 of 2 is complete. Bannerlord handles culture, 3D appearance, origins, age and difficulty next.";
             }
         }
         [DataSourceProperty] public string SelectedLabel
         {
             get
             {
-                if (Current==null && page=="Appearance")
-                    return "Live character appearance follows this setup";
                 if (Current==null && page=="Review")
                     return "Confirm your starting plan on the right";
                 return Current==null ? "" : Current.Label;
@@ -637,7 +626,6 @@ namespace CalradiaUnified
             {
                 int count=VisibleFields.Length;
                 return page=="Review" ? "READY TO BEGIN" :
-                    page=="Appearance" && count==0 ? "NATIVE 3D EDITOR NEXT" :
                     count==0 ? "NO EXTRA SETTINGS" :
                     "SETTING "+(selectedIndex+1)+" / "+count;
             }
@@ -673,10 +661,14 @@ namespace CalradiaUnified
             get { return pendingNumber; }
             set
             {
-                if(!IsNumber) return;
-                pendingNumber=Math.Max(NumberMinimum,Math.Min(NumberMaximum,value));
-                OnPropertyChangedWithValue(pendingNumber,"PendingNumber");
-                OnPropertyChangedWithValue(SelectedValue,"SelectedValue");
+                if (!IsNumber || Current==null) return;
+                int next=Math.Max(NumberMinimum,Math.Min(NumberMaximum,value));
+                if (next==pendingNumber) return;
+                pendingNumber=next;
+                // Never display an unsaved child count as a chosen value.
+                if (!Write(Current.Key,next.ToString(
+                    CultureInfo.InvariantCulture)))
+                    Refresh();
             }
         }
         [DataSourceProperty] public string Status {get {return status;} }
@@ -696,9 +688,27 @@ namespace CalradiaUnified
             {
                 if (!profile.SpouseEnabled)
                     return "Unmarried, no children";
-                return profile.SpouseBackground + " spouse  /  " +
+                return profile.SpouseBackground + " spouse / " +
                     profile.ChildCount +
                     (profile.ChildCount==1 ? " child" : " children");
+            }
+        }
+        [DataSourceProperty] public string ChildPreview
+        {
+            get
+            {
+                if (!profile.SpouseEnabled || profile.ChildCount==0)
+                    return "No child requested";
+                if (profile.ChildCount==1)
+                {
+                    var child=profile.Children[0];
+                    return child.Name + "  |  " + child.Gender +
+                        "  |  age " + child.Age;
+                }
+                return String.Join(", ",
+                    profile.Children.Take(Math.Min(2,profile.ChildCount))
+                        .Select(c=>c.Name)) +
+                    (profile.ChildCount>2 ? " and others" : "");
             }
         }
         [DataSourceProperty] public string LandSummary
@@ -724,11 +734,8 @@ namespace CalradiaUnified
         {
             get
             {
-                return profile.SpouseEnabled ?
-                    "Family requests apply after native character creation. " +
-                    "The result must be verified in Clan." :
-                    "Culture, face, age and background are still handled " +
-                    "by Bannerlord after this screen.";
+                return "PART 2: Bannerlord culture, 3D face, origins, " +
+                    "age and difficulty. Family applies at finalization.";
             }
         }
         [DataSourceProperty] public string ProfileSummary
@@ -749,7 +756,6 @@ namespace CalradiaUnified
             Refresh();
         }
         public void ExecuteIdentity() {Switch("Identity");}
-        public void ExecuteAppearance() {Switch("Appearance");}
         public void ExecuteHousehold() {Switch("Household");}
 
         public void ExecuteResources() {Switch("Resources");}
@@ -817,8 +823,12 @@ namespace CalradiaUnified
             }
             profile=candidate;
             DiagnosticJournal.Event("sandbox_overhaul_field_saved",
-                "key="+key+"|role="+profile.Role);
-            SetStatus("Saved "+key+" for the new Sandbox.");
+                "key="+key+"|value="+value+"|role="+profile.Role+
+                "|child_count="+profile.ChildCount);
+            SetStatus(key=="ChildCount" ?
+                "Saved child count: " + profile.ChildCount +
+                ". This is the number the game will create." :
+                "Saved "+key+" for the new Sandbox.");
             Refresh();
             return true;
         }
@@ -854,9 +864,14 @@ namespace CalradiaUnified
         }
         public void ExecuteSaveNumber()
         {
-            if(IsNumber)
-                Write(Current.Key,pendingNumber.ToString(
-                    CultureInfo.InvariantCulture));
+            if (!IsNumber || Current==null) return;
+            string key=Current.Key;
+            InformationManager.ShowTextInquiry(new TextInquiryData(
+                Current.Label,
+                "Enter an exact whole number. Valid values save immediately.",
+                true,true,"Save","Cancel",
+                value=>Write(key,value),()=>{},false,null,"",
+                RawValue(key)));
         }
         public void ExecuteUseNative()
         {
@@ -915,6 +930,15 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("sandbox_creator_profile_refused",error);
                 return;
             }
+            // Only committed values are accepted. Record the actual list
+            // passed to the native post-creation family constructor.
+            DiagnosticJournal.Event("sandbox_creator_family_plan",
+                "spouse=" + candidate.SpouseEnabled +
+                "|child_count=" + candidate.ChildCount +
+                "|children=" + String.Join(";",
+                    candidate.Children.Take(candidate.ChildCount)
+                        .Select(c => c.Name + ":" + c.Gender + ":" + c.Age)) +
+                "|next=native_culture_appearance_origins_age_difficulty");
             if(!candidate.Save(SandboxOriginProfile.UserPath,out error))
             {
                 SetStatus("Profile not activated: "+error+
@@ -927,9 +951,11 @@ namespace CalradiaUnified
                 "role="+profile.Role+
                 "|kingdom="+profile.StartingKingdomId+
                 "|family_requested="+profile.RealFamilyEnabled+
+                "|spouse_requested="+profile.SpouseEnabled+
+                "|child_count="+profile.ChildCount+
                 "|fief_mode="+profile.StartingFiefMode+
                 "|native_face_header="+profile.NativeStageEnabled+
-                "|hand_off=native_appearance_and_finish");
+                "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }
 

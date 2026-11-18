@@ -501,6 +501,35 @@ internal static class Program
         Check("family defaults use valid hero names",
             new SandboxOriginProfile().TrySet("ChildCount", "2") &&
             new SandboxOriginProfile().Children[0].Name == "Alden");
+        var priorCampaign = new SandboxOriginProfile();
+        priorCampaign.TrySet("Role","Lord");
+        priorCampaign.TrySet("SpouseEnabled","true");
+        priorCampaign.TrySet("ChildCount","2");
+        priorCampaign.TrySet("Child.1.Name","Alina");
+        priorCampaign.TrySet("Child.1.Gender","Female");
+        priorCampaign.TrySet("StartingFiefMode","Castle");
+        priorCampaign.TrySet("AllowStartingFiefTransfer","true");
+        priorCampaign.ResetForNewCampaign();
+        Check("fresh Sandbox clears previous child count and fief transfer",
+            priorCampaign.ChildCount==0 && !priorCampaign.SpouseEnabled &&
+            priorCampaign.StartingFiefMode=="Native" &&
+            !priorCampaign.AllowStartingFiefTransfer &&
+            !priorCampaign.Enabled);
+        Check("fresh Sandbox keeps role and child name as optional presets",
+            priorCampaign.Role=="Lord" &&
+            priorCampaign.Children[0].Name=="Alina" &&
+            priorCampaign.Children[0].Gender=="Female");
+        priorCampaign.TrySet("SpouseEnabled","true");
+        priorCampaign.TrySet("ChildCount","1");
+        var oneChildReload=SandboxOriginProfile.Parse(
+            priorCampaign.Serialize());
+        Check("exactly one child remains after save/reload of a fresh profile",
+            oneChildReload.ChildCount==1 &&
+            oneChildReload.SpouseEnabled &&
+            oneChildReload.Children[0].Name=="Alina" &&
+            oneChildReload.Children[1].Name!="Alina" &&
+            oneChildReload.IsValid(30,out var oneChildValidity));
+
         var nativeFamilyPreset = new SandboxOriginProfile();
         nativeFamilyPreset.TrySet("ChildCount", "2");
         nativeFamilyPreset.TrySet("SpouseEnabled", "true");

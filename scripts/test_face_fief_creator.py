@@ -12,13 +12,12 @@ behavior=(src/"SandboxOriginBehavior.cs").read_text()
 native=(ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml")
 # The unsafe FaceGen stage must be absent from the next build.
 all_buttons=[w.get("Command.Click") for w in ET.parse(native).getroot().iter("ButtonWidget")]
-for action in ("ExecuteIdentity","ExecuteAppearance","ExecuteHousehold",
+for action in ("ExecuteIdentity","ExecuteHousehold",
                "ExecuteResources","ExecuteLocation","ExecuteReview","ExecuteToggleAdvanced"):
     assert action in all_buttons,action
-assert len(all_buttons)>=19
+assert len(all_buttons)>=18
 xmlRoot=ET.parse(native).getroot()
 for action, page in (("ExecuteIdentity","Identity"),
-                     ("ExecuteAppearance","Appearance"),
                      ("ExecuteHousehold","Household"),
                      ("ExecuteResources","Resources"),
                      ("ExecuteLocation","Location"),
@@ -54,4 +53,4 @@ assert "SandBox.View" not in (src/"CalradiaUnified.csproj").read_text()
 assert "SandBox.GauntletUI" not in (src/"CalradiaUnified.csproj").read_text()
 assert any(w.get("Text")=="@FieldHelp" for w in xmlRoot.iter("TextWidget"))
 assert any(w.get("Text")=="@AdvancedToggleLabel" for w in xmlRoot.iter("TextWidget"))
-print("PASS: no FaceGen view hijack, six guided tabs, family eligibility and fief guards (STATIC ONLY)")
+print("PASS: no FaceGen view hijack, five guided custom-start pages before native wizard, family eligibility and fief guards (STATIC ONLY)")

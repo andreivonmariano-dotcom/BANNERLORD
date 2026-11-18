@@ -37,13 +37,13 @@ for element in root.iter():
     for key,value in element.attrib.items():
         if value.startswith("@"): binding.add(value[1:])
 assert sliders==1
-assert len(clicks)>=19
+assert len(clicks)>=18
 for c in set(clicks):
     assert re.search(r"\bpublic\s+void\s+"+re.escape(c)+r"\s*\(",src),c
 for b in binding:
     assert re.search(r"\bpublic\s+(?:bool|int|string)\s+"+
                      re.escape(b)+r"\b",src),b
-assert set(["ExecuteIdentity","ExecuteAppearance","ExecuteHousehold",
+assert set(["ExecuteIdentity","ExecuteHousehold",
             "ExecuteResources","ExecuteLocation","ExecuteReview",
             "ExecuteToggleAdvanced","ExecuteReturnToNative",
             "ExecuteApplyAndContinue","ExecuteNextField",
@@ -53,6 +53,13 @@ assert "VisibleFields" in src
 assert "AdvancedToggleLabel" in src
 assert "IsNotReviewPage" in src
 assert "candidate.NativeStageEnabled=false;" in src
+assert "profile.ResetForNewCampaign();" in src
+assert 'if (!Write(Current.Key,next.ToString(' in src
+assert "sandbox_creator_family_plan" in src
+assert '"|child_count="+profile.ChildCount' in src
+assert 'Text="PART 1 OF 2: STARTING CONDITIONS"' in p.read_text()
+assert 'Text="NEXT: NATIVE CREATOR"' in p.read_text()
+assert "ExecuteAppearance" not in clicks
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
 assert "SandboxNativeStartOptions.TryPrepare" in src
