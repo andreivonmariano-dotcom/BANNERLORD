@@ -153,9 +153,8 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Your player model is rendered by Bannerlord's native " +
-                    "3D review. Family portraits appear only after actual " +
-                    "heroes exist in the campaign.";
+                return "Real 3D player model. Family portraits unlock " +
+                    "in towns and castles after starting.";
             }
         }
     }
