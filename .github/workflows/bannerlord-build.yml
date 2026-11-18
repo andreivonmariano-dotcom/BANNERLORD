@@ -50,6 +50,9 @@ jobs:
           $behavior = Get-Content Source/CalradiaUnified/SandboxOriginBehavior.cs -Raw
           if (-not $behavior.Contains('OnCharacterCreationInitializedEvent')) { throw 'Native character-creation event hook missing' }
           if (-not $behavior.Contains('cu_native_sandbox_menu')) { throw 'Native creation graph not recorded' }
+      - name: Audit native Starting Life links and irreversible hero gates
+        shell: pwsh
+        run: python scripts/test_native_starting_life.py
       - name: Verify runtime evidence analyzer rejects unproven game claims
         shell: pwsh
         run: python scripts/validate_runtime_evidence.py --self-test

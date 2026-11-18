@@ -44,3 +44,9 @@ A soldier contract and knightly vassalage are genuine campaign affiliation mecha
 - Save/load proof and actual hero visuals require screenshots and native diagnostics from a disposable campaign.
 
 **Production status: NOT RELEASED. No game runtime acceptance has been claimed.**
+
+## Exact experimental setup
+
+Create or edit `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini` prior to a new Sandbox with `Version=CU_ORIGIN_1`, `Enabled=false`, `NativeStageEnabled=true`, `RealFamilyEnabled=false`, and `RoleAffiliationsEnabled=false`. The native pages appear only if the v1.5.7 graph exposes exactly one compatible age narrative menu. The game retains the original Sandbox entry, not a separate Calradia Unified main-menu creator. Selecting a role sets Enabled true. Family and role contracts require separate choices in the new pages. Stop at the first UI error and preserve the diagnostic ZIP for analysis.
+
+Individual relative names and detailed attributes are presently editable through the separate profile format, not complete native portrait or text-entry stages. Labeled equipment kits do not currently auto-equip a character. Starting settlement relocation and direct facial sliders remain unfinished. This is an experimental integration milestone, not all requested Sandbox functionality completed.
