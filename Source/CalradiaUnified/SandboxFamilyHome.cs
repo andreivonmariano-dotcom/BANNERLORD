@@ -130,33 +130,59 @@ namespace CalradiaUnified
                         child.Father == player;
                     correctParents = correctParents &&
                         (child.Mother == spouse || child.Father == spouse);
-                    bool safe = SandboxFamilyHomePolicy.CanPlaceMinor(
-                        child.Clan == Clan.PlayerClan, correctParents,
-                        child.PartyBelongedTo == null &&
-                        child.PartyBelongedToAsPrisoner == null,
-                        child.IsChild);
-                    if (!safe)
+                    bool linkedToPlayer = child.Clan == Clan.PlayerClan &&
+                        correctParents;
+                    bool noParty = child.PartyBelongedTo == null &&
+                        child.PartyBelongedToAsPrisoner == null;
+                    if (!linkedToPlayer || !noParty || child.IsPrisoner)
                     {
                         childrenSkipped++;
                         continue;
                     }
-                    var nativeState = child.HeroState;
-                    // StayingInSettlement is saved by Bannerlord, and
-                    // registers the child in Settlement.HeroesWithoutParty.
-                    // Do not call TeleportHeroAction on a baby: it changes a
-                    // NotSpawned hero to Active and alters child lifecycle.
-                    child.StayingInSettlement = target;
-                    if (child.HeroState != nativeState)
-                        throw new InvalidOperationException(
-                            "Minor hero state changed during home placement");
-                    bool placed = child.StayingInSettlement == target &&
-                        child.CurrentSettlement == target &&
-                        target.HeroesWithoutParty.Contains(child);
+
+                    bool placed;
+                    if (child.IsChild)
+                    {
+                        if (!SandboxFamilyHomePolicy.CanPlaceMinor(
+                            true,true,true,true))
+                            throw new InvalidOperationException(
+                                "Child home policy rejected a valid minor");
+                        var nativeState = child.HeroState;
+                        // StayingInSettlement persists in the game save,
+                        // without altering a minor's NotSpawned lifecycle.
+                        // Never teleport or recruit a baby into a party.
+                        child.StayingInSettlement = target;
+                        if (child.HeroState != nativeState)
+                            throw new InvalidOperationException(
+                                "Minor hero state changed during home placement");
+                        placed = child.StayingInSettlement == target &&
+                            child.CurrentSettlement == target &&
+                            target.HeroesWithoutParty.Contains(child);
+                    }
+                    else
+                    {
+                        // An adult offspring is a real Hero and can reside in
+                        // the castle as an active character. Only promote a
+                        // NotSpawned ADULT, never a child or disabled hero.
+                        if (child.IsNotSpawned)
+                            child.ChangeState(Hero.CharacterStates.Active);
+                        if (!child.IsActive)
+                        {
+                            childrenSkipped++;
+                            continue;
+                        }
+                        if (child.StayingInSettlement != target)
+                            TeleportHeroAction.ApplyImmediateTeleportToSettlement(
+                                child,target);
+                        placed = child.StayingInSettlement == target &&
+                            child.CurrentSettlement == target;
+                    }
                     if (placed) childrenPlaced++;
                     else childrenSkipped++;
                     DiagnosticJournal.Event("cu_family_child_home",
                         "child=" + child.StringId +
                         "|age=" + child.Age +
+                        "|is_minor=" + child.IsChild +
                         "|state=" + child.HeroState +
                         "|settlement=" + target.StringId +
                         "|registered=" + placed +
