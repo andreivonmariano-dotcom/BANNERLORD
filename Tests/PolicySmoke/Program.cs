@@ -384,6 +384,11 @@ internal static class Program
             origin.TrySet("Item.1", "empire_sword_1_t2") &&
             !origin.TrySet("Item.13", "empire_sword_1_t2") &&
             !origin.TrySet("Item.2", "../../evil"));
+        var inactiveChild = new SandboxOriginProfile();
+        Check("sandbox remembers child name before count activation",
+            inactiveChild.TrySet("Child.1.Name", "Mira") &&
+            SandboxOriginProfile.Parse(inactiveChild.Serialize()).Children[0].Name
+                == "Mira");
         Check("sandbox roundtrip all family and stats data",
             SandboxOriginProfile.Parse(origin.Serialize()).Children[0].Name == "Aelia" &&
             SandboxOriginProfile.Parse(origin.Serialize()).Overrides["Skill.OneHanded"] == 220 &&

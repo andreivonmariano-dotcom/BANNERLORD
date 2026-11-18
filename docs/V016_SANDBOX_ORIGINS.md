@@ -30,11 +30,11 @@ User file: `%LOCALAPPDATA%\CalradiaUnified\sandbox-origin.ini`.
 | PlayerAge | -1, 18..80 | Stored only |
 | StartingTown | empty/native or a real town StringId | Stored only, no unsafe teleport |
 | EquipmentKit | Vanilla/Traveler/Soldier/Knight/Royal/Custom | Stored only |
-| Item.1..Item.12 | exact, safe item IDs | Stored only; not automatically equipped |
-| Attribute.NAME | 1..10, six attributes | Stored only |
-| Skill.NAME | 0..330, eighteen skills | Stored only |
-| Focus.NAME | 0..5, eighteen skills | Stored only |
-| Trait.NAME | -2..2, five traits | Stored only |
+| Item.1..Item.12 | exact, safe item IDs | Grants one engine-recognized item per slot to the player inventory; does not auto-equip |
+| Attribute.NAME | 1..10, six attributes | Native HeroDeveloper attribute change at new game, game test pending |
+| Skill.NAME | 0..330, eighteen skills | Native initial skill-level setter at new game, game test pending |
+| Focus.NAME | 0..5, eighteen skills | Native HeroDeveloper focus change at new game, game test pending |
+| Trait.NAME | -2..2, five traits | Native personality trait-level setter at new game, game test pending |
 | SpouseEnabled | false by default | Stored only |
 | SpouseName/Age/Gender/Culture/FaceSeed/EquipmentKit | Age 18..70; unique names editable | Stored only, no NPC creation |
 | ChildCount | 0..6 | Stored only, each Child.N.Name/Age/Gender/Culture/FaceSeed/EquipmentKit editable |
@@ -44,7 +44,7 @@ For every child, selected child age must be at least 16 years less than both par
 
 ## Why the feature is staged
 
-Kingdom status, family links, Hero birthdays, clan membership, child growth, faces, inventories and location are all persisted native objects. Mutating them incorrectly at game start can corrupt an ongoing campaign. The first release focuses on a tested independent schema, safe user-prepared profiles, and strictly new-game-only resources. Full family generation and player progression are next after exact game lifecycle verification.
+Kingdom status, family links, Hero birthdays, clan membership, child growth, faces, inventories and location are all persisted native objects. Mutating them incorrectly at game start can corrupt an ongoing campaign. The first release focuses on an independently tested profile schema, user-prepared family templates, and guarded new-game-only player resources, progression and inventory. The real game must still verify exact effects and save/load. Full family generation and player progression are next after exact game lifecycle verification.
 
 ## Real v1.5.7 tests not yet run
 

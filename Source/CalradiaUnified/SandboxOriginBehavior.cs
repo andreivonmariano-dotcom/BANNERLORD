@@ -1,11 +1,15 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Library;
+using TaleWorlds.ObjectSystem;
 
 namespace CalradiaUnified
 {
@@ -373,9 +377,11 @@ namespace CalradiaUnified
                         hero.Culture.BasicTroop, profile.Troops);
                 }
 
-                // Save-safe world mutation under review: attributes, family,
-                // appearance, equipment/relocation only stored in profile for
-                // now. Do not create invalid Hero family links or map coordinates.
+                ApplyPlayerProgression(hero, profile);
+                ApplyExistingItems(profile);
+
+                // Family, appearance and relocation remain templates. Never
+                // create a Hero with missing parentage or bypass an active siege.
                 DiagnosticJournal.Event("sandbox_origin_applied",
                     "role=" + profile.Role + "|gold_target=" + profile.Gold +
                     "|influence_target=" + profile.Influence +
@@ -383,12 +389,95 @@ namespace CalradiaUnified
                     "|family_templates_only=true" +
                     "|appearance_templates_only=true" +
                     "|relocation_pending=true" +
-                    "|progression_pending=true" +
-                    "|equipment_pending=true");
+                    "|progression_requested=" + profile.Overrides.Count +
+                    "|individual_items_requested=" + profile.ItemIds.Count);
             }
             catch (Exception ex)
             {
                 DiagnosticJournal.Exception("sandbox_origin_new_game", ex);
+            }
+        }
+
+        private static void ApplyPlayerProgression(Hero hero,
+            SandboxOriginProfile profile)
+        {
+            foreach (var entry in profile.Overrides)
+            {
+                string[] parts = entry.Key.Split('.');
+                if (parts.Length != 2) continue;
+                int value = entry.Value;
+                try
+                {
+                    if (parts[0] == "Skill" || parts[0] == "Focus")
+                    {
+                        var skillInfo = typeof(DefaultSkills).GetProperty(
+                            parts[1], BindingFlags.Public | BindingFlags.Static);
+                        var skill = skillInfo == null ? null :
+                            skillInfo.GetValue(null, null) as SkillObject;
+                        if (skill == null || hero.HeroDeveloper == null) continue;
+                        if (parts[0] == "Skill")
+                            hero.HeroDeveloper.SetInitialSkillLevel(skill, value);
+                        else
+                        {
+                            int delta = value - hero.HeroDeveloper.GetFocus(skill);
+                            if (delta != 0) hero.HeroDeveloper.AddFocus(skill, delta, false);
+                        }
+                    }
+                    else if (parts[0] == "Attribute")
+                    {
+                        var attrInfo = typeof(DefaultCharacterAttributes).GetProperty(
+                            parts[1], BindingFlags.Public | BindingFlags.Static);
+                        var attribute = attrInfo == null ? null :
+                            attrInfo.GetValue(null, null) as CharacterAttribute;
+                        if (attribute == null || hero.HeroDeveloper == null) continue;
+                        int delta = value - hero.GetAttributeValue(attribute);
+                        if (delta != 0)
+                            hero.HeroDeveloper.AddAttribute(attribute, delta, false);
+                    }
+                    else if (parts[0] == "Trait")
+                    {
+                        var traitInfo = typeof(DefaultTraits).GetProperty(
+                            parts[1], BindingFlags.Public | BindingFlags.Static);
+                        var trait = traitInfo == null ? null :
+                            traitInfo.GetValue(null, null) as TraitObject;
+                        if (trait != null) hero.SetTraitLevel(trait, value);
+                    }
+                    DiagnosticJournal.Event("sandbox_origin_character_override",
+                        "key=" + entry.Key + "|target=" + value);
+                }
+                catch (Exception ex)
+                {
+                    DiagnosticJournal.Exception("sandbox_origin_override_" +
+                        entry.Key, ex);
+                }
+            }
+        }
+
+        private static void ApplyExistingItems(SandboxOriginProfile profile)
+        {
+            var party = MobileParty.MainParty;
+            if (party == null || party.ItemRoster == null) return;
+            foreach (var pair in profile.ItemIds)
+            {
+                try
+                {
+                    var item = MBObjectManager.Instance.GetObject<ItemObject>(
+                        pair.Value);
+                    if (item == null)
+                    {
+                        DiagnosticJournal.Event("sandbox_origin_item_missing",
+                            "slot=" + pair.Key + "|id=" + pair.Value);
+                        continue;
+                    }
+                    party.ItemRoster.AddToCounts(item, 1);
+                    DiagnosticJournal.Event("sandbox_origin_item_granted",
+                        "slot=" + pair.Key + "|id=" + pair.Value);
+                }
+                catch (Exception ex)
+                {
+                    DiagnosticJournal.Exception("sandbox_origin_item_" +
+                        pair.Key, ex);
+                }
             }
         }
     }

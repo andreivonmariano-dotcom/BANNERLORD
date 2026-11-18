@@ -331,9 +331,11 @@ namespace CalradiaUnified
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach (var pair in ItemIds)
                 lines.Add("Item." + pair.Key + "=" + pair.Value);
-            for (int i = 0; i < ChildCount; i++)
+            // Preserve unused relative templates so names can be edited before
+            // setting ChildCount or SiblingCount without losing pending edits.
+            for (int i = 0; i < MaxChildren; i++)
                 AddRelative(lines, "Child", i + 1, Children[i]);
-            for (int i = 0; i < SiblingCount; i++)
+            for (int i = 0; i < MaxSiblings; i++)
                 AddRelative(lines, "Sibling", i + 1, Siblings[i]);
             return String.Join(Environment.NewLine, lines) + Environment.NewLine;
         }
