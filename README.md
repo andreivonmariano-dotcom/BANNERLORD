@@ -1,3 +1,15 @@
+# Calradia Unified v0.41 development: identity-first guided character creator
+
+The active main-menu **Sandbox** creator now begins with short **World and Starting Position** screens only. Bannerlord then owns the real **culture, appearance, life story, post-origins stats, banner and clan**. A second set of short guided CU screens runs **after banner and clan** for **spouse, children, fortune, fiefs and household residence**. Native review and difficulty remain the proper finalization path. The World and House/Fortune screens load the **same** `CUGuidedCreator.xml` full-screen charcoal/slate/gold layout with one relevant field at a time, automatic conditional screens, and Back/Continue/Escape navigation.
+
+There are **no experimental toggles** for this guided flow. Native stats mode remains optional, and choosing Native now skips the extra skill/trait edit pages. Fresh starts clear inherited item grants, stats, gold/influence/troops, seed and hidden world modifiers. House validation uses the live Hero's age before any family grant at phase 9.
+
+**Engineering boundary:** this is the source-level Q1/Q3 redesign, not a game-tested full replacement. Native culture/FaceGen/narrative/banner/clan/review/difficulty stages still display original engine-owned controls with CU chapter context. Identical layouts on all native stages, uninterrupted cinematics/loading and direct playable map entry have **not** been verified. The genuine 3D scene is still FaceGen-stage-only. Manifest retains `v0.38.0` in this development candidate.
+
+[Implementation and live acceptance checklist](docs/V041_GUIDED_IDENTITY_FIRST_CREATOR.md) · [Draft PR #72](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/72)
+
+---
+
 # Calradia Unified v0.40 development: native post-origins stats and personality
 
 **New Chapter II editor:** after completing Bannerlord's actual life-story narrative, one native-styled full-screen CU progression step opens before the original banner editor. Choose **Native** (default, no overrides), **Balanced** (30-point budget), or **Unrestricted** (legal native stat ranges). Three compact pages cover Attributes, grouped Skills & Focus, and five Personality Traits. Rows show actual current Hero values and any draft differences. Exact entry and Reset are available. All selected native narrative positive-effect texts are paginated from Bannerlord 1.5.7's verified `SelectedOptions` field. Trait help explains that NPC relationships depend on the native event, not a guaranteed flat modifier.
