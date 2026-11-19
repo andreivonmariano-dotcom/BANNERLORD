@@ -821,6 +821,15 @@ namespace CalradiaUnified
                     "|details=" + String.Join(";",
                         profile.Children.Take(profile.ChildCount).Select(
                             c => c.Name + ":" + c.Gender + ":" + c.Age)));
+                // Apply the player's FINAL custom skills and attributes
+                // before generating children. Older creator builds built
+                // offspring first, so a father's selected OneHanded value
+                // had no influence on their initial training.
+                ApplyPlayerProgression(hero,profile);
+                DiagnosticJournal.Event("cu_family_parent_stats_ready",
+                    "player="+hero.StringId+
+                    "|player_final_overrides="+profile.Overrides.Count+
+                    "|before_family_creation=true");
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
@@ -889,7 +898,6 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
 
-                ApplyPlayerProgression(hero, profile);
                 ApplyExistingItems(profile);
 
                 // Acceptance is based on observed Bannerlord state, not a
