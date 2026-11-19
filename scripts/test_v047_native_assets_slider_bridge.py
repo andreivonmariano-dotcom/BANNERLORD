@@ -92,6 +92,18 @@ assert '"cu_native_banner_back_to_traits"' in stats
 assert '"cu_native_stats_return_to_banner"' in stats
 assert "no_double_previous_stage=true" in stats
 
+# The pinned age narrative menu must remain game-owned until a live
+# run confirms exact menu/option IDs and original bonus callbacks.
+probe=read("CUNativeAgeMenuProbe.cs")
+assert "manager.CurrentMenu" in probe
+assert "manager.NarrativeMenus" in probe
+assert "manager.GetSuitableNarrativeMenuOptions()" in probe
+assert '"20" || x=="30" || x=="40" || x=="50"' in probe
+assert '"cu_native_final_narrative_menu"' in probe
+assert "OnNarrativeMenuOptionSelected(" not in probe
+assert "CUNativeAgeMenuProbe.Tick(" in shell
+assert "CUNativeAgeMenuProbe.Clear();" in shell
+
 # Skip ONLY the accepted custom new-Sandbox intro. Preserve native
 # GameState, saved-game/other game manager paths, and fallback.
 assert "public override void OnLoadFinished()" in no_intro
@@ -109,4 +121,4 @@ if asset_dir.exists():
             assert not path.name.lower() in {
                 "escape_panel.png","character_creation_background_gradient.png"}
 
-print("PASS: v047 native-screen reuse, referenced game sprites, native slider drag bridge, Banner Back to Traits and intro skip (STATIC ONLY)")
+print("PASS: v047 game sprite references, live-widget age slider path, truthful native-age probe, Banner Back bridge and intro skip (STATIC ONLY)")
