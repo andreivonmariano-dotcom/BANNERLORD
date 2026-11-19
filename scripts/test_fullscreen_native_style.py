@@ -29,7 +29,10 @@ for name,xml in (("pregame",creator),("native_culture",culture)):
         n.get("WidthSizePolicy")=="StretchToParent" and
         n.get("HeightSizePolicy")=="StretchToParent"]
     assert planes,name+": missing full-screen native backdrop"
-    assert planes[0].get("Color")=="#09121DFF",name
+    # The five-tab CUSandboxCreator is a retired reference. The active
+    # guided film uses a native stone/bronze palette.
+    expected="#09121DFF" if name=="pregame" else "#120D09FF"
+    assert planes[0].get("Color")==expected,name
     bands=[n for n in root_widget.iter("Widget") if
         n.get("Sprite")=="BlankWhiteSquare_9" and
         n.get("WidthSizePolicy")=="StretchToParent" and
@@ -37,8 +40,10 @@ for name,xml in (("pregame",creator),("native_culture",culture)):
         n.get("VerticalAlignment") in ("Top","Bottom")]
     assert sum(n.get("VerticalAlignment")=="Top" for n in bands)>=2,name
     assert sum(n.get("VerticalAlignment")=="Bottom" for n in bands)>=2,name
-    assert any(n.get("Color")=="#C19B62FF" for n in bands),name
-    assert any(n.get("Color")=="#B99361FF" for n in bands),name
+    main_border="#C19B62FF" if name=="pregame" else "#B99155FF"
+    bottom_border="#B99361FF" if name=="pregame" else "#BB9358FF"
+    assert any(n.get("Color")==main_border for n in bands),name
+    assert any(n.get("Color")==bottom_border for n in bands),name
     # Responsive centered native-style control region. At 1366 x 768 it
     # fits with margins; at 1920 x 1080 it expands, then caps cleanly.
     safe=[n for n in root_widget.iter("Widget") if
