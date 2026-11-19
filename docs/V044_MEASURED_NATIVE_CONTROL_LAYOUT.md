@@ -56,6 +56,8 @@ A missing or scaled root, ambiguous panel, large native tree, position setter mi
 
 **An automated build cannot prove any of these runtime events actually occurred.** Stage-specific logs and screenshots are necessary to claim matching layout in an observed game session.
 
+**Pinned Windows CI:** [run 44471172868](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44471172868), implementation/test source SHA `44d8f2eddc53bcadff0a9b98ca0d3fc389800fa5`. **730 gameplay policy checks passed**, zero C# warnings and errors. The 1.5.7 widget and geometry audits passed, with ZIP CRC and installer/hash checks. Compiled DLL SHA-256: `b41f980e899a2bc898dd2f4c05db2661b271ec5b7234293b331d50bb1ce4c44f`. Verified direct-install ZIP SHA-256: `a836d8abf4fdfcf598d7706a02b8c125d58a9f775f197b0bf4d8312cb22c32d4`. **Gate B only, compiled and not tested in-game.**
+
 ## Checks and acceptance
 
 `Tests/PolicySmoke/Program.cs` now tests layout calculations at 1366×768 and 1920×1080, root scaling, hard movement bounds, footer position, banner/FaceGen exclusion, long translated labels and nonintrusive padding. `scripts/test_native_layout_alignment.py` verifies that alignment uses the game-owned movie root, the pinned `Size` and `GlobalPosition` API, original button callbacks, F10 rollback and safe wide-panel gating.
