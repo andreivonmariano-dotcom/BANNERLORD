@@ -92,6 +92,9 @@ jobs:
       - name: Verify real 3D native face composition and seven-stage parity
         shell: pwsh
         run: python scripts/test_native_face_workshop.py
+      - name: Check persistent CU native-state culture and face shell pilot
+        shell: pwsh
+        run: python scripts/test_cu_native_state_shell.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
