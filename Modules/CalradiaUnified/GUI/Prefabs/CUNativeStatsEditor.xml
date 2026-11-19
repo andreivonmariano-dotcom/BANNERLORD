@@ -201,7 +201,7 @@
                     <TextWidget Brush.FontSize="15" Text="@Name" Color="#F0D0A0FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="170"
                       HeightSizePolicy="Fixed" SuggestedHeight="23"
-                      PositionXOffset="11" PositionYOffset="4/>
+                      PositionXOffset="11" PositionYOffset="4"/>
                     <TextWidget Brush.FontSize="14" Text="@NativeValue" Color="#D8C4A6FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="112"
                       HeightSizePolicy="Fixed" SuggestedHeight="28"
@@ -246,8 +246,8 @@
                     </ButtonWidget>
                     <TextWidget Brush.FontSize="12" Brush.TextVerticalAlignment="Top" Text="@Description" Color="#CBBBA3FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="499"
-                      HeightSizePolicy="Fixed" SuggestedHeight="24"
-                      PositionXOffset="11" PositionYOffset="29"/>
+                      HeightSizePolicy="Fixed" SuggestedHeight="18"
+                      PositionXOffset="11" PositionYOffset="27"/>
                   </Children>
                 </Widget>
               </ItemTemplate>
