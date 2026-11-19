@@ -30,10 +30,12 @@ namespace CalradiaUnified
             if (String.IsNullOrEmpty(key)) return false;
             string[] parts = key.Split('.');
             if (parts.Length != 2) return false;
+            if(key==SandboxFamilyLevelPolicy.Key)return true;
             if (parts[0] == "Attribute")
                 return Array.IndexOf(SandboxOriginProfile.Attributes,parts[1])>=0;
             if (parts[0] == "Skill" || parts[0] == "Focus")
-                return Array.IndexOf(SandboxOriginProfile.Skills,parts[1])>=0;
+                return Array.IndexOf(SandboxOriginProfile.AllPotentialSkills,
+                    parts[1])>=0;
             if (parts[0] == "Trait")
                 return Array.IndexOf(SandboxOriginProfile.Traits,parts[1])>=0;
             return false;
@@ -43,6 +45,8 @@ namespace CalradiaUnified
         {
             if (!IsStatKey(key)) return false;
             string kind = key.Split('.')[0];
+            if(key==SandboxFamilyLevelPolicy.Key)
+                return SandboxFamilyLevelPolicy.Valid(value);
             if (kind == "Attribute") return value >= 1 && value <= 10;
             if (kind == "Skill") return value >= 0 && value <= 330;
             if (kind == "Focus") return value >= 0 && value <= 5;
@@ -61,6 +65,7 @@ namespace CalradiaUnified
             int delta = Math.Max(0,selectedValue-nativeValue);
             if (key.StartsWith("Attribute.",StringComparison.Ordinal))
                 return delta*4;
+            if(key==SandboxFamilyLevelPolicy.Key)return delta*4;
             if (key.StartsWith("Focus.",StringComparison.Ordinal))
                 return delta*3;
             if (key.StartsWith("Trait.",StringComparison.Ordinal))
@@ -143,7 +148,7 @@ namespace CalradiaUnified
             switch (mode)
             {
                 case "Balanced":
-                    return "30 points. Attribute +1 costs 4; Focus +1 costs 3; Skill +10 costs 1; trait deviation of 1 costs 3. No refunds for decreases.";
+                    return "30 points. Level +1 costs 4; Attribute +1 costs 4; Focus +1 costs 3; Skill +10 costs 1; trait deviation of 1 costs 3. No refunds for decreases.";
                 case "Unrestricted":
                     return "Set any supported starting value within native ranges. No point budget.";
                 default:
