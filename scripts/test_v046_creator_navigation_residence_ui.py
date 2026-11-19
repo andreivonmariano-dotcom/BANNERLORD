@@ -95,4 +95,4 @@ assert 'Text="@Presence"' in ET.tostring(portraits,encoding="unicode")
 assert not any(x.get("Text")=="@Parentage" for x in portraits.iter("TextWidget"))
 assert any(x.get("Brush.FontSize") for x in portraits.iter("TextWidget"))
 
-print("PASS: deterministic age→attributes→skills→traits navigation, compact native-style UI, minor/older-child home and recall diagnostics (STATIC ONLY)")
+print("PASS: deterministic age-to-attributes-to-skills-to-traits navigation, compact native-style UI, minor/older-child home and recall diagnostics (STATIC ONLY)")
