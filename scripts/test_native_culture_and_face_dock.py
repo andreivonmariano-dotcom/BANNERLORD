@@ -53,7 +53,9 @@ assert 'nextLayer.IsFocusLayer=true;' in layer
 assert 'ScreenManager.TrySetFocus(nextLayer)' in layer
 assert 'controller.SelectCulture(id)' in layer
 assert 'controller.Continue();' in layer
-assert 'controller.Previous();' in layer
+assert 'try { backController.Previous(); }' in layer, "native Back must execute after Gauntlet movie cleanup"
+assert 'pendingNativeBack=selected;' in layer, "Back is deferred out of the movie click"
+assert 'CUNativeStateShell.Clear();' in layer, "native Back releases CU layers before leaving state"
 assert 'RequestAbandon()' in layer
 assert 'RestoreNativeCultureFocus' in layer
 assert 'oldHost.RemoveLayer(oldLayer)' in layer
