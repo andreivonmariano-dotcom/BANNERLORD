@@ -203,7 +203,7 @@ namespace CalradiaUnified
                 var vm=new CUNativeStatsVM(manager,profile,
                     ()=>closeRequested=true,()=>backRequested=true,
                     returningFromNativeBanner ?
-                    CUNativeStatsNavigationPolicy.Traits :
+                    CUNativeStatsNavigationPolicy.Attributes :
                     CUNativeStatsNavigationPolicy.Age);
                 next=new GauntletLayer("CUNativeStatsEditor",85,false);
                 next.IsFocusLayer=true;
@@ -544,13 +544,14 @@ namespace CalradiaUnified
         private readonly string name;
         private readonly string description;
         private readonly int native;
-        private readonly int selected;
+        private int selected;
+        private readonly bool autoValue;
         private readonly Action<string,int> change;
         private readonly Action<string,int> setExact;
 
         internal CUNativeStatRowVM(string key,int nativeValue,int selectedValue,
             string help,Action<string,int> onChange,
-            Action<string,int> onSetExact)
+            Action<string,int> onSetExact,bool automatic=false)
         {
             this.key=key;
             string originalName=key.Substring(key.IndexOf('.')+1);
@@ -561,6 +562,7 @@ namespace CalradiaUnified
             description=help;
             native=nativeValue;
             selected=selectedValue;
+            autoValue=automatic;
             change=onChange;
             setExact=onSetExact;
         }
@@ -590,8 +592,36 @@ namespace CalradiaUnified
         [DataSourceProperty]
         public string NativeValue {get{return "BASE "+native;}}
 
+        internal void ApplySelected(int updated)
+        {
+            selected=updated;
+            OnPropertyChangedWithValue(selected,"SelectedInt");
+            OnPropertyChangedWithValue(SelectedValue,"SelectedValue");
+            OnPropertyChangedWithValue(Difference,"Difference");
+        }
+        [DataSourceProperty] public int SelectedInt
+        {
+            get{return selected;}
+            set
+            {
+                if(value!=selected)
+                    setExact(key,value);
+            }
+        }
+        [DataSourceProperty] public int Minimum
+            {get{return key.StartsWith("Attribute.")?1:
+                key.StartsWith("Trait.")?-2:0;}}
+        [DataSourceProperty] public int Maximum
+            {get{return key.StartsWith("Attribute.")?10:
+                key.StartsWith("Trait.")?2:
+                key.StartsWith("Focus.")?5:330;}}
+        [DataSourceProperty] public int Increment
+            {get{return key.StartsWith("Skill.")?10:1;}}
+        public string Key {get{return key;}}
         [DataSourceProperty]
-        public string SelectedValue {get{return "NEW "+selected;}}
+        public string SelectedValue
+            {get{return autoValue&&selected==native?
+                "AUTO":"NEW "+selected;}}
 
         [DataSourceProperty]
         public string Difference
@@ -617,6 +647,8 @@ namespace CalradiaUnified
     {
         private readonly SandboxOriginProfile profile;
         private readonly IDictionary<string,int> baseline;
+        private readonly IDictionary<string,int> spouseBaseline;
+        private bool editingSpouse;
         private readonly Action completed;
         private readonly Action back;
         // One short exact-age page follows the native story and precedes
@@ -641,6 +673,17 @@ namespace CalradiaUnified
             // The existing advanced Resources fields no longer authorize
             // arbitrary early override values. Defaults are native.
             baseline=CUNativeStatsSnapshot.Capture(Hero.MainHero);
+            spouseBaseline=new SortedDictionary<string,int>(
+                StringComparer.Ordinal);
+            foreach(var name in SandboxOriginProfile.Attributes)
+                spouseBaseline["Attribute."+name]=3;
+            foreach(var name in SandboxOriginProfile.Skills)
+            {
+                spouseBaseline["Skill."+name]=0;
+                spouseBaseline["Focus."+name]=0;
+            }
+            foreach(var name in SandboxOriginProfile.Traits)
+                spouseBaseline["Trait."+name]=0;
             completed=onCompleted;
             back=onBack;
             Rows=new MBBindingList<CUNativeStatRowVM>();
@@ -648,33 +691,30 @@ namespace CalradiaUnified
             Refresh();
         }
 
+        private IDictionary<string,int> BaseForTarget
+            {get{return editingSpouse?spouseBaseline:baseline;}}
+        private IDictionary<string,int> ChangesForTarget
+            {get{return editingSpouse?profile.SpouseOverrides:
+                profile.Overrides;}}
         private void Refresh()
         {
             Rows.Clear();
-            string current=pageIndex<0 ? "Starting Age" :
-                SandboxStatBudgetPolicy.Pages[pageIndex];
-            foreach(string name in current=="Starting Age" ?
-                new string[0] : current=="Attributes" ?
-                SandboxOriginProfile.Attributes :
-                current=="Skills" ?
-                SandboxOriginProfile.Skills.Where(s=>
-                    SandboxStatBudgetPolicy.GroupForSkill(s)==
-                    SandboxStatBudgetPolicy.SkillGroups[skillGroupIndex]).ToArray() :
-                SandboxOriginProfile.Traits)
+            if(pageIndex>=0)
             {
-                if(current=="Skills")
+                // Display every game stat in ONE scrollable collection.
+                // Parents are switched without losing their drafts.
+                foreach(string name in SandboxOriginProfile.Attributes)
+                    AddRow("Attribute."+name,"Native attribute | 1-10");
+                foreach(string name in SandboxOriginProfile.Skills)
                 {
                     AddRow("Skill."+name,
-                        "SKILL LEVEL | 0–330. Increases by 10 per click.");
+                        "Native skill | 0-330 | inherited training");
                     AddRow("Focus."+name,
-                        "FOCUS POINTS | Native cap: 5. Learning bonus.");
+                        "Native focus | 0-5 | learning potential");
                 }
-                else if(current=="Traits")
+                foreach(string name in SandboxOriginProfile.Traits)
                     AddRow("Trait."+name,
                         SandboxStatBudgetPolicy.TraitDescription(name));
-                else
-                    AddRow("Attribute."+name,
-                        "Native "+name+" governs its related skills.");
             }
             OnPropertyChangedWithValue(Page,"Page");
             OnPropertyChangedWithValue(PageProgress,"PageProgress");
@@ -691,64 +731,113 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsNativeMode,"IsNativeMode");
             OnPropertyChangedWithValue(IsBalancedMode,"IsBalancedMode");
             OnPropertyChangedWithValue(IsUnrestrictedMode,"IsUnrestrictedMode");
+            OnPropertyChangedWithValue(IsPlayerTarget,"IsPlayerTarget");
+            OnPropertyChangedWithValue(IsSpouseTarget,"IsSpouseTarget");
+            OnPropertyChangedWithValue(TargetHelp,"TargetHelp");
+            OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
             OnPropertyChangedWithValue(status,"Status");
         }
+        private void RefreshRowValues()
+        {
+            var changes=ChangesForTarget;
+            var foundation=BaseForTarget;
+            foreach(var row in Rows)
+            {
+                int starting;
+                if(!foundation.TryGetValue(row.Key,out starting))continue;
+                int chosen;
+                if(!changes.TryGetValue(row.Key,out chosen))
+                    chosen=starting;
+                row.ApplySelected(chosen);
+            }
+            OnPropertyChangedWithValue(BudgetStatus,"BudgetStatus");
+            OnPropertyChangedWithValue(status,"Status");
+        }
+        public void ExecuteEditPlayer()
+        {
+            editingSpouse=false;
+            status="Editing the founder after native life-story bonuses.";
+            DiagnosticJournal.Event("cu_all_stats_target","target=player");
+            Refresh();
+        }
+        public void ExecuteEditSpouse()
+        {
+            editingSpouse=true;
+            status="Editing spouse before House generates a native Hero."+
+                " Manual values influence children's training.";
+            DiagnosticJournal.Event("cu_all_stats_target","target=spouse");
+            Refresh();
+        }
+        [DataSourceProperty] public bool IsPlayerTarget
+            {get{return !editingSpouse;}}
+        [DataSourceProperty] public bool IsSpouseTarget
+            {get{return editingSpouse;}}
+        [DataSourceProperty] public string TargetHelp
+            {get{return editingSpouse ?
+                "SPOUSE | AUTO keeps native values. Drag a slider to set an"+
+                " exact requested starting value. Your child inherits"+
+                " from both parents after House creation." :
+                "PLAYER | All native attributes, skills, focus and traits"+
+                " in one place. Choose Balanced or Unrestricted to edit.";}}
 
         private void AddRow(string key,string help)
         {
             int native;
-            if(!baseline.TryGetValue(key,out native)) return;
+            if(!BaseForTarget.TryGetValue(key,out native)) return;
             int chosen;
-            if(!profile.Overrides.TryGetValue(key,out chosen)) chosen=native;
+            bool custom=ChangesForTarget.TryGetValue(key,out chosen);
+            if(!custom)chosen=native;
             Rows.Add(new CUNativeStatRowVM(key,native,chosen,help,
-                Change,ChangeExact));
+                Change,ChangeExact,editingSpouse&&!custom));
         }
 
         private void Change(string key,int direction)
         {
-            if(profile.ProgressionMode=="Native")
-            {
-                status="Select Balanced or Unrestricted to edit values.";
-                Refresh();
-                return;
-            }
-            int native;
-            if(!baseline.TryGetValue(key,out native))
-            {
-                status="Native value not found. This field cannot be edited.";
-                Refresh();
-                return;
-            }
             int current;
-            if(!profile.Overrides.TryGetValue(key,out current)) current=native;
-            int next=current+SandboxStatBudgetPolicy.Step(key)*direction;
-            ChangeExact(key,next);
+            if(!ChangesForTarget.TryGetValue(key,out current))
+            {
+                if(!BaseForTarget.TryGetValue(key,out current))
+                    return;
+            }
+            ChangeExact(key,current+
+                SandboxStatBudgetPolicy.Step(key)*direction);
         }
 
         private void ChangeExact(string key,int next)
         {
-            if(profile.ProgressionMode=="Native")
+            if(!editingSpouse && profile.ProgressionMode=="Native")
             {
-                status="Select Balanced or Unrestricted to edit values.";
-                Refresh();
+                status="Select Balanced or Unrestricted to edit founder stats.";
+                RefreshRowValues();
                 return;
             }
             int native;
-            if(!baseline.TryGetValue(key,out native))
+            if(!BaseForTarget.TryGetValue(key,out native))
             {
-                status="Native value not found. This field cannot be edited.";
-                Refresh();
+                status="Native stat not found.";
+                RefreshRowValues();
                 return;
             }
             if(!SandboxStatBudgetPolicy.InRange(key,next))
             {
-                status="Native value limit reached.";
-                Refresh();
+                status="Native stat value must be inside its legal range.";
+                RefreshRowValues();
+                return;
+            }
+            if(editingSpouse)
+            {
+                if(next==native)profile.SpouseOverrides.Remove(key);
+                else profile.SpouseOverrides[key]=next;
+                status="Spouse stat requested: "+key+" = "+next+
+                    ". Applied after native spouse generation.";
+                DiagnosticJournal.Event("cu_spouse_stat_slider_edit",
+                    "key="+key+"|requested="+next);
+                RefreshRowValues();
                 return;
             }
             var preview=new SortedDictionary<string,int>(
                 profile.Overrides,StringComparer.Ordinal);
-            if(next==native) preview.Remove(key);
+            if(next==native)preview.Remove(key);
             else preview[key]=next;
             int spent;
             string reason;
@@ -756,13 +845,13 @@ namespace CalradiaUnified
                 profile.ProgressionMode,preview,baseline,out spent,out reason))
             {
                 status=reason;
-                Refresh();
+                RefreshRowValues();
                 return;
             }
             profile.Overrides.Clear();
             foreach(var pair in preview)profile.Overrides[pair.Key]=pair.Value;
             status="";
-            Refresh();
+            RefreshRowValues();
         }
 
         private void SelectMode(string mode)
@@ -798,8 +887,10 @@ namespace CalradiaUnified
         }
         public void ExecuteReset()
         {
-            profile.Overrides.Clear();
-            status="All modifications cleared. Native values retained.";
+            ChangesForTarget.Clear();
+            status=editingSpouse?
+                "Spouse stat overrides cleared. Native auto values kept.":
+                "Player modifications cleared. Native values retained.";
             Refresh();
         }
         public void ExecutePreviousGroup()
@@ -900,7 +991,8 @@ namespace CalradiaUnified
                 "|requested="+profile.PlayerAge+
                 "|native_story_bonuses_preserved=true");
             DiagnosticJournal.Event("cu_native_stats_committed",
-                "mode="+profile.ProgressionMode+
+                "spouse_overrides="+profile.SpouseOverrides.Count+
+                "|all_stats_one_page=true|mode="+profile.ProgressionMode+
                 "|spent="+spent+
                 "|budget="+SandboxStatBudgetPolicy.StartingBudget+
                 "|changes="+profile.Overrides.Count+
@@ -914,7 +1006,7 @@ namespace CalradiaUnified
             {get{return "CHAPTER 02 OF 05 | STARTING STATS & TRAITS";}}
         [DataSourceProperty] public string Page
             {get{return pageIndex<0?"Starting Age":
-                SandboxStatBudgetPolicy.Pages[pageIndex];}}
+                "All Attributes, Skills, Focus & Traits";}}
         [DataSourceProperty] public string PageProgress
             {get{return "STEP "+
                 CUNativeStatsNavigationPolicy.StepNumber(pageIndex)+
@@ -941,7 +1033,7 @@ namespace CalradiaUnified
         [DataSourceProperty] public bool IsUnrestrictedMode
             {get{return Mode=="Unrestricted";}}
         [DataSourceProperty] public bool IsSkillsPage
-            {get{return pageIndex==1;}}
+            {get{return false;}}
         [DataSourceProperty] public bool IsAgePage
             {get{return pageIndex<0;}}
         [DataSourceProperty] public bool IsStatsPage
@@ -1024,6 +1116,9 @@ namespace CalradiaUnified
         {
             get
             {
+                if(editingSpouse)return
+                    "SPOUSE | "+profile.SpouseOverrides.Count+
+                    " MANUAL VALUES | NATIVE AUTO FOR OTHERS";
                 if(Mode=="Native")return "NATIVE STATS | NO OVERRIDES";
                 if(Mode=="Unrestricted")
                     return "UNRESTRICTED | NATIVE RANGE LIMITS";
