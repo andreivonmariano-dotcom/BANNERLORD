@@ -139,6 +139,19 @@ internal static class Program
             !loaded.TryAdvance("generated_child_a",19,out _) &&
             SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(18) &&
             !SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(17));
+        Check("stats screen limits active Gauntlet slider rows",
+            SandboxStatsPagePolicy.VisibleRows==6 &&
+            SandboxStatsPagePolicy.PageCount(54)==9 &&
+            SandboxStatsPagePolicy.StartIndex(8,54)==48 &&
+            SandboxStatsPagePolicy.PageSize(8,54)==6 &&
+            SandboxStatsPagePolicy.PageSize(9,55)==1 &&
+            SandboxStatsPagePolicy.ClampPage(500,55)==9 &&
+            SandboxStatsPagePolicy.PageCount(0)==1);
+        Check("single logical All Stats stage retains Age Back/Next",
+            CUNativeStatsNavigationPolicy.PageCount==2 &&
+            CUNativeStatsNavigationPolicy.NextPage(
+                CUNativeStatsNavigationPolicy.Age)==
+                CUNativeStatsNavigationPolicy.Attributes);
         Check("one page of all native stats after verified age control",
             CUNativeStatsNavigationPolicy.Age==-1 &&
             CUNativeStatsNavigationPolicy.Attributes==0 &&

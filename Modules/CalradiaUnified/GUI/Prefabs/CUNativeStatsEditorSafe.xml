@@ -199,24 +199,21 @@
 
               </Children>
             </Widget>
-            <!-- All character stats share a native ScrollablePanel.
-                 The fixed viewport clips 47 slider rows; wheel/gamepad
-                 scroll uses the installed game's standard scrollbar. -->
-            <ScrollablePanel IsVisible="@IsStatsPage"
+            <!-- Native-only bounded stats viewport.
+                 Only six SliderWidget rows exist at any moment. The
+                 unverified ScrollablePanel/Standard.VerticalScrollbar
+                 hierarchy caused a reported hard exit at Age -> Stats.
+                 Navigate the same editor with Previous/Next Stats. -->
+            <Widget Id="CUStatsPageViewport"
+              IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="718"
               HeightSizePolicy="Fixed" SuggestedHeight="342"
               PositionXOffset="251" PositionYOffset="276"
-              InnerPanel="CUStatsClip\CUStatsRows"
-              ClipRect="CUStatsClip"
-              VerticalScrollbar="..\CUStatsScrollbar\Scrollbar"
-              MouseScrollSpeed="0.3" AutoHideScrollBars="false">
+              ClipContents="true"
+              DoNotAcceptEvents="true"
+              DoNotPassEventsToChildren="false">
               <Children>
-                <Widget Id="CUStatsClip"
-                  WidthSizePolicy="Fixed" SuggestedWidth="705"
-                  HeightSizePolicy="Fixed" SuggestedHeight="342"
-                  ClipContents="true">
-                  <Children>
-                    <ListPanel Id="CUStatsRows" DataSource="{Rows}"
+                <ListPanel Id="CUStatsRows" DataSource="{Rows}"
                       WidthSizePolicy="Fixed" SuggestedWidth="700"
                       HeightSizePolicy="CoverChildren"
                       StackLayout.LayoutMethod="VerticalTopToBottom">
@@ -319,34 +316,27 @@
                         </Widget>
                       </ItemTemplate>
                     </ListPanel>
-                  </Children>
-                </Widget>
               </Children>
-            </ScrollablePanel>
-            <Standard.VerticalScrollbar Id="CUStatsScrollbar"
-              IsVisible="@IsStatsPage"
-              HeightSizePolicy="Fixed" SuggestedHeight="342"
-              WidthSizePolicy="Fixed" SuggestedWidth="16"
-              PositionXOffset="957" PositionYOffset="276"/>
+            </Widget>
 
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="265"
- PositionYOffset="633" Command.Click="ExecutePreviousGroup" IsVisible="@IsSkillsPage">
- <Children><TextWidget Brush.FontSize="15" Text="Previous group" Color="#F6E4C4FF"
+ PositionYOffset="633" Command.Click="ExecutePreviousGroup" IsVisible="@IsStatsPage">
+ <Children><TextWidget Brush.FontSize="15" Text="Previous stats" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
             <TextWidget Brush.FontSize="16" Text="@SkillGroup" Color="#E6BE80FF"
-              IsVisible="@IsSkillsPage" WidthSizePolicy="Fixed"
+              IsVisible="@IsStatsPage" WidthSizePolicy="Fixed"
               SuggestedWidth="205" HeightSizePolicy="Fixed"
               SuggestedHeight="34" PositionXOffset="455"
               PositionYOffset="643"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="680"
- PositionYOffset="633" Command.Click="ExecuteNextGroup" IsVisible="@IsSkillsPage">
- <Children><TextWidget Brush.FontSize="15" Text="Next group" Color="#F6E4C4FF"
+ PositionYOffset="633" Command.Click="ExecuteNextGroup" IsVisible="@IsStatsPage">
+ <Children><TextWidget Brush.FontSize="15" Text="Next stats" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>

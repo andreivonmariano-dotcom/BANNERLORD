@@ -26,12 +26,16 @@ assert "public int SelectedInt" in code
 for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
           "CUNativeStatsEditorSafe"):
     root=ET.parse(ui/(n+".xml")).getroot()
-    panels=list(root.iter("ScrollablePanel"))
-    assert len(panels)==1,n
-    assert panels[0].get("InnerPanel")==r"CUStatsClip\CUStatsRows"
-    assert panels[0].get("ClipRect")=="CUStatsClip"
-    assert "CUStatsScrollbar" in panels[0].get("VerticalScrollbar","")
-    rows=next(w for w in root.iter("ListPanel") if w.get("DataSource")=="{Rows}")
+    # v055 replaces the crashing unverified full ScrollablePanel with
+    # a six-row native viewport and retained row SliderWidget.
+    assert len(list(root.iter("ScrollablePanel")))==0,n
+    assert len(list(root.iter("ScrollbarWidget")))==0,n
+    viewport=next(w for w in root.iter("Widget")
+        if w.get("Id")=="CUStatsPageViewport")
+    assert viewport.get("ClipContents")=="true"
+    assert viewport.get("IsVisible")=="@IsStatsPage"
+    rows=next(w for w in viewport.iter("ListPanel")
+        if w.get("DataSource")=="{Rows}")
     slider=list(rows.iter("SliderWidget"))
     assert len(slider)==1
     assert slider[0].get("ValueInt")=="@SelectedInt"
@@ -40,4 +44,4 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert len(list(root.iter("SliderWidget")))==(1 if n=="CUNativeStatsEditorSafe" else 2)
     actions={b.get("Command.Click") for b in root.iter("ButtonWidget")}
     assert {"ExecuteEditSpouse","ExecuteEditPlayer","ExecuteEditExact","ExecuteContinue"}<=actions
-print("PASS: v053 all-stats native scrolling, spouse sliders, parent inheritance and young face hooks (STATIC ONLY)")
+print("PASS: v053 all-stats native bounded paging, spouse sliders, parent inheritance and young face hooks (STATIC ONLY)")

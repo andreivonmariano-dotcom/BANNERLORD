@@ -37,7 +37,8 @@ assert 'SandboxOriginProfile.AllPotentialSkills' in budget
 assert 'SandboxNativeSkillCatalog.AvailableNames()' in snapshot
 assert 'result[SandboxFamilyLevelPolicy.Key]=hero.Level' in snapshot
 assert 'spouseBaseline[SandboxFamilyLevelPolicy.Key]' in vm
-assert 'AddRow(SandboxFamilyLevelPolicy.Key,' in vm
+assert 'SandboxFamilyLevelPolicy.Key' in vm
+assert 'Hero level | 1-50' in vm
 assert 'SandboxNativeSkillCatalog.AvailableNames()' in vm
 assert 'public string NavalStatus' in vm
 assert 'SandboxNativeSkillCatalog.Find(parts[1])' in origin
