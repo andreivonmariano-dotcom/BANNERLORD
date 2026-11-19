@@ -38,6 +38,24 @@ namespace CalradiaUnified
             }
         }
 
+        public static bool CanSkinClanTextInput(string stage,string typeName)
+        {
+            return stage=="CharacterCreationClanNamingStage" &&
+                !String.IsNullOrEmpty(typeName) &&
+                (typeName.IndexOf("EditableText",
+                    StringComparison.OrdinalIgnoreCase)>=0 ||
+                 typeName.IndexOf("InputText",
+                    StringComparison.OrdinalIgnoreCase)>=0);
+        }
+
+        public static bool CanSkinDifficultySlider(string stage,string typeName)
+        {
+            return stage=="CharacterCreationOptionsStage" &&
+                !String.IsNullOrEmpty(typeName) &&
+                typeName.IndexOf("Slider",
+                    StringComparison.OrdinalIgnoreCase)>=0;
+        }
+
         public static bool IsProtectedWidget(string typeName)
         {
             if(String.IsNullOrEmpty(typeName))return true;
