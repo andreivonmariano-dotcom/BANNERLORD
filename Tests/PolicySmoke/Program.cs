@@ -22,11 +22,54 @@ internal static class Program
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&
             family.Children.All(c=>c.Upbringing=="FamilyTradition"));
-        Check("six choices for household story and per-child upbringing",
-            SandboxFamilyDevelopmentPolicy.Scenarios.Length==6 &&
-            SandboxFamilyDevelopmentPolicy.Upbringings.Length==6 &&
+        Check("seven household stories and upbringing choices",
+            SandboxFamilyDevelopmentPolicy.Scenarios.Length==7 &&
+            SandboxFamilyDevelopmentPolicy.Upbringings.Length==7 &&
             SandboxFamilyDevelopmentPolicy.IsScenario("Honorable") &&
             !SandboxFamilyDevelopmentPolicy.IsScenario("Nonexistent"));
+        Check("naval tradition affects training but ages stay bounded",
+            SandboxFamilyDevelopmentPolicy.IsScenario("Seafaring") &&
+            SandboxFamilyDevelopmentPolicy.IsUpbringing("Seafaring") &&
+            SandboxFamilyDevelopmentPolicy.ResolveUpbringing(
+                "Seafaring","FamilyTradition")=="Seafaring" &&
+            SandboxFamilyDevelopmentPolicy.Training("Seafaring")
+                .Contains("Mariner") &&
+            SandboxFamilyDevelopmentPolicy.Training("Seafaring")
+                .Contains("Boatswain") &&
+            SandboxFamilyDevelopmentPolicy.Training("Seafaring")
+                .Contains("Shipmaster") &&
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                4,330,330,true,9)==0);
+        Check("native character level is bounded below XP sentinel",
+            SandboxFamilyLevelPolicy.Valid(1) &&
+            SandboxFamilyLevelPolicy.Valid(50) &&
+            !SandboxFamilyLevelPolicy.Valid(0) &&
+            !SandboxFamilyLevelPolicy.Valid(51) &&
+            SandboxStatBudgetPolicy.InRange(
+                SandboxFamilyLevelPolicy.Key,20) &&
+            !SandboxStatBudgetPolicy.InRange(
+                SandboxFamilyLevelPolicy.Key,55));
+        Check("War Sails skills are accepted as native skill/focus keys",
+            new[]{"Mariner","Boatswain","Shipmaster"}.All(n=>
+                SandboxStatBudgetPolicy.IsStatKey("Skill."+n) &&
+                SandboxStatBudgetPolicy.IsStatKey("Focus."+n)) &&
+            SandboxOriginProfile.AllPotentialSkills.Length==21);
+        var navalProfile=new SandboxOriginProfile();
+        Check("spouse and player War Sails skills and levels roundtrip",
+            navalProfile.TrySet("Skill.Mariner","75") &&
+            navalProfile.TrySet("Focus.Boatswain","3") &&
+            navalProfile.TrySet("Level.Character","25") &&
+            navalProfile.TrySet("SpouseStat.Skill.Shipmaster","90") &&
+            navalProfile.TrySet("SpouseStat.Level.Character","32") &&
+            SandboxOriginProfile.Parse(navalProfile.Serialize())
+                .Overrides["Level.Character"]==25 &&
+            SandboxOriginProfile.Parse(navalProfile.Serialize())
+                .SpouseOverrides["Level.Character"]==32 &&
+            SandboxOriginProfile.Parse(navalProfile.Serialize())
+                .SpouseOverrides["Skill.Shipmaster"]==90);
+        Check("no invalid player or spouse level accepted",
+            !navalProfile.TrySet("Level.Character","75") &&
+            !navalProfile.TrySet("SpouseStat.Level.Character","-1"));
         Check("family story and upbringing persist in profile",
             family.TrySet("FamilyScenario","Honorable") &&
             family.TrySet("Child.1.Upbringing","Kind") &&
