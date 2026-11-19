@@ -39,11 +39,6 @@ namespace CalradiaUnified
         // In the 1650x927 live game the native slider rendered but
         // never delivered a drag update. A focused pointer capture path
         // uses measured Gauntlet coordinates rather than a guessed bar.
-        private static bool pointerWasDown;
-        private static bool pointerDragActive;
-        private static float pointerGrabOffset;
-        private static int pointerDragStartAge;
-        private static int pointerDragChangeCount;
         private static bool previousMouseDown;
         private static bool ageHitWarningLogged;
         private static bool narrativeSeen;
@@ -251,10 +246,6 @@ namespace CalradiaUnified
                 ageSliderProbeFrames=0;
                 lastSliderValue=-1;
                 lastModelValue=-1;
-                pointerWasDown=false;
-                pointerDragActive=false;
-                pointerDragChangeCount=0;
-                pointerGrabOffset=0f;
                 previousMouseDown=false;
                 ageHitWarningLogged=false;
                 failedHost=null;
@@ -305,10 +296,6 @@ namespace CalradiaUnified
             ageSliderProbeFrames=0;
             lastSliderValue=-1;
             lastModelValue=-1;
-            pointerWasDown=false;
-            pointerDragActive=false;
-            pointerDragChangeCount=0;
-            pointerGrabOffset=0f;
             previousMouseDown=false;
             ageHitWarningLogged=false;
             if(oldHost==null || oldLayer==null) return;
