@@ -129,7 +129,19 @@ namespace CalradiaUnified
                 next=new GauntletLayer("CUNativeStatsEditor",85,false);
                 next.IsFocusLayer=true;
                 next.InputRestrictions.SetInputRestrictions();
-                nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                try
+                {
+                    nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                }
+                catch(Exception sliderFailure)
+                {
+                    // A malformed/newer engine SliderWidget must never
+                    // discard the entire character stats step. The safe
+                    // movie retains the same warm UI and per-year buttons.
+                    DiagnosticJournal.Exception(
+                        "cu_native_age_slider_fallback",sliderFailure);
+                    nextMovie=next.LoadMovie("CUNativeStatsEditorSafe",vm);
+                }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=screen;
