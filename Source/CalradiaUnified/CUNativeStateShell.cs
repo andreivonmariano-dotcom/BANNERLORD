@@ -186,6 +186,7 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeLayoutAlignment.Clear();
             CUNativeControlSkin.Clear();
             CUNativeHouseLayer.Clear();
             CUNativeStatsLayer.Clear();
