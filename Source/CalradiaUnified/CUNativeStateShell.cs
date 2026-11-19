@@ -222,6 +222,7 @@ namespace CalradiaUnified
                 isFaceStage=face;
                 faceStatus="";
                 OnPropertyChangedWithValue(isFaceStage,"IsFaceStage");
+                OnPropertyChangedWithValue(!isFaceStage,"IsNotFaceStage");
             }
             if(face && faceStatus!="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
             {
@@ -255,6 +256,9 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public bool IsFaceStage { get { return isFaceStage; } }
+
+        [DataSourceProperty]
+        public bool IsNotFaceStage { get { return !isFaceStage; } }
 
         [DataSourceProperty]
         public string FaceStatus { get { return faceStatus; } }
