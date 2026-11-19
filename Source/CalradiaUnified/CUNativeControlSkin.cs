@@ -159,7 +159,7 @@ namespace CalradiaUnified
             }
         }
 
-        private static Widget GetGameOwnedRoot(object view,string stage)
+        internal static Widget GetGameOwnedRoot(object view,string stage)
         {
             // The pinned source stage view is the only source of a native
             // movie root. Do not search all screen layers and accidentally
