@@ -62,90 +62,107 @@
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
-            <TextWidget Brush.FontSize="25" Text="@StepTitle" Color="#F2DFC0FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="691"
+            <TextWidget Brush.FontSize="25" Brush.TextHorizontalAlignment="Center" Text="@StepTitle" Color="#F2DFC0FF"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
               HeightSizePolicy="Fixed" SuggestedHeight="55"
-              PositionXOffset="260" PositionYOffset="128"/>
-            <TextWidget Brush.FontSize="17" Brush.TextVerticalAlignment="Top" Text="@Hint" Color="#E8D9C1FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="658"
-              HeightSizePolicy="Fixed" SuggestedHeight="108"
-              PositionXOffset="263" PositionYOffset="209"/>
+              PositionYOffset="128"/>
+            <TextWidget Brush.FontSize="17" Brush.TextHorizontalAlignment="Center" Brush.TextVerticalAlignment="Top" Text="@Hint" Color="#E8D9C1FF"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
+              HeightSizePolicy="Fixed" SuggestedHeight="103"
+              PositionYOffset="205"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B99059FF"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
+              HeightSizePolicy="Fixed" SuggestedHeight="3"
+              PositionYOffset="335"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#3D2A1DEE"
-              WidthSizePolicy="Fixed" SuggestedWidth="662"
-              HeightSizePolicy="Fixed" SuggestedHeight="117"
-              PositionXOffset="260" PositionYOffset="337"/>
-            <TextWidget Brush.FontSize="26" Text="@SelectedValue" Color="#FAE7C6FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="625"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
+              HeightSizePolicy="Fixed" SuggestedHeight="116"
+              PositionYOffset="337"/>
+            <TextWidget Brush.FontSize="26" Brush.TextHorizontalAlignment="Center" Text="@SelectedValue" Color="#FAE7C6FF"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="278" MarginRight="383"
               HeightSizePolicy="Fixed" SuggestedHeight="96"
-              PositionXOffset="281" PositionYOffset="352"/>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="477" Command.Click="ExecutePreviousChoice" IsVisible="@IsChoice">
- <Children><TextWidget Brush.FontSize="17" Text="Previous" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="562"
- PositionYOffset="477" Command.Click="ExecuteNextChoice" IsVisible="@IsChoice">
- <Children><TextWidget Brush.FontSize="17" Text="Next" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="477" Command.Click="ExecuteToggle" IsVisible="@IsBoolean">
- <Children><TextWidget Brush.FontSize="17" Text="Toggle Yes / No" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="477" Command.Click="ExecuteDecrease" IsVisible="@IsNumber">
- <Children><TextWidget Brush.FontSize="17" Text="Decrease" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="450"
- PositionYOffset="477" Command.Click="ExecuteIncrease" IsVisible="@IsNumber">
- <Children><TextWidget Brush.FontSize="17" Text="Increase" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="632"
- PositionYOffset="477" Command.Click="ExecuteExact" IsVisible="@IsNumber">
- <Children><TextWidget Brush.FontSize="17" Text="Exact value" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="477" Command.Click="ExecuteEditText" IsVisible="@IsText">
- <Children><TextWidget Brush.FontSize="17" Text="Edit text" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
- HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="537" Command.Click="ExecuteNativeDefault" IsVisible="@IsNativeDefaultAvailable">
- <Children><TextWidget Brush.FontSize="17" Text="Use native default" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
+              PositionYOffset="352"/>
+            <Widget WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
+              HeightSizePolicy="Fixed" SuggestedHeight="113"
+              PositionYOffset="471">
+              <Children>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Left" PositionXOffset="12"
+   PositionYOffset="4" Command.Click="ExecutePreviousChoice" IsVisible="@IsChoice">
+   <Children><TextWidget Brush.FontSize="17" Text="Previous" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Right" PositionXOffset="-12"
+   PositionYOffset="4" Command.Click="ExecuteNextChoice" IsVisible="@IsChoice">
+   <Children><TextWidget Brush.FontSize="17" Text="Next" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Center" PositionXOffset="0"
+   PositionYOffset="4" Command.Click="ExecuteToggle" IsVisible="@IsBoolean">
+   <Children><TextWidget Brush.FontSize="17" Text="Toggle Yes / No" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Left" PositionXOffset="12"
+   PositionYOffset="4" Command.Click="ExecuteDecrease" IsVisible="@IsNumber">
+   <Children><TextWidget Brush.FontSize="17" Text="Decrease" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Center" PositionXOffset="0"
+   PositionYOffset="4" Command.Click="ExecuteIncrease" IsVisible="@IsNumber">
+   <Children><TextWidget Brush.FontSize="17" Text="Increase" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Right" PositionXOffset="-12"
+   PositionYOffset="4" Command.Click="ExecuteExact" IsVisible="@IsNumber">
+   <Children><TextWidget Brush.FontSize="17" Text="Exact value" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Center" PositionXOffset="0"
+   PositionYOffset="4" Command.Click="ExecuteEditText" IsVisible="@IsText">
+   <Children><TextWidget Brush.FontSize="17" Text="Edit text" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+              <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" HorizontalAlignment="Center" PositionXOffset="0"
+   PositionYOffset="62" Command.Click="ExecuteNativeDefault" IsVisible="@IsNativeDefaultAvailable">
+   <Children><TextWidget Brush.FontSize="17" Text="Use native default" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+                </Children>
+            </Widget>
             <TextWidget Brush.FontSize="14" Text="@Status" Color="#D6AA69FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="680"
+              WidthSizePolicy="StretchToParent"
+              MarginLeft="260" MarginRight="365"
               HeightSizePolicy="Fixed" SuggestedHeight="42"
-              PositionXOffset="263" PositionYOffset="590"/>
+              PositionYOffset="592"/>
             <TextWidget Brush.FontSize="17" Text="YOUR STARTING PLAN" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="313"
               HeightSizePolicy="Fixed" SuggestedHeight="43"
