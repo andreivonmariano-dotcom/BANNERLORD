@@ -160,6 +160,9 @@ jobs:
       - name: Audit v053 single-screen family stat editor, inheritance and youth face
         shell: pwsh
         run: python scripts/test_v053_native_family_stats.py
+      - name: Regress v054 War Sails skills, levels and cross-generation training
+        shell: pwsh
+        run: python scripts/test_v054_warsails_level_creator.py
       - name: Verify one-screen Back Next and underage family residence reports
         shell: pwsh
         run: python scripts/test_v046_creator_navigation_residence_ui.py
