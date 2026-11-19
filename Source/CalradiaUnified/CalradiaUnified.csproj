@@ -11,6 +11,13 @@
     <Deterministic>true</Deterministic>
     <UsePublicReferences Condition="'$(UsePublicReferences)' == ''">false</UsePublicReferences>
   </PropertyGroup>
+  <!-- Gauntlet's mouse positions use System.Numerics.Vector2.
+       Resolve its net472 compile facade from NuGet. The game already
+       supplies the runtime assembly, so do not bundle another copy. -->
+  <ItemGroup>
+    <PackageReference Include="System.Numerics.Vectors" Version="4.5.0"
+      PrivateAssets="all" ExcludeAssets="runtime" />
+  </ItemGroup>
   <!-- The discarded launcher Gauntlet prototype is excluded from the DLL. -->
   <ItemGroup><Compile Remove="SandboxOriginPanel.cs" /></ItemGroup>
   <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
