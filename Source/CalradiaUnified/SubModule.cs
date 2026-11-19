@@ -26,15 +26,46 @@ namespace CalradiaUnified
             }
         }
 
+        private float reportHeartbeatSeconds;
         protected override void OnApplicationTick(float dt)
         {
             base.OnApplicationTick(dt);
+            // Low-frequency read-only health trail. Avoid writing a
+            // disk event every frame, and never alter simulation state.
+            if(DiagnosticJournal.Enabled && dt>0f && dt<10f)
+            {
+                reportHeartbeatSeconds+=dt;
+                if(reportHeartbeatSeconds>=45f)
+                {
+                    reportHeartbeatSeconds=0f;
+                    try
+                    {
+                        var player=Hero.MainHero;
+                        DiagnosticSessionReporter.Heartbeat(
+                            "campaign_active="+(Campaign.Current!=null)+
+                            "|player_exists="+(player!=null)+
+                            "|player_level="+(player==null?"unavailable":
+                                player.Level.ToString())+
+                            "|player_age="+(player==null?"unavailable":
+                                player.Age.ToString("0.0",
+                                    System.Globalization.CultureInfo.InvariantCulture))+
+                            "|screen_tick=alive");
+                    }
+                    catch(Exception ex)
+                    {
+                        DiagnosticJournal.Exception(
+                            "session_heartbeat_failed",ex);
+                    }
+                }
+            }
             SandboxCreatorOverlay.Tick();
             CUNativeStateShell.Tick();
         }
 
         public override void OnGameEnd(Game game)
         {
+            DiagnosticJournal.Event("campaign_closed",
+                "game_end=true|process_exit=false");
             CUNativeStateShell.Clear();
             SandboxCreatorOverlay.Clear();
             base.OnGameEnd(game);
@@ -45,20 +76,37 @@ namespace CalradiaUnified
             base.OnSubModuleLoad();
             try
             {
-                DiagnosticJournal.Enabled = Settings.Load().EnableDiagnostics;
-                if (DiagnosticJournal.Enabled)
+                var settings=Settings.Load();
+                DiagnosticJournal.Enabled=settings.EnableDiagnostics;
+                if(DiagnosticJournal.Enabled)
                 {
                     DiagnosticJournal.InstallManagedExceptionHooks();
-                    DiagnosticJournal.Event("module_loaded", "version=0.38.0");
+                    if(settings.AutoSessionReports)
+                        DiagnosticSessionReporter.Start();
+                    DiagnosticJournal.Event("module_loaded",
+                        "version=0.38.0|auto_session_reports="+
+                        settings.AutoSessionReports);
                 }
             }
             catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
             Log.Write("Calradia Unified 0.38.0 initialized; diagnostics configured; no Harmony patches applied.");
         }
 
+        protected override void OnSubModuleUnloaded()
+        {
+            // The native module unload is a second normal-exit path.
+            // ProcessExit handles installations where it is skipped.
+            DiagnosticSessionReporter.Complete("submodule_unloaded");
+            base.OnSubModuleUnloaded();
+        }
+
         protected override void OnGameStart(Game game, IGameStarter starter)
         {
             base.OnGameStart(game, starter);
+            DiagnosticJournal.Event("game_start",
+                "game_type="+(game==null?"none":
+                    game.GameType.GetType().Name)+
+                "|module_auto_diagnostics=true");
             try
             {
                 // A distinct behavior instance is registered per campaign start.
