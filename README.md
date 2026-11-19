@@ -1,3 +1,15 @@
+# Calradia Unified v0.44 development: aligned native creator control positions
+
+**Native layout alignment:** The original Bannerlord narrative, clan naming, review and difficulty controls now have a measured, bounded layout adjustment path compatible with the CU guided creator's header, 226px wide chapter rail, right context panel and footer. Native banner editor content, real 3D FaceGen and heraldry symbols remain game-owned and unshifted; original native Back/Continue footer controls receive measured alignment only where safe. Text-bearing native buttons can receive symmetric 12px interior label spacing, preserving long localized labels and click targets.
+
+**Version-pinned API:** Native widget geometry is read from `Widget.Size` and `GlobalPosition` on Bannerlord PC `1.5.7.125802`. The new Windows PE metadata audit checks writable offsets and margins, and large CU sidebars hide unless actual native content clearance is verified. Original offsets, margins and v0.43 native colors revert with **F10**, no duplicate GameState or native callbacks.
+
+**Engineering status:** The system is conditionally applied in the existing source. No observed Bannerlord session has yet proven that every native stage exposes movable panels or that in-game control placement is pixel-identical. Full game input, resolution, FaceGen, fief/family and save/reload tests remain required. The development module manifest remains `v0.38.0`.
+
+[Measured alignment and live acceptance checklist](docs/V044_MEASURED_NATIVE_CONTROL_LAYOUT.md) · [Draft PR #75](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/75)
+
+---
+
 # Calradia Unified v0.43 development: original native creator control styling
 
 **Q1 implemented at source level:** Unlike v0.42's header-only framing, v0.43 now alters the actual game-owned `CharacterCreationNarrativeStageView`, `CharacterCreationBannerEditorView`, `CharacterCreationClanNamingStageView`, `CharacterCreationReviewStageView` and `CharacterCreationOptionsStageView` **control brushes and text colors in place**. It uses the exact native `GauntletMovieIdentifier.Movie.RootWidget`, a per-widget `Brush.Clone()` and a saved original appearance. Heraldry color swatches and native 3D FaceGen are untouched. Native clan input and difficulty sliders get guarded private brush styling. Dynamic new life-story choices receive the same colors; **F10 restores native control styling**, and **F9 remains the native face-dock restore**.
