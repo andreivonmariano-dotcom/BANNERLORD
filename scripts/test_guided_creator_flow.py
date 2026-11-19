@@ -29,6 +29,8 @@ assert 'nextMovie=next.LoadMovie("CUGuidedCreator",vm);' in house
 assert 'CUNativeHouseLayer.Tick(screen,' in shell
 assert 'CUNativeHouseLayer.Clear();' in shell
 assert 'CUNativeStatsLayer.Tick(screen,' in shell
+assert 'if(profile.ProgressionMode!="Native" &&' in stats
+assert '"Keep native stats & continue"' in stats
 
 # World and role are the ONLY front-campaign questions. Fief and family
 # are added by a separate VM after the live player, native clan and banner.
