@@ -614,7 +614,10 @@ namespace CalradiaUnified
                     throw new InvalidDataException("Origin profile exceeds 64 KiB");
                 var p = Parse(File.ReadAllText(file, Encoding.UTF8));
                 string problem;
-                if (!p.IsValid(30, out problem))
+                // Profile deserialization is not a guess about the player's
+                // age. The real Hero age is checked when House is confirmed
+                // and again at campaign grant phase 9.
+                if (!p.IsValid(100, out problem))
                     throw new InvalidDataException(problem);
                 return p;
             }
@@ -628,7 +631,13 @@ namespace CalradiaUnified
 
         public bool Save(string file, out string error)
         {
-            if (!IsValid(30, out error)) return false;
+            return SaveForPlayer(file,30,out error);
+        }
+
+        public bool SaveForPlayer(string file,int actualPlayerAge,
+            out string error)
+        {
+            if (!IsValid(actualPlayerAge, out error)) return false;
             if (String.IsNullOrEmpty(file))
             {
                 error = "No profile location";
