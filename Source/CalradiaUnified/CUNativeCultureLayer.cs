@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using SandBox.View.CharacterCreation;
 using TaleWorlds.Core;
+using TaleWorlds.InputSystem;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Engine.GauntletUI;
@@ -51,6 +52,11 @@ namespace CalradiaUnified
             if (Object.ReferenceEquals(nativeScreen,host))
             {
                 if (vm!=null) vm.Sync();
+                // Match the native culture stage's Escape = back behavior.
+                // Do not release Gauntlet movies inside this key action.
+                if (ScreenManager.FocusedLayer==layer &&
+                    Input.IsKeyReleased(InputKey.Escape) && vm!=null)
+                    vm.ExecuteBack();
                 return;
             }
             if (Object.ReferenceEquals(nativeScreen,failedHost))
