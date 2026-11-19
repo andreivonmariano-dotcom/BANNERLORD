@@ -4,7 +4,7 @@
 param(
     [Parameter(Mandatory=$true)][string]$GameRoot,
     [Parameter(Mandatory=$true)][string]$ArtifactZip,
-    [string]$ExpectedVersion = "v0.34.0",
+    [string]$ExpectedVersion = "v0.35.0",
     [string]$ExpectedDllSha256 = "",
     [switch]$ReplaceExisting
 )
