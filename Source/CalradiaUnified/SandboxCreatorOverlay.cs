@@ -260,7 +260,7 @@ namespace CalradiaUnified
                     "Experimental: edit live 3D face in CU workshop",
                     "boolean"),
                 new Field("Identity","NativeStateShellEnabled",
-                    "Experimental: show CU ribbon throughout native creator",
+                    "Experimental: CU culture chooser and real 3D face audit",
                     "boolean"),
                 new Field("Identity","PlayerAge",
                     "Starting age (use native creator)","unavailable"),
@@ -582,7 +582,7 @@ namespace CalradiaUnified
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
                 if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
                 if (key=="NativeFaceWorkshopEnabled") return "Experimental 3D prototype, OFF by default. Adds a CU-branded face editor after the native pages. Edits real player body properties, but this does NOT yet remove the native wizard. Do not enable together with CU 3D Review.";
-                if (key=="NativeStateShellEnabled") return "Experimental and OFF by default. Shows a read-only CU navigation ribbon INSIDE the true native CharacterCreationScreen during culture, face, origins, banner and difficulty. The game keeps its native controls and separate pages. Do not combine with extra CU 3D stages.";
+                if (key=="NativeStateShellEnabled") return "Experimental and OFF by default. Replaces the VISIBLE native culture panel with CU controls that call the REAL native culture VM. The original native view stays alive underneath, with an explicit fallback button. The real 3D face scene and sliders remain untouched on the next page. Not a one-screen creator yet. Do not combine with extra CU 3D stages.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="PlayerAge") return "Unavailable here: choose your actual player age using Bannerlord\'s native character creation until the CU native-state bridge is finished.";
                 if (key=="SiblingCount") return "Unavailable: sibling creation requires real native parent Heroes. This build never adds placeholder relatives.";

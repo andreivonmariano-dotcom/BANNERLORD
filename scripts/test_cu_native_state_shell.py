@@ -56,7 +56,7 @@ assert not list(prefab.iter("SliderWidget"))
 assert not list(prefab.iter("InputTextWidget"))
 labels = [node.get("Text","")[1:] for node in prefab.iter("TextWidget")
           if node.get("Text","").startswith("@")]
-assert set(labels)=={"Title","Chapter","NativeStep","Culture","Role","Household","Notice"}
+assert set(labels)=={"Title","Chapter","NativeStep","Culture","Role","Household","Notice","FaceStatus"}
 for key in labels:
     assert re.search(r"public string\s+"+key+r"\b",shell),key
 

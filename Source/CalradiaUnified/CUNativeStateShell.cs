@@ -35,6 +35,7 @@ namespace CalradiaUnified
                     Game.Current.GameStateManager.ActiveState as CharacterCreationState;
                 if (screen == null || active == null || screen.IsFinalized)
                 {
+                    CUNativeCultureLayer.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -44,7 +45,9 @@ namespace CalradiaUnified
                 if (Object.ReferenceEquals(screen, host))
                 {
                     if (viewModel != null)
-                        viewModel.Update(active.CharacterCreationManager);
+                        viewModel.Update(active.CharacterCreationManager,screen);
+                    CUNativeCultureLayer.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -75,7 +78,7 @@ namespace CalradiaUnified
                 GauntletMovieIdentifier nextMovie = null;
                 try
                 {
-                    nextVM.Update(active.CharacterCreationManager);
+                    nextVM.Update(active.CharacterCreationManager,screen);
                     nextMovie = nextLayer.LoadMovie(
                         "CUNativeStateShell", nextVM);
                     screen.AddLayer(nextLayer);
@@ -103,22 +106,40 @@ namespace CalradiaUnified
                 ribbon = nextLayer;
                 ribbonMovie = nextMovie;
                 viewModel = nextVM;
-                DiagnosticJournal.Event("cu_native_state_shell_attached",
-                    "native_state=true|native_screen_unchanged=true" +
-                    "|real_face_engine=retained|readonly=true" +
-                    "|separate_native_pages_still_visible=true");
+                CUNativeCultureLayer.Tick(screen,
+                    active.CharacterCreationManager);
+                if (Object.ReferenceEquals(host,screen))
+                    DiagnosticJournal.Event("cu_native_state_shell_attached",
+                        "native_state=true|native_screen_unchanged=true" +
+                        "|real_face_engine=retained|native_vm_used=true" +
+                        "|separate_native_pages_still_visible=true");
             }
             catch (Exception error)
             {
                 // A ribbon failure never blocks the original native editor.
                 DiagnosticJournal.Exception("cu_native_state_shell_failed",error);
                 failedHost = ScreenManager.TopScreen as CharacterCreationScreen;
+                CUNativeCultureLayer.Clear();
                 Detach();
             }
         }
 
+        internal static void UseNativeFallback(
+            CharacterCreationScreen nativeScreen)
+        {
+            // Recovery is performed on a later application tick, never
+            // inside Gauntlet's click callback. Suppress ALL CU movies for
+            // this native screen so the game owns exit/finalization alone.
+            Detach();
+            skippedHost=nativeScreen;
+            DiagnosticJournal.Event("cu_native_culture_full_fallback",
+                "native_culture_screen_untouched=true" +
+                "|cu_layers_released=true");
+        }
+
         private static void Detach()
         {
+            CUNativeCultureLayer.Clear();
             var oldHost = host;
             var oldLayer = ribbon;
             var oldMovie = ribbonMovie;
@@ -165,6 +186,9 @@ namespace CalradiaUnified
         private string chapter = "CALRADIA UNIFIED";
         private string nativeStep = "NATIVE CHARACTER CREATION";
         private string culture = "CULTURE: PENDING";
+        private bool isFaceStage;
+        private string faceStatus = "";
+        private bool cultureCommitObserved;
 
         public CUNativeStateShellVM(SandboxOriginProfile profile)
         {
@@ -176,7 +200,8 @@ namespace CalradiaUnified
                     " CHILDREN" : "FAMILY PLAN: INDEPENDENT";
         }
 
-        public void Update(CharacterCreationManager manager)
+        public void Update(CharacterCreationManager manager,
+            CharacterCreationScreen screen)
         {
             if (manager == null) return;
             var stage = manager.CurrentStage;
@@ -191,6 +216,15 @@ namespace CalradiaUnified
             string cultureNext = selected == null ?
                 "CULTURE: PENDING" :
                 "CULTURE: " + selected.Name.ToString();
+            if (stageName=="CharacterCreationFaceGeneratorStage" &&
+                selected!=null && !cultureCommitObserved)
+            {
+                cultureCommitObserved=true;
+                DiagnosticJournal.Event("cu_native_culture_commit_observed",
+                    "real_selected_culture="+selected.StringId+
+                    "|current_stage=CharacterCreationFaceGeneratorStage" +
+                    "|native_manager=true");
+            }
             if (chapterNext != chapter)
             {
                 chapter = chapterNext;
@@ -205,6 +239,28 @@ namespace CalradiaUnified
             {
                 culture = cultureNext;
                 OnPropertyChangedWithValue(culture,"Culture");
+            }
+            bool face=stageName=="CharacterCreationFaceGeneratorStage";
+            if(face!=isFaceStage)
+            {
+                isFaceStage=face;
+                faceStatus="";
+                OnPropertyChangedWithValue(isFaceStage,"IsFaceStage");
+                OnPropertyChangedWithValue(!isFaceStage,"IsNotFaceStage");
+            }
+            if(face && faceStatus!="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
+            {
+                string observed;
+                CUNativeFaceInspector.TryInspect(screen,out observed);
+                if(faceStatus!=observed)
+                {
+                    faceStatus=observed;
+                    OnPropertyChangedWithValue(faceStatus,"FaceStatus");
+                    if(observed=="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
+                        DiagnosticJournal.Event("cu_native_face_layers_verified",
+                            "native_scene=true|native_body_generator=true"+
+                            "|native_gauntlet_controls=true|relocated=false");
+                }
             }
         }
 
@@ -225,6 +281,15 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public string Household { get { return household; } }
+
+        [DataSourceProperty]
+        public bool IsFaceStage { get { return isFaceStage; } }
+
+        [DataSourceProperty]
+        public bool IsNotFaceStage { get { return !isFaceStage; } }
+
+        [DataSourceProperty]
+        public string FaceStatus { get { return faceStatus; } }
 
         [DataSourceProperty]
         public string Notice
