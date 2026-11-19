@@ -42,6 +42,7 @@ namespace CalradiaUnified
                     CUNativeFaceDockTrial.Clear();
                     CUNativeStatsLayer.Clear();
                     CUNativeHouseLayer.Clear();
+                    CUNativeAgeMenuProbe.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -61,6 +62,8 @@ namespace CalradiaUnified
                     CUNativeFaceDockTrial.Clear();
                     CUNativeControlSkin.Clear();
                     CUNativeLayoutAlignment.Clear();
+                    CUNativeAgeMenuProbe.Tick(
+                        active.CharacterCreationManager);
                     CUNativeStatsLayer.Tick(screen,
                         active.CharacterCreationManager);
                     CUNativeHouseLayer.Tick(screen,
