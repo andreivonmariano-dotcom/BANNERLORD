@@ -1,3 +1,15 @@
+# Calradia Unified v0.43 development: original native creator control styling
+
+**Q1 implemented at source level:** Unlike v0.42's header-only framing, v0.43 now alters the actual game-owned `CharacterCreationNarrativeStageView`, `CharacterCreationBannerEditorView`, `CharacterCreationClanNamingStageView`, `CharacterCreationReviewStageView` and `CharacterCreationOptionsStageView` **control brushes and text colors in place**. It uses the exact native `GauntletMovieIdentifier.Movie.RootWidget`, a per-widget `Brush.Clone()` and a saved original appearance. Heraldry color swatches and native 3D FaceGen are untouched. Native clan input and difficulty sliders get guarded private brush styling. Dynamic new life-story choices receive the same colors; **F10 restores native control styling**, and **F9 remains the native face-dock restore**.
+
+**Pinned Windows build:** [run 44467336043](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44467336043), source commit `fb9d6969bf5ef64d0d648bada0cbd426ba27adbf`. **708 C# gameplay policy checks passed**, zero compiler warnings/errors, exact 1.5.7 Gauntlet and character-stage metadata audits, ZIP integrity and simulated installer passed. DLL SHA-256 `61fce6458651c3e1f6462cff43e9a363c5cafeed9d77684165b7eecac171624a`.
+
+**Gate B only, COMPILED_UNTESTED:** This is true native control palette re-skinning without replacing the game-owned ViewModels or widgets. It does **not** reposition original controls to a new pixel-identical layout, or certify the in-game hover, input, mouse, controller, cinematic and final map transitions. Native widgets that cannot be re-skinned safely keep the original style and are logged as partial/unavailable. The manifest intentionally remains `v0.38.0` in this dev lineage.
+
+[Exact native control re-skin and live acceptance](docs/V043_NATIVE_WIDGET_RESKIN.md) · [Draft PR #74](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/74)
+
+---
+
 # Calradia Unified v0.42 development: coherent styling across native creator screens
 
 **Q2 native visual match:** Every real native stage now receives an appropriate CU presentation: native-bound Culture keeps its full-screen CU chooser; FaceGen retains its genuine 3D renderer and native sliders; origins, banner, clan, final review and difficulty use the shared **91 px slate header, gold rule, five-chapter rail on wide screens, matching stage titles and context**. At 1366 px, large context panels are hidden to protect original controls. Native character creation remains game-owned. The visual chrome is read-only, requires no experimental switch, and cannot skip native callbacks. CU-guided World, stats, House and Fortune keep their existing native-inspired full-screen layout.
