@@ -250,6 +250,22 @@ namespace CalradiaUnified
                     child.Father = father;
                     child.StaticBodyProperties = Campaign.Current.Models
                         .HeroCreationModel.GetStaticBodyProperties(child,true);
+                    // Hero.BodyProperties dynamically uses the real Age,
+                    // but a parent-derived adult beard can make a teenager
+                    // look much older. Keep his inherited hair/face and
+                    // use a clean-shaven native FaceGen beard for ages 18-21.
+                    if(!child.IsFemale &&
+                        SandboxFamilySkillInheritancePolicy.IsYouth(
+                            childProfile.Age))
+                    {
+                        child.BeardTags="";
+                        child.ModifyHair(-1,0,-1);
+                        DiagnosticJournal.Event("cu_family_youth_face",
+                            "id="+child.StringId+
+                            "|actual_age="+child.Age+
+                            "|native_facegen=true|beard=clean_shaven"+
+                            "|inherited_face_kept=true");
+                    }
                     // An adult is a usable native clan Hero even if there is
                     // no valid family-owned castle to assign as a residence.
                     // Never activate an underage native Hero.

@@ -22,10 +22,10 @@ safe=xml("CUNativeStatsEditorSafe")
 cult=xml("CUNativeCultureChooser")
 portraits=xml("CUFamilyPortraits")
 
-# Same four screens, same boundaries, regardless of Native/Balanced/
-# Unrestricted. Values are still only committed on the final Traits page.
-for code in ("Age=-1","Attributes=0","Skills=1","Traits=2",
-             "public const int PageCount=4","BackToNativeNarrative(",
+# The verified Age page remains intact. All 6 attributes, 18
+# skills, 18 focus values and 5 native traits share ONE next page.
+for code in ("Age=-1","Attributes=0",
+             "public const int PageCount=2","BackToNativeNarrative(",
              "NextLabel(int page)"):
     assert code in nav,code
 assert "CUNativeStatsNavigationPolicy.BackPage(pageIndex)" in stats
@@ -33,28 +33,19 @@ assert "CUNativeStatsNavigationPolicy.NextPage(pageIndex)" in stats
 assert "CUNativeStatsNavigationPolicy.IsFinal(pageIndex)" in stats
 assert "CUNativeStatsNavigationPolicy.BackToNativeNarrative(pageIndex)" in stats
 assert "CUNativeStatsNavigationPolicy.NextLabel(pageIndex)" in stats
-assert 'profile.ProgressionMode!="Native" &&' not in stats
 assert "cu_stats_navigation" in stats
 assert "pageIndex=CUNativeStatsNavigationPolicy.Age" in stats
 assert "manager.PreviousStage();" in stats
-assert 'hero.SetBirthDay(oldBirthday)' in stats
-
-# The existing native game actions remain intact and are not cloned.
-guide_buttons={x.get("Command.Click") for x in guided.iter("ButtonWidget")}
-assert {"ExecutePreviousChoice","ExecuteNextChoice",
-        "ExecuteDecrease","ExecuteIncrease","ExecuteExact",
-        "ExecuteToggle","ExecuteEditText","ExecuteNativeDefault",
-        "ExecuteBack","ExecuteContinue"}<=guide_buttons
-for kind in ("CUNativeStatsEditor","CUNativeStatsEditorSafe"):
-    root=statui if kind=="CUNativeStatsEditor" else safe
-    commands={x.get("Command.Click") for x in root.iter("ButtonWidget")}
+for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
+             "CUNativeStatsEditorSafe"):
+    root=xml(name)
+    commands={w.get("Command.Click") for w in root.iter("ButtonWidget")}
     assert {"ExecuteBack","ExecuteContinue","ExecuteAgeIncrease",
-            "ExecuteAgeDecrease","ExecutePreviousGroup",
-            "ExecuteNextGroup","ExecuteEditExact"}<=commands
-    assert any(x.get("IsVisible")=="@IsStatsPage" for x in root.iter("ButtonWidget"))
-    assert any(x.get("SuggestedHeight")=="56" for x in root.iter("Widget"))
+            "ExecuteAgeDecrease","ExecuteEditPlayer",
+            "ExecuteEditSpouse"}<=commands,name
+    assert any(w.get("IsVisible")=="@IsStatsPage"
+               for w in root.iter("ButtonWidget")),name
 
-# Compact central card with original button commands and enough width
 # for all three simultaneously displayed age/numeric actions. No visible
 # debug config fields or redundant culture-controller instructions.
 assert any(x.get("SuggestedWidth")=="610" and

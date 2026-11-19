@@ -1,0 +1,9 @@
+# v0.53: All-stats and family training repair
+
+New creator flow: **original native story → working Age slider → one scrollable All Stats screen → original Banner**. The All Stats page contains 47 native fields (6 attributes, 18 skills, 18 focus values, 5 personality traits) per selected character, with a native slider and +/- and exact-entry controls in every row. Player/Spouse switching preserves separate stat drafts. Player edits use the existing Native/Balanced/Unrestricted rules. Spouse edits are manual overrides and remain native-auto for unedited fields. Spouse values are saved in `SpouseStat.Skill.OneHanded=...` etc. and applied to the generated spouse before the children exist.
+
+**Cause of skill discrepancy:** previously child creation preceded player stat application and copied arbitrary native template skills, then trained only 6. The new branch applies final player stats first, and then gives newly generated offspring all 18 skills based on both parents' final native skills, age and upbringing. Ages under 6 have a model cap of 0, ages 6-9 cap 12, 10-13 cap 28, 14-17 cap 55, 18-20 cap 75, and 21-25 cap 120. Children's six attributes inherit age-bounded starting values too. This affects newly generated children only.
+
+**Age-19 appearance:** native `Hero.BodyProperties` already uses current age. Adult template beard tags contribute to the older appearance. Young males ages 18-21 keep inherited facial structure but receive a clean-shaven native FaceGen beard setting, with a diagnostic event. This narrows the issue but does not guarantee a particular visual impression.
+
+**Test status:** C# policy, source/XML and pinned Windows build are prerelease tests. Do not merge or call working before live mouse dragging and scrolling on the 47-row editor, player/spouse distinct values, offspring age/skills, native Banner Back, and save/reload pass. Existing saves are not rewritten.

@@ -109,6 +109,10 @@ namespace CalradiaUnified
         public string ProgressionMode = "Native";
         public readonly SortedDictionary<string, int> Overrides =
             new SortedDictionary<string, int>(StringComparer.Ordinal);
+        // Explicit values for the spouse generated later, after House.
+        // The player and spouse editors must never share stat state.
+        public readonly SortedDictionary<string, int> SpouseOverrides =
+            new SortedDictionary<string, int>(StringComparer.Ordinal);
         // Up to 12 exact, engine-resolved item IDs; missing IDs are never granted.
         public readonly SortedDictionary<int, string> ItemIds =
             new SortedDictionary<int, string>();
@@ -176,6 +180,7 @@ namespace CalradiaUnified
                 child.Upbringing="FamilyTradition";
             ProgressionMode="Native";
             Overrides.Clear();
+            SpouseOverrides.Clear();
             ItemIds.Clear();
             // Never carry hidden pregame bonuses, resources or world
             // modifiers into a new campaign before explicit confirmation.
@@ -394,6 +399,17 @@ namespace CalradiaUnified
                     if (!Number(value, 0, MaxSiblings, out n)) return false;
                     SiblingCount = n; return true;
             }
+            if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
+            {
+                string subkey=key.Substring("SpouseStat.".Length);
+                if(!SandboxStatBudgetPolicy.IsStatKey(subkey) ||
+                    !Int32.TryParse(value,NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,out n) ||
+                    !SandboxStatBudgetPolicy.InRange(subkey,n))
+                    return false;
+                SpouseOverrides[subkey]=n;
+                return true;
+            }
             if (key.StartsWith("Stat.", StringComparison.Ordinal) ||
                 key.StartsWith("Attribute.", StringComparison.Ordinal) ||
                 key.StartsWith("Skill.", StringComparison.Ordinal) ||
@@ -476,6 +492,12 @@ namespace CalradiaUnified
             if (playerAge < 18 || playerAge > 100)
             {
                 error = "Player must be an adult.";
+                return false;
+            }
+            if (SpouseOverrides.Any(kv=>
+                    !SandboxStatBudgetPolicy.InRange(kv.Key,kv.Value)))
+            {
+                error="Invalid spouse starting stats.";
                 return false;
             }
             if (!SandboxFamilyDevelopmentPolicy.IsScenario(FamilyScenario))
@@ -604,6 +626,9 @@ namespace CalradiaUnified
             };
             foreach (var pair in Overrides)
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
+            foreach(var pair in SpouseOverrides)
+                lines.Add("SpouseStat."+pair.Key+"="+
+                    pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach (var pair in ItemIds)
                 lines.Add("Item." + pair.Key + "=" + pair.Value);
             // Preserve unused relative templates so names can be edited before

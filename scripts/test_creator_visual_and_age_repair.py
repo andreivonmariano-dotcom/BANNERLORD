@@ -82,15 +82,15 @@ assert 'candidate.NativeFaceDockTrialEnabled=false;' in text_guided
 # native FOCUS maximum, not the skill maximum (330).
 assert '"Skill: "+originalName' in text_stats
 assert '"Focus: "+originalName' in text_stats
-assert 'SKILL LEVEL | 0–330' in text_stats
-assert 'FOCUS POINTS | Native cap: 5' in text_stats
+assert 'Native skill | 0-330 | inherited training' in text_stats
+assert 'Native focus | 0-5 | learning potential' in text_stats
 assert 'SandboxStatBudgetPolicy.Step(key)' in text_stats
 
 # One-year slider is a real native Gauntlet SliderWidget bound to a
 # writeable VM property, not a cosmetic bar with a guessed percentage.
 sliders=list(stats.iter("SliderWidget"))
-assert len(sliders)==1
-sl=sliders[0]
+assert len(sliders)==2
+sl=next(w for w in sliders if w.get("Id")=="CUPlayerAgeSlider")
 assert sl.get("ValueInt")=="@PlayerAge"
 assert sl.get("MinValueInt")=="18" and sl.get("MaxValueInt")=="80"
 assert sl.get("DiscreteIncrementInterval")=="1"
@@ -101,8 +101,10 @@ ids={w.get("Id") for w in sl.iter()}
 assert {"CUPlayerAgeHandle","CUPlayerAgeTrack"} <= ids
 assert any(w.get("IsVisible")=="@IsAgePage"
            for w in stats.iter("Widget"))
-assert any(w.get("IsVisible")=="@IsStatsPage"
+assert any(w.get("DataSource")=="{Rows}"
            for w in stats.iter("ListPanel"))
+assert any(w.get("IsVisible")=="@IsStatsPage"
+           for w in stats.iter("ScrollablePanel"))
 commands={b.get("Command.Click") for b in stats.iter("ButtonWidget")}
 assert {"ExecuteAgeIncrease","ExecuteAgeDecrease",
         "ExecuteKeepNativeAge"}<=commands
@@ -120,7 +122,7 @@ assert any(w.get("Id")=="CUPlayerAgeHandle"
            for w in sl.iter("ButtonWidget"))
 assert '"CUNativeStatsEditorSafe",vm' in text_stats
 assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
-assert len(list(safe_stats.iter("SliderWidget")))==0
+assert len(list(safe_stats.iter("SliderWidget")))==1
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))
 assert any(x.get("Command.Click")=="ExecuteAgeDecrease"
@@ -139,18 +141,19 @@ assert 'EffectiveMaximum(field)' in text_guided
 assert 'if(IsChildAge)return "Allowed age:' in text_guided
 assert "actualAge" in text_guided and "SaveForPlayer(" in text_guided
 
-# Known screenshot collision: stat row content has two non-overlapping
-# lines within its item, not 29px description underneath 28px title.
+# The new compact all-stats row uses a genuine native slider and
+# reports exact values without stacking long descriptions over buttons.
 row=next(x for x in stats.iter("ListPanel")
          if x.get("DataSource")=="{Rows}")
 item=row.find("./ItemTemplate/Widget")
-assert item is not None and item.get("SuggestedHeight")=="56"
+assert item is not None and item.get("SuggestedHeight")=="55"
 name=next(x for x in item.iter("TextWidget")
           if x.get("Text")=="@Name")
-desc=next(x for x in item.iter("TextWidget")
-          if x.get("Text")=="@Description")
-assert int(name.get("PositionYOffset"))+int(name.get("SuggestedHeight")) <= (
-    int(desc.get("PositionYOffset")))
-assert int(desc.get("PositionYOffset"))+int(desc.get("SuggestedHeight")) <= 56
+selected=next(x for x in item.iter("TextWidget")
+          if x.get("Text")=="@SelectedValue")
+assert name.get("PositionYOffset")=="3"
+assert selected.get("PositionYOffset")=="10"
+assert any(x.get("ValueInt")=="@SelectedInt"
+           for x in item.iter("SliderWidget"))
 
 print("PASS: warm native-style custom creator, compact text, native original stages unobscured, age slider, child-age cap and skill-vs-focus labels (STATIC ONLY)")
