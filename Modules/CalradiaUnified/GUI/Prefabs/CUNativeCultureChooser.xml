@@ -8,21 +8,39 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#090F18FF"
+        <!-- The native culture panel shares the full-bleed CU Sandbox
+             visual language. Native stage view and VM remain underneath. -->
+        <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#111F2BF0"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="Fixed" SuggestedHeight="100"
+                VerticalAlignment="Top"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C19B62FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="Fixed" SuggestedHeight="2"
+                VerticalAlignment="Top" PositionYOffset="101"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#152433F0"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="Fixed" SuggestedHeight="92"
+                VerticalAlignment="Bottom"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#B99361FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="Fixed" SuggestedHeight="2"
+                VerticalAlignment="Bottom" PositionYOffset="-94"/>
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="1260"
                 HeightSizePolicy="Fixed" SuggestedHeight="696"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#111D2AFF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#C8A269FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#CBA36BFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionYOffset="74"/>
-            <TextWidget Text="@Title" Color="#F8D6A2FF"
+            <TextWidget Text="@Title" Color="#EBC68EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="810"
                     HeightSizePolicy="Fixed" SuggestedHeight="35"
                     PositionXOffset="28" PositionYOffset="16"/>
@@ -30,7 +48,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="770"
                     HeightSizePolicy="Fixed" SuggestedHeight="27"
                     PositionXOffset="29" PositionYOffset="48"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#1C2A38FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#0F1F2EEC"
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
                     HeightSizePolicy="Fixed" SuggestedHeight="477"
                     PositionXOffset="24" PositionYOffset="97"/>
@@ -111,7 +129,7 @@
                     Command.Click="ExecuteBack">
               <Children>
                 <TextWidget Text="Back to main menu"
-                            Color="#F4E8D5FF"
+                            Color="#F4E3C5FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"

@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Native Five Chapter Stage Shell and Face Viewport Contract" />
+  <Name value="Calradia Unified - Fullscreen Native-Styled Sandbox Creator" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.36.0" />
+  <Version value="v0.37.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
