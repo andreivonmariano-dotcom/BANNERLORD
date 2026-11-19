@@ -25,10 +25,35 @@ namespace CalradiaUnified
         private static GauntletMovieIdentifier movie;
         private static CUNativeCultureChooserVM vm;
         private static bool abandonRequested;
+        private static CUNativeCultureController pendingNativeBack;
 
         public static void Tick(CharacterCreationScreen nativeScreen,
             CharacterCreationManager manager)
         {
+            // The Back button queues an action. Perform screen teardown
+            // outside Gauntlet's own click callback, releasing the movie
+            // before the native culture stage pops the game state.
+            if (pendingNativeBack!=null)
+            {
+                var backController=pendingNativeBack;
+                pendingNativeBack=null;
+                bool valid=nativeScreen!=null &&
+                    !nativeScreen.IsFinalized &&
+                    manager!=null && manager.CurrentStage!=null &&
+                    manager.CurrentStage.GetType().Name==
+                        "CharacterCreationCultureStage";
+                CUNativeStateShell.Clear();
+                if(valid)
+                {
+                    try { backController.Previous(); }
+                    catch(Exception error)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_culture_deferred_back_failed",error);
+                    }
+                }
+                return;
+            }
             bool cultureStage=manager!=null &&
                 manager.CurrentStage!=null &&
                 manager.CurrentStage.GetType().Name==
@@ -78,7 +103,7 @@ namespace CalradiaUnified
             try
             {
                 var nextVM=new CUNativeCultureChooserVM(controller,
-                    RequestAbandon);
+                    RequestAbandon,QueueNativeBack);
                 nextLayer=new GauntletLayer("CUNativeCultureChooser",60,false);
                 nextLayer.IsFocusLayer=true;
                 nextLayer.InputRestrictions.SetInputRestrictions();
@@ -119,6 +144,11 @@ namespace CalradiaUnified
                 }
                 RestoreNativeCultureFocus(nativeScreen);
             }
+        }
+
+        private static void QueueNativeBack(CUNativeCultureController selected)
+        {
+            pendingNativeBack=selected;
         }
 
         private static void RequestAbandon()
@@ -192,6 +222,7 @@ namespace CalradiaUnified
         {
             Detach();
             failedHost=null;
+            pendingNativeBack=null;
         }
     }
 
@@ -246,6 +277,7 @@ namespace CalradiaUnified
     {
         private readonly CUNativeCultureController controller;
         private readonly Action abandon;
+        private readonly Action<CUNativeCultureController> requestBack;
         private string name="Choose a culture";
         private string description="Select a native culture to see its effects.";
         private string status="These are real game culture choices.";
@@ -256,10 +288,12 @@ namespace CalradiaUnified
             { get; private set; }
 
         internal CUNativeCultureChooserVM(
-            CUNativeCultureController controller,Action abandon)
+            CUNativeCultureController controller,Action abandon,
+            Action<CUNativeCultureController> requestBack)
         {
             this.controller=controller;
             this.abandon=abandon;
+            this.requestBack=requestBack;
             Cultures=new MBBindingList<CUNativeCultureChoiceVM>();
             foreach(var option in controller.Options)
                 Cultures.Add(new CUNativeCultureChoiceVM(option,Choose));
@@ -352,16 +386,7 @@ namespace CalradiaUnified
 
         public void ExecuteBack()
         {
-            try
-            {
-                controller.Previous();
-            }
-            catch(Exception error)
-            {
-                DiagnosticJournal.Exception("cu_native_culture_back_failed",
-                    error);
-                abandon();
-            }
+            requestBack(controller);
         }
 
         public void ExecuteUseNativeControls()
