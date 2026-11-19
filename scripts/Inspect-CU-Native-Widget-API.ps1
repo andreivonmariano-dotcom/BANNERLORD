@@ -56,17 +56,21 @@ try{
             $lines.Add('')
             $lines.Add('TYPE '+$type.FullName+' BASE '+$type.BaseType.FullName)
             foreach($c in $type.GetConstructors($flags)){
-                $lines.Add('CTOR '+$c.ToString())
+                try{$lines.Add('CTOR '+$c.ToString())}
+                catch{$lines.Add('CTOR '+$c.Name+' [dependency unresolved]')}
             }
             foreach($p in $type.GetProperties($flags)){
-                $lines.Add('PROPERTY '+$p.ToString()+' CANWRITE='+$p.CanWrite)
+                try{$lines.Add('PROPERTY '+$p.ToString()+' CANWRITE='+$p.CanWrite)}
+                catch{$lines.Add('PROPERTY '+$p.Name+' CANWRITE='+$p.CanWrite+' [dependency unresolved]')}
             }
             foreach($f in $type.GetFields($flags)){
-                $lines.Add('FIELD '+$f.ToString())
+                try{$lines.Add('FIELD '+$f.ToString())}
+                catch{$lines.Add('FIELD '+$f.Name+' [dependency unresolved]')}
             }
             foreach($m in $type.GetMethods($flags)){
                 if(-not $m.IsSpecialName){
-                    $lines.Add('METHOD '+$m.ToString())
+                    try{$lines.Add('METHOD '+$m.ToString())}
+                    catch{$lines.Add('METHOD '+$m.Name+' [dependency unresolved]')}
                 }
             }
         }
