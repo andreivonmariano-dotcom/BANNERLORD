@@ -118,7 +118,8 @@ assert "cu_native_age_slider_drag" in text_stats
 assert "ReadNativeSliderValue();" in text_stats
 assert any(w.get("Id")=="CUPlayerAgeHandle"
            for w in sl.iter("ButtonWidget"))
-assert 'next.LoadMovie("CUNativeStatsEditorSafe",vm)' in text_stats
+assert '"CUNativeStatsEditorSafe",vm' in text_stats
+assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
 assert len(list(safe_stats.iter("SliderWidget")))==0
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))
