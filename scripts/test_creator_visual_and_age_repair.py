@@ -17,6 +17,7 @@ for name in ("CUGuidedCreator","CUNativeStatsEditor",
     files[name]=tree.getroot()
 guided=files["CUGuidedCreator"]
 stats=files["CUNativeStatsEditor"]
+safe_stats=ET.parse(ui/"CUNativeStatsEditorSafe.xml").getroot()
 culture=files["CUNativeCultureChooser"]
 text_stats=(src/"CUNativeStatsLayer.cs").read_text(encoding="utf-8")
 text_guided=(src/"CUGuidedCreatorVM.cs").read_text(encoding="utf-8")
@@ -99,6 +100,13 @@ assert 'private int pageIndex=-1;' in text_stats
 assert "hero.SetBirthDay(CampaignTime.YearsFromNow(" in text_stats
 assert "hero.SetBirthDay(oldBirthday)" in text_stats
 assert "cu_native_player_age_committed" in text_stats
+assert "cu_native_age_slider_fallback" in text_stats
+assert 'next.LoadMovie("CUNativeStatsEditorSafe",vm)' in text_stats
+assert len(list(safe_stats.iter("SliderWidget")))==0
+assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
+           for x in safe_stats.iter("ButtonWidget"))
+assert any(x.get("Command.Click")=="ExecuteAgeDecrease"
+           for x in safe_stats.iter("ButtonWidget"))
 assert "native_story_bonuses_preserved=true" in text_stats
 assert "profile.PlayerAge=age;" in text_stats
 
