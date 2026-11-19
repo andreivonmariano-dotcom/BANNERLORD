@@ -32,7 +32,7 @@ def verify(filename, version):
         assert new_creator in names, "New Sandbox creator movie missing"
         assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
         # The opt-in stage has a UNIQUE type; native FaceGen remains intact.
-        for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml"):
+        for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml","CUNativeCultureChooser.xml"):
             path = prefix + "GUI/Prefabs/" + name
             assert path in names, "Required new native or family movie missing: " + name
             assert ET.fromstring(archive.read(path)).tag == "Prefab", "Invalid native/family XML"
