@@ -31,6 +31,12 @@ It is **not** a new clone of the entire Bannerlord native creator or a pixel-ide
 3. **Fail closed:** an absent or ambiguous native movie root, unsupported view type, large widget tree or nonwritable brush leaves the original UI untouched, records `cu_native_widget_skin_unavailable` and does not interrupt character creation.
 4. **Visible proof required:** positive counts in `cu_native_widget_skin_applied` for actual TextWidgets, native buttons, clan inputs and difficulty sliders. `cu_native_widget_skin_refreshed` reports newly created narrative option controls. `cu_native_widget_skin_restored` reports rollback. Automated builds can only assert the source path and policies, not game rendering.
 
+## Pinned Windows compile and static verification
+
+[Successful CI run 44467336043](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44467336043) at source SHA `fb9d6969bf5ef64d0d648bada0cbd426ba27adbf` ran **708 gameplay policy checks**, including the new stage-view/style safeguards. The pinned v1.5.7 widget audit succeeded (513 metadata lines), with zero C# compiler warnings or errors. GitHub's generated artifact contains an exact built DLL with SHA-256 `61fce6458651c3e1f6462cff43e9a363c5cafeed9d77684165b7eecac171624a`. Local artifact re-verification found one direct-install zip, passed both ZIP CRC checks, checked expected prefab files and the exact DLL hash. The re-packed inner direct-install ZIP SHA-256 is `f952de9670741df355c1e775a71ba1bdaa929cbbeb823810f72f1867a3406b91`.
+
+This proves compiled and static acceptance only. Positive `cu_native_widget_skin_applied` runtime counts are required before stating that any native button is visibly recolored in a live game session.
+
 ## Live acceptance before merge
 
 Run fresh CU Sandbox on 1366x768 and 1920x1080. Verify the original button label, native icon, dark/slate/gold tint, selection border, hover/press colors, focus and gamepad traversal. During the complete native origins narrative, inspect later menu options for consistent newly created button styles. Change banner symbols and exact banner colors to catch incorrectly tinted swatches. Enter a clan name, confirm the field's caret and focus, change a difficulty slider, and compare F10 on/off at all five native stages. FaceGen's 3D scene and F9 recovery must remain intact. Complete House/Fortune, verify the single final native review, start the campaign and reload. Capture diagnostic `applied`, `refreshed` and `restored` counters for every stage.
