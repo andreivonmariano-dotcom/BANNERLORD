@@ -168,6 +168,22 @@ namespace CalradiaUnified
             SiblingCount=0;
             ProgressionMode="Native";
             Overrides.Clear();
+            ItemIds.Clear();
+            // Never carry hidden pregame bonuses, resources or world
+            // modifiers into a new campaign before explicit confirmation.
+            Gold=-1;
+            Influence=-1;
+            Troops=0;
+            WorldSeed=-1;
+            StartFastMode=false;
+            StartBanditSurge=false;
+            StartCivilUnrest=false;
+            StartRecruitShortage=false;
+            StartSwiftTravel=false;
+            ScenarioFaction1="";
+            ScenarioFaction2="";
+            ScenarioVariant="alternativecalradiadefault";
+            RelocateAtStart=false;
             // Never carry unimplemented draft requests into a new campaign.
             PlayerAge=-1;
             StartingTown="";
