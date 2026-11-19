@@ -1,3 +1,17 @@
+# Calradia Unified v0.37.0 | Full-Screen Native-Styled Sandbox Creator
+
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** compiled visual prototype, game playtest required.
+
+The custom Sandbox creator now has a **full-display charcoal/slate backdrop, native-style gold rules and full-width header/footer**, instead of a bordered popup. The five numbered chapters, native-style action buttons, contextual settings, and house/holdings summary retain their bindings and gameplay meaning. At 1366×768 the 1280×700 centered control area nearly fills the screen. At larger sizes the background and screen chrome cover the entire display, with the readable controls centered.
+
+The optional native-bound CU culture chooser uses the same full-screen design. Its culture selection, continue and back handlers still operate through Bannerlord's real character-creation VM. The genuine 3D appearance scene and camera remain untouched and game-owned. **This is a visual change, not the completed one-screen character creator.** A native wizard still follows the pregame options, and a permanently docked right-hand 3D viewport is not delivered here.
+
+[Design and runtime acceptance checks](docs/V037_FULLSCREEN_NATIVE_SANDBOX_UI.md) · [Five-chapter native shell contract](docs/V036_NATIVE_FIVE_CHAPTER_SHELL_VIEWPORT_CONTRACT.md)
+
+---
+
+## Previous v0.36 experimental native shell
+
 # Calradia Unified v0.36.0 | Five Native Chapters and Safe 3D Viewport Contract
 
 **Game target:** Bannerlord PC v1.5.7.125802. **Status:** compiled candidate only after Windows CI verifies the code. The five original CU pregame selection pages and native screens are **still separate**. The complete one-window creator and a persistent cropped right-side 3D scene are **not yet implemented**.
