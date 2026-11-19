@@ -132,6 +132,8 @@ namespace CalradiaUnified
 
             int childrenPlaced = 0;
             int childrenSkipped = 0;
+            int minorsWithResidence = 0;
+            int adultsSceneRegistered = 0;
             try
             {
                 // TeleportHeroAction owns adult location and settlement events.
@@ -164,6 +166,7 @@ namespace CalradiaUnified
                     }
 
                     bool placed;
+                    bool sceneRegistered=false;
                     if (child.IsChild)
                     {
                         if (!SandboxFamilyHomePolicy.CanPlaceMinor(
@@ -174,16 +177,19 @@ namespace CalradiaUnified
                             continue;
                         }
                         var nativeState = child.HeroState;
-                        // StayingInSettlement persists in the game save,
-                        // without altering a minor's NotSpawned lifecycle.
-                        // Never teleport or recruit a baby into a party.
+                        // Native underage Heroes are NotSpawned. Assign
+                        // their persistent home, but do not demand a
+                        // HeroesWithoutParty scene entry or pretend they can
+                        // be recalled like an adult. This is independent of
+                        // male/female Hero templates.
                         child.StayingInSettlement = target;
                         if (child.HeroState != nativeState)
                             throw new InvalidOperationException(
                                 "Minor hero state changed during home placement");
-                        placed = child.StayingInSettlement == target &&
-                            child.CurrentSettlement == target &&
+                        placed = child.StayingInSettlement == target;
+                        sceneRegistered =
                             target.HeroesWithoutParty.Contains(child);
+                        if(placed)minorsWithResidence++;
                     }
                     else
                     {
@@ -200,8 +206,12 @@ namespace CalradiaUnified
                         if (child.StayingInSettlement != target)
                             TeleportHeroAction.ApplyImmediateTeleportToSettlement(
                                 child,target);
+                        sceneRegistered =
+                            target.HeroesWithoutParty.Contains(child);
                         placed = child.StayingInSettlement == target &&
                             child.CurrentSettlement == target;
+                        if(placed && sceneRegistered)
+                            adultsSceneRegistered++;
                     }
                     if (placed)
                     {
@@ -213,9 +223,17 @@ namespace CalradiaUnified
                         "child=" + child.StringId +
                         "|age=" + child.Age +
                         "|is_minor=" + child.IsChild +
+                        "|gender=" + (child.IsFemale ? "Female":"Male") +
                         "|state=" + child.HeroState +
                         "|settlement=" + target.StringId +
-                        "|registered=" + placed +
+                        "|residence_recorded=" + placed +
+                        "|scene_registered=" + sceneRegistered +
+                        "|status=" + SandboxFamilyResidencePolicy.Classify(
+                            child.IsChild,placed,sceneRegistered) +
+                        "|native_child_recall=" +
+                            SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                                child.IsChild,child.IsAlive,child.IsActive,
+                                child.IsDisabled,child.IsPrisoner) +
                         "|party=none");
                 }
 
@@ -227,8 +245,11 @@ namespace CalradiaUnified
                     "|spouse=" + spouse.StringId +
                     "|spouse_at_home=" + spouseAtHome +
                     "|children_homed=" + childrenPlaced +
+                    "|minor_residence_only=" + minorsWithResidence +
+                    "|adults_scene_registered=" + adultsSceneRegistered +
                     "|children_skipped=" + childrenSkipped +
-                    "|minor_state_unchanged=true");
+                    "|minor_state_unchanged=true" +
+                    "|underage_not_party_recallable=true");
                 return (success ? "placed:" : "partial:") +
                     target.StringId + ":children=" + childrenPlaced;
             }

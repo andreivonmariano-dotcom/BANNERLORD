@@ -34,11 +34,13 @@
     <Compile Include="../../Source/CalradiaUnified/CUNativeVisualPolicy.cs" Link="CUNativeVisualPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeWidgetSkinPolicy.cs" Link="CUNativeWidgetSkinPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeLayoutPolicy.cs" Link="CUNativeLayoutPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CUNativeStatsNavigationPolicy.cs" Link="CUNativeStatsNavigationPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFiefPolicy.cs" Link="SandboxFiefPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="SandboxFamilyAgePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyOriginPolicy.cs" Link="SandboxFamilyOriginPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyHomePolicy.cs" Link="SandboxFamilyHomePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyResidencePolicy.cs" Link="SandboxFamilyResidencePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxGeneratedMarriagePolicy.cs" Link="SandboxGeneratedMarriagePolicy.cs" />
   </ItemGroup>
 </Project>

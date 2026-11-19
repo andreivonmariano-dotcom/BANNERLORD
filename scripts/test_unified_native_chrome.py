@@ -104,7 +104,7 @@ assert set(culture_buttons)=={"ExecuteSelect","ExecuteBack",
                              "ExecuteContinue","ExecuteUseNativeControls"}
 assert any(w.get("Text")=="Back" for w in cult.iter("TextWidget"))
 assert any(w.get("Text")=="Continue" for w in cult.iter("TextWidget"))
-assert any(w.get("Text")=="Restore native controls"
+assert any(w.get("Text")=="Original culture screen"
            for w in cult.iter("TextWidget"))
 assert 'nextLayer.IsFocusLayer=true;' in culture
 assert 'controller.SelectCulture(id)' in culture

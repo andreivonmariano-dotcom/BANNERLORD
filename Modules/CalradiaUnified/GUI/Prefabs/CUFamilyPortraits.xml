@@ -4,7 +4,7 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#030608EE"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#110D09F2"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="1180"
@@ -14,11 +14,11 @@
             <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#111E29FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#231910FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="1174"
                     HeightSizePolicy="Fixed" SuggestedHeight="710"
                     PositionXOffset="3" PositionYOffset="3"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#243644FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#403024FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="1150"
                     HeightSizePolicy="Fixed" SuggestedHeight="94"
                     PositionXOffset="15" PositionYOffset="15"/>
@@ -26,15 +26,19 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="1150"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionXOffset="15" PositionYOffset="111"/>
-            <TextWidget Text="@Heading" Color="#FFE6B8FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#A3804FFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="5"
+                    HeightSizePolicy="Fixed" SuggestedHeight="94"
+                    PositionXOffset="15" PositionYOffset="15"/>
+            <TextWidget Brush.FontSize="27" Text="@Heading" Color="#FFE6B8FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="700"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="34" PositionYOffset="28"/>
-            <TextWidget Text="@Description" Color="#E8E1D4FF"
+            <TextWidget Brush.FontSize="17" Text="@Description" Color="#E8E1D4FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="1115"
                     HeightSizePolicy="Fixed" SuggestedHeight="40"
                     PositionXOffset="34" PositionYOffset="66"/>
-            <TextWidget Text="@MemberCount" Color="#D9B77EFF"
+            <TextWidget Brush.FontSize="16" Text="@MemberCount" Color="#D9B77EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="400"
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
                     PositionXOffset="36" PositionYOffset="125"/>
@@ -54,19 +58,19 @@
                         AdditionalArgs="@AdditionalArgs"
                         ImageId="@Id"
                         TextureProviderName="@TextureProviderName"/>
-                    <TextWidget Text="@Name" Color="#FFE6B8FF"
+                    <TextWidget Brush.FontSize="18" Text="@Name" Color="#FFE6B8FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="186"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"/>
-                    <TextWidget Text="@Relationship" Color="#D7B377FF"
+                    <TextWidget Brush.FontSize="16" Text="@Relationship" Color="#D7B377FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="111"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"/>
-                    <TextWidget Text="@Age" Color="#E9E3D6FF"
+                    <TextWidget Brush.FontSize="16" Text="@Age" Color="#E9E3D6FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="135"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"/>
-                    <TextWidget Text="@Home" Color="#D9E0E7FF"
+                    <TextWidget Brush.FontSize="16" Text="@Home" Color="#E6D1B1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="237"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"/>
-                    <TextWidget Text="@Parentage" Color="#BCCBDBFF"
+                    <TextWidget Brush.FontSize="15" Text="@Presence" Color="#D5BC91FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="376"
                         HeightSizePolicy="Fixed" SuggestedHeight="56"/>
                   </Children>
@@ -77,8 +81,8 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="1150"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionXOffset="15" PositionYOffset="652"/>
-            <TextWidget Text="REAL HEROES  |  NO PARTY RECRUITMENT  |  NO AGE CHANGES"
-                    Color="#B7C8D7FF"
+            <TextWidget Brush.FontSize="16" Text="UNDERAGE CHILDREN HAVE A HOME IN THE FAMILY RECORD, NOT AN ADULT PARTY RECALL."
+                    Color="#D4BC9AFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="800"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="35" PositionYOffset="664"/>
@@ -90,7 +94,7 @@
                     PositionXOffset="944" PositionYOffset="661"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Text="Return to settlement"
+                <TextWidget Brush.FontSize="16" Text="Return to settlement"
                     Color="#FFEED6FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

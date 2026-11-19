@@ -280,8 +280,8 @@ namespace CalradiaUnified
         private readonly Action abandon;
         private readonly Action<CUNativeCultureController> requestBack;
         private string name="Choose a culture";
-        private string description="Select a native culture to see its effects.";
-        private string status="These are real game culture choices.";
+        private string description="Your culture shapes your place in Calradia.";
+        private string status="";
         private string previousSelection="";
 
         [DataSourceProperty]
@@ -317,8 +317,7 @@ namespace CalradiaUnified
                 }
             }
             SetCurrent("Choose a culture",
-                "Select a native culture. Its body seed and hero culture " +
-                "change through Bannerlord's own controller.");
+                "Choose the people and traditions your character belongs to.");
         }
 
         private void SetCurrent(string selectedName,string selectedDescription)
@@ -352,7 +351,7 @@ namespace CalradiaUnified
                     return;
                 }
                 Sync();
-                SetStatus("Selected in Bannerlord's real culture controller.");
+                SetStatus("");
                 DiagnosticJournal.Event("cu_native_culture_selected",
                     "native_vm_choice=true|id="+id);
             }
@@ -420,8 +419,7 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Choices use Bannerlord's native culture controller. " +
-                    "Appearance editing follows on the real 3D face page.";
+                return "Your appearance and personal history come next.";
             }
         }
     }

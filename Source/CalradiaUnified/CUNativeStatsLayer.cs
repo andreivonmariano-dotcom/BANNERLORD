@@ -309,9 +309,9 @@ namespace CalradiaUnified
         private readonly Action back;
         // One short exact-age page follows the native story and precedes
         // optional attributes/skills/traits. The narrative owns its bonuses.
-        private int pageIndex=-1;
+        private int pageIndex=CUNativeStatsNavigationPolicy.Age;
         private int skillGroupIndex;
-        private string status="Choose Native, Balanced or Unrestricted.";
+        private string status="";
         private readonly string[] bonusLines;
         private int bonusIndex;
 
@@ -445,7 +445,7 @@ namespace CalradiaUnified
             }
             profile.Overrides.Clear();
             foreach(var pair in preview)profile.Overrides[pair.Key]=pair.Value;
-            status=key+" selected: "+next+" | native: "+native;
+            status="";
             Refresh();
         }
 
@@ -462,7 +462,7 @@ namespace CalradiaUnified
                 status="Existing edits exceed the balanced budget. " +
                     "Reset changes or select Unrestricted.";
             }
-            else status=SandboxStatBudgetPolicy.ModeDescription(mode);
+            else status="";
             Refresh();
         }
 
@@ -501,22 +501,35 @@ namespace CalradiaUnified
         }
         public void ExecuteBack()
         {
-            if(pageIndex>=0)
+            // This always goes back ONE page, regardless of stats mode.
+            // The native narrative boundary is requested only from Age.
+            if(CUNativeStatsNavigationPolicy.BackToNativeNarrative(pageIndex))
             {
-                pageIndex--;
-                Refresh();
+                DiagnosticJournal.Event("cu_stats_navigation",
+                    "from=Age|back=native_narrative|mode="+
+                    profile.ProgressionMode);
+                back();
+                return;
             }
-            else back();
+            int old=pageIndex;
+            pageIndex=CUNativeStatsNavigationPolicy.BackPage(pageIndex);
+            DiagnosticJournal.Event("cu_stats_navigation",
+                "direction=back|from="+old+"|to="+pageIndex+
+                "|mode="+profile.ProgressionMode);
+            Refresh();
         }
         public void ExecuteContinue()
         {
-            // The native Age menu grants its original bonuses. CU's exact
-            // age selector affects the birthday only, once confirmed.
-            // Native starting stats need no extra stat editing pages.
-            if(profile.ProgressionMode!="Native" &&
-                pageIndex<SandboxStatBudgetPolicy.Pages.Length-1)
+            // Native/Balanced/Unrestricted never alter screen order.
+            // In the past Native prematurely finalized from the Age page,
+            // so the same Back/Continue buttons had different meanings.
+            if(!CUNativeStatsNavigationPolicy.IsFinal(pageIndex))
             {
-                pageIndex++;
+                int old=pageIndex;
+                pageIndex=CUNativeStatsNavigationPolicy.NextPage(pageIndex);
+                DiagnosticJournal.Event("cu_stats_navigation",
+                    "direction=next|from="+old+"|to="+pageIndex+
+                    "|mode="+profile.ProgressionMode);
                 Refresh();
                 return;
             }
@@ -581,7 +594,9 @@ namespace CalradiaUnified
             {get{return pageIndex<0?"Starting Age":
                 SandboxStatBudgetPolicy.Pages[pageIndex];}}
         [DataSourceProperty] public string PageProgress
-            {get{return "STEP "+(pageIndex+2)+" / 4";}}
+            {get{return "STEP "+
+                CUNativeStatsNavigationPolicy.StepNumber(pageIndex)+
+                " / "+CUNativeStatsNavigationPolicy.PageCount;}}
         [DataSourceProperty] public string Mode
             {get{return profile.ProgressionMode;}}
         [DataSourceProperty] public string ModeDescription
@@ -671,9 +686,7 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string NextLabel
         {
-            get{return Mode=="Native"?"Confirm age & keep native stats":
-                pageIndex==2?"Confirm stats & continue":
-                "Next: "+SandboxStatBudgetPolicy.Pages[pageIndex+1];}
+            get{return CUNativeStatsNavigationPolicy.NextLabel(pageIndex);}
         }
         [DataSourceProperty] public string Status {get{return status;}}
     }

@@ -54,9 +54,13 @@
                     PositionXOffset="29" PositionYOffset="48"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#251A12EF"
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
-                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
-                    PositionXOffset="24"/>
-            <TextWidget Brush.FontSize="16" Text="CULTURES AVAILABLE IN THIS CAMPAIGN"
+                    HeightSizePolicy="Fixed" SuggestedHeight="534"
+                    PositionXOffset="24" PositionYOffset="97"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#A68150FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="442"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    PositionXOffset="24" PositionYOffset="97"/>
+            <TextWidget Brush.FontSize="18" Text="CHOOSE YOUR CULTURE"
                     Color="#E3B474FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="415"
                     HeightSizePolicy="Fixed" SuggestedHeight="30"
@@ -91,26 +95,39 @@
                 </ButtonWidget>
               </ItemTemplate>
             </ListPanel>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#33261CFF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#2A2119FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="484" MarginRight="38"
-                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"/>
+                    HeightSizePolicy="Fixed" SuggestedHeight="534"
+                    PositionYOffset="97"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#A68150FF"
+                    WidthSizePolicy="StretchToParent" MarginLeft="484" MarginRight="38"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    PositionYOffset="97"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#1B140FFF"
+                    WidthSizePolicy="StretchToParent" MarginLeft="505" MarginRight="61"
+                    HeightSizePolicy="Fixed" SuggestedHeight="226"
+                    PositionYOffset="238"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#87633CFF"
+                    WidthSizePolicy="StretchToParent" MarginLeft="505" MarginRight="61"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    PositionYOffset="237"/>
             <TextWidget Brush.FontSize="17" Text="YOUR CULTURE"
                     Color="#D4A669FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="43"
                     HeightSizePolicy="Fixed" SuggestedHeight="26" PositionYOffset="113"/>
-            <TextWidget Brush.FontSize="23" Text="@SelectedName" Color="#FFE4B9FF"
+            <TextWidget Brush.FontSize="27" Text="@SelectedName" Color="#FFE4B9FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="63"
                     HeightSizePolicy="Fixed" SuggestedHeight="66" PositionYOffset="155"/>
-            <TextWidget Brush.FontSize="16" Brush.TextVerticalAlignment="Top" Text="@SelectedDescription" Color="#E6D5BBFF"
+            <TextWidget Brush.FontSize="20" Brush.TextVerticalAlignment="Top" Text="@SelectedDescription" Color="#E6D5BBFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="508" MarginRight="65"
-                    HeightSizePolicy="Fixed" SuggestedHeight="227" PositionYOffset="239"/>
-            <TextWidget Brush.FontSize="14" Text="@Notice" Color="#C8B49CFF"
+                    HeightSizePolicy="Fixed" SuggestedHeight="205" PositionYOffset="259"/>
+            <TextWidget Brush.FontSize="17" Text="@Notice" Color="#C8B49CFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="510" MarginRight="71"
-                    HeightSizePolicy="Fixed" SuggestedHeight="70" PositionYOffset="473"/>
+                    HeightSizePolicy="Fixed" SuggestedHeight="72" PositionYOffset="475"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#513A27FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="26" MarginRight="37"
                     HeightSizePolicy="Fixed" SuggestedHeight="2" PositionYOffset="595"/>
-            <TextWidget Brush.FontSize="14" Text="@Status" Color="#EFC68DFF"
+            <TextWidget Brush.FontSize="17" Text="@Status" Color="#EFC68DFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="29" MarginRight="131"
                     HeightSizePolicy="Fixed" SuggestedHeight="28" PositionYOffset="602"/>
             <ButtonWidget Brush="ButtonBrush"
@@ -137,7 +154,7 @@
                     PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
-                <TextWidget Brush.FontSize="17" Text="Restore native controls"
+                <TextWidget Brush.FontSize="17" Text="Original culture screen"
                             Color="#F6E2C4FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"

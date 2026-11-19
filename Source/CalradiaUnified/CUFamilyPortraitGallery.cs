@@ -115,9 +115,10 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Real clan heroes, real parent links and their " +
-                    "last recorded residence. Infants stay underage " +
-                    "and cannot be moved as party troops.";
+                return "Every son and daughter is shown here. Young " +
+                    "children have a recorded family home, but " +
+                    "Bannerlord does not spawn or recall them as adult " +
+                    "party heroes until they come of age.";
             }
         }
 
@@ -147,6 +148,26 @@ namespace CalradiaUnified
                 hero.LastKnownClosestSettlement;
             Home = residence == null ? "Home: not recorded" :
                 "Home: " + residence.Name.ToString();
+            bool atHome=hero.StayingInSettlement!=null &&
+                hero.StayingInSettlement==residence;
+            bool scenePresent=residence!=null &&
+                residence.HeroesWithoutParty.Contains(hero);
+            string category=SandboxFamilyResidencePolicy.Classify(
+                hero.IsChild,atHome,scenePresent);
+            Presence=relationship=="CHILD" ?
+                SandboxFamilyResidencePolicy.HumanStatus(category) :
+                (hero.IsChild?"Underage; no party recall":
+                    (scenePresent?"At settlement":"Location recorded"));
+            if(relationship=="CHILD")
+                DiagnosticJournal.Event("cu_family_gallery_child",
+                    "id="+hero.StringId+
+                    "|gender="+(hero.IsFemale?"Female":"Male")+
+                    "|age="+(int)hero.Age+
+                    "|state="+hero.HeroState+
+                    "|residence="+(residence==null?"none":
+                        residence.StringId)+
+                    "|scene_present="+scenePresent+
+                    "|status="+category);
             Parentage = relationship == "CHILD" ?
                 "Mother: " + (hero.Mother == null ? "unknown" :
                     hero.Mother.Name.ToString()) + " | Father: " +
@@ -179,5 +200,6 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Age { get; private set; }
         [DataSourceProperty] public string Home { get; private set; }
         [DataSourceProperty] public string Parentage { get; private set; }
+        [DataSourceProperty] public string Presence { get; private set; }
     }
 }
