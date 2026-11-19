@@ -87,6 +87,10 @@ namespace CalradiaUnified
                 }
                 catch(Exception e)
                 {
+                    // Never trap the player in an overlay if the engine
+                    // declines Back on this particular native stage.
+                    completed=true;
+                    failedHost=screen;
                     DiagnosticJournal.Exception(
                         "cu_guided_house_back_failed",e);
                 }
