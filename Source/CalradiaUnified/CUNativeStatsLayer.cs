@@ -311,7 +311,7 @@ namespace CalradiaUnified
         // optional attributes/skills/traits. The narrative owns its bonuses.
         private int pageIndex=CUNativeStatsNavigationPolicy.Age;
         private int skillGroupIndex;
-        private string status="Choose Native, Balanced or Unrestricted.";
+        private string status="";
         private readonly string[] bonusLines;
         private int bonusIndex;
 
@@ -445,7 +445,7 @@ namespace CalradiaUnified
             }
             profile.Overrides.Clear();
             foreach(var pair in preview)profile.Overrides[pair.Key]=pair.Value;
-            status=key+" selected: "+next+" | native: "+native;
+            status="";
             Refresh();
         }
 
@@ -462,7 +462,7 @@ namespace CalradiaUnified
                 status="Existing edits exceed the balanced budget. " +
                     "Reset changes or select Unrestricted.";
             }
-            else status=SandboxStatBudgetPolicy.ModeDescription(mode);
+            else status="";
             Refresh();
         }
 
