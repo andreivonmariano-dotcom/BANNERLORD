@@ -61,6 +61,20 @@ internal static class Program
         Check("native skin accepts native button and text widgets",
             !CUNativeWidgetSkinPolicy.IsProtectedWidget("ButtonWidget") &&
             !CUNativeWidgetSkinPolicy.IsProtectedWidget("TextWidget"));
+        Check("native clan naming receives local input color without input mutations",
+            CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationClanNamingStage","EditableTextWidget") &&
+            CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationClanNamingStage","InputTextWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationBannerEditorStage","EditableTextWidget"));
+        Check("native difficulty sliders receive local slider brush only",
+            CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationOptionsStage","SliderWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationFaceGeneratorStage","SliderWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationBannerEditorStage","SliderWidget"));
         Check("native skin uses parchment-gold text and buttons",
             CUNativeWidgetSkinPolicy.TextColor(
                 "CharacterCreationNarrativeStage",false,true)=="#F6D7A5FF" &&
