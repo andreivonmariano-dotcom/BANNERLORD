@@ -143,9 +143,9 @@ namespace CalradiaUnified
                 case "CharacterCreationClanNamingStage":
                     return "NEXT | HOUSEHOLD & FORTUNE";
                 case "CharacterCreationReviewStage":
-                    return "NEXT | NATIVE DIFFICULTY";
+                    return "CONTINUE | NATIVE REVIEW";
                 case "CharacterCreationOptionsStage":
-                    return "NEXT | CAMPAIGN START";
+                    return "CONTINUE | NATIVE FINALIZATION";
                 default:
                     return "CONTINUE IN THE NATIVE EDITOR";
             }
