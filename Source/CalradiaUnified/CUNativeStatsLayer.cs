@@ -293,7 +293,8 @@ namespace CalradiaUnified
         private int pageIndex;
         private int skillGroupIndex;
         private string status="Choose Native, Balanced or Unrestricted.";
-        private readonly string bonusSummary;
+        private readonly string[] bonusLines;
+        private int bonusIndex;
 
         [DataSourceProperty]
         public MBBindingList<CUNativeStatRowVM> Rows {get;private set;}
@@ -308,7 +309,7 @@ namespace CalradiaUnified
             completed=onCompleted;
             back=onBack;
             Rows=new MBBindingList<CUNativeStatRowVM>();
-            bonusSummary=NativeNarrativeBonusReader.Read(manager);
+            bonusLines=NativeNarrativeBonusReader.Read(manager);
             Refresh();
         }
 
@@ -443,6 +444,17 @@ namespace CalradiaUnified
         public void ExecuteNative(){SelectMode("Native");}
         public void ExecuteBalanced(){SelectMode("Balanced");}
         public void ExecuteUnrestricted(){SelectMode("Unrestricted");}
+        public void ExecutePreviousBonus()
+        {
+            bonusIndex=Math.Max(0,bonusIndex-2);
+            OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
+        }
+        public void ExecuteNextBonus()
+        {
+            if(bonusIndex+2<bonusLines.Length)
+                bonusIndex+=2;
+            OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
+        }
         public void ExecuteReset()
         {
             profile.Overrides.Clear();
@@ -518,7 +530,16 @@ namespace CalradiaUnified
         [DataSourceProperty] public string ModeDescription
             {get{return SandboxStatBudgetPolicy.ModeDescription(Mode);}}
         [DataSourceProperty] public string BonusSummary
-            {get{return bonusSummary;}}
+        {
+            get
+            {
+                int end=Math.Min(bonusIndex+2,bonusLines.Length);
+                return "NATIVE EFFECTS "+(bonusIndex+1)+"-"+end+
+                    " OF "+bonusLines.Length+"\n"+
+                    String.Join("\n\n",bonusLines.Skip(bonusIndex)
+                        .Take(2).ToArray());
+            }
+        }
         [DataSourceProperty] public bool IsNativeMode
             {get{return Mode=="Native";}}
         [DataSourceProperty] public bool IsBalancedMode
@@ -561,9 +582,10 @@ namespace CalradiaUnified
     /// </summary>
     internal static class NativeNarrativeBonusReader
     {
-        public static string Read(CharacterCreationManager manager)
+        public static string[] Read(CharacterCreationManager manager)
         {
-            if(manager==null) return "Native background history unavailable.";
+            if(manager==null) return new[] {
+                "Native background history unavailable."};
             try
             {
                 // Verified from Bannerlord.ReferenceAssemblies
@@ -578,9 +600,10 @@ namespace CalradiaUnified
                     field.GetValue(manager) as
                         IDictionary<NarrativeMenu,NarrativeMenuOption>;
                 if(selected==null)
-                    return "Native background bonuses: current Hero values " +
+                    return new[] {
+                        "Native background bonuses: current Hero values " +
                         "are shown below. Detailed selection history is " +
-                        "not exposed in this build.";
+                        "not exposed in this build."};
                 var descriptions=new List<string>();
                 foreach(var option in selected.Values)
                 {
@@ -592,16 +615,16 @@ namespace CalradiaUnified
                         descriptions.Add(text);
                 }
                 return descriptions.Count==0 ?
-                    "Native background choices are reflected in the Hero " +
-                    "values below. No effect text was available." :
-                    "Native life-story bonuses: "+
-                        String.Join(" | ",descriptions.Take(5).ToArray());
+                    new[] {"Native choices are reflected in Hero values. " +
+                        "No individual effect text was available."} :
+                    descriptions.ToArray();
             }
             catch(Exception e)
             {
                 DiagnosticJournal.Exception("cu_native_bonus_read",e);
-                return "Live native Hero values shown. The detailed " +
-                    "narrative effect list is unavailable.";
+                return new[] {
+                    "Live native Hero values shown. The detailed " +
+                    "narrative effect list is unavailable."};
             }
         }
     }
