@@ -580,6 +580,30 @@ namespace CalradiaUnified
                 return Current.Hint;
             }
         }
+        private static string DisplayChoice(string key,string raw)
+        {
+            if(String.IsNullOrEmpty(raw))return "Native default";
+            if(key=="StartingScenario" && raw=="none")
+                return "Native Sandbox";
+            if(key=="StartingScenario" && raw=="alternativecalradia")
+                return "Alternate Calradia";
+            if(key=="StartingScenario" && raw=="twofactionwar")
+                return "Two-Faction War";
+            if(key=="StartingScenario" && raw=="unitedempire")
+                return "United Empire";
+            if(key=="ScenarioVariant")
+                return raw.Replace("alternativecalradia","").ToUpperInvariant();
+            if(key=="StartingKingdomId" || key=="ScenarioFaction1" ||
+                key=="ScenarioFaction2")
+            {
+                if(raw=="none")return "No kingdom";
+                return Char.ToUpperInvariant(raw[0])+
+                    (raw.Length>1?raw.Substring(1):"");
+            }
+            if(raw=="none")return "None";
+            return raw;
+        }
+
         [DataSourceProperty] public string SelectedValue
         {
             get
@@ -590,7 +614,9 @@ namespace CalradiaUnified
                         "continue to the game's final review and difficulty.";
                 string raw=Raw(Current.Key);
                 return Current.Kind=="boolean" ?
-                    (raw=="true"?"Yes":"No"):raw;
+                    (raw=="true"?"Yes":"No"):
+                    Current.Kind=="choice" ?
+                        DisplayChoice(Current.Key,raw):raw;
             }
         }
         [DataSourceProperty] public bool IsChoice
@@ -641,7 +667,8 @@ namespace CalradiaUnified
                         "Starting kingdom: "+
                         (profile.StartingKingdomId.Length==0?"None":
                             profile.StartingKingdomId)+"\n"+
-                        "World: "+profile.StartingScenario+
+                        "World: "+
+                        DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
                 var hero=Hero.MainHero;
                 return "Native character: "+
