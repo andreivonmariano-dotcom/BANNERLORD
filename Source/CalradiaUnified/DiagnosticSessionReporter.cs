@@ -320,7 +320,9 @@ namespace CalradiaUnified
                         "CU-Session-"+id+"-CLOSED.zip");
                     string interrupted=Path.Combine(ReportsDirectory,
                         "CU-Session-"+id+"-INTERRUPTED.zip");
-                    if(File.Exists(closed)||File.Exists(interrupted))
+                    if(File.Exists(closed)||File.Exists(interrupted) ||
+                        File.Exists(Path.Combine(session,"completed.marker")) ||
+                        File.Exists(Path.Combine(session,"recovered.marker")))
                         Directory.Delete(session,true);
                 }
             }
@@ -393,8 +395,8 @@ namespace CalradiaUnified
                     File.WriteAllText(Path.Combine(SessionDirectory,
                         "completed.marker"),Utc());
                     closed=true;
-                    TrimReports();
                     TrimArchivedSessions();
+                    TrimReports();
                 }
                 catch(Exception error)
                 {
