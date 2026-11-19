@@ -28,6 +28,8 @@ namespace CalradiaUnified
         private static CharacterCreationScreen failedHost;
         private static GauntletLayer layer;
         private static GauntletMovieIdentifier movie;
+        private static CUNativeStatsVM activeVM;
+        private static bool sliderWarningLogged;
         private static bool narrativeSeen;
         private static bool completed;
         private static bool closeRequested;
@@ -94,6 +96,11 @@ namespace CalradiaUnified
             }
             if (Object.ReferenceEquals(host,screen))
             {
+                // The live slider ValueInt is the authoritative drag
+                // position. Some game versions only push a read-only VM
+                // binding, so poll the actual pinned Gauntlet widget and
+                // feed the value into the same validated age setter.
+                ReadNativeSliderValue();
                 // Match native Escape=Back. Teardown remains deferred,
                 // outside the movie click / input callback.
                 if(ScreenManager.FocusedLayer==layer &&
@@ -147,6 +154,8 @@ namespace CalradiaUnified
                 host=screen;
                 layer=next;
                 movie=nextMovie;
+                activeVM=vm;
+                sliderWarningLogged=false;
                 failedHost=null;
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
                     "transition=after_narrative_before_banner" +
@@ -183,6 +192,8 @@ namespace CalradiaUnified
             host=null;
             layer=null;
             movie=null;
+            activeVM=null;
+            sliderWarningLogged=false;
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -206,6 +217,54 @@ namespace CalradiaUnified
             catch(Exception e)
             {
                 DiagnosticJournal.Exception("cu_native_stats_detach_failed",e);
+            }
+        }
+
+        private static void ReadNativeSliderValue()
+        {
+            if(activeVM==null || !activeVM.IsAgePage ||
+                movie==null || movie.Movie==null)
+                return;
+            try
+            {
+                var root=movie.Movie.RootWidget;
+                if(root==null)return;
+                var find=root.GetType().GetMethod("FindChild",
+                    new[] {typeof(string),typeof(bool)});
+                if(find==null)
+                {
+                    if(!sliderWarningLogged)
+                    {
+                        sliderWarningLogged=true;
+                        DiagnosticJournal.Event("cu_native_age_slider_probe",
+                            "supported=false|fallback=one_year_buttons");
+                    }
+                    return;
+                }
+                var slider=find.Invoke(root,new object[]{
+                    "CUPlayerAgeSlider",true});
+                if(slider==null)return;
+                var valueProperty=slider.GetType().GetProperty("ValueInt");
+                if(valueProperty==null)return;
+                object raw=valueProperty.GetValue(slider,null);
+                if(!(raw is int))return;
+                int age=(int)raw;
+                if(SandboxFamilyAgePolicy.ValidPlayerAge(age) &&
+                    age!=activeVM.PlayerAge)
+                {
+                    activeVM.PlayerAge=age;
+                    DiagnosticJournal.Event("cu_native_age_slider_drag",
+                        "chosen_year="+age+"|source=real_slider_widget");
+                }
+            }
+            catch(Exception error)
+            {
+                if(!sliderWarningLogged)
+                {
+                    sliderWarningLogged=true;
+                    DiagnosticJournal.Exception(
+                        "cu_native_age_slider_probe_failed",error);
+                }
             }
         }
 
