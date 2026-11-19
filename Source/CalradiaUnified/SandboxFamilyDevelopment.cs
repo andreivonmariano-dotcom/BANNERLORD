@@ -115,12 +115,9 @@ namespace CalradiaUnified
                 // determine the character. Train ALL 18 skills using
                 // parents' final skills, age and upbringing. This removes
                 // both zero-stat adults and 18-year-olds with 150+ skills.
-                foreach(string name in SandboxOriginProfile.Skills)
+                foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
                 {
-                    var property=typeof(DefaultSkills).GetProperty(name,
-                        BindingFlags.Public|BindingFlags.Static);
-                    var skill=property==null?null:
-                        property.GetValue(null,null) as SkillObject;
+                    var skill=SandboxNativeSkillCatalog.Find(name);
                     if(skill==null)throw new InvalidOperationException(
                         "Native child skill missing: "+name);
                     int fatherValue=father==null?0:father.GetSkillValue(skill);
@@ -150,10 +147,13 @@ namespace CalradiaUnified
                 // developed careers; training only tops up gaps.
                 for(int i=0;i<names.Length;i++)
                 {
-                    var property=typeof(DefaultSkills).GetProperty(names[i],
-                        BindingFlags.Public|BindingFlags.Static);
-                    var skill=property==null?null:
-                        property.GetValue(null,null) as SkillObject;
+                    var skill=SandboxNativeSkillCatalog.Find(names[i]);
+                    // The base game has no naval SkillObject. A family
+                    // tradition still uses its land skills, with marine
+                    // additions only for players who own War Sails.
+                    if(skill==null && Array.IndexOf(
+                        SandboxOriginProfile.NavalSkills,names[i])>=0)
+                        continue;
                     if(skill==null)
                         throw new InvalidOperationException(
                             "Native skill missing: "+names[i]);
@@ -164,12 +164,9 @@ namespace CalradiaUnified
                 }
             }
             int positive=0;
-            foreach(string name in SandboxOriginProfile.Skills)
+            foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
             {
-                var property=typeof(DefaultSkills).GetProperty(name,
-                    BindingFlags.Public|BindingFlags.Static);
-                var skill=property==null?null:
-                    property.GetValue(null,null) as SkillObject;
+                var skill=SandboxNativeSkillCatalog.Find(name);
                 if(skill!=null && h.GetSkillValue(skill)>0)positive++;
             }
             DiagnosticJournal.Event("cu_family_native_skills_audited",
@@ -211,11 +208,15 @@ namespace CalradiaUnified
                 int value=entry.Value;
                 if(parts[0]=="Skill" || parts[0]=="Focus")
                 {
-                    var prop=typeof(DefaultSkills).GetProperty(parts[1],flags);
-                    var skill=prop==null?null:
-                        prop.GetValue(null,null) as SkillObject;
-                    if(skill==null)throw new InvalidOperationException(
-                        "Spouse skill missing "+parts[1]);
+                    var skill=SandboxNativeSkillCatalog.Find(parts[1]);
+                    if(skill==null)
+                    {
+                        DiagnosticJournal.Event(
+                            "cu_spouse_skill_not_registered",
+                            "requested="+entry.Key+
+                            "|missing_optional_dlc=true");
+                        continue;
+                    }
                     if(parts[0]=="Skill")
                         spouse.HeroDeveloper.SetInitialSkillLevel(skill,value);
                     else
@@ -224,6 +225,18 @@ namespace CalradiaUnified
                         if(delta!=0)
                             spouse.HeroDeveloper.AddFocus(skill,delta,false);
                     }
+                }
+                else if(parts[0]=="Level" && parts[1]=="Character")
+                {
+                    if(!SandboxFamilyLevelPolicy.Valid(value))
+                        throw new InvalidOperationException(
+                            "Requested spouse level outside native limit");
+                    spouse.Level=value;
+                    spouse.HeroDeveloper.SetInitialLevel(value);
+                    DiagnosticJournal.Event(
+                        "cu_family_spouse_level_verified",
+                        "requested="+value+"|actual="+spouse.Level+
+                        "|native_total_xp="+spouse.HeroDeveloper.TotalXp);
                 }
                 else if(parts[0]=="Attribute")
                 {
