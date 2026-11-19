@@ -84,9 +84,26 @@ namespace CalradiaUnified
                         "Native attribute missing: "+name);
                 int actual=h.GetAttributeValue(attribute);
                 int minimum=h.Age>=18f?2:1;
-                if(actual<minimum)
+                int target=minimum;
+                if(generatedChild)
+                {
+                    int paternal=father==null?2:
+                        father.GetAttributeValue(attribute);
+                    int maternal=mother==null?2:
+                        mother.GetAttributeValue(attribute);
+                    target=SandboxFamilySkillInheritancePolicy
+                        .SuggestedAttribute((int)h.Age,paternal,maternal,
+                            MBRandom.RandomInt(-1,2));
+                    DiagnosticJournal.Event("cu_family_inherited_attribute",
+                        "hero="+h.StringId+"|name="+name+
+                        "|age="+h.Age+"|father="+paternal+
+                        "|mother="+maternal+
+                        "|old_template="+actual+"|target="+target);
+                }
+                else target=Math.Max(actual,minimum);
+                if(actual!=target)
                     h.HeroDeveloper.AddAttribute(
-                        attribute,minimum-actual,false);
+                        attribute,target-actual,false);
                 if(h.GetAttributeValue(attribute)>0)
                     positiveAttributes++;
             }
