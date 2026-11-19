@@ -62,6 +62,19 @@ foreach($name in $names){
     }
 }
 if($found -lt 3){throw 'No native Widget types found. Audit incomplete.'}
+# The source relocation policy cannot run without precisely these native
+# measured-geometry members. Fail CI on a wrong reference version/API.
+foreach($required in @(
+    'PROPERTY Size SETTER=True',
+    'PROPERTY GlobalPosition SETTER=False',
+    'PROPERTY PositionXOffset SETTER=True',
+    'PROPERTY PositionYOffset SETTER=True',
+    'PROPERTY ParentWidget SETTER=True'
+)){
+    if(-not $lines.Contains($required)){
+        throw ('Native geometry contract missing: '+$required)
+    }
+}
 $output=[IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputPath))
 [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($output))|Out-Null
 [IO.File]::WriteAllLines($output,$lines.ToArray(),[Text.Encoding]::UTF8)
