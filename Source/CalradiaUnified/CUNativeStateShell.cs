@@ -60,6 +60,8 @@ namespace CalradiaUnified
                         active.CharacterCreationManager);
                     CUNativeHouseLayer.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeControlSkin.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -144,6 +146,8 @@ namespace CalradiaUnified
                     active.CharacterCreationManager);
                 CUNativeHouseLayer.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeControlSkin.Tick(screen,
+                    active.CharacterCreationManager);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -178,6 +182,7 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeControlSkin.Clear();
             CUNativeHouseLayer.Clear();
             CUNativeStatsLayer.Clear();
             CUNativeFaceDockTrial.Clear();
