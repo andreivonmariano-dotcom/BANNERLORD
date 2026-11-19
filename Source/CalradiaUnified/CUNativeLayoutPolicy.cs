@@ -60,6 +60,23 @@ namespace CalradiaUnified
             return height-FooterReserve;
         }
 
+        public static bool FitsPrimary(string stage,
+            int screenWidth,int screenHeight,
+            float x,float y,float width,float height)
+        {
+            if(!CanMovePrimaryPanel(stage) ||
+                !IsViewportSupported(screenWidth,screenHeight) ||
+                !Valid(x)||!Valid(y)||!Valid(width)||!Valid(height))
+                return false;
+            float left=ContentLeft(screenWidth);
+            float right=ContentRight(screenWidth);
+            float top=ContentTop;
+            float bottom=ContentBottom(screenHeight);
+            return width>=320 && height>=130 &&
+                x>=left && y>=top &&
+                x+width<=right && y+height<=bottom;
+        }
+
         /// <summary>
         /// The only allowed content correction is a small translation
         /// computed from ACTUAL measured bounds. If a panel cannot fit the
