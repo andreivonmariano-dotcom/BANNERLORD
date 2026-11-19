@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using SandBox.View.CharacterCreation;
+using TaleWorlds.Core;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Engine.GauntletUI;
