@@ -20,6 +20,7 @@ namespace CalradiaUnified
     {
         private static CharacterCreationScreen host;
         private static CharacterCreationScreen failedHost;
+        private static CharacterCreationScreen skippedHost;
         private static GauntletLayer ribbon;
         private static GauntletMovieIdentifier ribbonMovie;
         private static CUNativeStateShellVM viewModel;
@@ -35,6 +36,8 @@ namespace CalradiaUnified
                 if (screen == null || active == null || screen.IsFinalized)
                 {
                     Detach();
+                    skippedHost = null;
+                    failedHost = null;
                     return;
                 }
 
@@ -44,7 +47,8 @@ namespace CalradiaUnified
                         viewModel.Update(active.CharacterCreationManager);
                     return;
                 }
-                if (Object.ReferenceEquals(screen, failedHost))
+                if (Object.ReferenceEquals(screen, failedHost) ||
+                    Object.ReferenceEquals(screen, skippedHost))
                     return;
 
                 Detach();
@@ -55,7 +59,10 @@ namespace CalradiaUnified
                     active != null, screen != null,
                     profile.NativeFaceWorkshopEnabled,
                     profile.NativeIntegrationReviewEnabled))
+                {
+                    skippedHost = screen;
                     return;
+                }
 
                 if (active.CharacterCreationManager == null ||
                     active.CharacterCreationManager.CurrentStage == null)
@@ -142,6 +149,7 @@ namespace CalradiaUnified
         {
             Detach();
             failedHost = null;
+            skippedHost = null;
         }
     }
 
