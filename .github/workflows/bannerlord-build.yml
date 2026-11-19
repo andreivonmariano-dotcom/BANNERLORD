@@ -128,6 +128,9 @@ jobs:
       - name: Verify identity-first guided World then native identity then House and Fortune
         shell: pwsh
         run: python scripts/test_guided_creator_flow.py
+      - name: Regress screenshot defects and real-age creator controls
+        shell: pwsh
+        run: python scripts/test_creator_visual_and_age_repair.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
