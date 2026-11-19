@@ -1,3 +1,21 @@
+# Calradia Unified v0.47 development: native artwork and original creator screens
+
+**Native-first:** Original culture, appearance/3D, life story, banner, clan, review and difficulty screens retain Bannerlord's graphics and callbacks. The extra CU chapter rail, replacement culture chooser and native 3D dock are suppressed on accepted Sandbox starts.
+
+**Original game artwork:** Custom World/House and Stats prefabs reference Bannerlord's `General\\CharacterCreation\\character_creation_background_gradient` and `SPGeneral\\EscapeMenu\\escape_panel`, without shipping copies. Standalone prefabs remain ready if a game resource cannot load.
+
+**Real exact-age control:** The custom 18–80 SliderWidget uses an interactive native ButtonWidget handle and reads the live slider value through the pinned game widget interface. The 1-year buttons remain. The **original native age choices are still present**. A read-only last-narrative-menu probe records genuine 20/30/40/50 option IDs for a later faithful replacement. We do not silently choose native age rewards.
+
+**Back into Traits:** Clicking Back in the original banner editor returns through the real narrative stage, where the CU Stats panel reopens at Traits. Completing Traits returns to Banner through the native manager. The four internal steps remain Age, Attributes, Skills, Traits, independent of stat mode.
+
+**Intro:** The intro movie is bypassed only for accepted new CU Sandbox starts. Saved games and other campaign cinematics use native behavior.
+
+**Build acceptance:** Windows compilation, XML tests and static navigation contracts cannot prove runtime sprite availability, slider dragging or actual Banner Back. The build remains **COMPILED_UNTESTED** until an in-game playthrough. Existing internal module manifest version is still v0.38.0.
+
+[Implementation and live verification plan](docs/V047_NATIVE_ASSET_REUSE_AGE_AND_STAGE_BACK.md)
+
+---
+
 # Calradia Unified v0.46 development: final page order, native family presence truth, cleaner creator UI
 
 **Player-screenshot repairs:** World and House now have a compact gold-edged 610px choice card, shorter side panels and no `Selected: SpouseEnabled = true` internal debug string. Age is a focused separate page; stats rows are taller and more readable. Culture has a framed lore section. Native FaceGen, Narrative, Banner, Clan, Review and Difficulty keep their original active game control surfaces.
