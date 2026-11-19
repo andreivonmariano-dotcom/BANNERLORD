@@ -136,6 +136,14 @@ namespace CalradiaUnified
             }
 
             string nextStage=nativeManager.CurrentStage.GetType().Name;
+            // With CU's overlaid rail hidden, the native controls must
+            // keep their original geometry. Live screenshots showed
+            // unwanted overlap from the earlier chrome.
+            if(!CUNativeVisualPolicy.IsStandaloneNativeChrome(nextStage))
+            {
+                Restore();
+                return;
+            }
             if(!CUNativeLayoutPolicy.CanAlignNativeFooter(nextStage))
             {
                 Restore();
