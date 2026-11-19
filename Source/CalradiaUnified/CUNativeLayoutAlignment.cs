@@ -388,13 +388,19 @@ namespace CalradiaUnified
         private static bool TryMeasure(Widget widget,out Rect bounds)
         {
             bounds=new Rect();
+            // Exact pinned Bannerlord 1.5.7 Widget has Vector2 Size and
+            // MeasuredSize, NOT WPF-style ActualWidth/ActualHeight.
+            // Reading nonexistent properties would silently prevent every
+            // layout update. Prefer actual laid-out Size.
+            object size=ReadProperty(widget,"Size");
+            if(size==null)size=ReadProperty(widget,"MeasuredSize");
+            if(size==null)return false;
             float w,h;
-            if(!TryReadFloat(widget,"ActualWidth",out w) ||
-                !TryReadFloat(widget,"ActualHeight",out h) ||
+            if(!TryReadFloat(size,"X",out w) ||
+                !TryReadFloat(size,"Y",out h) ||
                 w<=0 || h<=0)return false;
 
             object point=ReadProperty(widget,"GlobalPosition");
-            if(point==null)point=ReadProperty(widget,"GlobalPositionPixels");
             if(point==null)return false;
             float x,y;
             if(!TryReadFloat(point,"X",out x) &&
