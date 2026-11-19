@@ -12,6 +12,92 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("starting stats Native is the default for every new profile",
+            new SandboxOriginProfile().ProgressionMode=="Native");
+        Check("stat modes are exactly Native Balanced and Unrestricted",
+            SandboxStatBudgetPolicy.IsMode("Native") &&
+            SandboxStatBudgetPolicy.IsMode("Balanced") &&
+            SandboxStatBudgetPolicy.IsMode("Unrestricted") &&
+            !SandboxStatBudgetPolicy.IsMode("Unlimited"));
+        Check("all six native attributes supported",
+            SandboxOriginProfile.Attributes.Length==6 &&
+            SandboxStatBudgetPolicy.IsStatKey("Attribute.Vigor") &&
+            SandboxStatBudgetPolicy.IsStatKey("Attribute.Intelligence"));
+        Check("all 18 skills have native attribute groups",
+            SandboxOriginProfile.Skills.Length==18 &&
+            System.Array.TrueForAll(SandboxOriginProfile.Skills,
+                name=>SandboxStatBudgetPolicy.GroupForSkill(name)!=""));
+        Check("skill and focus are independent native values",
+            SandboxStatBudgetPolicy.IsStatKey("Skill.OneHanded") &&
+            SandboxStatBudgetPolicy.IsStatKey("Focus.OneHanded"));
+        Check("traits use native -2 to 2 ranges",
+            SandboxStatBudgetPolicy.InRange("Trait.Honor",-2) &&
+            SandboxStatBudgetPolicy.InRange("Trait.Honor",2) &&
+            !SandboxStatBudgetPolicy.InRange("Trait.Honor",3));
+        Check("attribute and focus limits enforced",
+            !SandboxStatBudgetPolicy.InRange("Attribute.Vigor",0) &&
+            !SandboxStatBudgetPolicy.InRange("Attribute.Vigor",11) &&
+            !SandboxStatBudgetPolicy.InRange("Focus.Bow",6));
+        Check("balanced attributes cost four points per increase",
+            SandboxStatBudgetPolicy.Cost("Attribute.Vigor",3,5)==8);
+        Check("balanced focus costs three points per increase",
+            SandboxStatBudgetPolicy.Cost("Focus.Bow",1,3)==6);
+        Check("balanced skills cost one point per ten levels",
+            SandboxStatBudgetPolicy.Cost("Skill.Bow",30,60)==3);
+        Check("balanced traits cost three points per change",
+            SandboxStatBudgetPolicy.Cost("Trait.Honor",0,-2)==6);
+        Check("lowering attributes and skills cannot refund budget",
+            SandboxStatBudgetPolicy.Cost("Attribute.Vigor",5,2)==0 &&
+            SandboxStatBudgetPolicy.Cost("Skill.Bow",70,0)==0);
+        var nativeBaseline=new System.Collections.Generic.Dictionary<string,int>
+        {
+            {"Attribute.Vigor",3},{"Skill.Bow",30},
+            {"Focus.Bow",1},{"Trait.Honor",0}
+        };
+        var chosenStats=new System.Collections.Generic.Dictionary<string,int>
+        {
+            {"Attribute.Vigor",5},{"Skill.Bow",60},
+            {"Focus.Bow",3},{"Trait.Honor",1}
+        };
+        int usedPoints;
+        string statsProblem;
+        Check("balanced valid changes use exact point cost",
+            SandboxStatBudgetPolicy.TryEvaluate("Balanced",chosenStats,
+                nativeBaseline,out usedPoints,out statsProblem) &&
+            usedPoints==20);
+        chosenStats["Attribute.Vigor"]=10;
+        Check("balanced allocations over 30 points rejected",
+            !SandboxStatBudgetPolicy.TryEvaluate("Balanced",chosenStats,
+                nativeBaseline,out usedPoints,out statsProblem) &&
+            statsProblem.Contains("exceeds"));
+        Check("unrestricted permits legal values beyond budget",
+            SandboxStatBudgetPolicy.TryEvaluate("Unrestricted",chosenStats,
+                nativeBaseline,out usedPoints,out statsProblem) &&
+            usedPoints==0);
+        chosenStats["Trait.Honor"]=9;
+        Check("unrestricted still rejects illegal native values",
+            !SandboxStatBudgetPolicy.TryEvaluate("Unrestricted",chosenStats,
+                nativeBaseline,out usedPoints,out statsProblem));
+        Check("native mode ignores residual draft overrides",
+            SandboxStatBudgetPolicy.TryEvaluate("Native",chosenStats,
+                nativeBaseline,out usedPoints,out statsProblem) &&
+            usedPoints==0);
+        var storedStats=new SandboxOriginProfile();
+        Check("profile roundtrips chosen stat mode",
+            storedStats.TrySet("ProgressionMode","Balanced") &&
+            SandboxOriginProfile.Parse(storedStats.Serialize())
+                .ProgressionMode=="Balanced");
+        storedStats.TrySet("Skill.Bow","80");
+        Check("draft override exists before new-campaign reset",
+            storedStats.Overrides.Count==1);
+        storedStats.ResetForNewCampaign();
+        Check("fresh campaign clears stat changes and uses native",
+            storedStats.ProgressionMode=="Native" &&
+            storedStats.Overrides.Count==0);
+        Check("all five traits have effect descriptions",
+            System.Array.TrueForAll(SandboxOriginProfile.Traits,
+                name=>SandboxStatBudgetPolicy.TraitDescription(name).Length>48));
+
         Check("Native FaceGen right dock only attempts wide-enough screen",
             CUNativeViewportPolicy.CanTryNativeFaceDock(1366,768) &&
             CUNativeViewportPolicy.CanTryNativeFaceDock(1920,1080) &&
