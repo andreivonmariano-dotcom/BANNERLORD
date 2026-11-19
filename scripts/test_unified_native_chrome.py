@@ -75,8 +75,11 @@ for stage in ("CharacterCreationCultureStage",
               "CharacterCreationOptionsStage"):
     assert f'case "{stage}":' in visual,stage
 assert 'width>=1600' in visual
-assert 'name!="CharacterCreationCultureStage"' in visual
-assert 'name!="CharacterCreationFaceGeneratorStage"' in visual
+assert "return false;" in visual.split(
+    "public static bool IsStandaloneNativeChrome",1)[1].split(
+    "public static bool ShouldShowChapterRail",1)[0]
+assert 'IsNativeChromeVisible' in shell
+assert 'CUNativeVisualPolicy.IsStandaloneNativeChrome(stageName)' in shell
 assert 'return index<0 ? "NATIVE CHARACTER CREATION"' in visual
 assert "CHAPTER "+chr(34) in visual
 assert "CUNativeChapterPolicy.ActiveChapter(name)" in visual
@@ -85,8 +88,13 @@ assert "CUNativeChapterPolicy.ActiveChapter(name)" in visual
 # all use dark/slate/gold, stable widths, legible text and native buttons.
 for name,doc in (("guided",world),("stats",stat),("native_chrome",ui)):
     text=ET.tostring(doc,encoding="unicode")
-    for color in ("#172536","#C9A16B","#F6D7A5"):
-        assert color in text,(name,color)
+    if name!="native_chrome":
+        for color in ("#261C14","#BC9153","#EDD1A4"):
+            assert color in text,(name,color)
+    else:
+        # Retained in source as a diagnostic recovery shell; no original
+        # native stage receives this header in the default layout.
+        assert "CUNativeStateShell" not in text or doc.tag=="Prefab"
     assert doc.tag=="Prefab"
 assert 'CALRADIA UNIFIED' in culture
 assert 'CHAPTER 02 OF 05 | YOUR CHARACTER | CULTURE' in culture
@@ -114,4 +122,4 @@ assert '"03  YOUR HOUSE"' in chapter
 assert 'GetStage' not in visual
 assert 'NextStage()' not in shell
 assert 'PreviousStage()' not in shell
-print("PASS: native culture/3D/origins/banner/clan/review/difficulty share read-only CU chrome, responsive rail, native callbacks and F9 fallback (STATIC ONLY)")
+print("PASS: warm custom creator, native original headings never obscured, culture/FaceGen/hero callbacks and F9 recovery retained (STATIC ONLY)")

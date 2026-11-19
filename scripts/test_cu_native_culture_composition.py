@@ -51,8 +51,10 @@ btns=[x.get("Command.Click") for x in ui.iter("ButtonWidget")]
 assert set(btns)=={"ExecuteSelect","ExecuteBack","ExecuteContinue",
                    "ExecuteUseNativeControls"},btns
 labels=[x.get("Text","") for x in ui.iter("TextWidget")]
-for field in ("@Name","@CultureId","@SelectedName",
+for field in ("@Name","@SelectedName",
               "@SelectedDescription","@Status","@Notice"):
+    # Native culture IDs remain internal, avoiding duplicate raw text
+    # that visibly overlapped culture labels in screenshots.
     assert field in labels,field
 assert "new MBBindingList<CUNativeCultureChoiceVM>()" in layer
 assert "controller.SelectCulture(id)" in layer

@@ -12,22 +12,22 @@
              top header, chapter subtitle, slim gold rule and Back/Continue
              use the same visual grammar as CUGuidedCreator and the
              nonfocus native chrome. Actual native culture effects persist. -->
-        <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#120D09FF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#111F2BF0"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#251A11F4"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="100"
                 VerticalAlignment="Top"/>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#C19B62FF"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#B99155FF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="2"
                 VerticalAlignment="Top" PositionYOffset="101"/>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#152433F0"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#30251BF4"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="92"
                 VerticalAlignment="Bottom"/>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#B99361FF"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#BB9358FF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="2"
                 VerticalAlignment="Bottom" PositionYOffset="-94"/>
@@ -37,27 +37,27 @@
                 MarginTop="20" MarginBottom="20"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#120D09FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#CBA36BFF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#BD9155FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionYOffset="74"/>
-            <TextWidget Text="@Title" Color="#EBC68EFF"
+            <TextWidget Brush.FontSize="25" Text="@Title" Color="#E9C38BFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="810"
                     HeightSizePolicy="Fixed" SuggestedHeight="35"
                     PositionXOffset="28" PositionYOffset="16"/>
-            <TextWidget Text="@Subtitle" Color="#EBEFF4FF"
+            <TextWidget Brush.FontSize="17" Text="@Subtitle" Color="#F2DEC1FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="770"
                     HeightSizePolicy="Fixed" SuggestedHeight="27"
                     PositionXOffset="29" PositionYOffset="48"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#0F1F2EEC"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#251A12EF"
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
                     HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
                     PositionXOffset="24"/>
-            <TextWidget Text="CULTURES AVAILABLE IN THIS CAMPAIGN"
-                    Color="#E8BB7FFF"
+            <TextWidget Brush.FontSize="16" Text="CULTURES AVAILABLE IN THIS CAMPAIGN"
+                    Color="#E3B474FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="415"
                     HeightSizePolicy="Fixed" SuggestedHeight="30"
                     PositionXOffset="39" PositionYOffset="111"/>
@@ -76,45 +76,41 @@
                     Command.Click="ExecuteSelect">
                   <Children>
                     <Widget Sprite="BlankWhiteSquare_9"
-                            Color="#C8A269FF"
+                            Color="#CAA16AFF"
                             IsVisible="@IsSelected"
                             WidthSizePolicy="Fixed" SuggestedWidth="6"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Left"/>
-                    <TextWidget Text="@Name" Color="#FFE7C5FF"
-                            WidthSizePolicy="Fixed" SuggestedWidth="310"
+                    <TextWidget Brush.FontSize="21" Text="@Name" Color="#FAE4C3FF"
+                            WidthSizePolicy="Fixed" SuggestedWidth="380"
                             HeightSizePolicy="StretchToParent"
                             PositionXOffset="16"
                             VerticalAlignment="Center"/>
-                    <TextWidget Text="@CultureId" Color="#AFC2D4FF"
-                            WidthSizePolicy="Fixed" SuggestedWidth="78"
-                            HeightSizePolicy="StretchToParent"
-                            HorizontalAlignment="Right"
-                            VerticalAlignment="Center"/>
+                    
                   </Children>
                 </ButtonWidget>
               </ItemTemplate>
             </ListPanel>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#1C2A38FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#33261CFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="484" MarginRight="38"
                     HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"/>
-            <TextWidget Text="YOUR CULTURE"
-                    Color="#CFA66EFF"
+            <TextWidget Brush.FontSize="17" Text="YOUR CULTURE"
+                    Color="#D4A669FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="43"
                     HeightSizePolicy="Fixed" SuggestedHeight="26" PositionYOffset="113"/>
-            <TextWidget Text="@SelectedName" Color="#FFEBD1FF"
+            <TextWidget Brush.FontSize="23" Text="@SelectedName" Color="#FFE4B9FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="63"
                     HeightSizePolicy="Fixed" SuggestedHeight="66" PositionYOffset="155"/>
-            <TextWidget Text="@SelectedDescription" Color="#E8E8E8FF"
+            <TextWidget Brush.FontSize="16" Brush.TextVerticalAlignment="Top" Text="@SelectedDescription" Color="#E6D5BBFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="508" MarginRight="65"
                     HeightSizePolicy="Fixed" SuggestedHeight="227" PositionYOffset="239"/>
-            <TextWidget Text="@Notice" Color="#ACC2D9FF"
+            <TextWidget Brush.FontSize="14" Text="@Notice" Color="#C8B49CFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="510" MarginRight="71"
                     HeightSizePolicy="Fixed" SuggestedHeight="70" PositionYOffset="473"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#2B3949FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#513A27FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="26" MarginRight="37"
                     HeightSizePolicy="Fixed" SuggestedHeight="2" PositionYOffset="595"/>
-            <TextWidget Text="@Status" Color="#F6D5A6FF"
+            <TextWidget Brush.FontSize="14" Text="@Status" Color="#EFC68DFF"
                     WidthSizePolicy="StretchToParent" MarginLeft="29" MarginRight="131"
                     HeightSizePolicy="Fixed" SuggestedHeight="28" PositionYOffset="602"/>
             <ButtonWidget Brush="ButtonBrush"
@@ -125,8 +121,8 @@
                     PositionXOffset="27" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteBack">
               <Children>
-                <TextWidget Text="Back"
-                            Color="#F4E3C5FF"
+                <TextWidget Brush.FontSize="17" Text="Back"
+                            Color="#F6E1C1FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -141,8 +137,8 @@
                     PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
-                <TextWidget Text="Restore native controls"
-                            Color="#F4E8D5FF"
+                <TextWidget Brush.FontSize="17" Text="Restore native controls"
+                            Color="#F6E2C4FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"
@@ -157,8 +153,8 @@
                     HorizontalAlignment="Right" PositionXOffset="-52" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteContinue">
               <Children>
-                <TextWidget Text="Continue"
-                            Color="#FFE0B0FF"
+                <TextWidget Brush.FontSize="17" Text="Continue"
+                            Color="#FFE0A8FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
                             HorizontalAlignment="Center"

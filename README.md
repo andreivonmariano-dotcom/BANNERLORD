@@ -1,3 +1,17 @@
+# Calradia Unified v0.45 development: screenshot-driven creator repair
+
+**Player-observed defects addressed:** The v0.44 guided World/Stats/Household and Culture screenshots showed flat navy panels, crowded text, raw culture IDs colliding with culture names, a duplicate Calradia Unified header over native Family/Banner/Review/Difficulty, and a black experimental FaceGen dock. v0.45 changes active custom GUI prefabs to native-inspired dark brown, stone, brass and parchment with measured font sizes, compact stat rows, centered responsive question controls and clear button labels. It removes the overlaid CU native header, preserves the original native layouts and defaults to the original game-owned 3D FaceGen camera.
+
+**Stats and age:** Skill level is still **0–330**, separate from **Focus** (native cap 5). A new age step after the game-owned life story offers **18–80 in one-year increments** through a native Gauntlet slider with a year-button fallback, committing the chosen birthday to the real Hero and preserving story rewards. Child-age limits are now computed from the younger actual parent minus 16 years, displayed before editing, and validated/clamped instead of failing late.
+
+**Build evidence:** [Windows run 44477842670](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44477842670), source commit `4a28300d407309719a12274f62e52468be0c165d`. **735 gameplay policy checks**, zero warnings/errors, native widget/age-slider metadata audit, source/XML creator checks, ZIP CRC and simulated installer passed. Compiled DLL SHA-256 `ab630c5ce3d9d3881dfba804c6c05990879ac0390493330fbef68a81d2980772`. Verified direct-install ZIP SHA-256 `68d19377f31e394322aa7ce937cf2cbc58f5fd8fd37ff80cca8a343f0176025a`.
+
+**Gate B, COMPILED_UNTESTED:** The provided screenshots refer to old v0.44 behavior. This new design and age slider have not been observed in a game session. Exact slider dragging, font clipping, FaceGen reappearance and child-age Hero persistence must be checked in a new Sandbox. The module manifest retains its prior development version number.
+
+[Detailed v0.45 changes and live acceptance](docs/V045_NATIVE_CREATOR_UI_AND_AGE_REPAIR.md) · [Draft pull request](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/76)
+
+---
+
 # Calradia Unified v0.44 development: aligned native creator control positions
 
 **Native layout alignment:** The original Bannerlord narrative, clan naming, review and difficulty controls now have a measured, bounded layout adjustment path compatible with the CU guided creator's header, 226px wide chapter rail, right context panel and footer. Native banner editor content, real 3D FaceGen and heraldry symbols remain game-owned and unshifted; original native Back/Continue footer controls receive measured alignment only where safe. Text-bearing native buttons can receive symmetric 12px interior label spacing, preserving long localized labels and click targets.

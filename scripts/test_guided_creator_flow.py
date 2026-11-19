@@ -30,7 +30,7 @@ assert 'CUNativeHouseLayer.Tick(screen,' in shell
 assert 'CUNativeHouseLayer.Clear();' in shell
 assert 'CUNativeStatsLayer.Tick(screen,' in shell
 assert 'if(profile.ProgressionMode!="Native" &&' in stats
-assert '"Keep native stats & continue"' in stats
+assert '"Confirm age & keep native stats"' in stats
 
 # World and role are the ONLY front-campaign questions. Fief and family
 # are added by a separate VM after the live player, native clan and banner.
@@ -58,7 +58,7 @@ assert 'SandboxFamilyHomePolicy.ValidateRequest(' in flow
 assert 'SandboxNativeStartOptions.TryPrepare(' in flow
 assert flow.index('SandboxNativeStartOptions.TryPrepare(')<flow.index('candidate.SaveForPlayer(')
 assert 'candidate.NativeStateShellEnabled=true;' in flow
-assert 'candidate.NativeFaceDockTrialEnabled=true;' in flow
+assert 'candidate.NativeFaceDockTrialEnabled=false;' in flow
 assert '"cu_guided_house_fortune_committed"' in flow
 assert 'ItemIds.Clear();' in profile and 'Overrides.Clear();' in profile
 assert 'Gold=-1;' in profile and 'Troops=0;' in profile

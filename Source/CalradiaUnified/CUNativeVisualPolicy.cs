@@ -28,13 +28,11 @@ namespace CalradiaUnified
 
         public static bool IsStandaloneNativeChrome(string name)
         {
-            // The culture picker has a focused CU movie with the same
-            // styling. FaceGen keeps the real native scene and sliders,
-            // with only a small noninteractive title. Never overlay an
-            // opaque new editor on either of these stages.
-            return IsNativeChapterStage(name) &&
-                name!="CharacterCreationCultureStage" &&
-                name!="CharacterCreationFaceGeneratorStage";
+            // Actual screenshots show the top overlay obscuring the real
+            // native Family/Banner/Review/Difficulty titles and menus.
+            // Native Gauntlet already owns those stone/wood layouts.
+            // Never draw a competing CU header on a game-owned stage.
+            return false;
         }
 
         public static bool ShouldShowChapterRail(string stage,int width)
