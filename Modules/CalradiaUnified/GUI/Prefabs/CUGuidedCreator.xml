@@ -21,7 +21,7 @@
           MarginTop="20" MarginBottom="20"
           HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="General\\CharacterCreation\\character_creation_background_gradient"
+            <Widget Sprite="General\CharacterCreation\character_creation_background_gradient"
               Color="#FFFFFFD9"
               WidthSizePolicy="Fixed" SuggestedWidth="226"
               HeightSizePolicy="Fixed" SuggestedHeight="527"
@@ -30,7 +30,7 @@
               WidthSizePolicy="Fixed" SuggestedWidth="226"
               HeightSizePolicy="Fixed" SuggestedHeight="3"
               PositionXOffset="8" PositionYOffset="92"/>
-            <Widget Sprite="General\\CharacterCreation\\character_creation_background_gradient"
+            <Widget Sprite="General\CharacterCreation\character_creation_background_gradient"
               Color="#FFFFFFD9"
               WidthSizePolicy="Fixed" SuggestedWidth="338"
               HeightSizePolicy="Fixed" SuggestedHeight="527"
@@ -81,7 +81,7 @@
               <Children>
                 <!-- Reuse Bannerlord's OWN textured escape-menu panel.
                      This source references the installed game atlas. -->
-                <Widget Sprite="SPGeneral\\EscapeMenu\\escape_panel"
+                <Widget Sprite="SPGeneral\EscapeMenu\escape_panel"
                   WidthSizePolicy="StretchToParent"
                   HeightSizePolicy="StretchToParent"/>
                 <Widget Sprite="BlankWhiteSquare_9" Color="#20181192"
