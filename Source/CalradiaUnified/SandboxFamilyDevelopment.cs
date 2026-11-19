@@ -69,10 +69,10 @@ namespace CalradiaUnified
                     SandboxFamilyDevelopmentPolicy.ResolveUpbringing(
                         scenario,upbringing)=="Kind")
                     slot=(slot+1)%Traits.Length;
-                var t=Traits[slot];
-                int current=h.GetTraitLevel(t);
+                var changedTrait=Traits[slot];
+                int current=h.GetTraitLevel(changedTrait);
                 int next=current>=2?-1:current+1;
-                h.SetTraitLevel(t,next);
+                h.SetTraitLevel(changedTrait,next);
                 uniquenessCorrections++;
             }
             DiagnosticJournal.Event("cu_family_personality_uniqueness",
