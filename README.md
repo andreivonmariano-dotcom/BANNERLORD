@@ -1,3 +1,15 @@
+# Calradia Unified v0.42 development: coherent styling across native creator screens
+
+**Q2 native visual match:** Every real native stage now receives an appropriate CU presentation: native-bound Culture keeps its full-screen CU chooser; FaceGen retains its genuine 3D renderer and native sliders; origins, banner, clan, final review and difficulty use the shared **91 px slate header, gold rule, five-chapter rail on wide screens, matching stage titles and context**. At 1366 px, large context panels are hidden to protect original controls. Native character creation remains game-owned. The visual chrome is read-only, requires no experimental switch, and cannot skip native callbacks. CU-guided World, stats, House and Fortune keep their existing native-inspired full-screen layout.
+
+**Build evidence:** [v0.42 Windows run 44463786087](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44463786087), source SHA `02e2de047b8416436e3fbf2976daffbfa7825b6e`, **693 gameplay policy checks**, zero compiler warnings/errors, pinned Bannerlord 1.5.7 API audit, CRC and installer simulation success. Compiled DLL SHA-256 `384b81812cc631306e1fc25c9c66ee6120aea9a0566c611424fc15ed41742d07`.
+
+**Gate B, COMPILED_UNTESTED:** Native narrative, banner, clan naming and difficulty buttons still use their original game-owned widget brushes and placement. The UI **shares CU framing, not pixel-identical controls**. Actual in-game resolution, focus, mouse and final map tests remain required. No claim of a persistent 3D preview or a new uninterrupted game-start cinematic path. Manifest remains `v0.38.0` for this development lineage.
+
+[Detailed change and visual acceptance contract](docs/V042_COHESIVE_NATIVE_CREATOR_CHROME.md) · [Q2 draft pull request](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/73)
+
+---
+
 # Calradia Unified v0.41 development: identity-first guided character creator
 
 The active main-menu **Sandbox** creator now begins with short **World and Starting Position** screens only. Bannerlord then owns the real **culture, appearance, life story, post-origins stats, banner and clan**. A second set of short guided CU screens runs **after banner and clan** for **spouse, children, fortune, fiefs and household residence**. Native review and difficulty remain the proper finalization path. The World and House/Fortune screens load the **same** `CUGuidedCreator.xml` full-screen charcoal/slate/gold layout with one relevant field at a time, automatic conditional screens, and Back/Continue/Escape navigation.
