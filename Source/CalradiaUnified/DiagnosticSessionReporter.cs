@@ -300,6 +300,32 @@ namespace CalradiaUnified
             }
             catch { }
         }
+        private static void TrimArchivedSessions()
+        {
+            try
+            {
+                string directory=Path.Combine(DiagnosticJournal.Root,
+                    "Sessions");
+                if(!Directory.Exists(directory))return;
+                // Retain all interrupted sessions not yet recovered.
+                // Only old, fully archived session folders are pruned.
+                foreach(string session in Directory.GetDirectories(directory)
+                    .OrderByDescending(x=>x,StringComparer.Ordinal)
+                    .Skip(MaxReports))
+                {
+                    if(File.Exists(Path.Combine(session,"active.marker")))
+                        continue;
+                    string id=Path.GetFileName(session);
+                    string closed=Path.Combine(ReportsDirectory,
+                        "CU-Session-"+id+"-CLOSED.zip");
+                    string interrupted=Path.Combine(ReportsDirectory,
+                        "CU-Session-"+id+"-INTERRUPTED.zip");
+                    if(File.Exists(closed)||File.Exists(interrupted))
+                        Directory.Delete(session,true);
+                }
+            }
+            catch { }
+        }
         public static void Start()
         {
             if(!DiagnosticJournal.Enabled)return;
@@ -310,6 +336,7 @@ namespace CalradiaUnified
                 {
                     Directory.CreateDirectory(SessionDirectory);
                     RecoverInterruptedSessions();
+                    TrimArchivedSessions();
                     File.WriteAllText(Path.Combine(
                         SessionDirectory,"active.marker"),
                         Process.GetCurrentProcess().Id.ToString(
@@ -367,6 +394,7 @@ namespace CalradiaUnified
                         "completed.marker"),Utc());
                     closed=true;
                     TrimReports();
+                    TrimArchivedSessions();
                 }
                 catch(Exception error)
                 {
