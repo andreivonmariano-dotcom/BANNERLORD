@@ -108,8 +108,8 @@
             <TextWidget Brush.FontSize="15" Text="@TargetHelp"
               Color="#E3C49CFF" IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="684"
-              HeightSizePolicy="Fixed" SuggestedHeight="47"
-              PositionXOffset="257" PositionYOffset="215"/>
+              HeightSizePolicy="Fixed" SuggestedHeight="30"
+              PositionXOffset="257" PositionYOffset="239"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#B7935BFF"
               WidthSizePolicy="Fixed" SuggestedWidth="690"
               HeightSizePolicy="Fixed" SuggestedHeight="2"
@@ -126,7 +126,7 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="215"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="254"
- PositionYOffset="148" Command.Click="ExecuteNative" IsSelected="@IsNativeMode" IsVisible="@IsStatsPage">
+ PositionYOffset="148" Command.Click="ExecuteNative" IsSelected="@IsNativeMode" IsVisible="@IsPlayerStatPage">
  <Children><TextWidget Brush.FontSize="17" Text="Use native stats" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
@@ -134,7 +134,7 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="215"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="475"
- PositionYOffset="148" Command.Click="ExecuteBalanced" IsSelected="@IsBalancedMode" IsVisible="@IsStatsPage">
+ PositionYOffset="148" Command.Click="ExecuteBalanced" IsSelected="@IsBalancedMode" IsVisible="@IsPlayerStatPage">
  <Children><TextWidget Brush.FontSize="17" Text="Balanced | 30 points" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
@@ -142,12 +142,12 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="215"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="696"
- PositionYOffset="148" Command.Click="ExecuteUnrestricted" IsSelected="@IsUnrestrictedMode" IsVisible="@IsStatsPage">
+ PositionYOffset="148" Command.Click="ExecuteUnrestricted" IsSelected="@IsUnrestrictedMode" IsVisible="@IsPlayerStatPage">
  <Children><TextWidget Brush.FontSize="17" Text="Unrestricted" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
-            <TextWidget Brush.FontSize="16" Text="@ModeDescription" IsVisible="@IsStatsPage" Color="#E8D9C1FF"
+            <TextWidget Brush.FontSize="16" Text="@ModeDescription" IsVisible="@IsPlayerStatPage" Color="#E8D9C1FF"
               WidthSizePolicy="Fixed" SuggestedWidth="659"
               HeightSizePolicy="Fixed" SuggestedHeight="42"
               PositionXOffset="257" PositionYOffset="195"/>
