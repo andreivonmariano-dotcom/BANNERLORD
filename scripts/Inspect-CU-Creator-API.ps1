@@ -99,6 +99,15 @@ try {
                     $lines.Add('  PROPERTY ' + $property.ToString())
                 }
             } catch { $lines.Add('  NOTE: property metadata unavailable: ' + $_.Exception.Message) }
+            # Audit the exact selected narrative history containers. Do not
+            # guess private field names from another Bannerlord build.
+            if ($type.Name -match 'CharacterCreationManager|NarrativeMenuOption|NarrativeStageVM') {
+                try {
+                    foreach ($field in $type.GetFields($flags)) {
+                        $lines.Add('  FIELD ' + $field.ToString())
+                    }
+                } catch { $lines.Add('  NOTE: private fields unavailable: ' + $_.Exception.Message) }
+            }
             try {
                 foreach ($method in $type.GetMethods($flags)) {
                     if (-not $method.IsSpecialName) {
