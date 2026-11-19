@@ -52,6 +52,13 @@ handle=next(w for w in sl.iter("ButtonWidget")
 assert handle.get("Brush")=="ButtonBrush"
 assert "ReadNativeSliderValue();" in stats
 assert '"CUPlayerAgeSlider",true' in stats
+assert "FindSliderWidget(movie.Movie.RootWidget)" in stats
+assert 'GetMethod("FindChild",' in stats
+assert 'GetMethod("GetChild",' in stats
+assert 'GetMethod("GetChildAt",' in stats
+assert "FindSliderInTree(root,0)" in stats
+assert 'source=real_gauntlet_tree' in stats
+assert 'fallback=one_year_buttons' in stats
 assert "cu_native_age_slider_drag" in stats
 assert "public int PlayerAge" in stats
 assert "ExecuteAgeIncrease" in stats and "ExecuteAgeDecrease" in stats
