@@ -12,6 +12,99 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native content alignment targets story clan review and difficulty",
+            CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationNarrativeStage") &&
+            CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationClanNamingStage") &&
+            CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationReviewStage") &&
+            CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationOptionsStage"));
+        Check("native banner, FaceGen and culture panels are never moved",
+            !CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationBannerEditorStage") &&
+            !CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationFaceGeneratorStage") &&
+            !CUNativeLayoutPolicy.CanMovePrimaryPanel(
+                "CharacterCreationCultureStage"));
+        Check("all five existing native stages can align real footer buttons",
+            CUNativeLayoutPolicy.CanAlignNativeFooter(
+                "CharacterCreationNarrativeStage") &&
+            CUNativeLayoutPolicy.CanAlignNativeFooter(
+                "CharacterCreationBannerEditorStage") &&
+            CUNativeLayoutPolicy.CanAlignNativeFooter(
+                "CharacterCreationClanNamingStage") &&
+            CUNativeLayoutPolicy.CanAlignNativeFooter(
+                "CharacterCreationReviewStage") &&
+            CUNativeLayoutPolicy.CanAlignNativeFooter(
+                "CharacterCreationOptionsStage"));
+        Check("CU compact and wide native content left inset matches guide",
+            CUNativeLayoutPolicy.ContentLeft(1366)==28 &&
+            CUNativeLayoutPolicy.ContentLeft(1920)==260 &&
+            CUNativeLayoutPolicy.ContentRight(1920)==1562 &&
+            CUNativeLayoutPolicy.ContentBottom(1080)==987);
+        float moveX,moveY;
+        Check("native narrative content clears CU wide sidebar/header",
+            CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationNarrativeStage",1920,1080,
+                180,95,900,600,out moveX,out moveY) &&
+            moveX==80 && moveY==21);
+        Check("fitting native panels preserve their original position",
+            !CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationNarrativeStage",1920,1080,
+                300,130,900,600,out moveX,out moveY) &&
+            moveX==0 && moveY==0);
+        Check("native 1366 content receives only measured small corrections",
+            CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationNarrativeStage",1366,768,
+                20,60,830,500,out moveX,out moveY) &&
+            moveX==8 && moveY==56);
+        Check("native panel that cannot fit vertical area stays game-owned",
+            !CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationNarrativeStage",1366,768,
+                30,60,830,600,out moveX,out moveY));
+        Check("wide content repositions away from right-hand CU context",
+            CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationReviewStage",1920,1080,
+                1300,150,500,500,out moveX,out moveY) &&
+            moveX==-238 && moveY==0);
+        Check("out of range large primary-panel movement is refused",
+            !CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationReviewStage",1920,1080,
+                0,130,900,500,out moveX,out moveY));
+        Check("native scene and banner are never relocated by primary policy",
+            !CUNativeLayoutPolicy.TryPlanPrimary(
+                "CharacterCreationBannerEditorStage",1920,1080,
+                180,95,900,600,out moveX,out moveY));
+        Check("native Back footer matches CU left 29px and bottom 24px",
+            CUNativeLayoutPolicy.TryPlanFooter(
+                "CharacterCreationNarrativeStage",1920,1080,
+                44,1000,170,50,out moveX,out moveY) &&
+            moveX==-15 && moveY==6);
+        Check("native Continue footer matches CU right 31px and bottom 24px",
+            CUNativeLayoutPolicy.TryPlanFooter(
+                "CharacterCreationOptionsStage",1920,1080,
+                1700,1000,190,52,out moveX,out moveY) &&
+            moveX==-1 && moveY==4);
+        Check("central narrative controls never look like footer buttons",
+            !CUNativeLayoutPolicy.TryPlanFooter(
+                "CharacterCreationNarrativeStage",1920,1080,
+                800,1000,190,52,out moveX,out moveY));
+        Check("wildly displaced footer buttons are not relocated",
+            !CUNativeLayoutPolicy.TryPlanFooter(
+                "CharacterCreationNarrativeStage",1920,1080,
+                210,1000,170,50,out moveX,out moveY));
+        Check("native root must match the physical unscaled viewport",
+            CUNativeLayoutPolicy.RootMatchesResolution(1920,1080,1920,1080) &&
+            !CUNativeLayoutPolicy.RootMatchesResolution(
+                1200,675,1920,1080));
+        Check("smaller and invalid resolutions fail without layout changes",
+            !CUNativeLayoutPolicy.IsViewportSupported(1024,768) &&
+            !CUNativeLayoutPolicy.IsViewportSupported(1366,600) &&
+            !CUNativeLayoutPolicy.RootMatchesResolution(
+                Single.NaN,1080,1920,1080));
+
         Check("native skin targets game-owned story/house/legacy stages",
             CUNativeWidgetSkinPolicy.CanSkin(
                 "CharacterCreationNarrativeStage") &&
