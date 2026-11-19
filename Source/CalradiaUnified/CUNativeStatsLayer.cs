@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -567,34 +566,24 @@ namespace CalradiaUnified
             if(manager==null) return "Native background history unavailable.";
             try
             {
-                var type=manager.GetType();
+                // Verified from Bannerlord.ReferenceAssemblies
+                // 1.5.7.125802: CharacterCreationManager.SelectedOptions
+                // is a private Dictionary<NarrativeMenu,NarrativeMenuOption>.
+                // Read actual chosen effects without changing the narrative.
                 var flags=BindingFlags.Public|BindingFlags.NonPublic|
                     BindingFlags.Instance;
-                object selected=null;
-                var prop=type.GetProperty("SelectedOptions",flags);
-                if(prop!=null && prop.GetIndexParameters().Length==0)
-                    selected=prop.GetValue(manager,null);
+                var field=typeof(CharacterCreationManager).GetField(
+                    "SelectedOptions",flags);
+                var selected=field==null ? null :
+                    field.GetValue(manager) as
+                        IDictionary<NarrativeMenu,NarrativeMenuOption>;
                 if(selected==null)
-                {
-                    var field=type.GetField("_selectedOptions",flags) ??
-                        type.GetField("SelectedOptions",flags);
-                    if(field!=null) selected=field.GetValue(manager);
-                }
-                var list=selected as IEnumerable;
-                if(list==null)
                     return "Native background bonuses: current Hero values " +
                         "are shown below. Detailed selection history is " +
                         "not exposed in this build.";
                 var descriptions=new List<string>();
-                foreach(object item in list)
+                foreach(var option in selected.Values)
                 {
-                    NarrativeMenuOption option=item as NarrativeMenuOption;
-                    if(option==null && item!=null)
-                    {
-                        var value=item.GetType().GetProperty("Value");
-                        if(value!=null)
-                            option=value.GetValue(item,null) as NarrativeMenuOption;
-                    }
                     if(option==null || option.PositiveEffectText==null)
                         continue;
                     string text=option.PositiveEffectText.ToString();
