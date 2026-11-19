@@ -75,6 +75,14 @@ assert 'property.SetValue(widget,own,null);' in skin
 assert 'changes.Add(new Change(widget,property,original));' in skin
 assert 'item.Property.SetValue(item.Target,item.Original,null);' in skin
 assert 'Input.IsKeyReleased(InputKey.F10)' in skin
+assert 'if(++refreshTicks>=18)' in skin
+assert 'HashSet<Widget> processedWidgets' in skin
+assert '"cu_native_widget_skin_refreshed"' in skin
+assert 'if(!HasTextChild(widget))return false;' in skin
+assert 'foreach(Widget child in widget.GetAllChildrenRecursive())' in skin
+assert 'CUNativeWidgetSkinPolicy.MaxWidgetsPerStage' in skin
+assert 'Brush local=original.Clone();' in skin
+assert 'local.FontColor=next;' in skin
 assert "cu_native_widget_skin_applied" in skin
 assert "cu_native_widget_skin_restored" in skin
 assert "cu_native_widget_skin_unavailable" in skin
