@@ -63,7 +63,8 @@ namespace CalradiaUnified
                 "|upbringing="+upbringing+"|traits="+TraitsText(h)+
                 "|parental_inheritance="+(mother!=null && father!=null));
         }
-        private static int Train(Hero h,string upbringing)
+        private static int Train(Hero h,string upbringing,
+            Hero father=null,Hero mother=null,bool generatedChild=false)
         {
             if(h==null || h.HeroDeveloper==null)
                 throw new InvalidOperationException(
@@ -91,19 +92,59 @@ namespace CalradiaUnified
             }
             var random=RandomHero();
             var names=SandboxFamilyDevelopmentPolicy.Training(upbringing);
-            for(int i=0;i<names.Length;i++)
+            if(generatedChild)
             {
-                var property=typeof(DefaultSkills).GetProperty(names[i],
-                    BindingFlags.Public|BindingFlags.Static);
-                var skill=property==null?null:
-                    property.GetValue(null,null) as SkillObject;
-                if(skill==null)
-                    throw new InvalidOperationException(
-                        "Native skill missing: "+names[i]);
-                int level=SandboxFamilyDevelopmentPolicy.SkillLevel(
-                    (int)h.Age,i,random.Next(15));
-                if(level>h.GetSkillValue(skill))
-                    h.HeroDeveloper.SetInitialSkillLevel(skill,level);
+                // The donor child template's skill vector must not
+                // determine the character. Train ALL 18 skills using
+                // parents' final skills, age and upbringing. This removes
+                // both zero-stat adults and 18-year-olds with 150+ skills.
+                foreach(string name in SandboxOriginProfile.Skills)
+                {
+                    var property=typeof(DefaultSkills).GetProperty(name,
+                        BindingFlags.Public|BindingFlags.Static);
+                    var skill=property==null?null:
+                        property.GetValue(null,null) as SkillObject;
+                    if(skill==null)throw new InvalidOperationException(
+                        "Native child skill missing: "+name);
+                    int fatherValue=father==null?0:father.GetSkillValue(skill);
+                    int motherValue=mother==null?0:mother.GetSkillValue(skill);
+                    int before=h.GetSkillValue(skill);
+                    bool trained=names.Contains(name);
+                    int target=SandboxFamilySkillInheritancePolicy
+                        .SuggestedSkill((int)h.Age,fatherValue,motherValue,
+                            trained,random.Next(10));
+                    // Only newly generated children are set to this
+                    // age-bound target. Ordinary Heroes and future game
+                    // training are never overwritten.
+                    h.HeroDeveloper.SetInitialSkillLevel(skill,target);
+                    DiagnosticJournal.Event("cu_family_inherited_skill",
+                        "hero="+h.StringId+"|skill="+name+
+                        "|age="+h.Age+
+                        "|old_template="+before+
+                        "|father="+fatherValue+"|mother="+motherValue+
+                        "|upbringing="+upbringing+
+                        "|trained="+trained+"|applied="+
+                        h.GetSkillValue(skill));
+                }
+            }
+            else
+            {
+                // Existing native adult spouse templates keep their
+                // developed careers; training only tops up gaps.
+                for(int i=0;i<names.Length;i++)
+                {
+                    var property=typeof(DefaultSkills).GetProperty(names[i],
+                        BindingFlags.Public|BindingFlags.Static);
+                    var skill=property==null?null:
+                        property.GetValue(null,null) as SkillObject;
+                    if(skill==null)
+                        throw new InvalidOperationException(
+                            "Native skill missing: "+names[i]);
+                    int level=SandboxFamilyDevelopmentPolicy.SkillLevel(
+                        (int)h.Age,i,random.Next(15));
+                    if(level>h.GetSkillValue(skill))
+                        h.HeroDeveloper.SetInitialSkillLevel(skill,level);
+                }
             }
             int positive=0;
             foreach(string name in SandboxOriginProfile.Skills)
@@ -157,7 +198,7 @@ namespace CalradiaUnified
                 p.FamilyScenario,plan.Upbringing);
             Personality(h,mother,father,p.FamilyScenario,
                 plan.Upbringing,false,index);
-            if(h.Age>=6f)Train(h,upbringing);
+            if(h.Age>=6f)Train(h,upbringing,father,mother,true);
             var random=RandomHero();
             int baseline=SandboxFamilyDevelopmentPolicy.ChildRelationBase(
                 p.FamilyScenario);
