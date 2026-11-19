@@ -1599,6 +1599,82 @@ internal static class Program
             Check("diagnostic exception CSV preserves escaped commas",
                 System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "exceptions.csv"))
                     .Contains("Mock crash with comma, and quotes"));
+            // The report for a native hard crash is recovered on next
+            // launch from its active.marker and already-flushed CSV.
+            string previousSession = System.IO.Path.Combine(
+                tempDiagnostic,"Sessions","20261118T100000_deadbeef");
+            System.IO.Directory.CreateDirectory(previousSession);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"active.marker"),"0");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"events.csv"),
+                "utc,session_id,context,detail\n"+
+                "2026-11-18,prior,creator_page,age_to_stats_crashed\n");
+            string fakeGame=System.IO.Path.Combine(
+                tempDiagnostic,"mock-game-root");
+            DiagnosticSessionReporter.OverrideGameRootForTests=fakeGame;
+            Check("known game path can be set for session report",
+                DiagnosticSessionReporter.ResolveGameRoot()==fakeGame);
+            DiagnosticSessionReporter.Start();
+            string reports=DiagnosticSessionReporter.ReportsDirectory;
+            string recovered=System.IO.Path.Combine(reports,
+                "CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip");
+            Check("next launch creates ZIP for interrupted prior session",
+                System.IO.File.Exists(recovered) &&
+                !System.IO.File.Exists(System.IO.Path.Combine(
+                    previousSession,"active.marker")) &&
+                System.IO.File.Exists(System.IO.Path.Combine(
+                    previousSession,"recovered.marker")));
+            using(var archive=System.IO.Compression.ZipFile.OpenRead(
+                recovered))
+            {
+                Check("recovery report contains the prior session journal",
+                    archive.Entries.Any(e=>e.FullName=="events.csv") &&
+                    archive.Entries.Any(e=>e.FullName=="recovery-info.txt"));
+            }
+            DiagnosticJournal.Event("gameplay_test_event",
+                "after_age_screen=stats_page");
+            DiagnosticSessionReporter.Heartbeat(
+                "campaign_active=true|test_heartbeat=true");
+            DiagnosticSessionReporter.Complete("unit_test_normal_exit");
+            string current=System.IO.Path.Combine(reports,
+                "CU-Session-"+DiagnosticJournal.CurrentSessionId+
+                "-CLOSED.zip");
+            Check("normal exit packages current session to private ZIP",
+                System.IO.File.Exists(current) &&
+                !System.IO.File.Exists(System.IO.Path.Combine(
+                    DiagnosticSessionReporter.SessionDirectory,
+                    "active.marker")) &&
+                System.IO.File.Exists(System.IO.Path.Combine(
+                    DiagnosticSessionReporter.SessionDirectory,
+                    "completed.marker")));
+            using(var archive=System.IO.Compression.ZipFile.OpenRead(
+                current))
+            {
+                Check("normal report includes session events and metadata",
+                    archive.Entries.Any(e=>e.FullName=="events.csv") &&
+                    archive.Entries.Any(e=>e.FullName=="runtime-info.txt") &&
+                    archive.Entries.Any(e=>e.FullName=="README.txt"));
+                Check("normal report excludes raw memory and saves",
+                    !archive.Entries.Any(e=>
+                        e.FullName.EndsWith(".dmp",
+                            StringComparison.OrdinalIgnoreCase) ||
+                        e.FullName.EndsWith(".sav",
+                            StringComparison.OrdinalIgnoreCase)));
+            }
+            Check("local latest report pointer refers to successful ZIP",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(
+                    tempDiagnostic,"latest-report.txt"))==current);
+            DiagnosticSessionReporter.OverrideGameRootForTests=null;
+            string autoConfig=System.IO.Path.Combine(tempDiagnostic,
+                "auto-report-test.ini");
+            System.IO.File.WriteAllText(autoConfig,
+                "EnableDiagnostics=true\nAutoSessionReports=false\n");
+            Check("automatic session reports default on but can be disabled",
+                new Settings().AutoSessionReports &&
+                !Settings.LoadFromPaths(
+                    System.IO.Path.Combine(tempDiagnostic,"not-there.ini"),
+                    autoConfig).AutoSessionReports);
             string exported = DiagnosticJournal.ExportSnapshot();
             Check("diagnostic export contains finance and crash evidence",
                 System.IO.File.Exists(System.IO.Path.Combine(exported, "finance.csv")) &&
