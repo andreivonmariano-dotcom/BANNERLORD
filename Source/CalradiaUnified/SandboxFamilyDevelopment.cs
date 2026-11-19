@@ -81,12 +81,12 @@ namespace CalradiaUnified
                 if(attribute==null)
                     throw new InvalidOperationException(
                         "Native attribute missing: "+name);
-                int actual=h.HeroDeveloper.GetAttributeValue(attribute);
+                int actual=h.GetAttributeValue(attribute);
                 int minimum=h.Age>=18f?2:1;
                 if(actual<minimum)
                     h.HeroDeveloper.AddAttribute(
                         attribute,minimum-actual,false);
-                if(h.HeroDeveloper.GetAttributeValue(attribute)>0)
+                if(h.GetAttributeValue(attribute)>0)
                     positiveAttributes++;
             }
             var random=RandomHero();
