@@ -227,20 +227,16 @@ namespace CalradiaUnified
                 {
                     if(!processedWidgets.Add(widget))continue;
                     string type=widget.GetType().Name;
-                    if(stage=="CharacterCreationClanNamingStage" &&
-                        (type.IndexOf("EditableText",
-                            StringComparison.OrdinalIgnoreCase)>=0 ||
-                         type.IndexOf("InputText",
-                            StringComparison.OrdinalIgnoreCase)>=0))
+                    if(CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                        stage,type))
                     {
                         if(TryPrivateUtilityBrush(widget,
                             "#455568FF","#F1DEBEFF"))
                             paintedInputs++;
                         continue;
                     }
-                    if(stage=="CharacterCreationOptionsStage" &&
-                        type.IndexOf("Slider",
-                            StringComparison.OrdinalIgnoreCase)>=0)
+                    if(CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                        stage,type))
                     {
                         if(TryPrivateUtilityBrush(widget,
                             "#D7B17AFF","#F1DEBEFF"))
