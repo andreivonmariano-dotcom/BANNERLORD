@@ -19,7 +19,8 @@
           MaxHeight="960" MarginTop="20" MarginBottom="20"
           HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#271E16F6"
+            <Widget Sprite="General\\CharacterCreation\\character_creation_background_gradient"
+              Color="#FFFFFFD9"
               WidthSizePolicy="Fixed" SuggestedWidth="226"
               HeightSizePolicy="Fixed" SuggestedHeight="527"
               PositionXOffset="8" PositionYOffset="92"/>
@@ -27,7 +28,8 @@
               WidthSizePolicy="Fixed" SuggestedWidth="226"
               HeightSizePolicy="Fixed" SuggestedHeight="3"
               PositionXOffset="8" PositionYOffset="92"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#302319F7"
+            <Widget Sprite="General\\CharacterCreation\\character_creation_background_gradient"
+              Color="#FFFFFFD9"
               WidthSizePolicy="Fixed" SuggestedWidth="338"
               HeightSizePolicy="Fixed" SuggestedHeight="527"
               PositionYOffset="92" HorizontalAlignment="Right"
@@ -120,10 +122,10 @@
               PositionXOffset="251" PositionYOffset="210"
               IsVisible="@IsAgePage">
               <Children>
-                <Widget Sprite="BlankWhiteSquare_9" Color="#A6824DFF"
+                <Widget Sprite="SPGeneral\\EscapeMenu\\escape_panel"
                   WidthSizePolicy="StretchToParent"
                   HeightSizePolicy="StretchToParent"/>
-                <Widget Sprite="BlankWhiteSquare_9" Color="#281D14FF"
+                <Widget Sprite="BlankWhiteSquare_9" Color="#281D1494"
                   WidthSizePolicy="Fixed" SuggestedWidth="686"
                   HeightSizePolicy="Fixed" SuggestedHeight="369"
                   PositionXOffset="2" PositionYOffset="2"/>
