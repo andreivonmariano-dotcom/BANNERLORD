@@ -30,10 +30,12 @@ namespace CalradiaUnified
         {
             base.OnApplicationTick(dt);
             SandboxCreatorOverlay.Tick();
+            CUNativeStateShell.Tick();
         }
 
         public override void OnGameEnd(Game game)
         {
+            CUNativeStateShell.Clear();
             SandboxCreatorOverlay.Clear();
             base.OnGameEnd(game);
         }
