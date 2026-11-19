@@ -94,6 +94,48 @@ internal static class Program
         Check("fresh campaign clears stat changes and uses native",
             storedStats.ProgressionMode=="Native" &&
             storedStats.Overrides.Count==0);
+        var newFounder=new SandboxOriginProfile();
+        newFounder.TrySet("SpouseEnabled","true");
+        newFounder.TrySet("SpouseAge","50");
+        newFounder.TrySet("ChildCount","1");
+        newFounder.TrySet("Child.1.Age","19");
+        string founderAgeError;
+        Check("family validity checks the actual player age",
+            !newFounder.IsValid(30,out founderAgeError) &&
+            newFounder.IsValid(45,out founderAgeError));
+        var savedFounder=System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "CU-Guided-Family-"+Guid.NewGuid().ToString("N"),"profile.ini");
+        try
+        {
+            Check("post-identity save uses real founder age not age 30",
+                newFounder.SaveForPlayer(savedFounder,45,
+                    out founderAgeError) &&
+                SandboxOriginProfile.Load(savedFounder).ChildCount==1 &&
+                SandboxOriginProfile.Load(savedFounder).Children[0].Age==19);
+        }
+        finally
+        {
+            var dir=System.IO.Path.GetDirectoryName(savedFounder);
+            if(System.IO.Directory.Exists(dir))
+                System.IO.Directory.Delete(dir,true);
+        }
+        var stale=new SandboxOriginProfile();
+        stale.TrySet("Gold","50000");
+        stale.TrySet("Influence","200");
+        stale.TrySet("Troops","10");
+        stale.TrySet("WorldSeed","44");
+        stale.TrySet("StartFastMode","true");
+        stale.TrySet("Item.1","grain");
+        stale.ResetForNewCampaign();
+        Check("fresh guided start clears hidden resource/item grants",
+            stale.Gold==-1 && stale.Influence==-1 &&
+            stale.Troops==0 && stale.ItemIds.Count==0 &&
+            stale.WorldSeed==-1 && !stale.StartFastMode);
+        Check("nonfamily creator remains independent of native clan",
+            !stale.SpouseEnabled && stale.ChildCount==0 &&
+            stale.StartingFiefMode=="Native" &&
+            !stale.AllowStartingFiefTransfer);
         Check("all five traits have effect descriptions",
             System.Array.TrueForAll(SandboxOriginProfile.Traits,
                 name=>SandboxStatBudgetPolicy.TraitDescription(name).Length>48));
