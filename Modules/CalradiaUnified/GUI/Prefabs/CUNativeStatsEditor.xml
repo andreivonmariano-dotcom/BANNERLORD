@@ -197,6 +197,28 @@
               HeightSizePolicy="Fixed" SuggestedHeight="268"
               HorizontalAlignment="Right" PositionXOffset="-24"
               PositionYOffset="169"/>
+            <ButtonWidget Brush="ButtonBrush"
+              DoNotPassEventsToChildren="true" UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="148"
+              HeightSizePolicy="Fixed" SuggestedHeight="39"
+              HorizontalAlignment="Right" PositionXOffset="-182"
+              PositionYOffset="443" Command.Click="ExecutePreviousBonus">
+              <Children><TextWidget Text="Previous bonuses" Color="#F1DEBEFF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+              DoNotPassEventsToChildren="true" UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="148"
+              HeightSizePolicy="Fixed" SuggestedHeight="39"
+              HorizontalAlignment="Right" PositionXOffset="-25"
+              PositionYOffset="443" Command.Click="ExecuteNextBonus">
+              <Children><TextWidget Text="Next bonuses" Color="#F1DEBEFF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
             <TextWidget Text="Native rewards are preserved. Trait influence on dialogue and relations depends on the event."
               Color="#C3C9D1FF" WidthSizePolicy="Fixed"
               SuggestedWidth="298" HeightSizePolicy="Fixed"
