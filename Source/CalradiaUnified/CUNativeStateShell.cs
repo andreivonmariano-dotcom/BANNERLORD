@@ -77,7 +77,9 @@ namespace CalradiaUnified
                 var profile = SandboxOriginProfile.Load(
                     SandboxOriginProfile.UserPath);
                 if (!NativeStateShellPolicy.CanAttach(
-                    profile.NativeStateShellEnabled, profile.Enabled,
+                    profile.NativeStateShellEnabled &&
+                    SandboxCreatorOverlay.HasAcceptedCustomStart,
+                    profile.Enabled,
                     active != null, screen != null,
                     profile.NativeFaceWorkshopEnabled,
                     profile.NativeIntegrationReviewEnabled))
