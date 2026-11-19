@@ -45,6 +45,8 @@ namespace CalradiaUnified
         // Experimental native face-editor composition within a CU stage.
         // Off by default, separate from the v0.29 review trial.
         public bool NativeFaceWorkshopEnabled;
+        // Opt-in persistent native-state CU ribbon. Never overrides stage views.
+        public bool NativeStateShellEnabled;
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
@@ -152,6 +154,7 @@ namespace CalradiaUnified
             NativeStageEnabled=false;
             NativeIntegrationReviewEnabled=false;
             NativeFaceWorkshopEnabled=false;
+            NativeStateShellEnabled=false;
             RealFamilyEnabled=false;
             RoleAffiliationsEnabled=false;
             SpouseEnabled=false;
@@ -228,6 +231,9 @@ namespace CalradiaUnified
                 case "NativeFaceWorkshopEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     NativeFaceWorkshopEnabled = b; return true;
+                case "NativeStateShellEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    NativeStateShellEnabled = b; return true;
                 case "RealFamilyEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     RealFamilyEnabled = b; return true;
@@ -490,6 +496,8 @@ namespace CalradiaUnified
                     NativeIntegrationReviewEnabled.ToString().ToLowerInvariant(),
                 "NativeFaceWorkshopEnabled=" +
                     NativeFaceWorkshopEnabled.ToString().ToLowerInvariant(),
+                "NativeStateShellEnabled=" +
+                    NativeStateShellEnabled.ToString().ToLowerInvariant(),
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,

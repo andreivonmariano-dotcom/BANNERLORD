@@ -1,3 +1,17 @@
+# Calradia Unified v0.34.0 | Real Native-State Culture and Face Shell Pilot
+
+**Game:** Bannerlord PC v1.5.7.125802. **Status:** an opt-in, read-only CU stage ribbon that attaches to the real engine `CharacterCreationScreen`. **The native wizard still appears.** This is a vertical integration prototype, not the requested complete one-screen creator.
+
+A new `NativeStateShellEnabled` option under **Starting Life → More options** lets the game overlay a nonfocus CU ribbon on the existing native character-creation screen. It reads actual `CharacterCreationManager.CurrentStage` and `CharacterCreationContent.SelectedCulture` as the native Culture, 3D FaceGen, origins, banner, clan and difficulty stages advance. It does not replace game views, intercept native controls, add fake Heroes or instantiate another face editor. It is **OFF by default** for each new campaign and cannot be combined with the old separate CU Face Workshop or 3D Review experiments.
+
+This build follows the locked five-page CU design and its future three-region viewport plan. Full native culture and face controls must later be shown within one persistent CU screen, followed by origins, banner/clan and difficulty. **Never advertise a second-screen removal until the actual game opens directly to the map from one CU Finish action.**
+
+[Technical v0.34 contract and runtime checks](docs/V034_NATIVE_STATE_SHELL_CULTURE_FACE.md) · [v0.33 UI contract](docs/V033_THREE_LOCKED_CREATOR_UI_DECISIONS.md)
+
+---
+
+## Previous v0.33 candidate
+
 # Calradia Unified v0.33.0 | Locked Sandbox Flow and Honest Feature Availability
 
 **Target:** Bannerlord PC v1.5.7.125802. **Status:** new UI candidate, native screens still follow the CU pregame creator. The real one-screen integration is not delivered by v0.33.

@@ -51,7 +51,8 @@ assert "NativeIntegrationReviewEnabled=false;" in profile
 assert 'case "NativeIntegrationReviewEnabled":' in profile
 assert '"NativeIntegrationReviewEnabled=" +' in profile
 assert 'if (key == "NativeIntegrationReviewEnabled" ||' in creator
-assert 'key == "NativeFaceWorkshopEnabled")' in creator
+assert 'key == "NativeFaceWorkshopEnabled" ||' in creator
+assert 'key == "NativeStateShellEnabled")' in creator
 assert 'return advancedFieldsVisible;' in creator
 assert "originProfile.NativeIntegrationReviewEnabled &&" in behavior
 assert "manager.GetStage<CharacterCreationCultureStage>() != null" in behavior

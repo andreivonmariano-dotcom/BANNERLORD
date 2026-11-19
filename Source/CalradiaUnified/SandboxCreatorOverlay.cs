@@ -259,6 +259,9 @@ namespace CalradiaUnified
                 new Field("Identity","NativeFaceWorkshopEnabled",
                     "Experimental: edit live 3D face in CU workshop",
                     "boolean"),
+                new Field("Identity","NativeStateShellEnabled",
+                    "Experimental: show CU ribbon throughout native creator",
+                    "boolean"),
                 new Field("Identity","PlayerAge",
                     "Starting age (use native creator)","unavailable"),
                 new Field("Household","SpouseEnabled",
@@ -384,7 +387,8 @@ namespace CalradiaUnified
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
             if (key == "NativeIntegrationReviewEnabled" ||
-                key == "NativeFaceWorkshopEnabled")
+                key == "NativeFaceWorkshopEnabled" ||
+                key == "NativeStateShellEnabled")
                 return advancedFieldsVisible;
             if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
@@ -578,6 +582,7 @@ namespace CalradiaUnified
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
                 if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
                 if (key=="NativeFaceWorkshopEnabled") return "Experimental 3D prototype, OFF by default. Adds a CU-branded face editor after the native pages. Edits real player body properties, but this does NOT yet remove the native wizard. Do not enable together with CU 3D Review.";
+                if (key=="NativeStateShellEnabled") return "Experimental and OFF by default. Shows a read-only CU navigation ribbon INSIDE the true native CharacterCreationScreen during culture, face, origins, banner and difficulty. The game keeps its native controls and separate pages. Do not combine with extra CU 3D stages.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="PlayerAge") return "Unavailable here: choose your actual player age using Bannerlord\'s native character creation until the CU native-state bridge is finished.";
                 if (key=="SiblingCount") return "Unavailable: sibling creation requires real native parent Heroes. This build never adds placeholder relatives.";
@@ -973,6 +978,13 @@ namespace CalradiaUnified
                 SetStatus("Choose one experimental 3D stage: CU Face Workshop OR CU 3D Review.");
                 return;
             }
+            if (candidate.NativeStateShellEnabled &&
+                (candidate.NativeFaceWorkshopEnabled ||
+                 candidate.NativeIntegrationReviewEnabled))
+            {
+                SetStatus("CU native-state shell cannot be combined with a separate extra 3D stage.");
+                return;
+            }
             // A deliberate spouse/children choice is an actual native family
             // request. Do not leave users with a decorative family profile.
             candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
@@ -1045,6 +1057,7 @@ namespace CalradiaUnified
                 "|native_face_header="+profile.NativeStageEnabled+
                 "|native_cu_review="+profile.NativeIntegrationReviewEnabled+
                 "|native_face_workshop="+profile.NativeFaceWorkshopEnabled+
+                "|native_state_shell="+profile.NativeStateShellEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }

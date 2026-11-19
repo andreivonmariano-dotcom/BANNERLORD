@@ -7,6 +7,7 @@ param(
     [string]$ExpectedDllSha256 = "",
     [ValidateRange(-1,6)][int]$ExpectedChildren = -1,
     [switch]$RequireNativeReview,
+    [switch]$RequireNativeShell,
     [ValidateRange(-1,12)][int]$ExpectedPortraits = -1,
     [string]$EventsCsv = "",
     [string]$ExceptionsCsv = "",
@@ -113,6 +114,8 @@ $nativeReviewAttached = Event-Last $session 'cu_native_review_attached'
 $nativeReviewLoaded = Event-Last $session 'cu_native_review_view_loaded'
 $nativeReviewSkipped = Event-Last $session 'cu_native_review_skipped'
 $nativeReviewFallback = Event-Last $session 'cu_native_review_summary_fallback'
+$nativeShellAttached = Event-Last $session 'cu_native_state_shell_attached'
+$nativeShellFailed = Event-Last $session 'cu_native_state_shell_failed'
 $galleryOpened = Event-Last $session 'cu_family_portraits_open'
 $galleryFailed = Event-Last $session 'cu_family_portrait_screen_failed'
 
@@ -164,6 +167,15 @@ if ($RequireNativeReview) {
             $nativeReviewFallback.detail)
     }
 }
+if ($RequireNativeShell) {
+    if ($null -eq $nativeShellAttached) {
+        $issues.Add('Expected opt-in CU native-state shell was not attached')
+    }
+    if ($null -ne $nativeShellFailed) {
+        $issues.Add('CU native-state shell reported failure: ' +
+            $nativeShellFailed.detail)
+    }
+}
 if ($ExpectedPortraits -ge 0) {
     if ($null -eq $galleryOpened) {
         $issues.Add('Expected real-Hero portrait gallery was not opened in this logged session')
@@ -206,6 +218,7 @@ if ($sessionUtc) {
     Write-Host "Family residence: $(if ($null -ne $homeEvent) { $homeEvent.detail } elseif ($null -ne $homeStatus) { $homeStatus.detail } else { 'not logged' })"
     Write-Host "CU native review stage: $(if ($null -ne $nativeReviewLoaded) { 'view loaded' } elseif ($null -ne $nativeReviewAttached) { 'attached, view not logged' } elseif ($null -ne $nativeReviewSkipped) { $nativeReviewSkipped.detail } else { 'not logged' })"
     Write-Host "CU native review summary fallback: $(if ($null -ne $nativeReviewFallback) { 'FAILED' } else { 'none logged' })"
+    Write-Host "CU native-state shell: $(if ($null -ne $nativeShellAttached) { 'ATTACHED (rendering needs visual check)' } elseif ($null -ne $nativeShellFailed) { 'FAILED' } else { 'not enabled or not logged' })"
     Write-Host "Real Hero portrait gallery: $(if ($null -ne $galleryOpened) { $galleryOpened.detail } else { 'not opened in latest accepted start' })"
 } else {
     Write-Host 'No accepted custom Sandbox start found in events.csv.'
@@ -236,6 +249,9 @@ $report = [ordered]@{
     family_verification = $familyOutcome
     family_home_result = $(if ($null -ne $homeEvent) { $homeEvent.detail } else { '' })
     native_review_required = [bool]$RequireNativeReview
+    native_shell_required = [bool]$RequireNativeShell
+    native_shell_attached = ($null -ne $nativeShellAttached)
+    native_shell_failed = ($null -ne $nativeShellFailed)
     native_review_attached = ($null -ne $nativeReviewAttached)
     native_review_loaded = ($null -ne $nativeReviewLoaded)
     native_review_summary_fallback = ($null -ne $nativeReviewFallback)
