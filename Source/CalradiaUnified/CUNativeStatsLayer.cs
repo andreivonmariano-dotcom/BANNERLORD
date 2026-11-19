@@ -486,7 +486,10 @@ namespace CalradiaUnified
         }
         public void ExecuteContinue()
         {
-            if(pageIndex<SandboxStatBudgetPolicy.Pages.Length-1)
+            // Native is the default and needs ONE confirmation, not
+            // needless visits to three custom-edit pages.
+            if(profile.ProgressionMode!="Native" &&
+                pageIndex<SandboxStatBudgetPolicy.Pages.Length-1)
             {
                 pageIndex++;
                 Refresh();
@@ -569,7 +572,8 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string NextLabel
         {
-            get{return pageIndex==2?"Confirm stats & continue to banner":
+            get{return Mode=="Native"?"Keep native stats & continue":
+                pageIndex==2?"Confirm stats & continue to banner":
                 "Next: "+SandboxStatBudgetPolicy.Pages[pageIndex+1];}
         }
         [DataSourceProperty] public string Status {get{return status;}}
