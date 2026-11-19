@@ -150,6 +150,8 @@ namespace CalradiaUnified
                     active.CharacterCreationManager);
                 CUNativeControlSkin.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeLayoutAlignment.Tick(screen,
+                    active.CharacterCreationManager);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
