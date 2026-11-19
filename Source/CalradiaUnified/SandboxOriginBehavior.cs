@@ -27,6 +27,8 @@ namespace CalradiaUnified
         private bool applied;
         private bool startedNewGame;
         private bool characterCreationComplete;
+        private SandboxFamilyGrowthState familyGrowth =
+            new SandboxFamilyGrowthState();
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
@@ -39,6 +41,8 @@ namespace CalradiaUnified
                 this, NewGameCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, AdvanceFamilyUpbringing);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -282,6 +286,12 @@ namespace CalradiaUnified
         public override void SyncData(IDataStore store)
         {
             store.SyncData("CU_v016_origin_applied", ref applied);
+            // Keep only our generated children's personal upbringing
+            // records in the actual campaign save. A different player's
+            // profile.ini cannot rewrite this campaign after creation.
+            string packed=familyGrowth.Serialize();
+            store.SyncData("CU_v052_family_growth",ref packed);
+            familyGrowth=SandboxFamilyGrowthState.Parse(packed);
         }
 
         private static void Notify(string text)
@@ -648,6 +658,71 @@ namespace CalradiaUnified
                 TryApplyOnce();
         }
 
+        private void AdvanceFamilyUpbringing()
+        {
+            if(familyGrowth==null || familyGrowth.Count==0 ||
+                !IsStandaloneSandbox())return;
+            var player=Hero.MainHero;
+            if(player==null || player.Children==null)return;
+            // This runs for underage, NotSpawned family members too.
+            // They need not be active parties for their education to grow.
+            foreach(var child in player.Children)
+            {
+                if(child==null || !child.IsAlive)continue;
+                int age=(int)child.Age;
+                foreach(int step in new[]{6,10,14,18})
+                {
+                    if(age<step)continue;
+                    string upbringing;
+                    if(!familyGrowth.TryAdvance(
+                        child.StringId,step,out upbringing))
+                        continue;
+                    try
+                    {
+                        SandboxFamilyDevelopment.Milestone(
+                            child,familyGrowth.Scenario,upbringing,step);
+                    }
+                    catch(Exception error)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_family_upbringing_milestone_failed",error);
+                    }
+                }
+            }
+        }
+
+        private void RegisterFamilyUpbringings(
+            SandboxOriginProfile profile,Hero player,string familyResult)
+        {
+            if(!profile.SpouseEnabled || profile.ChildCount==0 ||
+                !familyResult.StartsWith("spouse=",
+                    StringComparison.Ordinal) ||
+                player.Children==null)
+                return;
+            familyGrowth.SetScenario(profile.FamilyScenario);
+            foreach(var plan in profile.Children.Take(profile.ChildCount))
+            {
+                var child=player.Children.FirstOrDefault(x=>
+                    x!=null && x.Name.ToString()==plan.Name &&
+                    x.IsFemale==(plan.Gender=="Female") &&
+                    SandboxFamilyAgePolicy.MatchesRequestedAge(
+                        x.Age,plan.Age));
+                if(child==null)
+                {
+                    DiagnosticJournal.Event("cu_family_growth_missing_child",
+                        "name="+plan.Name+"|scenario="+profile.FamilyScenario);
+                    continue;
+                }
+                familyGrowth.Register(
+                    child.StringId,plan.Upbringing,(int)child.Age);
+            }
+            DiagnosticJournal.Event("cu_family_growth_registered",
+                "scenario="+familyGrowth.Scenario+
+                "|registered="+familyGrowth.Count+
+                "|requested="+profile.ChildCount+
+                "|milestone_save_state=true");
+        }
+
         private void TryApplyOnce()
         {
             if (!characterCreationComplete || !startedNewGame ||
@@ -737,6 +812,10 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("cu_family_loaded_plan",
                     "spouse=" + profile.SpouseEnabled +
                     "|requested_spouse_age=" + profile.SpouseAge +
+                    "|family_scenario=" + profile.FamilyScenario +
+                    "|child_upbringings=" + String.Join(",",
+                        profile.Children.Take(profile.ChildCount)
+                            .Select(x=>x.Upbringing)) +
                     "|actual_player_age=" + hero.Age +
                     "|requested_children=" + profile.ChildCount +
                     "|details=" + String.Join(";",
@@ -745,6 +824,7 @@ namespace CalradiaUnified
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
+                RegisterFamilyUpbringings(profile,hero,family);
                 DiagnosticJournal.Event("cu_family_creation_status",
                     "requested=" + profile.RealFamilyEnabled + "|result=" + family);
                 // Native spouse and parent links must be verified first.
