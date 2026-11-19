@@ -760,7 +760,7 @@ namespace CalradiaUnified
                         AddRow(key,"Native attribute | 1-10");
                     else if(key.StartsWith("Skill.",
                         StringComparison.Ordinal))
-                        AddRow(key,"Native skill | 0-330 | trained by age");
+                        AddRow(key,"Native skill | 0-330 | inherited training");
                     else if(key.StartsWith("Focus.",
                         StringComparison.Ordinal))
                         AddRow(key,"Native focus | 0-5");
