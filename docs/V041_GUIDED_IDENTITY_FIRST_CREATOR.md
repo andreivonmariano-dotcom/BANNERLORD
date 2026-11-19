@@ -33,6 +33,8 @@ This is a working **source-level architecture**, not a verified complete player-
 - The real FaceGen 3D dock is still native FaceGen-stage-only; it is not a persistent 3D preview through every chapter. The reversible F9 fallback stays active.
 - There is no implemented source-driven controller for native identity/age editing outside existing Bannerlord stages. The original native choices must remain available.
 
+**Pinned Windows CI:** [run 44461909073](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44461909073), source commit `697517cd1251afb2ddea86ef04f99eb2aef622f9`. **681 C# gameplay policy checks passed**; net472 v1.5.7 build completed with **zero warnings and zero errors**. ZIP contents, CRC, DLL identity and simulated installer passed. Compiled DLL SHA-256: `6c641c2d5602fc11dc3ec222f2322cc4cf1627f84181ac4ba7e3135ed2d137c0`. **Gate B: compiled, not observed in-game.**
+
 ## Required acceptance
 
 For Gate C through Gate G, run actual fresh Sandbox starts at 1366×768, 1920×1080 and ultrawide, check original role/kingdom/scenario/fief and native real culture/face, complete background and native stats, verify the new House/Fortune step appears **only after both banner and clan**, test spouse and 0/1/6 children with valid age rules, fief transfer consent, input focus and Escape/Back, native difficulty, final map and save/quit/reload. Check diagnostic `cu_guided_world_start_committed`, `cu_guided_house_attached`, `cu_guided_house_fortune_committed`, `sandbox_start_contract` and `cu_family_verification`. No duplicate grants, native stage skipping or double prompts.
