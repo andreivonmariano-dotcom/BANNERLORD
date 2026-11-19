@@ -44,7 +44,10 @@ for token in ("Hero.MainHero","hero.GetAttributeValue(attr)",
               "hero.GetTraitLevel(trait)"):
     assert token in (layer+snapshot), token
 assert "NativeNarrativeBonusReader.Read(manager)" in layer
-assert 'GetProperty("SelectedOptions",flags)' in layer
+assert 'GetField(' in layer and '"SelectedOptions",flags' in layer
+assert 'IDictionary<NarrativeMenu,NarrativeMenuOption>' in layer
+assert 'foreach(var option in selected.Values)' in layer
+assert 'Command.Click="ExecuteEditExact"' in ET.tostring(ui,encoding="unicode")
 assert 'option.PositiveEffectText.ToString()' in layer
 assert "Detailed selection history is " in layer, "never invent missing bonus history"
 assert "CUNativeStatsSnapshot.Capture(hero)" in behavior
@@ -78,7 +81,8 @@ assert ui.tag=="Prefab"
 clicks=[x.get("Command.Click") for x in ui.iter("ButtonWidget")]
 for action in ("ExecuteNative","ExecuteBalanced","ExecuteUnrestricted",
                "ExecuteReset","ExecutePreviousGroup","ExecuteNextGroup",
-               "ExecuteBack","ExecuteContinue","ExecuteIncrease","ExecuteDecrease"):
+               "ExecuteBack","ExecuteContinue","ExecuteIncrease","ExecuteDecrease",
+               "ExecuteEditExact"):
     assert action in clicks,action
     assert re.search(r'public void '+action+r'\s*\(',layer),action
 assert clicks.count("ExecuteNative")==1
