@@ -83,7 +83,7 @@ assert 'Select.Invoke(option.NativeVM,null)' in native_controller
 assert 'advance.Invoke(nativeVM,null)' in native_controller
 assert 'controller.Continue();' in native_layer
 assert 'SandboxNativeStartOptions.TryPrepare(candidate,' in overlay
-assert 'new SandBoxGameManager(' in overlay
+assert 'new CUSandboxNoIntroGameManager(' in overlay
 assert 'new Campaign(CampaignGameMode.Campaign,gameOptions)' in overlay
 assert 'MBGameManager.StartNewGame' in overlay
 
