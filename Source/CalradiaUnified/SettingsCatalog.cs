@@ -37,6 +37,7 @@ namespace CalradiaUnified
             Array.AsReadOnly(new SettingDescriptor[]
         {
             new SettingDescriptor("EnableDiagnostics", "Diagnostics", "diagnostics", true, 0, 0, 0, false),
+            new SettingDescriptor("AutoSessionReports", "Automatic Session ZIP Reports", "diagnostics", true, 0, 0, 0, false),
             new SettingDescriptor("EnableSupplyWarnings", "Supply Warnings", "supply", true, 0, 0, 0, false),
             new SettingDescriptor("EnableArmyWarnings", "Army Warnings", "supply", true, 0, 0, 0, false),
             new SettingDescriptor("EnablePlayerForaging", "Player Foraging", "supply", true, 0, 0, 0, true),
