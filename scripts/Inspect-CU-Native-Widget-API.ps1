@@ -70,7 +70,13 @@ try{
                 ' ERROR '+$_.Exception.Message)}
         }
         $w=@($types|Where-Object{
-            $_.Name -match '^(Widget|BrushWidget|TextWidget|ButtonWidget|ListPanel|GridWidget|EditableTextWidget)
+            $_.Name -match '^(Widget|BrushWidget|TextWidget|ButtonWidget|ListPanel|GridWidget|EditableTextWidget)$'
+        })
+        foreach($widgetType in $w){
+            $lines.Add('LAYOUT_WIDGET_FOUND '+$widgetType.FullName+
+                ' ASSEMBLY '+$name)
+        }
+        foreach($type in $selected|Sort-Object FullName -Unique){
             $lines.Add('')
             $lines.Add('TYPE '+$type.FullName+' BASE '+$type.BaseType.FullName)
             foreach($c in $type.GetConstructors($flags)){
