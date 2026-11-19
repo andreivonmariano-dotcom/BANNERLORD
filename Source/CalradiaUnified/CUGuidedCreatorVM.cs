@@ -385,8 +385,15 @@ namespace CalradiaUnified
         }
         public void ExecuteAdvanced()
         {
+            // Showing optional settings should not silently send the player
+            // back to the first question in a long conditional family plan.
+            string selected=Current==null?"":Current.Key;
             advanced=!advanced;
-            cursor=0;
+            var available=Visible;
+            int matched=Array.FindIndex(available,
+                field=>field.Key==selected);
+            cursor=matched>=0 ? matched :
+                Math.Max(0,Math.Min(cursor,available.Length-1));
             Report(advanced ? "Optional world and spouse settings shown.":
                 "Only the main choices are shown.");
             Refresh();
