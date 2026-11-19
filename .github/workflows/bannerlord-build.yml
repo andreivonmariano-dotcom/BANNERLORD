@@ -163,6 +163,9 @@ jobs:
       - name: Regress v054 War Sails skills, levels and cross-generation training
         shell: pwsh
         run: python scripts/test_v054_warsails_level_creator.py
+      - name: Regress v056 hard-exit fix with static named Gauntlet slider slots
+        shell: pwsh
+        run: python scripts/test_v056_fixed_stat_slots.py
       - name: Regress Age-to-Stats hard exit and bounded native stat widgets
         shell: pwsh
         run: python scripts/test_v055_stats_crash_guard.py

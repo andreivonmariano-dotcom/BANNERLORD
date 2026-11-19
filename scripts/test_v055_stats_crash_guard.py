@@ -12,7 +12,7 @@ gui=root/"Modules/CalradiaUnified/GUI/Prefabs"
 code=(src/"CUNativeStatsLayer.cs").read_text(encoding="utf-8")
 policy=(src/"SandboxStatsPagePolicy.cs").read_text(encoding="utf-8")
 assert "public const int VisibleRows=6;" in policy
-assert 'Rows.Clear();' in code
+assert 'rows.Clear();' in code
 assert 'SandboxStatsPagePolicy.PageSize(' in code
 assert 'SandboxStatsPagePolicy.StartIndex(' in code
 assert 'statsRowPageIndex' in code
@@ -38,16 +38,17 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert viewport.get("DoNotAcceptEvents")=="true",name
     assert viewport.get("DoNotPassEventsToChildren")=="false",name
     assert viewport.get("SuggestedHeight")=="342"
-    rows=[r for r in viewport.iter("ListPanel")
-        if r.get("DataSource")=="{Rows}"]
-    assert len(rows)==1,name
-    stat_sliders=list(rows[0].iter("SliderWidget"))
-    assert len(stat_sliders)==1,name
-    assert stat_sliders[0].get("ValueInt")=="@SelectedInt",name
-    assert stat_sliders[0].get("MinValueInt")=="@Minimum",name
-    assert stat_sliders[0].get("MaxValueInt")=="@Maximum",name
+    assert not list(viewport.iter("ListPanel"))
+    assert not list(viewport.iter("ItemTemplate"))
+    stat_sliders=[x for x in viewport.iter("SliderWidget")
+        if (x.get("Id") or "").startswith("CUFixedStatSlider")]
+    assert len(stat_sliders)==6,name
+    for i,slider in enumerate(stat_sliders,1):
+        assert slider.get("ValueInt")==f"@Slot{i}Value",name
+        assert slider.get("MinValueInt")==f"@Slot{i}Min",name
+        assert slider.get("MaxValueInt")==f"@Slot{i}Max",name
     assert len(list(document.iter("SliderWidget")))==(
-        1 if name.endswith("Safe") else 2),name
+        6 if name.endswith("Safe") else 7),name
     btns=list(document.iter("ButtonWidget"))
     for command in ("ExecutePreviousGroup","ExecuteNextGroup"):
         candidates=[w for w in btns if w.get("Command.Click")==command]

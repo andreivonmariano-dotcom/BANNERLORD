@@ -57,7 +57,7 @@ assert 'IDictionary<NarrativeMenu,NarrativeMenuOption>' in layer
 assert 'foreach(var option in selected.Values)' in layer
 assert "descriptions.ToArray();" in layer
 assert 'bonusLines.Skip(bonusIndex)' in layer, "must show all selected bonuses"
-assert 'Command.Click="ExecuteEditExact"' in ET.tostring(ui,encoding="unicode")
+assert 'Command.Click="ExecuteSlot1Exact"' in ET.tostring(ui,encoding="unicode")
 assert 'option.PositiveEffectText.ToString()' in layer
 assert "Detailed selection history is " in layer, "never invent missing bonus history"
 assert "CUNativeStatsSnapshot.Capture(hero)" in behavior
@@ -91,16 +91,19 @@ assert ui.tag=="Prefab"
 clicks=[x.get("Command.Click") for x in ui.iter("ButtonWidget")]
 for action in ("ExecuteNative","ExecuteBalanced","ExecuteUnrestricted",
                "ExecuteReset","ExecutePreviousGroup","ExecuteNextGroup",
-               "ExecuteBack","ExecuteContinue","ExecuteIncrease","ExecuteDecrease",
-               "ExecuteEditExact","ExecuteNextBonus","ExecutePreviousBonus"):
+               "ExecuteBack","ExecuteContinue","ExecuteSlot1Increase",
+               "ExecuteSlot1Decrease","ExecuteSlot1Exact",
+               "ExecuteNextBonus","ExecutePreviousBonus"):
     assert action in clicks,action
     assert re.search(r'public void '+action+r'\s*\(',layer),action
 assert clicks.count("ExecuteNative")==1
 assert clicks.count("ExecuteBalanced")==1
 assert clicks.count("ExecuteUnrestricted")==1
 assert not any("Experimental" in (node.get("Text","")) for node in ui.iter())
-assert any(n.get("DataSource")=="{Rows}" for n in ui.iter("ListPanel"))
-for key in ("Name","NativeValue","SelectedValue",
+assert not list(ui.iter("ListPanel"))
+assert len([n for n in ui.iter("SliderWidget")
+    if (n.get("Id") or "").startswith("CUFixedStatSlider")])==6
+for key in ("Slot1Name","Slot1Native","Slot1Selected",
             "Title","Subtitle","Page","PageProgress","ModeDescription",
             "BonusSummary","BudgetStatus","NextLabel","Status","SkillGroup"):
     assert any(x.get("Text")=="@"+key for x in ui.iter("TextWidget")),key
