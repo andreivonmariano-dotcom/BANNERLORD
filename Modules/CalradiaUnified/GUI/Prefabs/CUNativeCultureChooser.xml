@@ -94,34 +94,27 @@
               </ItemTemplate>
             </ListPanel>
             <Widget Sprite="BlankWhiteSquare_9" Color="#1C2A38FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="738"
-                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
-                    PositionXOffset="484"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="484" MarginRight="38"
+                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"/>
             <TextWidget Text="YOUR CULTURE"
                     Color="#CFA66EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="710"
-                    HeightSizePolicy="Fixed" SuggestedHeight="26"
-                    PositionXOffset="507" PositionYOffset="113"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="43"
+                    HeightSizePolicy="Fixed" SuggestedHeight="26" PositionYOffset="113"/>
             <TextWidget Text="@SelectedName" Color="#FFEBD1FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="690"
-                    HeightSizePolicy="Fixed" SuggestedHeight="66"
-                    PositionXOffset="507" PositionYOffset="155"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="63"
+                    HeightSizePolicy="Fixed" SuggestedHeight="66" PositionYOffset="155"/>
             <TextWidget Text="@SelectedDescription" Color="#E8E8E8FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="687"
-                    HeightSizePolicy="Fixed" SuggestedHeight="227"
-                    PositionXOffset="508" PositionYOffset="239"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="508" MarginRight="65"
+                    HeightSizePolicy="Fixed" SuggestedHeight="227" PositionYOffset="239"/>
             <TextWidget Text="@Notice" Color="#ACC2D9FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="679"
-                    HeightSizePolicy="Fixed" SuggestedHeight="70"
-                    PositionXOffset="510" PositionYOffset="473"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="510" MarginRight="71"
+                    HeightSizePolicy="Fixed" SuggestedHeight="70" PositionYOffset="473"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#2B3949FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1197"
-                    HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="26" PositionYOffset="595"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="26" MarginRight="37"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2" PositionYOffset="595"/>
             <TextWidget Text="@Status" Color="#F6D5A6FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1100"
-                    HeightSizePolicy="Fixed" SuggestedHeight="28"
-                    PositionXOffset="29" PositionYOffset="602"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="29" MarginRight="131"
+                    HeightSizePolicy="Fixed" SuggestedHeight="28" PositionYOffset="602"/>
             <ButtonWidget Brush="ButtonBrush"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
