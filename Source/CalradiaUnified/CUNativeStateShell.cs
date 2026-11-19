@@ -24,6 +24,7 @@ namespace CalradiaUnified
         private static GauntletLayer ribbon;
         private static GauntletMovieIdentifier ribbonMovie;
         private static CUNativeStateShellVM viewModel;
+        private static bool dockRequested;
 
         public static void Tick()
         {
@@ -36,6 +37,7 @@ namespace CalradiaUnified
                 if (screen == null || active == null || screen.IsFinalized)
                 {
                     CUNativeCultureLayer.Clear();
+                    CUNativeFaceDockTrial.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -48,6 +50,8 @@ namespace CalradiaUnified
                         viewModel.Update(active.CharacterCreationManager,screen);
                     CUNativeCultureLayer.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeFaceDockTrial.Tick(screen,
+                        active.CharacterCreationManager,dockRequested);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -106,8 +110,11 @@ namespace CalradiaUnified
                 ribbon = nextLayer;
                 ribbonMovie = nextMovie;
                 viewModel = nextVM;
+                dockRequested = profile.NativeFaceDockTrialEnabled;
                 CUNativeCultureLayer.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeFaceDockTrial.Tick(screen,
+                    active.CharacterCreationManager,dockRequested);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -120,6 +127,7 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception("cu_native_state_shell_failed",error);
                 failedHost = ScreenManager.TopScreen as CharacterCreationScreen;
                 CUNativeCultureLayer.Clear();
+                CUNativeFaceDockTrial.Clear();
                 Detach();
             }
         }
@@ -139,6 +147,8 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeFaceDockTrial.Clear();
+            dockRequested = false;
             CUNativeCultureLayer.Clear();
             var oldHost = host;
             var oldLayer = ribbon;
@@ -188,6 +198,7 @@ namespace CalradiaUnified
         private string culture = "CULTURE: PENDING";
         private bool isFaceStage;
         private string faceStatus = "";
+        private string dockStatus = "";
         private bool cultureCommitObserved;
         private readonly bool[] chaptersReached = new bool[5];
         private int activeChapterIndex = -1;
@@ -222,6 +233,12 @@ namespace CalradiaUnified
             CharacterCreationScreen screen)
         {
             if (manager == null) return;
+            string nextDockStatus = CUNativeFaceDockTrial.Status;
+            if (dockStatus != nextDockStatus)
+            {
+                dockStatus = nextDockStatus;
+                OnPropertyChangedWithValue(dockStatus,"FaceDockStatus");
+            }
             var stage = manager.CurrentStage;
             string stageName = stage == null ? "" :
                 stage.GetType().Name;
@@ -320,6 +337,9 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public string FaceStatus { get { return faceStatus; } }
+
+        [DataSourceProperty]
+        public string FaceDockStatus { get { return dockStatus; } }
 
         [DataSourceProperty]
         public string Notice
