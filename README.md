@@ -1,3 +1,15 @@
+# Calradia Unified v0.40 development: native post-origins stats and personality
+
+**New Chapter II editor:** after completing Bannerlord's actual life-story narrative, one native-styled full-screen CU progression step opens before the original banner editor. Choose **Native** (default, no overrides), **Balanced** (30-point budget), or **Unrestricted** (legal native stat ranges). Three compact pages cover Attributes, grouped Skills & Focus, and five Personality Traits. Rows show actual current Hero values and any draft differences. Exact entry and Reset are available. All selected native narrative positive-effect texts are paginated from Bannerlord 1.5.7's verified `SelectedOptions` field. Trait help explains that NPC relationships depend on the native event, not a guaranteed flat modifier.
+
+**No experiment toggles.** A current accepted CU Sandbox session is required. The original game-owned narrative, banner and finalization stages remain intact. The one-shot phase-9 behavior applies only a valid saved plan, after the native character and starting role exist.
+
+**Scope limit:** this is a new post-origins editor within the existing two-part startup. The full revised five-chapter, multi-screen creator, unbroken final map entry and persistent live 3D model have **not** been completed. The game manifest remains `v0.38.0`. A green CI job proves compilation and static contracts, not live visual or gameplay success.
+
+[Implementation, point costs and live acceptance tests](docs/V040_POST_ORIGINS_STATS_TRAITS.md) · [Draft PR #71](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/71)
+
+---
+
 # Calradia Unified v0.39 development: automatic native creator bridge
 
 **New Sandbox starts no longer require experimental toggles.** After accepting the CU starting conditions, the native-state CU shell, native-bound culture chooser and reversible original FaceGen right-dock attempt activate automatically. FaceGen's F9 recovery and native fallback remain available. The historical optional extra Face Workshop and Review stages are suppressed for this path.
