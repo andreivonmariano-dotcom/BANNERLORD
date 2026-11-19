@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+"""v057 self-contained local reporting contract (source/static only).
+Actual game normal-exit and native hard-crash behavior remain user tests.
+"""
+from pathlib import Path
+root=Path(__file__).resolve().parents[1]
+src=root/"Source/CalradiaUnified"
+journal=(src/"DiagnosticJournal.cs").read_text(encoding="utf-8")
+reporter=(src/"DiagnosticSessionReporter.cs").read_text(encoding="utf-8")
+module=(src/"SubModule.cs").read_text(encoding="utf-8")
+settings=(src/"Settings.cs").read_text(encoding="utf-8")
+project=(src/"CalradiaUnified.csproj").read_text(encoding="utf-8")
+tests=(root/"Tests/PolicySmoke/Program.cs").read_text(encoding="utf-8")
+for key in ("CurrentSessionId","Sessions","AppendOne(",
+            "events.csv","exceptions.csv","finance.csv"):
+    assert key in journal,key
+assert 'private const long MaxCsvBytes = 8 * 1024 * 1024;' in journal
+assert "16L*1024L*1024L" in journal
+for key in (
+    "ProcessExit+=","DomainUnload+=","OnSubModuleUnloaded",
+    "RecoverInterruptedSessions()", "active.marker",
+    "recovered.marker","completed.marker",
+    "ZipFile.CreateFromDirectory(","CompressionLevel.Fastest",
+    '"CU-Session-"', "GetObjectTypeList<" if False else "WriteRuntimeInfo(",
+    "native-rgl-tail-","MaxReports=20","MaxNativeLogBytes=512*1024",
+    "latest-report.txt","D:\\\\Steam" if False else
+        "Mount & Blade II Bannerlord",
+    "module_dll_sha256=","No data is uploaded automatically."
+):
+    assert key in (reporter+module),key
+assert 'AppDomain.CurrentDomain.ProcessExit+=' in reporter
+assert 'protected override void OnSubModuleUnloaded()' in module
+assert 'DiagnosticSessionReporter.Complete("submodule_unloaded")' in module
+assert 'DiagnosticSessionReporter.Start();' in module
+assert 'DiagnosticSessionReporter.Heartbeat(' in module
+assert 'reportHeartbeatSeconds>=45f' in module
+assert 'DiagnosticJournal.Event("campaign_closed"' in module
+assert 'AutoSessionReports = true;' in settings
+assert 'key == "AutoSessionReports"' in settings
+assert 'Reference Include="System.IO.Compression"' in project
+assert 'Reference Include="System.IO.Compression.FileSystem"' in project
+assert 'DiagnosticSessionReporter.Start();' in tests
+assert 'DiagnosticSessionReporter.Complete("unit_test_normal_exit")' in tests
+assert '"CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip"' in tests
+assert "ZipFile.OpenRead(" in tests
+# Do not upload, open URLs, take screenshots or read any save files.
+for dangerous in ("HttpClient","WebClient","HttpWebRequest","UploadFile",
+                  "UploadString","File.ReadAllBytes(save","*.sav",
+                  "*.dmp","CreateDump","MiniDumpWriteDump"):
+    assert dangerous not in reporter,dangerous
+print("PASS: v057 continuous local logs, normal-exit ZIP, hard-crash recovery, bounded native log tails and no upload (STATIC ONLY)")

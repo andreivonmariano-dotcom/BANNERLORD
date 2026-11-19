@@ -213,6 +213,9 @@ jobs:
               throw 'Diagnostic ZIP missing manifest.json'
             }
           } finally { $zip.Dispose() }
+      - name: Audit automatic local diagnostics and crash-recovery contracts
+        shell: pwsh
+        run: python scripts/test_v057_automatic_session_reports.py
       - name: Restore .NET tests
         shell: pwsh
         run: |
