@@ -86,8 +86,8 @@ namespace CalradiaUnified
             {
                 // Same no-selection startup as Bannerlord v1.5.7's
                 // GauntletCampaignStartingOptionsView.OnConfirm.
-                // The game then owns its normal cinematic and character
-                // creation finalization stages.
+                // CU bypasses only the new-campaign intro movie.
+                // Native character creation still owns all later stages.
                 var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
                 SandBox.AdvancedStartOptions.AdvancedStartOptions options;
                 string reason = "Origin profile is disabled.";
@@ -101,7 +101,7 @@ namespace CalradiaUnified
                 // This creates the actual native King/Vassal/Mercenary/etc.
                 // starting data, rather than the former empty default start.
                 var gameOptions = options.GetChangedOptions();
-                MBGameManager.StartNewGame(new SandBoxGameManager(
+                MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(
                     () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
                     "role=" + profile.Role + "|type=" +
