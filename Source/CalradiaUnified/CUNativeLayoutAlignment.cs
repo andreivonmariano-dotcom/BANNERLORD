@@ -4,6 +4,7 @@ using System.Globalization;
 using System.Reflection;
 using SandBox.View.CharacterCreation;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
+using TaleWorlds.Engine;
 using TaleWorlds.Engine.Screens;
 using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.InputSystem;
