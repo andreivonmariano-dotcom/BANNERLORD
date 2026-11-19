@@ -763,7 +763,7 @@ namespace CalradiaUnified
                         AddRow(key,"Native skill | 0-330 | inherited training");
                     else if(key.StartsWith("Focus.",
                         StringComparison.Ordinal))
-                        AddRow(key,"Native focus | 0-5");
+                        AddRow(key,"Native focus | 0-5 | learning potential");
                     else if(key.StartsWith("Trait.",
                         StringComparison.Ordinal))
                         AddRow(key,SandboxStatBudgetPolicy.TraitDescription(
