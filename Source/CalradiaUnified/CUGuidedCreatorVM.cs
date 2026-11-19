@@ -19,6 +19,10 @@ namespace CalradiaUnified
     /// </summary>
     public sealed class CUGuidedCreatorVM : ViewModel
     {
+        // Session-only marker. The native visual shell reloads family
+        // context only after the guided post-clan plan was saved, not on
+        // every frame of native character creation.
+        internal static int HouseRevision {get;private set;}
         private sealed class Field
         {
             internal readonly string Chapter, Key, Label, Hint, Kind;
@@ -490,6 +494,7 @@ namespace CalradiaUnified
                 Report("Household not saved: "+error);
                 return;
             }
+            HouseRevision++;
             DiagnosticJournal.Event("cu_guided_house_fortune_committed",
                 "age="+actualAge+"|spouse="+candidate.SpouseEnabled+
                 "|children="+candidate.ChildCount+"|gold="+
