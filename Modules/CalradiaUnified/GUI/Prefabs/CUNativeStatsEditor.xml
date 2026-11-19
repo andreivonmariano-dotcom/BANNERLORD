@@ -90,20 +90,20 @@
  </ButtonWidget>
             <TextWidget Text="@ModeDescription" Color="#D5E0E9FF"
               WidthSizePolicy="Fixed" SuggestedWidth="659"
-              HeightSizePolicy="Fixed" SuggestedHeight="65"
-              PositionXOffset="257" PositionYOffset="201"/>
+              HeightSizePolicy="Fixed" SuggestedHeight="42"
+              PositionXOffset="257" PositionYOffset="195"/>
             <ListPanel DataSource="{Rows}" WidthSizePolicy="Fixed"
               SuggestedWidth="708" HeightSizePolicy="Fixed"
-              SuggestedHeight="435" PositionXOffset="251"
-              PositionYOffset="275"
+              SuggestedHeight="333" PositionXOffset="251"
+              PositionYOffset="268"
               StackLayout.LayoutMethod="VerticalTopToBottom">
               <ItemTemplate>
                 <Widget WidthSizePolicy="Fixed" SuggestedWidth="700"
-                  HeightSizePolicy="Fixed" SuggestedHeight="65">
+                  HeightSizePolicy="Fixed" SuggestedHeight="55">
                   <Children>
                     <Widget Sprite="BlankWhiteSquare_9" Color="#203246EE"
                       WidthSizePolicy="Fixed" SuggestedWidth="696"
-                      HeightSizePolicy="Fixed" SuggestedHeight="62"/>
+                      HeightSizePolicy="Fixed" SuggestedHeight="53"/>
                     <TextWidget Text="@Name" Color="#F1D5A9FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="170"
                       HeightSizePolicy="Fixed" SuggestedHeight="28"
@@ -122,7 +122,7 @@
                       PositionXOffset="417" PositionYOffset="5"/>
                     <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="510"
+ HeightSizePolicy="Fixed" SuggestedHeight="39" PositionXOffset="510"
  PositionYOffset="4" Command.Click="ExecuteDecrease" >
  <Children><TextWidget Text="−" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -130,7 +130,7 @@
  </ButtonWidget>
                     <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="566"
+ HeightSizePolicy="Fixed" SuggestedHeight="39" PositionXOffset="566"
  PositionYOffset="4" Command.Click="ExecuteIncrease" >
  <Children><TextWidget Text="+" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
@@ -140,7 +140,7 @@
                       DoNotPassEventsToChildren="true"
                       UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                       SuggestedWidth="78" HeightSizePolicy="Fixed"
-                      SuggestedHeight="45" PositionXOffset="622"
+                      SuggestedHeight="39" PositionXOffset="622"
                       PositionYOffset="4" Command.Click="ExecuteEditExact">
                       <Children>
                         <TextWidget Text="Exact" Color="#F1DEBEFF"
@@ -152,8 +152,8 @@
                     </ButtonWidget>
                     <TextWidget Text="@Description" Color="#B9C8D6FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="499"
-                      HeightSizePolicy="Fixed" SuggestedHeight="29"
-                      PositionXOffset="11" PositionYOffset="34"/>
+                      HeightSizePolicy="Fixed" SuggestedHeight="24"
+                      PositionXOffset="11" PositionYOffset="29"/>
                   </Children>
                 </Widget>
               </ItemTemplate>
@@ -161,7 +161,7 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="265"
- PositionYOffset="701" Command.Click="ExecutePreviousGroup" IsVisible="@IsSkillsPage">
+ PositionYOffset="599" Command.Click="ExecutePreviousGroup" IsVisible="@IsSkillsPage">
  <Children><TextWidget Text="Previous group" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
@@ -170,19 +170,19 @@
               IsVisible="@IsSkillsPage" WidthSizePolicy="Fixed"
               SuggestedWidth="205" HeightSizePolicy="Fixed"
               SuggestedHeight="34" PositionXOffset="455"
-              PositionYOffset="713"/>
+              PositionYOffset="609"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="680"
- PositionYOffset="701" Command.Click="ExecuteNextGroup" IsVisible="@IsSkillsPage">
+ PositionYOffset="599" Command.Click="ExecuteNextGroup" IsVisible="@IsSkillsPage">
  <Children><TextWidget Text="Next group" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="225"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="400"
- PositionYOffset="754" Command.Click="ExecuteReset" >
+ HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="22"
+ PositionYOffset="517" Command.Click="ExecuteReset" >
  <Children><TextWidget Text="Reset all changes" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
@@ -204,9 +204,8 @@
               PositionXOffset="-25" PositionYOffset="490"/>
             <TextWidget Text="@Status" Color="#DDBB83FF"
               WidthSizePolicy="Fixed" SuggestedWidth="690"
-              HeightSizePolicy="Fixed" SuggestedHeight="36"
-              PositionXOffset="262" VerticalAlignment="Bottom"
-              PositionYOffset="-98"/>
+              HeightSizePolicy="Fixed" SuggestedHeight="31"
+              PositionXOffset="257" PositionYOffset="233"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#203043FF"
               WidthSizePolicy="StretchToParent" MarginLeft="12"
               MarginRight="12" HeightSizePolicy="Fixed"
