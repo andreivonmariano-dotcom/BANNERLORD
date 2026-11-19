@@ -1033,11 +1033,18 @@ namespace CalradiaUnified
                 {
                     if (parts[0] == "Skill" || parts[0] == "Focus")
                     {
-                        var skillInfo = typeof(DefaultSkills).GetProperty(
-                            parts[1], BindingFlags.Public | BindingFlags.Static);
-                        var skill = skillInfo == null ? null :
-                            skillInfo.GetValue(null, null) as SkillObject;
-                        if (skill == null || hero.HeroDeveloper == null) continue;
+                        // War Sails skills live in the installed game's
+                        // SkillObject catalogue, not in older DefaultSkills.
+                        var skill=SandboxNativeSkillCatalog.Find(parts[1]);
+                        if(skill==null)
+                        {
+                            DiagnosticJournal.Event(
+                                "cu_progression_skill_not_registered",
+                                "requested="+entry.Key+
+                                "|missing_optional_dlc=true");
+                            continue;
+                        }
+                        if(hero.HeroDeveloper==null)continue;
                         if (parts[0] == "Skill")
                             hero.HeroDeveloper.SetInitialSkillLevel(skill, value);
                         else
@@ -1045,6 +1052,24 @@ namespace CalradiaUnified
                             int delta = value - hero.HeroDeveloper.GetFocus(skill);
                             if (delta != 0) hero.HeroDeveloper.AddFocus(skill, delta, false);
                         }
+                    }
+                    else if(parts[0]=="Level" && parts[1]=="Character")
+                    {
+                        if(!SandboxFamilyLevelPolicy.Valid(value) ||
+                            hero.HeroDeveloper==null)
+                            throw new InvalidOperationException(
+                                "Invalid native player level");
+                        // Set both saveable native Hero.Level and matching
+                        // XP threshold. SetInitialLevel alone changes XP,
+                        // not the Level field in this engine version.
+                        hero.Level=value;
+                        hero.HeroDeveloper.SetInitialLevel(value);
+                        DiagnosticJournal.Event("cu_player_level_verified",
+                            "requested="+value+
+                            "|actual="+hero.Level+
+                            "|required_xp="+
+                                hero.HeroDeveloper.GetXpRequiredForLevel(value)+
+                            "|native_total_xp="+hero.HeroDeveloper.TotalXp);
                     }
                     else if (parts[0] == "Attribute")
                     {
