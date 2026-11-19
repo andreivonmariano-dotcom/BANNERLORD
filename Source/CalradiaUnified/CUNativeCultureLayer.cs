@@ -400,11 +400,11 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public string Title
-            {get{return "CALRADIA UNIFIED | STARTING LIFE";}}
+            {get{return "CALRADIA UNIFIED";}}
 
         [DataSourceProperty]
         public string Subtitle
-            {get{return "CHOOSE YOUR REAL CULTURE";}}
+            {get{return "CHAPTER 02 OF 05 | YOUR CHARACTER | CULTURE";}}
 
         [DataSourceProperty]
         public string SelectedName {get{return name;}}
