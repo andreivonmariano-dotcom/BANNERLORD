@@ -522,9 +522,9 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty] public string Title
-            {get{return "CALRADIA UNIFIED | STARTING STATS";}}
+            {get{return "CALRADIA UNIFIED";}}
         [DataSourceProperty] public string Subtitle
-            {get{return "YOUR CHARACTER | AFTER YOUTH & ADULTHOOD";}}
+            {get{return "CHAPTER 02 OF 05 | STARTING STATS & TRAITS";}}
         [DataSourceProperty] public string Page
             {get{return SandboxStatBudgetPolicy.Pages[pageIndex];}}
         [DataSourceProperty] public string PageProgress
