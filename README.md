@@ -1,3 +1,19 @@
+# Calradia Unified v0.38.0 | Responsive Native-Style Creator and Original FaceGen Right-Dock Trial
+
+**Target:** Bannerlord PC v1.5.7.125802. **Status:** experimental, compiled candidate only after pinned Windows CI succeeds. Gameplay and visual tests are required.
+
+**Q1, native-style responsive UI:** pregame CU and CU native culture now grow beyond the fixed 1280px desktop dialog. At 1920×1080 their context fields expand, chapter rail and house details stay anchored, and native-style header/footer and actions follow the display. Compact 1366×768 retains all five real chapters, children, ASO role and fief effects.
+
+**Q2, original 3D FaceGen right dock:** an extra **OFF-by-default** advanced flag uses the game's existing `View.SetScale`/`View.SetOffset` to shift its actual native FaceGen renderer right, and moves the same game-owned native sliders left. No duplicate `BodyGeneratorView`, Hero, scene or camera. Press **F9** during the face editor to restore or retry the stock layout. You must have **Experimental CU native-state shell = Yes** and **Experimental right FaceGen dock = Yes**, with the separate workshop and review stages off. This is **not yet verified in-game** and is strictly a real FaceGen-stage trial, not a persistent 3D scene across all five chapters.
+
+**Q3, one creator:** still **not completed**. The pregame advanced-start settings must be applied before the Campaign is constructed, and the actual native origin/banner/clan/difficulty stages must keep their callbacks. We retain the safe native wizard instead of suppressing it to fake a seamless result.
+
+[Full technical design and test gates](docs/V038_RESPONSIVE_FACE_DOCK_ONE_CREATOR_GATE.md) · [v0.37 fullscreen visual baseline](docs/V037_FULLSCREEN_NATIVE_SANDBOX_UI.md)
+
+---
+
+## Previous v0.37 fullscreen candidate
+
 # Calradia Unified v0.37.0 | Full-Screen Native-Styled Sandbox Creator
 
 **Target:** Bannerlord PC v1.5.7.125802. **Status:** compiled visual prototype, game playtest required.
