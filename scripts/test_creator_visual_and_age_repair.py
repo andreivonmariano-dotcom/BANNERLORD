@@ -51,6 +51,16 @@ assert not any(x.get("Text")=="@CultureId"
 assert not any("The campaign engine owns all native"
                in x.get("Text","")
                for x in guided.iter("TextWidget"))
+# Main guided question, selected value and option controls share
+# responsive middle margins, rather than fixed blue boxes 662px wide.
+middle=[w for w in guided.iter("Widget")
+        if w.get("MarginLeft")=="260" and w.get("MarginRight")=="365"]
+assert len(middle)>=3
+assert any(w.get("SuggestedHeight")=="113" for w in middle)
+assert any(w.get("Color")=="#B99059FF" for w in guided.iter("Widget"))
+assert any(w.get("Text")=="@SelectedValue" and
+           w.get("Brush.TextHorizontalAlignment")=="Center"
+           for w in guided.iter("TextWidget"))
 assert '"Create Character"' in text_guided
 assert '"Confirm & Continue"' in text_guided
 
