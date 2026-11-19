@@ -104,6 +104,9 @@ jobs:
       - name: Lock native five-chapter stage rail and explicit 3D dock capability
         shell: pwsh
         run: python scripts/test_cu_native_five_chapter_rail.py
+      - name: Verify fullscreen native-style Sandbox and culture screens
+        shell: pwsh
+        run: python scripts/test_fullscreen_native_style.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
