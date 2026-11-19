@@ -57,7 +57,10 @@ for field in ("@Name","@CultureId","@SelectedName",
 assert "new MBBindingList<CUNativeCultureChoiceVM>()" in layer
 assert "controller.SelectCulture(id)" in layer
 assert "controller.Continue()" in layer
-assert "controller.Previous()" in layer
+assert "requestBack(controller)" in layer
+assert "backController.Previous()" in layer
+assert "CUNativeStateShell.Clear();" in layer
+assert "pendingNativeBack=selected" in layer
 assert "Input.IsKeyReleased(InputKey.Escape)" in layer
 assert "failedHost=nativeScreen" in layer
 assert "RestoreNativeCultureFocus(nativeScreen)" in layer
