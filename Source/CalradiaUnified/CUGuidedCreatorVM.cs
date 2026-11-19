@@ -483,7 +483,9 @@ namespace CalradiaUnified
             candidate.NativeIntegrationReviewEnabled=false;
             candidate.NativeFaceWorkshopEnabled=false;
             candidate.NativeStateShellEnabled=true;
-            candidate.NativeFaceDockTrialEnabled=true;
+            // Live images show an empty black right dock during FaceGen.
+            // Keep the real native 3D camera/scene untouched by default.
+            candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
             SandBox.AdvancedStartOptions.AdvancedStartOptions gameOptions;
             string error;
