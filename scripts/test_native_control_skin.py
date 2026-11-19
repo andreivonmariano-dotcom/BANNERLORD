@@ -83,6 +83,16 @@ assert 'foreach(Widget child in widget.GetAllChildrenRecursive())' in skin
 assert 'CUNativeWidgetSkinPolicy.MaxWidgetsPerStage' in skin
 assert 'Brush local=original.Clone();' in skin
 assert 'local.FontColor=next;' in skin
+assert 'CanSkinClanTextInput(' in policy
+assert 'CanSkinDifficultySlider(' in policy
+assert 'CUNativeWidgetSkinPolicy.CanSkinClanTextInput(' in skin
+assert 'CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(' in skin
+assert 'private static bool TryPrivateUtilityBrush(Widget widget,' in skin
+assert '"|clan_text_inputs="+paintedInputs+' in skin
+assert '"|difficulty_sliders="+paintedSliders+' in skin
+assert 'changes.Add(new Change(widget,property,source));' in skin
+assert '"CharacterCreationFaceGeneratorStage","SliderWidget"' in test
+assert '"CharacterCreationBannerEditorStage","EditableTextWidget"' in test
 assert "cu_native_widget_skin_applied" in skin
 assert "cu_native_widget_skin_restored" in skin
 assert "cu_native_widget_skin_unavailable" in skin
