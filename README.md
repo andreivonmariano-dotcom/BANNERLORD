@@ -6,6 +6,8 @@
 
 **Scope limit:** this is a new post-origins editor within the existing two-part startup. The full revised five-chapter, multi-screen creator, unbroken final map entry and persistent live 3D model have **not** been completed. The game manifest remains `v0.38.0`. A green CI job proves compilation and static contracts, not live visual or gameplay success.
 
+**Pinned Windows CI:** [run 44459027527](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44459027527), source SHA `095d79d3001f38b9e1ec5d7f491c42878a20c5d8`, **677 policy checks passed**, zero compiler warnings/errors. The DLL SHA-256 is `352cd1a169cd63965d2fb85a1bb41110c361a6465f6923f76f72841a09a9f7a9`. ZIP CRC and installer simulations passed. **Gate B only: compiled, not observed in-game.**
+
 [Implementation, point costs and live acceptance tests](docs/V040_POST_ORIGINS_STATS_TRAITS.md) · [Draft PR #71](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/71)
 
 ---
