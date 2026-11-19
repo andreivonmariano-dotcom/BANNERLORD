@@ -220,7 +220,18 @@ namespace CalradiaUnified
             string status)
         {
             Directory.CreateDirectory(ReportsDirectory);
-            WriteRuntimeInfo(session,status);
+            if(interrupted)
+            {
+                // Keep the original game's DLL/version fingerprint.
+                // Recovery occurs in a different process and must not
+                // replace the metadata captured before the hard exit.
+                File.WriteAllText(Path.Combine(session,"recovery-info.txt"),
+                    "status="+status+"\r\n"+
+                    "recovered_at_utc="+Utc()+"\r\n"+
+                    "recovery_game_root="+DiagnosticJournal
+                        .StripPersonalPath(ResolveGameRoot()??"not_detected"));
+            }
+            else WriteRuntimeInfo(session,status);
             NativeLogTail(session);
             File.WriteAllText(Path.Combine(session,"README.txt"),
                 "CU automatic session diagnostics\r\n"+
