@@ -73,6 +73,45 @@
               WidthSizePolicy="Fixed" SuggestedWidth="214"
               HeightSizePolicy="Fixed" SuggestedHeight="70"
               PositionXOffset="22" PositionYOffset="353"/>
+            <ButtonWidget Brush="ButtonBrush" Id="CUStatsEditPlayer"
+              DoNotPassEventsToChildren="true"
+              UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="205"
+              HeightSizePolicy="Fixed" SuggestedHeight="42"
+              PositionXOffset="24" PositionYOffset="450"
+              Command.Click="ExecuteEditPlayer"
+              IsSelected="@IsPlayerTarget"
+              IsVisible="@IsStatsPage">
+              <Children><TextWidget Brush.FontSize="15"
+                Text="Edit your character"
+                Color="#F6E4C4FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" Id="CUStatsEditSpouse"
+              DoNotPassEventsToChildren="true"
+              UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="205"
+              HeightSizePolicy="Fixed" SuggestedHeight="42"
+              PositionXOffset="24" PositionYOffset="502"
+              Command.Click="ExecuteEditSpouse"
+              IsSelected="@IsSpouseTarget"
+              IsVisible="@IsStatsPage">
+              <Children><TextWidget Brush.FontSize="15"
+                Text="Edit your spouse"
+                Color="#F6E4C4FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
+            <TextWidget Brush.FontSize="15" Text="@TargetHelp"
+              Color="#E3C49CFF" IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="684"
+              HeightSizePolicy="Fixed" SuggestedHeight="47"
+              PositionXOffset="257" PositionYOffset="215"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#B7935BFF"
               WidthSizePolicy="Fixed" SuggestedWidth="690"
               HeightSizePolicy="Fixed" SuggestedHeight="2"
@@ -151,73 +190,136 @@
 
               </Children>
             </Widget>
-            <ListPanel IsVisible="@IsStatsPage"
-              DataSource="{Rows}" WidthSizePolicy="Fixed"
-              SuggestedWidth="708" HeightSizePolicy="Fixed"
-              SuggestedHeight="342" PositionXOffset="251"
-              PositionYOffset="276"
-              StackLayout.LayoutMethod="VerticalTopToBottom">
-              <ItemTemplate>
-                <Widget WidthSizePolicy="Fixed" SuggestedWidth="700"
-                  HeightSizePolicy="Fixed" SuggestedHeight="56">
+            <!-- All character stats share a native ScrollablePanel.
+                 The fixed viewport clips 47 slider rows; wheel/gamepad
+                 scroll uses the installed game's standard scrollbar. -->
+            <ScrollablePanel IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="718"
+              HeightSizePolicy="Fixed" SuggestedHeight="342"
+              PositionXOffset="251" PositionYOffset="276"
+              InnerPanel="CUStatsClip\CUStatsRows"
+              ClipRect="CUStatsClip"
+              VerticalScrollbar="..\CUStatsScrollbar\Scrollbar"
+              MouseScrollSpeed="0.3" AutoHideScrollBars="false">
+              <Children>
+                <Widget Id="CUStatsClip"
+                  WidthSizePolicy="Fixed" SuggestedWidth="705"
+                  HeightSizePolicy="Fixed" SuggestedHeight="342"
+                  ClipContents="true">
                   <Children>
-                    <Widget Sprite="BlankWhiteSquare_9" Color="#3D2A1DEE"
-                      WidthSizePolicy="Fixed" SuggestedWidth="696"
-                      HeightSizePolicy="Fixed" SuggestedHeight="54"/>
-                    <TextWidget Brush.FontSize="18" Text="@Name" Color="#F0D0A0FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="170"
-                      HeightSizePolicy="Fixed" SuggestedHeight="25"
-                      PositionXOffset="11" PositionYOffset="5"/>
-                    <TextWidget Brush.FontSize="17" Text="@NativeValue" Color="#D8C4A6FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="112"
-                      HeightSizePolicy="Fixed" SuggestedHeight="28"
-                      PositionXOffset="177" PositionYOffset="5"/>
-                    <TextWidget Brush.FontSize="18" Text="@SelectedValue" Color="#FAE7C6FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="115"
-                      HeightSizePolicy="Fixed" SuggestedHeight="28"
-                      PositionXOffset="292" PositionYOffset="5"/>
-                    <TextWidget Brush.FontSize="15" Text="@Difference" Color="#E5BB79FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="85"
-                      HeightSizePolicy="Fixed" SuggestedHeight="28"
-                      PositionXOffset="417" PositionYOffset="5"/>
-                    <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
- HeightSizePolicy="Fixed" SuggestedHeight="39" PositionXOffset="510"
- PositionYOffset="4" Command.Click="ExecuteDecrease" >
- <Children><TextWidget Brush.FontSize="19" Text="−" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-                    <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
- HeightSizePolicy="Fixed" SuggestedHeight="39" PositionXOffset="566"
- PositionYOffset="4" Command.Click="ExecuteIncrease" >
- <Children><TextWidget Brush.FontSize="19" Text="+" Color="#F6E4C4FF"
- WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
- HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
- </ButtonWidget>
-                    <ButtonWidget Brush="ButtonBrush"
-                      DoNotPassEventsToChildren="true"
-                      UpdateChildrenStates="true" WidthSizePolicy="Fixed"
-                      SuggestedWidth="78" HeightSizePolicy="Fixed"
-                      SuggestedHeight="39" PositionXOffset="622"
-                      PositionYOffset="4" Command.Click="ExecuteEditExact">
-                      <Children>
-                        <TextWidget Brush.FontSize="17" Text="Exact" Color="#F6E4C4FF"
-                          WidthSizePolicy="StretchToParent"
-                          HeightSizePolicy="StretchToParent"
-                          HorizontalAlignment="Center"
-                          VerticalAlignment="Center"/>
-                      </Children>
-                    </ButtonWidget>
-                    <TextWidget Brush.FontSize="14" Brush.TextVerticalAlignment="Top" Text="@Description" Color="#CBBBA3FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="499"
-                      HeightSizePolicy="Fixed" SuggestedHeight="20"
-                      PositionXOffset="11" PositionYOffset="32"/>
+                    <ListPanel Id="CUStatsRows" DataSource="{Rows}"
+                      WidthSizePolicy="Fixed" SuggestedWidth="700"
+                      HeightSizePolicy="CoverChildren"
+                      StackLayout.LayoutMethod="VerticalTopToBottom">
+                      <ItemTemplate>
+                        <Widget WidthSizePolicy="Fixed" SuggestedWidth="700"
+                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                          <Children>
+                            <Widget Sprite="BlankWhiteSquare_9"
+                              Color="#37281DEB" WidthSizePolicy="Fixed"
+                              SuggestedWidth="696" HeightSizePolicy="Fixed"
+                              SuggestedHeight="53"/>
+                            <TextWidget Brush.FontSize="15" Text="@Name"
+                              Color="#EAD2AEFF" WidthSizePolicy="Fixed"
+                              SuggestedWidth="176" HeightSizePolicy="Fixed"
+                              SuggestedHeight="27" PositionXOffset="8"
+                              PositionYOffset="3"/>
+                            <TextWidget Brush.FontSize="13" Text="@NativeValue"
+                              Color="#C2A582FF" WidthSizePolicy="Fixed"
+                              SuggestedWidth="160" HeightSizePolicy="Fixed"
+                              SuggestedHeight="18" PositionXOffset="10"
+                              PositionYOffset="31"/>
+                            <TextWidget Brush.FontSize="16" Text="@SelectedValue"
+                              Color="#F7DFC0FF" WidthSizePolicy="Fixed"
+                              SuggestedWidth="110" HeightSizePolicy="Fixed"
+                              SuggestedHeight="26" PositionXOffset="177"
+                              PositionYOffset="10"/>
+                            <SliderWidget WidthSizePolicy="Fixed"
+                              SuggestedWidth="270" HeightSizePolicy="Fixed"
+                              SuggestedHeight="44"
+                              PositionXOffset="285" PositionYOffset="4"
+                              ValueInt="@SelectedInt" MinValueInt="@Minimum"
+                              MaxValueInt="@Maximum" IsDiscrete="true"
+                              DiscreteIncrementInterval="@Increment"
+                              UpdateValueContinuously="true"
+                              UpdateValueOnRelease="false"
+                              AlignmentAxis="Horizontal"
+                              DoNotUpdateHandleSize="true"
+                              SliderArea="CUStatTrack" Handle="CUStatHandle">
+                              <Children>
+                                <Widget Id="CUStatTrack"
+                                  Sprite="BlankWhiteSquare_9"
+                                  Color="#785938FF"
+                                  WidthSizePolicy="StretchToParent"
+                                  HeightSizePolicy="Fixed"
+                                  SuggestedHeight="10"
+                                  VerticalAlignment="Center"/>
+                                <ButtonWidget Id="CUStatHandle"
+                                  Brush="ButtonBrush"
+                                  UpdateChildrenStates="true"
+                                  WidthSizePolicy="Fixed"
+                                  SuggestedWidth="31"
+                                  HeightSizePolicy="Fixed"
+                                  SuggestedHeight="40"
+                                  VerticalAlignment="Center"/>
+                              </Children>
+                            </SliderWidget>
+                            <ButtonWidget Brush="ButtonBrush"
+                              DoNotPassEventsToChildren="true"
+                              UpdateChildrenStates="true"
+                              WidthSizePolicy="Fixed" SuggestedWidth="41"
+                              HeightSizePolicy="Fixed" SuggestedHeight="39"
+                              PositionXOffset="559" PositionYOffset="6"
+                              Command.Click="ExecuteDecrease">
+                              <Children><TextWidget Brush.FontSize="18"
+                                Text="−" Color="#F6E4C4FF"
+                                WidthSizePolicy="StretchToParent"
+                                HeightSizePolicy="StretchToParent"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/></Children>
+                            </ButtonWidget>
+                            <ButtonWidget Brush="ButtonBrush"
+                              DoNotPassEventsToChildren="true"
+                              UpdateChildrenStates="true"
+                              WidthSizePolicy="Fixed" SuggestedWidth="41"
+                              HeightSizePolicy="Fixed" SuggestedHeight="39"
+                              PositionXOffset="603" PositionYOffset="6"
+                              Command.Click="ExecuteIncrease">
+                              <Children><TextWidget Brush.FontSize="18"
+                                Text="+" Color="#F6E4C4FF"
+                                WidthSizePolicy="StretchToParent"
+                                HeightSizePolicy="StretchToParent"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/></Children>
+                            </ButtonWidget>
+                            <ButtonWidget Brush="ButtonBrush"
+                              DoNotPassEventsToChildren="true"
+                              UpdateChildrenStates="true"
+                              WidthSizePolicy="Fixed" SuggestedWidth="49"
+                              HeightSizePolicy="Fixed" SuggestedHeight="39"
+                              PositionXOffset="648" PositionYOffset="6"
+                              Command.Click="ExecuteEditExact">
+                              <Children><TextWidget Brush.FontSize="13"
+                                Text="Exact" Color="#F6E4C4FF"
+                                WidthSizePolicy="StretchToParent"
+                                HeightSizePolicy="StretchToParent"
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"/></Children>
+                            </ButtonWidget>
+                          </Children>
+                        </Widget>
+                      </ItemTemplate>
+                    </ListPanel>
                   </Children>
                 </Widget>
-              </ItemTemplate>
-            </ListPanel>
+              </Children>
+            </ScrollablePanel>
+            <Standard.VerticalScrollbar Id="CUStatsScrollbar"
+              IsVisible="@IsStatsPage"
+              HeightSizePolicy="Fixed" SuggestedHeight="342"
+              WidthSizePolicy="Fixed" SuggestedWidth="16"
+              PositionXOffset="957" PositionYOffset="276"/>
+
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="265"
@@ -242,7 +344,7 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="225"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="22"
- PositionYOffset="517" Command.Click="ExecuteReset" IsVisible="@IsStatsPage" >
+ PositionYOffset="567" Command.Click="ExecuteReset" IsVisible="@IsStatsPage" >
  <Children><TextWidget Brush.FontSize="14" Text="Reset all changes" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
