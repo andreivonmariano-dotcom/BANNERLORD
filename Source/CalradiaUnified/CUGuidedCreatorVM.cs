@@ -155,7 +155,7 @@ namespace CalradiaUnified
                         "Give this child a real native Hero name.","text"));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Age","Child "+i+" | Age",
-                        "Child must be at least 16 years younger than both parents.",
+                        "Choose a permitted age. The limit adjusts to both parents.",
                         "number",min:0,max:55));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Gender","Child "+i+" | Gender",
@@ -257,6 +257,36 @@ namespace CalradiaUnified
             }
         }
 
+        private int ActualFounderAge
+        {
+            get
+            {
+                var hero=Hero.MainHero;
+                return hero==null ? (profile.PlayerAge>=18?
+                    profile.PlayerAge:30) : (int)hero.Age;
+            }
+        }
+
+        private int EffectiveMaximum(Field field)
+        {
+            if(field!=null &&
+                field.Key.StartsWith("Child.",StringComparison.Ordinal) &&
+                field.Key.EndsWith(".Age",StringComparison.Ordinal))
+                return SandboxFamilyAgePolicy.ChildAgeMaximum(
+                    ActualFounderAge,profile.SpouseAge);
+            return field==null?0:field.Max;
+        }
+
+        private void ClampChildrenToParents()
+        {
+            if(preCampaign || !profile.SpouseEnabled)return;
+            int max=SandboxFamilyAgePolicy.ChildAgeMaximum(
+                ActualFounderAge,profile.SpouseAge);
+            for(int i=0;i<profile.ChildCount && i<profile.Children.Count;i++)
+                if(profile.Children[i].Age>max)
+                    profile.Children[i].Age=max;
+        }
+
         private string Raw(string key)
         {
             var property=typeof(SandboxOriginProfile).GetField(key);
@@ -285,6 +315,7 @@ namespace CalradiaUnified
 
         private void Refresh()
         {
+            ClampChildrenToParents();
             cursor=Math.Max(0,Math.Min(cursor,Visible.Length-1));
             // Version-pinned TaleWorlds ViewModel notifications use the
             // value-based API. Do not assume WPF's OnPropertyChanged exists.
@@ -306,6 +337,8 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(Summary,"Summary");
             OnPropertyChangedWithValue(AdvancedLabel,"AdvancedLabel");
             OnPropertyChangedWithValue(PhaseLabel,"PhaseLabel");
+            OnPropertyChangedWithValue(IsChildAge,"IsChildAge");
+            OnPropertyChangedWithValue(AgeLimitLabel,"AgeLimitLabel");
         }
 
         private void Report(string message)
@@ -321,6 +354,22 @@ namespace CalradiaUnified
             {
                 Report("Invalid value for "+key+".");
                 return false;
+            }
+            if(key.StartsWith("Child.",StringComparison.Ordinal) &&
+                key.EndsWith(".Age",StringComparison.Ordinal))
+            {
+                int parsed;
+                if(!Int32.TryParse(value,out parsed) ||
+                    !SandboxFamilyAgePolicy.CanChooseChildAge(
+                        parsed,ActualFounderAge,copy.SpouseAge))
+                {
+                    Report("Child age must be 0–"+
+                        SandboxFamilyAgePolicy.ChildAgeMaximum(
+                            ActualFounderAge,copy.SpouseAge)+
+                        ". Your age: "+ActualFounderAge+
+                        ", spouse age: "+copy.SpouseAge+".");
+                    return false;
+                }
             }
             profile=copy;
             Report("Selected: "+key+" = "+value);
@@ -356,7 +405,7 @@ namespace CalradiaUnified
             int value;
             if(!Int32.TryParse(Raw(field.Key),out value))return;
             int next=(int)Math.Max(field.Min,
-                Math.Min((long)field.Max,(long)value+
+                Math.Min((long)EffectiveMaximum(field),(long)value+
                     (long)direction*field.Step));
             TryWrite(field.Key,next.ToString(CultureInfo.InvariantCulture));
         }
@@ -365,8 +414,11 @@ namespace CalradiaUnified
             Field field=Current;
             if(field==null || field.Kind!="number")return;
             string key=field.Key;
+            int minimum=field.Min;
+            int maximum=EffectiveMaximum(field);
             InformationManager.ShowTextInquiry(new TextInquiryData(
-                field.Label,"Enter a whole number in the native allowed range.",
+                field.Label,"Enter a whole number from "+minimum+
+                    " to "+maximum+".",
                 true,true,"Apply","Cancel",
                 value=>TryWrite(key,value),()=>{},false,null,"",Raw(key)));
         }
@@ -535,6 +587,20 @@ namespace CalradiaUnified
             {get{return Current!=null && Current.Kind=="boolean";}}
         [DataSourceProperty] public bool IsNumber
             {get{return Current!=null && Current.Kind=="number";}}
+        [DataSourceProperty] public bool IsChildAge
+            {get{return Current!=null &&
+                Current.Key.StartsWith("Child.",StringComparison.Ordinal) &&
+                Current.Key.EndsWith(".Age",StringComparison.Ordinal);}}
+        [DataSourceProperty] public string AgeLimitLabel
+        {
+            get
+            {
+                if(!IsChildAge)return "";
+                return "PERMITTED AGE: 0–"+EffectiveMaximum(Current)+
+                    " YEARS  |  YOU: "+ActualFounderAge+
+                    "  |  SPOUSE: "+profile.SpouseAge;
+            }
+        }
         [DataSourceProperty] public bool IsText
             {get{return Current!=null && Current.Kind=="text";}}
         [DataSourceProperty] public bool IsReview
@@ -567,7 +633,8 @@ namespace CalradiaUnified
                         "\nCulture, appearance and origins follow.";
                 var hero=Hero.MainHero;
                 return "Native character: "+
-                    (hero==null?"pending":hero.Name.ToString())+"\n"+
+                    (hero==null?"pending":hero.Name.ToString())+
+                    " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
                     "Spouse: "+(profile.SpouseEnabled?profile.SpouseName:
                         "No spouse")+"\n"+
