@@ -12,6 +12,83 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("four fixed Chapter II pages independent of stats mode",
+            CUNativeStatsNavigationPolicy.Age==-1 &&
+            CUNativeStatsNavigationPolicy.Attributes==0 &&
+            CUNativeStatsNavigationPolicy.Skills==1 &&
+            CUNativeStatsNavigationPolicy.Traits==2 &&
+            CUNativeStatsNavigationPolicy.PageCount==4);
+        Check("Back from attributes returns to exact age",
+            CUNativeStatsNavigationPolicy.BackPage(
+                CUNativeStatsNavigationPolicy.Attributes)==
+                CUNativeStatsNavigationPolicy.Age);
+        Check("Back from skills returns to attributes",
+            CUNativeStatsNavigationPolicy.BackPage(
+                CUNativeStatsNavigationPolicy.Skills)==
+                CUNativeStatsNavigationPolicy.Attributes);
+        Check("Back from traits returns to skills",
+            CUNativeStatsNavigationPolicy.BackPage(
+                CUNativeStatsNavigationPolicy.Traits)==
+                CUNativeStatsNavigationPolicy.Skills);
+        Check("Back from exact age is the only native-narrative boundary",
+            CUNativeStatsNavigationPolicy.BackToNativeNarrative(
+                CUNativeStatsNavigationPolicy.Age) &&
+            !CUNativeStatsNavigationPolicy.BackToNativeNarrative(
+                CUNativeStatsNavigationPolicy.Attributes));
+        Check("Next from age and attributes never finalizes early",
+            CUNativeStatsNavigationPolicy.NextPage(
+                CUNativeStatsNavigationPolicy.Age)==
+                CUNativeStatsNavigationPolicy.Attributes &&
+            CUNativeStatsNavigationPolicy.NextPage(
+                CUNativeStatsNavigationPolicy.Attributes)==
+                CUNativeStatsNavigationPolicy.Skills &&
+            !CUNativeStatsNavigationPolicy.IsFinal(
+                CUNativeStatsNavigationPolicy.Attributes));
+        Check("Only traits finalizes, never native-mode shortcut",
+            CUNativeStatsNavigationPolicy.IsFinal(
+                CUNativeStatsNavigationPolicy.Traits) &&
+            !CUNativeStatsNavigationPolicy.IsFinal(
+                CUNativeStatsNavigationPolicy.Age) &&
+            !CUNativeStatsNavigationPolicy.IsFinal(
+                CUNativeStatsNavigationPolicy.Skills));
+        Check("Back then Next round trip preserves same step",
+            CUNativeStatsNavigationPolicy.NextPage(
+                CUNativeStatsNavigationPolicy.BackPage(
+                    CUNativeStatsNavigationPolicy.Attributes))==
+                    CUNativeStatsNavigationPolicy.Attributes &&
+            CUNativeStatsNavigationPolicy.BackPage(
+                CUNativeStatsNavigationPolicy.NextPage(
+                    CUNativeStatsNavigationPolicy.Skills))==
+                    CUNativeStatsNavigationPolicy.Skills);
+        Check("displayed four-page sequence matches actual transitions",
+            CUNativeStatsNavigationPolicy.StepNumber(-1)==1 &&
+            CUNativeStatsNavigationPolicy.StepNumber(0)==2 &&
+            CUNativeStatsNavigationPolicy.StepNumber(1)==3 &&
+            CUNativeStatsNavigationPolicy.StepNumber(2)==4 &&
+            CUNativeStatsNavigationPolicy.NextLabel(-1)=="Next: Attributes" &&
+            CUNativeStatsNavigationPolicy.NextLabel(2)=="Confirm & Continue");
+        Check("minor residence recorded is distinct from castle scene roster",
+            SandboxFamilyResidencePolicy.Classify(true,true,false)==
+                SandboxFamilyResidencePolicy.MinorResident &&
+            SandboxFamilyResidencePolicy.Classify(false,true,false)==
+                SandboxFamilyResidencePolicy.AdultUnplaced &&
+            SandboxFamilyResidencePolicy.Classify(false,true,true)==
+                SandboxFamilyResidencePolicy.AdultPresent);
+        Check("female and male minors share the same age/state policy",
+            SandboxFamilyResidencePolicy.HumanStatus(
+                SandboxFamilyResidencePolicy.MinorResident).Contains("underage") &&
+            !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                true,true,false,false,false) &&
+            !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                true,true,true,false,false));
+        Check("adult missing-resident and underage recall remain distinct",
+            SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                false,true,true,false,false) &&
+            !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                false,true,false,false,false) &&
+            !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
+                false,true,true,false,true));
+
         Check("starting character age permits each adult year 18 to 80",
             SandboxFamilyAgePolicy.ValidPlayerAge(18) &&
             SandboxFamilyAgePolicy.ValidPlayerAge(37) &&
