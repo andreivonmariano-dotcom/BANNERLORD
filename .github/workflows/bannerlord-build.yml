@@ -95,6 +95,9 @@ jobs:
       - name: Check persistent CU native-state culture and face shell pilot
         shell: pwsh
         run: python scripts/test_cu_native_state_shell.py
+      - name: Verify unified native culture FaceGen origins banner clan review and difficulty chrome
+        shell: pwsh
+        run: python scripts/test_unified_native_chrome.py
       - name: Check native-bound CU culture chooser and real 3D face ownership
         shell: pwsh
         run: python scripts/test_cu_native_culture_composition.py
