@@ -1,3 +1,17 @@
+# Calradia Unified v0.36.0 | Five Native Chapters and Safe 3D Viewport Contract
+
+**Game target:** Bannerlord PC v1.5.7.125802. **Status:** compiled candidate only after Windows CI verifies the code. The five original CU pregame selection pages and native screens are **still separate**. The complete one-window creator and a persistent cropped right-side 3D scene are **not yet implemented**.
+
+This candidate builds on the native-bound CU culture chooser and original real 3D FaceGen from v0.35. With **Starting Life → More options → Experimental: CU culture chooser and real 3D face audit = Yes**, its persistent `CharacterCreationState` shell now displays the five frozen chapter labels and highlights the game-owned native stage in progress. Land & Home displays `START OPTIONS SET`, since King/Lord, kingdom, fief and scenario are already supplied to `SandBoxGameManager` **before** native `CharacterCreationState` starts. This rail is read-only. It does not let the user jump over Bannerlord narrative or difficulty callbacks.
+
+The face page uses the same genuine game-owned `BodyGeneratorView`, native 3D camera, FaceGenHistory and slider controls. The CU shell identifies the native scene and displays **NATIVE 3D SCENE: FULL SCREEN; DOCK NOT YET VERIFIED**. Layout target geometry is defined for both 1920×1080 and 1366×768. No fake portrait, duplicate scene or falsely claimed right-hand 3D crop is shipped. The correct technical work left is a verified render/viewport transfer with intact input and scene ownership.
+
+See [v0.36 technical contract](docs/V036_NATIVE_FIVE_CHAPTER_SHELL_VIEWPORT_CONTRACT.md) and [v0.35 culture/face contract](docs/V035_NATIVE_CULTURE_CHOOSER_AND_FACE_DOCK_GATE.md). Keep the known working build as fallback and test new native-layer changes only in a disposable campaign.
+
+---
+
+## Previous v0.35 candidate
+
 # Calradia Unified v0.35.0 | Real Native-Bound CU Culture Chooser
 
 **Target:** Bannerlord PC v1.5.7.125802. **Release status:** opt-in compiled, game-untested candidate. The requested final single-window creator and persistent right-hand 3D character viewport are **not yet complete**.

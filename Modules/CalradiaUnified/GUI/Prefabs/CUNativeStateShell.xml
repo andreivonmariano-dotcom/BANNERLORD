@@ -60,6 +60,54 @@
                     PositionXOffset="-34" PositionYOffset="169"/>
           </Children>
         </Widget>
+        <!-- Persistent five-chapter stage tracker inside real CharacterCreationState.
+             Read-only. Native stage manager retains all input and callbacks. -->
+        <Widget Sprite="BlankWhiteSquare_9" Color="#08131BCB"
+                WidthSizePolicy="Fixed" SuggestedWidth="232"
+                HeightSizePolicy="Fixed" SuggestedHeight="391"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="13" PositionYOffset="115"/>
+        <TextWidget Text="CALRADIA UNIFIED | FIVE CHAPTERS"
+                Color="#F5D4A0FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="218"
+                HeightSizePolicy="Fixed" SuggestedHeight="33"
+                PositionXOffset="21" PositionYOffset="127"/>
+        <ListPanel DataSource="{Chapters}"
+                WidthSizePolicy="Fixed" SuggestedWidth="218"
+                HeightSizePolicy="Fixed" SuggestedHeight="293"
+                StackLayout.LayoutMethod="VerticalTopToBottom"
+                PositionXOffset="21" PositionYOffset="163">
+          <ItemTemplate>
+            <Widget WidthSizePolicy="Fixed" SuggestedWidth="218"
+                    HeightSizePolicy="Fixed" SuggestedHeight="55">
+              <Children>
+                <Widget Sprite="BlankWhiteSquare_9" Color="#B8915CFF"
+                        IsVisible="@IsSelected"
+                        WidthSizePolicy="Fixed" SuggestedWidth="4"
+                        HeightSizePolicy="StretchToParent"/>
+                <TextWidget Text="@Label" Color="#E4D4BCFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="202"
+                        HeightSizePolicy="Fixed" SuggestedHeight="27"
+                        PositionXOffset="8" PositionYOffset="2"/>
+                <TextWidget Text="@Status" Color="#9EB3C9FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="202"
+                        HeightSizePolicy="Fixed" SuggestedHeight="22"
+                        PositionXOffset="8" PositionYOffset="29"/>
+              </Children>
+            </Widget>
+          </ItemTemplate>
+        </ListPanel>
+        <TextWidget Text="STAGE TRACKER | NATIVE CALLBACKS"
+                Color="#CEB280FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="220"
+                HeightSizePolicy="Fixed" SuggestedHeight="25"
+                PositionXOffset="20" PositionYOffset="470"/>
+        <TextWidget Text="@ViewportCapability"
+                IsVisible="@IsFaceStage"
+                Color="#B2C7D9FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="410"
+                HeightSizePolicy="Fixed" SuggestedHeight="50"
+                PositionXOffset="17" PositionYOffset="513"/>
         <!-- Keep native FaceGen's right-hand sliders and real 3D scene
              unobscured. This verifies active engine-owned layers; it does
              not claim the full-screen scene has been moved to a rectangle. -->

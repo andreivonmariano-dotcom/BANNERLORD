@@ -189,9 +189,27 @@ namespace CalradiaUnified
         private bool isFaceStage;
         private string faceStatus = "";
         private bool cultureCommitObserved;
+        private readonly bool[] chaptersReached = new bool[5];
+        private int activeChapterIndex = -1;
+
+        [DataSourceProperty]
+        public MBBindingList<CUNativeChapterBadgeVM> Chapters { get; private set; }
+
+        [DataSourceProperty]
+        public string ViewportCapability
+        {
+            get { return CUNativeViewportPolicy.CapabilityStatus(); }
+        }
 
         public CUNativeStateShellVM(SandboxOriginProfile profile)
         {
+            Chapters = new MBBindingList<CUNativeChapterBadgeVM>();
+            for (int i=0;i<CUNativeChapterPolicy.Chapters.Length;i++)
+            {
+                Chapters.Add(new CUNativeChapterBadgeVM(
+                    CUNativeChapterPolicy.Chapters[i],
+                    i==3 ? "START OPTIONS SET" : "UPCOMING"));
+            }
             role = "ROLE: " + profile.Role +
                 (String.IsNullOrEmpty(profile.StartingKingdomId) ?
                     "" : " | " + profile.StartingKingdomId);
@@ -209,6 +227,18 @@ namespace CalradiaUnified
                 stage.GetType().Name;
             string chapterNext =
                 NativeStateShellPolicy.ChapterForStage(stageName);
+            int chapterIndex=CUNativeChapterPolicy.ActiveChapter(stageName);
+            if(chapterIndex>=0 && chapterIndex<Chapters.Count)
+            {
+                chaptersReached[chapterIndex]=true;
+                activeChapterIndex=chapterIndex;
+            }
+            for(int i=0;i<Chapters.Count;i++)
+            {
+                Chapters[i].IsSelected=(i==activeChapterIndex);
+                Chapters[i].Status=CUNativeChapterPolicy.ChapterStatus(
+                    i,activeChapterIndex,chaptersReached[i]);
+            }
             string stepNext =
                 NativeStateShellPolicy.DetailForStage(stageName);
             var selected = manager.CharacterCreationContent == null ?
@@ -298,6 +328,50 @@ namespace CalradiaUnified
             {
                 return "Native controls remain active. CU shell is a " +
                     "read-only test, not yet one-screen creation.";
+            }
+        }
+    }
+
+    /// <summary>
+    /// View-only chapter indicator. Do not expose ExecuteSelect: jumping
+    /// native creation stages would skip required OnConsequence callbacks.
+    /// </summary>
+    public sealed class CUNativeChapterBadgeVM : ViewModel
+    {
+        private readonly string label;
+        private string status;
+        private bool isSelected;
+
+        public CUNativeChapterBadgeVM(string label,string status)
+        {
+            this.label=label;
+            this.status=status;
+        }
+
+        [DataSourceProperty]
+        public string Label { get { return label; } }
+
+        [DataSourceProperty]
+        public string Status
+        {
+            get { return status; }
+            set
+            {
+                if(status==value) return;
+                status=value;
+                OnPropertyChangedWithValue(status,"Status");
+            }
+        }
+
+        [DataSourceProperty]
+        public bool IsSelected
+        {
+            get { return isSelected; }
+            set
+            {
+                if(isSelected==value) return;
+                isSelected=value;
+                OnPropertyChangedWithValue(isSelected,"IsSelected");
             }
         }
     }

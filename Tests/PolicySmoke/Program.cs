@@ -12,6 +12,34 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("CU five chapters retain frozen order",
+            CUNativeChapterPolicy.Chapters.Length==5 &&
+            CUNativeChapterPolicy.Chapters[0]=="01  STARTING LIFE" &&
+            CUNativeChapterPolicy.Chapters[1]=="02  BLOODLINE" &&
+            CUNativeChapterPolicy.Chapters[2]=="03  FORTUNE" &&
+            CUNativeChapterPolicy.Chapters[3]=="04  LAND & HOME" &&
+            CUNativeChapterPolicy.Chapters[4]=="05  REVIEW YOUR HOUSE");
+        Check("CU native page maps real face to Starting Life",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationFaceGeneratorStage")==0);
+        Check("CU native page maps banner to Bloodline",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationBannerEditorStage")==1);
+        Check("CU native page maps narrative to Fortune",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationNarrativeStage")==2);
+        Check("CU native page maps difficulty to Review",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationOptionsStage")==4);
+        Check("CU native state cannot retroactively edit pregame land/start options",
+            !CUNativeChapterPolicy.IsLiveNativeChoice(3) &&
+            CUNativeChapterPolicy.ChapterStatus(3,0,false)=="START OPTIONS SET");
+        Check("CU five-chapter tracker will not skip native consequences",
+            CUNativeChapterPolicy.ChapterStatus(2,2,true)=="NATIVE STAGE ACTIVE");
+        Check("CU 1366 layout leaves actual model viewport room",
+            CUNativeViewportPolicy.IsUsableLayout(1366,768));
+        Check("CU 1920 viewport target is large",
+            CUNativeViewportPolicy.IsUsableLayout(1920,1080) &&
+            CUNativeViewportPolicy.ProposedViewportWidth(1920)>=1100);
+        Check("native 3D scene crop is unverified and cannot claim completed dock",
+            !CUNativeViewportPolicy.HasVerifiedRectangularSceneDock &&
+            CUNativeViewportPolicy.CapabilityStatus().Contains("NOT YET VERIFIED"));
         Check("native CU shell maps culture to Starting Life",
             NativeStateShellPolicy.ChapterForStage(
                 "CharacterCreationCultureStage") == "01  STARTING LIFE");

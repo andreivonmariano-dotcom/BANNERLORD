@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Native-Bound Culture Chooser and Real 3D Face Audit" />
+  <Name value="Calradia Unified - Native Five Chapter Stage Shell and Face Viewport Contract" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.35.0" />
+  <Version value="v0.36.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
