@@ -183,8 +183,8 @@ namespace CalradiaUnified
             {
                 // Exactly one original game-owned SceneView, not a copy.
                 // 694 native design pixels reserve the existing face panel.
-                int width=Screen.RealScreenResolutionWidth;
-                int height=Screen.RealScreenResolutionHeight;
+                int width=(int)Screen.RealScreenResolutionWidth;
+                int height=(int)Screen.RealScreenResolutionHeight;
                 if(!CUNativeViewportPolicy.CanTryNativeFaceDock(width,height))
                     return false;
                 float leftFraction=
