@@ -25,8 +25,11 @@ assert 'nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);' in layer
 assert 'ScreenManager.TrySetFocus(next);' in layer
 assert 'next.InputRestrictions.SetInputRestrictions();' in layer
 assert 'next.IsFocusLayer=true;' in layer
-assert 'if(stage=="CharacterCreationNarrativeStage")' in layer
-assert 'if(stage!="CharacterCreationBannerEditorStage")' in layer
+assert 'bool isNarrative=stage=="CharacterCreationNarrativeStage";' in layer
+assert 'bool isBanner=stage=="CharacterCreationBannerEditorStage";' in layer
+assert 'returningFromNativeBanner=true;' in layer
+assert '"cu_native_banner_back_to_traits"' in layer
+assert 'manager.NextStage();' in layer
 assert 'manager.PreviousStage();' in layer, "Back must delegate native stage"
 assert 'screen.AddLayer(next);' in layer
 assert 'oldHost.RemoveLayer(oldLayer);' in layer

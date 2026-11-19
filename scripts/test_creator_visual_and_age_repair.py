@@ -56,8 +56,11 @@ assert not any("The campaign engine owns all native"
 assert any(w.get("SuggestedWidth")=="610" and
            w.get("SuggestedHeight")=="369"
            for w in guided.iter("Widget"))
-assert any(w.get("Color")=="#A78351FF"
+assert any(w.get("Sprite")==r"SPGeneral\EscapeMenu\escape_panel"
            for w in guided.iter("Widget"))
+assert any(w.get("Sprite")==
+    r"General\CharacterCreation\character_creation_background_gradient"
+    for w in guided.iter("Widget"))
 assert any(w.get("Text")=="@SelectedValue" and
            w.get("Brush.TextHorizontalAlignment")=="Center"
            for w in guided.iter("TextWidget"))
@@ -94,7 +97,7 @@ assert sl.get("DiscreteIncrementInterval")=="1"
 assert sl.get("IsDiscrete")=="true"
 assert sl.get("Handle")=="CUPlayerAgeHandle"
 assert sl.get("SliderArea")=="CUPlayerAgeTrack"
-ids={w.get("Id") for w in sl.iter("Widget")}
+ids={w.get("Id") for w in sl.iter()}
 assert {"CUPlayerAgeHandle","CUPlayerAgeTrack"} <= ids
 assert any(w.get("IsVisible")=="@IsAgePage"
            for w in stats.iter("Widget"))
@@ -111,7 +114,12 @@ assert "hero.SetBirthDay(CampaignTime.YearsFromNow(" in text_stats
 assert "hero.SetBirthDay(oldBirthday)" in text_stats
 assert "cu_native_player_age_committed" in text_stats
 assert "cu_native_age_slider_fallback" in text_stats
-assert 'next.LoadMovie("CUNativeStatsEditorSafe",vm)' in text_stats
+assert "cu_native_age_slider_drag" in text_stats
+assert "ReadNativeSliderValue();" in text_stats
+assert any(w.get("Id")=="CUPlayerAgeHandle"
+           for w in sl.iter("ButtonWidget"))
+assert '"CUNativeStatsEditorSafe",vm' in text_stats
+assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
 assert len(list(safe_stats.iter("SliderWidget")))==0
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))

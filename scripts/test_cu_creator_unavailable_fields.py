@@ -60,7 +60,7 @@ assert '"PlayerAge"' not in native_default_section, "do not offer native-default
 # stay intact. No fake pre-campaign player Agent or character creator override.
 assert '"Identity", "Household", "Resources", "Location", "Review"' in overlay
 assert 'SandboxCreatorOverlay.Accept();' in overlay
-assert 'MBGameManager.StartNewGame(new SandBoxGameManager(' in overlay
+assert 'MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(' in overlay
 assert 'NEXT: NATIVE CREATOR' in ET.tostring(xml,encoding="unicode")
 assert 'new BodyGeneratorView(' not in overlay
 assert 'CharacterCreationState' in doc

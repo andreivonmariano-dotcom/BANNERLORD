@@ -68,7 +68,7 @@ assert "launchQueued = false;" in overlay
 assert "if (ScreenManager.TopScreen == this &&" in overlay
 assert "Input.IsKeyReleased(InputKey.Escape)" in overlay
 assert "if (!profile.Enabled ||" in overlay
-assert "MBGameManager.StartNewGame(new SandBoxGameManager(" in overlay
+assert "MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(" in overlay
 assert "candidate.Enabled=true;" in overlay
 assert "SandboxNativeStartOptions.TryPrepare(candidate," in overlay
 assert "SandboxCreatorOverlay.Accept();" in overlay

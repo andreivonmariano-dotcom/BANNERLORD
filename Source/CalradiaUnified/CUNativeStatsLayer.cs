@@ -28,10 +28,16 @@ namespace CalradiaUnified
         private static CharacterCreationScreen failedHost;
         private static GauntletLayer layer;
         private static GauntletMovieIdentifier movie;
+        private static CUNativeStatsVM activeVM;
+        private static bool sliderWarningLogged;
+        private static bool sliderProbeUnavailable;
+        private static object cachedAgeSlider;
         private static bool narrativeSeen;
         private static bool completed;
         private static bool closeRequested;
         private static bool backRequested;
+        private static bool returningFromNativeBanner;
+        private static string previousNativeStage;
 
         public static void Tick(CharacterCreationScreen screen,
             CharacterCreationManager manager)
@@ -49,17 +55,38 @@ namespace CalradiaUnified
             }
             string stage=manager.CurrentStage==null ? "" :
                 manager.CurrentStage.GetType().Name;
-            if(stage=="CharacterCreationNarrativeStage")
+            bool isNarrative=stage=="CharacterCreationNarrativeStage";
+            bool isBanner=stage=="CharacterCreationBannerEditorStage";
+            if(isNarrative &&
+                previousNativeStage=="CharacterCreationBannerEditorStage" &&
+                completed)
             {
-                // Replaying native background choices requires a fresh
-                // native baseline and another edit confirmation.
-                narrativeSeen=true;
+                // User clicked the ORIGINAL native Banner Back. Native
+                // stage history knows nothing about CU's Traits overlay.
+                // Reopen Traits over the real narrative page, then let
+                // Bannerlord advance back to Banner on confirmation.
+                returningFromNativeBanner=true;
                 completed=false;
                 failedHost=null;
-                Detach();
-                return;
+                DiagnosticJournal.Event("cu_native_banner_back_to_traits",
+                    "original_back_callback_retained=true"+
+                    "|reopen=Traits|native_stage=narrative");
             }
-            if(stage!="CharacterCreationBannerEditorStage")
+            previousNativeStage=stage;
+            if(isNarrative)
+            {
+                narrativeSeen=true;
+                if(!returningFromNativeBanner)
+                {
+                    // An explicit Back from CU's Age step reveals
+                    // the original native life story.
+                    completed=false;
+                    failedHost=null;
+                    Detach();
+                    return;
+                }
+            }
+            if(!isBanner && !(isNarrative && returningFromNativeBanner))
             {
                 Detach();
                 return;
@@ -68,19 +95,52 @@ namespace CalradiaUnified
             if (closeRequested)
             {
                 closeRequested=false;
-                completed=true;
+                bool needsBannerReturn=returningFromNativeBanner;
                 Detach();
-                DiagnosticJournal.Event("cu_native_stats_step_closed",
-                    "resume=original_banner_stage|wizard_still_native=true");
+                returningFromNativeBanner=false;
+                completed=true;
+                if(needsBannerReturn)
+                {
+                    try
+                    {
+                        // Return through the game-owned native transition.
+                        // Do not create an extra Banner stage or game state.
+                        manager.NextStage();
+                        DiagnosticJournal.Event(
+                            "cu_native_stats_return_to_banner",
+                            "from=Traits|native_next_stage=true");
+                    }
+                    catch(Exception error)
+                    {
+                        completed=false;
+                        DiagnosticJournal.Exception(
+                            "cu_native_stats_return_to_banner_failed",error);
+                    }
+                }
+                else
+                    DiagnosticJournal.Event("cu_native_stats_step_closed",
+                        "resume=original_banner_stage|wizard_still_native=true");
                 return;
             }
             if (backRequested)
             {
                 backRequested=false;
+                bool alreadyOnNarrative=returningFromNativeBanner;
                 Detach();
+                returningFromNativeBanner=false;
+                if(alreadyOnNarrative)
+                {
+                    // Banner's native Back already returned the game to
+                    // the Narrative stage. Revealing that same native
+                    // stage is the correct boundary, not PreviousStage
+                    // again, which could jump behind the life story.
+                    DiagnosticJournal.Event("cu_native_stats_back",
+                        "destination=visible_native_narrative"+
+                        "|no_double_previous_stage=true");
+                    return;
+                }
                 try
                 {
-                    // Manager, not our UI, controls the real narrative Back.
                     manager.PreviousStage();
                     DiagnosticJournal.Event("cu_native_stats_back",
                         "destination=native_narrative");
@@ -94,6 +154,11 @@ namespace CalradiaUnified
             }
             if (Object.ReferenceEquals(host,screen))
             {
+                // The live slider ValueInt is the authoritative drag
+                // position. Some game versions only push a read-only VM
+                // binding, so poll the actual pinned Gauntlet widget and
+                // feed the value into the same validated age setter.
+                ReadNativeSliderValue();
                 // Match native Escape=Back. Teardown remains deferred,
                 // outside the movie click / input callback.
                 if(ScreenManager.FocusedLayer==layer &&
@@ -125,33 +190,55 @@ namespace CalradiaUnified
                     return;
                 }
                 var vm=new CUNativeStatsVM(manager,profile,
-                    ()=>closeRequested=true,()=>backRequested=true);
+                    ()=>closeRequested=true,()=>backRequested=true,
+                    returningFromNativeBanner ?
+                    CUNativeStatsNavigationPolicy.Traits :
+                    CUNativeStatsNavigationPolicy.Age);
                 next=new GauntletLayer("CUNativeStatsEditor",85,false);
                 next.IsFocusLayer=true;
                 next.InputRestrictions.SetInputRestrictions();
                 try
                 {
                     nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                    DiagnosticJournal.Event("cu_native_creator_assets",
+                        "screen=stats|source=installed_game|art=native");
                 }
-                catch(Exception sliderFailure)
+                catch(Exception nativeArtFailure)
                 {
-                    // A malformed/newer engine SliderWidget must never
-                    // discard the entire character stats step. The safe
-                    // movie retains the same warm UI and per-year buttons.
                     DiagnosticJournal.Exception(
-                        "cu_native_age_slider_fallback",sliderFailure);
-                    nextMovie=next.LoadMovie("CUNativeStatsEditorSafe",vm);
+                        "cu_native_stats_art_fallback",nativeArtFailure);
+                    try
+                    {
+                        // Original flat assets retain the same working
+                        // one-year SliderWidget and all game-affecting
+                        // callbacks, no missing vanilla texture required.
+                        nextMovie=next.LoadMovie(
+                            "CUNativeStatsEditorPlainFallback",vm);
+                    }
+                    catch(Exception sliderFailure)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_age_slider_fallback",sliderFailure);
+                        nextMovie=next.LoadMovie(
+                            "CUNativeStatsEditorSafe",vm);
+                    }
                 }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=screen;
                 layer=next;
                 movie=nextMovie;
+                activeVM=vm;
+                sliderWarningLogged=false;
+                sliderProbeUnavailable=false;
+                cachedAgeSlider=null;
                 failedHost=null;
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
                     "transition=after_narrative_before_banner" +
                     "|hero_real=true|native_stages_preserved=true" +
-                    "|default_mode=Native|no_experimental_toggle=true");
+                    "|default_mode=Native|no_experimental_toggle=true"+
+                    "|entry_page="+
+                    (returningFromNativeBanner?"Traits":"Age"));
             }
             catch(Exception e)
             {
@@ -183,6 +270,10 @@ namespace CalradiaUnified
             host=null;
             layer=null;
             movie=null;
+            activeVM=null;
+            sliderWarningLogged=false;
+            sliderProbeUnavailable=false;
+            cachedAgeSlider=null;
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -209,6 +300,119 @@ namespace CalradiaUnified
             }
         }
 
+        private static object FindSliderWidget(object root)
+        {
+            if(root==null)return null;
+            // Public FindChild is present on some supported Gauntlet builds.
+            // The pinned metadata confirms Widget.Id and ChildCount but
+            // does not guarantee any one FindChild overload.
+            try
+            {
+                var find=root.GetType().GetMethod("FindChild",
+                    new[] {typeof(string),typeof(bool)});
+                if(find!=null)
+                {
+                    object found=find.Invoke(root,new object[] {
+                        "CUPlayerAgeSlider",true});
+                    if(found!=null)return found;
+                }
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_native_age_find_child_fallback",error);
+            }
+            return FindSliderInTree(root,0);
+        }
+
+        private static object FindSliderInTree(object root,int depth)
+        {
+            // Iterative depth limit protects against malformed/recursive
+            // prefab trees. The plain and native-art movies share IDs.
+            if(root==null || depth>24)return null;
+            var type=root.GetType();
+            var id=type.GetProperty("Id");
+            if(id!=null &&
+                String.Equals(id.GetValue(root,null) as string,
+                    "CUPlayerAgeSlider",StringComparison.Ordinal))
+                return root;
+            var countProp=type.GetProperty("ChildCount");
+            if(countProp==null)return null;
+            object raw=countProp.GetValue(root,null);
+            if(!(raw is int))return null;
+            int count=Math.Min((int)raw,512);
+            var oneIndex=new[] {typeof(int)};
+            var getChild=type.GetMethod("GetChild",
+                BindingFlags.Public|BindingFlags.NonPublic|
+                    BindingFlags.Instance,null,oneIndex,null);
+            if(getChild==null)
+                getChild=type.GetMethod("GetChildAt",
+                    BindingFlags.Public|BindingFlags.NonPublic|
+                        BindingFlags.Instance,null,oneIndex,null);
+            if(getChild!=null)
+            {
+                for(int index=0;index<count;index++)
+                {
+                    var child=getChild.Invoke(root,new object[] {index});
+                    var matched=FindSliderInTree(child,depth+1);
+                    if(matched!=null)return matched;
+                }
+            }
+            return null;
+        }
+
+        private static void ReadNativeSliderValue()
+        {
+            if(activeVM==null || !activeVM.IsAgePage ||
+                movie==null || movie.Movie==null ||
+                sliderProbeUnavailable)
+                return;
+            try
+            {
+                if(cachedAgeSlider==null)
+                {
+                    cachedAgeSlider=FindSliderWidget(movie.Movie.RootWidget);
+                    if(cachedAgeSlider==null)
+                    {
+                        sliderProbeUnavailable=true;
+                        DiagnosticJournal.Event("cu_native_age_slider_probe",
+                            "supported=false|reason=slider_not_found"+
+                            "|fallback=one_year_buttons");
+                        return;
+                    }
+                    DiagnosticJournal.Event("cu_native_age_slider_probe",
+                        "supported=true|source=real_gauntlet_tree");
+                }
+                var valueProperty=cachedAgeSlider.GetType().GetProperty(
+                    "ValueInt");
+                if(valueProperty==null)
+                {
+                    sliderProbeUnavailable=true;
+                    return;
+                }
+                object raw=valueProperty.GetValue(cachedAgeSlider,null);
+                if(!(raw is int))return;
+                int age=(int)raw;
+                if(SandboxFamilyAgePolicy.ValidPlayerAge(age) &&
+                    age!=activeVM.PlayerAge)
+                {
+                    activeVM.PlayerAge=age;
+                    DiagnosticJournal.Event("cu_native_age_slider_drag",
+                        "chosen_year="+age+"|source=real_slider_widget");
+                }
+            }
+            catch(Exception error)
+            {
+                sliderProbeUnavailable=true;
+                if(!sliderWarningLogged)
+                {
+                    sliderWarningLogged=true;
+                    DiagnosticJournal.Exception(
+                        "cu_native_age_slider_probe_failed",error);
+                }
+            }
+        }
+
         public static void Clear()
         {
             Detach();
@@ -218,6 +422,8 @@ namespace CalradiaUnified
             completed=false;
             closeRequested=false;
             backRequested=false;
+            returningFromNativeBanner=false;
+            previousNativeStage=null;
         }
     }
 
@@ -319,8 +525,12 @@ namespace CalradiaUnified
         public MBBindingList<CUNativeStatRowVM> Rows {get;private set;}
 
         internal CUNativeStatsVM(CharacterCreationManager manager,
-            SandboxOriginProfile source,Action onCompleted,Action onBack)
+            SandboxOriginProfile source,Action onCompleted,Action onBack,
+            int startingPage)
         {
+            if(!CUNativeStatsNavigationPolicy.IsValidPage(startingPage))
+                throw new ArgumentOutOfRangeException("startingPage");
+            pageIndex=startingPage;
             profile=SandboxOriginProfile.Parse(source.Serialize());
             // The existing advanced Resources fields no longer authorize
             // arbitrary early override values. Defaults are native.

@@ -86,8 +86,8 @@ namespace CalradiaUnified
             {
                 // Same no-selection startup as Bannerlord v1.5.7's
                 // GauntletCampaignStartingOptionsView.OnConfirm.
-                // The game then owns its normal cinematic and character
-                // creation finalization stages.
+                // CU bypasses only the new-campaign intro movie.
+                // Native character creation still owns all later stages.
                 var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
                 SandBox.AdvancedStartOptions.AdvancedStartOptions options;
                 string reason = "Origin profile is disabled.";
@@ -101,7 +101,7 @@ namespace CalradiaUnified
                 // This creates the actual native King/Vassal/Mercenary/etc.
                 // starting data, rather than the former empty default start.
                 var gameOptions = options.GetChangedOptions();
-                MBGameManager.StartNewGame(new SandBoxGameManager(
+                MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(
                     () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
                     "role=" + profile.Role + "|type=" +
@@ -164,7 +164,22 @@ namespace CalradiaUnified
             };
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
-            layer.LoadMovie("CUGuidedCreator", viewModel);
+            try
+            {
+                // First try original Bannerlord textures/brushes referenced
+                // directly from its installed GUI atlases.
+                layer.LoadMovie("CUGuidedCreator", viewModel);
+                DiagnosticJournal.Event("cu_native_creator_assets",
+                    "screen=guided|source=installed_game|art=native");
+            }
+            catch(Exception missingNativeArt)
+            {
+                // Never break new Sandbox starts just to show a missing
+                // texture from a different installed game build.
+                DiagnosticJournal.Exception(
+                    "cu_native_creator_art_fallback",missingNativeArt);
+                layer.LoadMovie("CUGuidedCreatorPlainFallback",viewModel);
+            }
         }
 
         protected override void OnActivate()

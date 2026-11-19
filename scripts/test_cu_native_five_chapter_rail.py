@@ -72,7 +72,7 @@ assert not any(True for el in xml.iter("SliderWidget"))
 # current pregame choices cannot be retroactively applied.
 for token in ("SandboxNativeStartOptions.TryPrepare(",
               "options.GetChangedOptions()",
-              "new SandBoxGameManager(",
+              "new CUSandboxNoIntroGameManager(",
               "new Campaign(CampaignGameMode.Campaign,gameOptions)"):
     assert token in creator,token
 assert 'new CUGuidedCreatorVM(true,' in creator
