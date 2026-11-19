@@ -283,12 +283,24 @@ namespace CalradiaUnified
         private void Refresh()
         {
             cursor=Math.Max(0,Math.Min(cursor,Visible.Length-1));
-            foreach(string property in new[]{
-                "Chapter","StepProgress","StepTitle","Hint",
-                "SelectedValue","IsChoice","IsBoolean","IsNumber","IsText",
-                "IsReview","IsLastStep","ContinueLabel","Status",
-                "Summary","AdvancedLabel","PhaseLabel"})
-                OnPropertyChanged(property);
+            // Version-pinned TaleWorlds ViewModel notifications use the
+            // value-based API. Do not assume WPF's OnPropertyChanged exists.
+            OnPropertyChangedWithValue(Chapter,"Chapter");
+            OnPropertyChangedWithValue(StepProgress,"StepProgress");
+            OnPropertyChangedWithValue(StepTitle,"StepTitle");
+            OnPropertyChangedWithValue(Hint,"Hint");
+            OnPropertyChangedWithValue(SelectedValue,"SelectedValue");
+            OnPropertyChangedWithValue(IsChoice,"IsChoice");
+            OnPropertyChangedWithValue(IsBoolean,"IsBoolean");
+            OnPropertyChangedWithValue(IsNumber,"IsNumber");
+            OnPropertyChangedWithValue(IsText,"IsText");
+            OnPropertyChangedWithValue(IsReview,"IsReview");
+            OnPropertyChangedWithValue(IsLastStep,"IsLastStep");
+            OnPropertyChangedWithValue(ContinueLabel,"ContinueLabel");
+            OnPropertyChangedWithValue(Status,"Status");
+            OnPropertyChangedWithValue(Summary,"Summary");
+            OnPropertyChangedWithValue(AdvancedLabel,"AdvancedLabel");
+            OnPropertyChangedWithValue(PhaseLabel,"PhaseLabel");
         }
 
         private void Report(string message)
