@@ -34,6 +34,11 @@ assert 'oldLayer.ReleaseMovie(oldMovie);' in layer
 assert 'native.IsFocusLayer' in layer, "restore original input"
 assert 'CUNativeStatsLayer.Tick(screen,' in shell
 assert 'CUNativeStatsLayer.Clear();' in shell
+assert 'HasAcceptedCustomStart' in shell
+assert 'HasAcceptedCustomStart' in layer
+assert 'acceptedCustomStart=false;' in overlay
+assert 'acceptedCustomStart=true;' in overlay
+assert 'public static bool HasAcceptedCustomStart' in overlay
 assert 'new CharacterCreationScreen(' not in layer
 assert 'new BodyGeneratorView(' not in layer
 assert 'RemoveStage<' not in layer
