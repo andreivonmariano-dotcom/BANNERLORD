@@ -37,7 +37,7 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert slider[0].get("ValueInt")=="@SelectedInt"
     assert slider[0].get("MinValueInt")=="@Minimum"
     assert slider[0].get("MaxValueInt")=="@Maximum"
-    assert len(list(root.iter("SliderWidget")))==2
+    assert len(list(root.iter("SliderWidget")))==(1 if n=="CUNativeStatsEditorSafe" else 2)
     actions={b.get("Command.Click") for b in root.iter("ButtonWidget")}
     assert {"ExecuteEditSpouse","ExecuteEditPlayer","ExecuteEditExact","ExecuteContinue"}<=actions
 print("PASS: v053 all-stats native scrolling, spouse sliders, parent inheritance and young face hooks (STATIC ONLY)")

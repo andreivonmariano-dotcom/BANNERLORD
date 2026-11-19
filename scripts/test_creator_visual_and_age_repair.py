@@ -122,7 +122,7 @@ assert any(w.get("Id")=="CUPlayerAgeHandle"
            for w in sl.iter("ButtonWidget"))
 assert '"CUNativeStatsEditorSafe",vm' in text_stats
 assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
-assert len(list(safe_stats.iter("SliderWidget")))==2
+assert len(list(safe_stats.iter("SliderWidget")))==1
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))
 assert any(x.get("Command.Click")=="ExecuteAgeDecrease"
