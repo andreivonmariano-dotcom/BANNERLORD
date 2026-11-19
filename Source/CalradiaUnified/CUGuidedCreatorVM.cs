@@ -295,6 +295,8 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsNumber,"IsNumber");
             OnPropertyChangedWithValue(IsText,"IsText");
             OnPropertyChangedWithValue(IsReview,"IsReview");
+            OnPropertyChangedWithValue(IsNativeDefaultAvailable,
+                "IsNativeDefaultAvailable");
             OnPropertyChangedWithValue(IsLastStep,"IsLastStep");
             OnPropertyChangedWithValue(ContinueLabel,"ContinueLabel");
             OnPropertyChangedWithValue(Status,"Status");
@@ -504,8 +506,18 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Hint
             {get{return Current==null?"":Current.Hint;}}
         [DataSourceProperty] public string SelectedValue
-            {get{return Current==null?"":Current.Kind=="review"?Summary:
-                Raw(Current.Key);}}
+        {
+            get
+            {
+                if(Current==null)return "";
+                if(Current.Kind=="review")
+                    return "Your house and estate are ready. Confirm to " +
+                        "continue to the game's final review and difficulty.";
+                string raw=Raw(Current.Key);
+                return Current.Kind=="boolean" ?
+                    (raw=="true"?"Yes":"No"):raw;
+            }
+        }
         [DataSourceProperty] public bool IsChoice
             {get{return Current!=null && Current.Kind=="choice";}}
         [DataSourceProperty] public bool IsBoolean
@@ -516,6 +528,10 @@ namespace CalradiaUnified
             {get{return Current!=null && Current.Kind=="text";}}
         [DataSourceProperty] public bool IsReview
             {get{return Current!=null && Current.Kind=="review";}}
+        [DataSourceProperty] public bool IsNativeDefaultAvailable
+            {get{return Current!=null &&
+                (Current.Key=="WorldSeed" ||
+                Current.Key=="Gold" || Current.Key=="Influence");}}
         [DataSourceProperty] public bool IsLastStep
             {get{return cursor>=Visible.Length-1;}}
         [DataSourceProperty] public string ContinueLabel
