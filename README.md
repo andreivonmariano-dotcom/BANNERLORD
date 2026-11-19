@@ -6,6 +6,8 @@ There are **no experimental toggles** for this guided flow. Native stats mode re
 
 **Engineering boundary:** this is the source-level Q1/Q3 redesign, not a game-tested full replacement. Native culture/FaceGen/narrative/banner/clan/review/difficulty stages still display original engine-owned controls with CU chapter context. Identical layouts on all native stages, uninterrupted cinematics/loading and direct playable map entry have **not** been verified. The genuine 3D scene is still FaceGen-stage-only. Manifest retains `v0.38.0` in this development candidate.
 
+**Pinned Windows CI:** [run 44461909073](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44461909073), source commit `697517cd1251afb2ddea86ef04f99eb2aef622f9`. **681 C# gameplay policy checks passed**; net472 v1.5.7 build completed with **zero warnings and zero errors**. ZIP contents, CRC, DLL identity and simulated installer passed. Compiled DLL SHA-256: `6c641c2d5602fc11dc3ec222f2322cc4cf1627f84181ac4ba7e3135ed2d137c0`. **Gate B: compiled, not observed in-game.**
+
 [Implementation and live acceptance checklist](docs/V041_GUIDED_IDENTITY_FIRST_CREATOR.md) · [Draft PR #72](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/72)
 
 ---
