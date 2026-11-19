@@ -11,12 +11,12 @@ namespace CalradiaUnified
         public static readonly string[] Scenarios =
         {
             "Natural", "Honorable", "Martial", "Scholarly",
-            "Mercantile", "Strained"
+            "Mercantile", "Seafaring", "Strained"
         };
         public static readonly string[] Upbringings =
         {
             "FamilyTradition", "Kind", "Martial", "Scholarly",
-            "Mercantile", "Independent"
+            "Mercantile", "Seafaring", "Independent"
         };
         public static readonly string[] Personality =
             { "Mercy", "Valor", "Honor", "Generosity", "Calculating" };
@@ -38,6 +38,7 @@ namespace CalradiaUnified
                 case "Martial":return "Martial";
                 case "Scholarly":return "Scholarly";
                 case "Mercantile":return "Mercantile";
+                case "Seafaring":return "Seafaring";
                 case "Strained":return "Independent";
                 default:return "Independent";
             }
@@ -50,6 +51,7 @@ namespace CalradiaUnified
                 case "Martial":return 55;
                 case "Scholarly":return 62;
                 case "Mercantile":return 55;
+                case "Seafaring":return 58;
                 case "Strained":return 12;
                 default:return 52;
             }
@@ -62,6 +64,7 @@ namespace CalradiaUnified
                 case "Martial":return 48;
                 case "Scholarly":return 55;
                 case "Mercantile":return 50;
+                case "Seafaring":return 53;
                 case "Strained":return 15;
                 default:return 50;
             }
@@ -83,6 +86,7 @@ namespace CalradiaUnified
                 if(scenario=="Martial" && trait=="Valor")return 2;
                 if(scenario=="Scholarly" && trait=="Calculating")return 1;
                 if(scenario=="Mercantile" && trait=="Calculating")return 2;
+                if(scenario=="Seafaring" && trait=="Valor")return 1;
                 if(scenario=="Strained" && trait=="Generosity")return -1;
                 return 0;
             }
@@ -93,6 +97,8 @@ namespace CalradiaUnified
             if(effective=="Scholarly" && trait=="Honor")return 1;
             if(effective=="Scholarly" && trait=="Calculating")return 1;
             if(effective=="Mercantile" && trait=="Calculating")return 2;
+            if(effective=="Seafaring" && trait=="Valor")return 1;
+            if(effective=="Seafaring" && trait=="Calculating")return 1;
             if(effective=="Independent" && scenario=="Strained" &&
                 trait=="Generosity")return -1;
             return 0;
@@ -117,11 +123,12 @@ namespace CalradiaUnified
         public static int SkillLevel(int age,int rank,int variation)
         {
             if(age<6)return 0;
-            if(rank<0 || rank>=6)return 0;
+            if(rank<0 || rank>=9)return 0;
             int skill=age<18 ? 3+age*2 : 42+(age-18)*2;
             skill=Math.Min(140,skill);
             int drop=rank==0?0:rank==1?7:
-                rank==2?14:rank==3?19:rank==4?25:31;
+                rank==2?14:rank==3?19:rank==4?25:
+                rank==5?31:rank==6?37:rank==7?42:48;
             int result=skill-drop+Math.Max(0,Math.Min(14,variation));
             return Math.Max(age>=18?8:0,Math.Min(170,result));
         }
@@ -134,13 +141,18 @@ namespace CalradiaUnified
                         "Leadership","Riding","Athletics"};
                 case "Martial":
                     return new[]{"OneHanded","Riding","Polearm",
-                        "Athletics","Tactics","Leadership"};
+                        "Athletics","Tactics","Leadership","Mariner"};
                 case "Scholarly":
                     return new[]{"Medicine","Engineering","Steward",
                         "Trade","Charm","Scouting"};
                 case "Mercantile":
                     return new[]{"Trade","Steward","Charm",
-                        "Scouting","Riding","Leadership"};
+                        "Scouting","Riding","Leadership","Boatswain",
+                        "Shipmaster"};
+                case "Seafaring":
+                    return new[]{"Mariner","Boatswain","Shipmaster",
+                        "Athletics","Leadership","Trade",
+                        "Tactics","Scouting","Riding"};
                 default:
                     return new[]{"Athletics","Scouting","Riding",
                         "Bow","OneHanded","Charm"};
