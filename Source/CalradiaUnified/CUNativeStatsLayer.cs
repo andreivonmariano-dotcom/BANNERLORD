@@ -44,6 +44,8 @@ namespace CalradiaUnified
         private static float pointerGrabOffset;
         private static int pointerDragStartAge;
         private static int pointerDragChangeCount;
+        private static bool previousMouseDown;
+        private static bool ageHitWarningLogged;
         private static bool narrativeSeen;
         private static bool completed;
         private static bool closeRequested;
@@ -170,6 +172,8 @@ namespace CalradiaUnified
                 // position. Some game versions only push a read-only VM
                 // binding, so poll the actual pinned Gauntlet widget and
                 // feed the value into the same validated age setter.
+                MaintainAgeLayerFocus();
+                TraceAgeMouseInput();
                 ReadNativeSliderValue();
                 // Match native Escape=Back. Teardown remains deferred,
                 // outside the movie click / input callback.
@@ -251,9 +255,14 @@ namespace CalradiaUnified
                 pointerDragActive=false;
                 pointerDragChangeCount=0;
                 pointerGrabOffset=0f;
+                previousMouseDown=false;
+                ageHitWarningLogged=false;
                 failedHost=null;
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
-                    "transition=after_narrative_before_banner" +
+                    "focused="+Object.ReferenceEquals(
+                        ScreenManager.FocusedLayer,next)+
+                    "|input_order="+next.InputRestrictions.Order+
+                    "|transition=after_narrative_before_banner" +
                     "|hero_real=true|native_stages_preserved=true" +
                     "|default_mode=Native|no_experimental_toggle=true"+
                     "|entry_page="+
@@ -300,6 +309,8 @@ namespace CalradiaUnified
             pointerDragActive=false;
             pointerDragChangeCount=0;
             pointerGrabOffset=0f;
+            previousMouseDown=false;
+            ageHitWarningLogged=false;
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -350,70 +361,75 @@ namespace CalradiaUnified
             return null;
         }
 
-        // Read raw left-mouse state on the original focused Gauntlet movie.
-        // This is an input fallback for older native widget bindings.
-        // It only captures gestures started on the actual slider area.
-        private static void ReadNativeSliderPointer()
+        // Diagnoses where every real mouse-down/up reaches the
+        // game-owned Gauntlet event hierarchy. Do not access
+        // EventManager.MousePosition: the installed game raised
+        // MissingMethodException for that return signature on v0.50.
+        // The widget lookup is a reflective, fail-safe diagnostic only.
+        private static void TraceAgeMouseInput()
         {
-            if(cachedAgeSlider==null ||
-                cachedAgeSlider.SliderArea==null ||
-                cachedAgeSlider.Handle==null || activeVM==null)
+            if(activeVM==null || !activeVM.IsAgePage || layer==null)
                 return;
             bool down=Input.IsKeyDown(InputKey.LeftMouseButton);
-            if(!down)
+            if(down==previousMouseDown)return;
+            previousMouseDown=down;
+            string target="unavailable";
+            try
             {
-                if(pointerWasDown && pointerDragActive)
-                    DiagnosticJournal.Event("cu_native_age_pointer_release",
-                        "start="+pointerDragStartAge+
-                        "|end="+activeVM.PlayerAge+
-                        "|changed_steps="+pointerDragChangeCount);
-                pointerWasDown=false;
-                pointerDragActive=false;
+                var manager=layer.UIContext.EventManager;
+                var type=manager.GetType();
+                var property=type.GetProperty("LatestMouseDownWidget",
+                    BindingFlags.Public|BindingFlags.Instance);
+                object hovered=property==null ? null :
+                    property.GetValue(manager,null);
+                var widget=hovered as Widget;
+                target=widget==null?"none":
+                    widget.GetType().Name+":"+
+                    (String.IsNullOrEmpty(widget.Id)?"unnamed":widget.Id);
+            }
+            catch(Exception error)
+            {
+                target="reflection_unavailable:"+error.GetType().Name;
+            }
+            var focused=ScreenManager.FocusedLayer;
+            DiagnosticJournal.Event("cu_native_age_hit_trace",
+                "edge="+(down?"down":"up")+
+                "|age="+activeVM.PlayerAge+
+                "|focused="+Object.ReferenceEquals(focused,layer)+
+                "|focused_layer="+(focused==null?"none":
+                    focused.GetType().Name)+
+                "|target="+target+
+                "|slider_found="+(cachedAgeSlider!=null));
+        }
+
+        private static void MaintainAgeLayerFocus()
+        {
+            if(layer==null || activeVM==null || !activeVM.IsAgePage)
+                return;
+            var focused=ScreenManager.FocusedLayer;
+            if(Object.ReferenceEquals(focused,layer))
+            {
+                ageHitWarningLogged=false;
                 return;
             }
-            var mouse=cachedAgeSlider.EventManager.MousePosition;
-            var track=cachedAgeSlider.SliderArea;
-            var handle=cachedAgeSlider.Handle;
-            if(!pointerWasDown)
+            // Never steal focus from a higher-order text inquiry or
+            // confirmation modal. Only reclaim focus from the original
+            // native banner layer, whose order is lower than CU's.
+            bool canReclaim=focused==null ||
+                focused.InputRestrictions.Order <
+                    layer.InputRestrictions.Order;
+            if(canReclaim)
+                ScreenManager.TrySetFocus(layer);
+            if(!ageHitWarningLogged)
             {
-                pointerWasDown=true;
-                if(ScreenManager.FocusedLayer!=layer)return;
-                float left=track.GlobalPosition.X;
-                float width=track.Size.X;
-                float top=cachedAgeSlider.GlobalPosition.Y;
-                float height=Math.Max(cachedAgeSlider.Size.Y,handle.Size.Y);
-                if(width<=handle.Size.X ||
-                   mouse.X<left-8f || mouse.X>left+width+8f ||
-                   mouse.Y<top-8f || mouse.Y>top+height+8f)
-                    return;
-                pointerDragActive=true;
-                pointerDragStartAge=activeVM.PlayerAge;
-                pointerDragChangeCount=0;
-                float handleLeft=handle.GlobalPosition.X;
-                bool onHandle=mouse.X>=handleLeft-6f &&
-                    mouse.X<=handleLeft+handle.Size.X+6f;
-                pointerGrabOffset=onHandle ?
-                    Math.Max(0f,Math.Min(handle.Size.X,
-                        mouse.X-handleLeft)) : handle.Size.X*0.5f;
-                DiagnosticJournal.Event("cu_native_age_pointer_press",
-                    "selected="+activeVM.PlayerAge+
-                    "|on_handle="+onHandle+
-                    "|track_width="+width+
-                    "|handle_width="+handle.Size.X);
+                DiagnosticJournal.Event("cu_native_age_focus_status",
+                    "focused_before="+(focused==null?"none":
+                        focused.GetType().Name)+
+                    "|can_reclaim="+canReclaim+
+                    "|focused_after="+
+                    Object.ReferenceEquals(ScreenManager.FocusedLayer,layer));
+                ageHitWarningLogged=true;
             }
-            if(!pointerDragActive || ScreenManager.FocusedLayer!=layer)
-                return;
-            int age=SandboxFamilyAgePolicy.AgeFromSliderPointer(
-                track.GlobalPosition.X,track.Size.X,handle.Size.X,
-                mouse.X,pointerGrabOffset);
-            if(age==activeVM.PlayerAge)return;
-            activeVM.PlayerAge=age;
-            cachedAgeSlider.ValueInt=age;
-            pointerDragChangeCount++;
-            DiagnosticJournal.Event("cu_native_age_pointer_drag",
-                "chosen_year="+age+
-                "|source=real_mouse_position"+
-                "|changed_steps="+pointerDragChangeCount);
         }
 
         private static void ReadNativeSliderValue()
@@ -465,7 +481,6 @@ namespace CalradiaUnified
                         "|range=18-80");
                     return;
                 }
-                ReadNativeSliderPointer();
                 int model=activeVM.PlayerAge;
                 int widget=cachedAgeSlider.ValueInt;
                 bool pressed=cachedAgeSlider.Handle!=null &&

@@ -151,6 +151,9 @@ jobs:
       - name: Regress observed 1650x927 nonresponsive native age slider
         shell: pwsh
         run: python scripts/test_v050_native_age_pointer_drag.py
+      - name: Verify actual age hit-test stacking and game-safe focus probes
+        shell: pwsh
+        run: python scripts/test_v051_age_hit_routing.py
       - name: Verify four-step Back Next and underage family residence reports
         shell: pwsh
         run: python scripts/test_v046_creator_navigation_residence_ui.py
