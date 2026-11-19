@@ -6,6 +6,9 @@ namespace CalradiaUnified
     public sealed class Settings
     {
         public bool EnableDiagnostics = true;
+        // Enabled by default. Set false in the user's local config to
+        // keep legacy CSV logging without automatic session ZIPs.
+        public bool AutoSessionReports = true;
         public bool EnableSupplyWarnings = true;
         public int SupplyWarningDays = 3;
         public bool EnableArmyWarnings = true;
@@ -139,6 +142,7 @@ namespace CalradiaUnified
                 bool b;
                 int n;
                 if (key == "EnableDiagnostics" && Boolean.TryParse(value, out b)) output.EnableDiagnostics = b;
+                else if (key == "AutoSessionReports" && Boolean.TryParse(value, out b)) output.AutoSessionReports = b;
                 else if (key == "EnableSupplyWarnings" && Boolean.TryParse(value, out b)) output.EnableSupplyWarnings = b;
                 else if (key == "EnableArmyWarnings" && Boolean.TryParse(value, out b)) output.EnableArmyWarnings = b;
                 else if (key == "EnablePlayerForaging" && Boolean.TryParse(value, out b)) output.EnablePlayerForaging = b;
