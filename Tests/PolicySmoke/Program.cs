@@ -1617,16 +1617,16 @@ internal static class Program
                 DiagnosticSessionReporter.ResolveGameRoot()==fakeGame);
             DiagnosticSessionReporter.Start();
             string reports=DiagnosticSessionReporter.ReportsDirectory;
-            string recovered=System.IO.Path.Combine(reports,
+            string recoveredZipPath=System.IO.Path.Combine(reports,
                 "CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip");
             Check("next launch creates ZIP for interrupted prior session",
-                System.IO.File.Exists(recovered) &&
+                System.IO.File.Exists(recoveredZipPath) &&
                 !System.IO.File.Exists(System.IO.Path.Combine(
                     previousSession,"active.marker")) &&
                 System.IO.File.Exists(System.IO.Path.Combine(
                     previousSession,"recovered.marker")));
             using(var archive=System.IO.Compression.ZipFile.OpenRead(
-                recovered))
+                recoveredZipPath))
             {
                 Check("recovery report contains the prior session journal",
                     archive.Entries.Any(e=>e.FullName=="events.csv") &&
