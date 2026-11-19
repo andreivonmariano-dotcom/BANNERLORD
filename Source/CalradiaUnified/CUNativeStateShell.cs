@@ -108,10 +108,11 @@ namespace CalradiaUnified
                 viewModel = nextVM;
                 CUNativeCultureLayer.Tick(screen,
                     active.CharacterCreationManager);
-                DiagnosticJournal.Event("cu_native_state_shell_attached",
-                    "native_state=true|native_screen_unchanged=true" +
-                    "|real_face_engine=retained|readonly=true" +
-                    "|separate_native_pages_still_visible=true");
+                if (Object.ReferenceEquals(host,screen))
+                    DiagnosticJournal.Event("cu_native_state_shell_attached",
+                        "native_state=true|native_screen_unchanged=true" +
+                        "|real_face_engine=retained|native_vm_used=true" +
+                        "|separate_native_pages_still_visible=true");
             }
             catch (Exception error)
             {
