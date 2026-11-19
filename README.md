@@ -1,3 +1,19 @@
+# Calradia Unified v0.35.0 | Real Native-Bound CU Culture Chooser
+
+**Target:** Bannerlord PC v1.5.7.125802. **Release status:** opt-in compiled, game-untested candidate. The requested final single-window creator and persistent right-hand 3D character viewport are **not yet complete**.
+
+This is the first CU culture UI that invokes the actual game-owned culture selection and native stage finalizer. When you turn on **Starting Life → More options → Experimental: CU culture chooser and real 3D face audit**, CU displays the cultures and descriptions from the native `CharacterCreationCultureStageVM`. Each choice delegates to the native `ExecuteSelectCulture` handler, and Continue delegates to `OnNextStage`, preserving culture-dependent appearance, player name generation and origin reset. The original native stage remains active underneath. The player can press **Use native culture UI** at any time for immediate recovery. The flag remains **OFF by default**.
+
+The next real 3D face page still uses **only** Bannerlord's original `BodyGeneratorView` and FaceGen scene, camera, body controls and history. A CU top-left diagnostic confirms its actual `SceneLayer` and `GauntletLayer` are present. **No right-hand viewport relocation has been performed**, since the exact native `SceneView` API does not supply a safe viewport rectangle setter. The original face stage and later native origin/banner/clan/difficulty pages remain visible.
+
+The five CU pregame chapters, actual Advanced Start roles and kingdom/fiefs, spouse/children and one-shot runtime grants remain intact. Never combine this native-state experiment with the separate CU Face Workshop or 3D Review experimental stages.
+
+[Technical v0.35 contract and in-game checks](docs/V035_CU_NATIVE_CULTURE_AND_FACE_DOCK.md) · [v0.34 native-state shell](docs/V034_NATIVE_STATE_SHELL_CULTURE_FACE.md) · [five-page CU flow lock](docs/V032_LOCKED_SANDBOX_CREATOR_FLOW.md)
+
+---
+
+## Previous v0.34 pilot
+
 # Calradia Unified v0.34.0 | Real Native-State Culture and Face Shell Pilot
 
 **Game:** Bannerlord PC v1.5.7.125802. **Status:** an opt-in, read-only CU stage ribbon that attaches to the real engine `CharacterCreationScreen`. **The native wizard still appears.** This is a vertical integration prototype, not the requested complete one-screen creator.
