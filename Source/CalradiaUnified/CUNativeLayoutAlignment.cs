@@ -302,6 +302,7 @@ namespace CalradiaUnified
             {
                 if(!(widget is ButtonWidget) ||
                     adjusted.Contains(widget) ||
+                    InsideAlreadyMovedPanel(widget) ||
                     !HasTextChild(widget))
                     continue;
                 Rect rect;
@@ -322,6 +323,13 @@ namespace CalradiaUnified
                         "|original_native_button=true");
                 }
             }
+        }
+
+        private static bool InsideAlreadyMovedPanel(Widget widget)
+        {
+            foreach(Widget parent in adjusted)
+                if(DepthUnder(widget,parent)>0)return true;
+            return false;
         }
 
         private static bool TryTranslate(Widget widget,float dx,float dy)
