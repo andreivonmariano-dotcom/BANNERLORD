@@ -42,6 +42,21 @@ namespace CalradiaUnified
                 Math.Max(0,Math.Min(9,variation));
             return Math.Max(age>=18?4:0,Math.Min(cap,value));
         }
+        public static int SuggestedAttribute(int age,int father,
+            int mother,int variation)
+        {
+            int average=(Math.Max(1,Math.Min(10,father))+
+                Math.Max(1,Math.Min(10,mother)))/2;
+            if(age<6)return 1;
+            if(age<10)return Math.Min(2,1+average/8);
+            if(age<14)return Math.Min(3,1+average/5);
+            if(age<18)return Math.Min(4,2+average/5);
+            int value=2+(int)Math.Round(average*0.46,
+                MidpointRounding.AwayFromZero)+
+                Math.Max(-1,Math.Min(1,variation));
+            int cap=age<21?5:age<26?7:10;
+            return Math.Max(2,Math.Min(cap,value));
+        }
         public static bool IsYouth(int age)
         {
             return age>=18 && age<=21;
