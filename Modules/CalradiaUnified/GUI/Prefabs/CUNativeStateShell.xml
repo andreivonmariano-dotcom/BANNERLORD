@@ -73,7 +73,7 @@
                 HeightSizePolicy="Fixed" SuggestedHeight="391"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 PositionXOffset="13" PositionYOffset="115"/>
-        <TextWidget Text="CALRADIA UNIFIED | FIVE CHAPTERS"
+        <TextWidget Text="YOUR LEGACY | FIVE CHAPTERS"
                 Color="#F5D4A0FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="218"
                 HeightSizePolicy="Fixed" SuggestedHeight="33"
@@ -103,7 +103,7 @@
             </Widget>
           </ItemTemplate>
         </ListPanel>
-        <TextWidget Text="STAGE TRACKER | NATIVE CALLBACKS"
+        <TextWidget Text="CHAPTER GUIDE | NATIVE CONTROLS"
                 Color="#CEB280FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="220"
                 HeightSizePolicy="Fixed" SuggestedHeight="25"
@@ -125,7 +125,7 @@
                 HeightSizePolicy="Fixed" SuggestedHeight="90"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 PositionXOffset="16" PositionYOffset="15"/>
-        <TextWidget Text="CALRADIA UNIFIED  |  REAL FACE EDITOR"
+        <TextWidget Text="CALRADIA UNIFIED | APPEARANCE"
                 IsVisible="@IsFaceDebugVisible" Color="#F6D7A5FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="440"
                 HeightSizePolicy="Fixed" SuggestedHeight="30"
