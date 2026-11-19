@@ -48,16 +48,36 @@ namespace CalradiaUnified
                     result=2;
                 h.SetTraitLevel(trait,result);
             }
-            bool copied=!spouse && mother!=null &&
-                mother.Children.Any(x=>x!=null && x!=h &&
-                    x.Father==h.Father && x.Mother==h.Mother &&
-                    Traits.All(t=>x.GetTraitLevel(t)==h.GetTraitLevel(t)));
-            if(copied || Traits.All(t=>h.GetTraitLevel(t)==0))
+            // Two sisters who admire the same mother can share traits,
+            // but every generated child needs an independent personality.
+            // Compare the full native five-trait vector against all
+            // already-created siblings, not just the last one.
+            int uniquenessCorrections=0;
+            for(int attempt=0;attempt<15;attempt++)
             {
-                var t=Traits[(index+r.Next(Traits.Length))%Traits.Length];
+                bool copied=!spouse && mother!=null &&
+                    mother.Children.Any(x=>x!=null && x!=h &&
+                        x.Father==h.Father && x.Mother==h.Mother &&
+                        Traits.All(t=>
+                            x.GetTraitLevel(t)==h.GetTraitLevel(t)));
+                if(!copied && !Traits.All(t=>h.GetTraitLevel(t)==0))
+                    break;
+                int slot=(index+attempt+r.Next(Traits.Length))%
+                    Traits.Length;
+                // Keep a chosen Kind child's Mercy at least +1.
+                if(!spouse && Traits[slot]==DefaultTraits.Mercy &&
+                    SandboxFamilyDevelopmentPolicy.ResolveUpbringing(
+                        scenario,upbringing)=="Kind")
+                    slot=(slot+1)%Traits.Length;
+                var t=Traits[slot];
                 int current=h.GetTraitLevel(t);
-                h.SetTraitLevel(t,current>=2?1:current<=-2?-1:current+1);
+                int next=current>=2?-1:current+1;
+                h.SetTraitLevel(t,next);
+                uniquenessCorrections++;
             }
+            DiagnosticJournal.Event("cu_family_personality_uniqueness",
+                "id="+h.StringId+
+                "|corrections="+uniquenessCorrections);
             DiagnosticJournal.Event("cu_family_personality_initialized",
                 "id="+h.StringId+"|scenario="+scenario+
                 "|upbringing="+upbringing+"|traits="+TraitsText(h)+
