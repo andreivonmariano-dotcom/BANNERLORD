@@ -34,14 +34,18 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         if w.get("Id")=="CUStatsPageViewport")
     assert viewport.get("ClipContents")=="true"
     assert viewport.get("IsVisible")=="@IsStatsPage"
-    rows=next(w for w in viewport.iter("ListPanel")
-        if w.get("DataSource")=="{Rows}")
-    slider=list(rows.iter("SliderWidget"))
-    assert len(slider)==1
-    assert slider[0].get("ValueInt")=="@SelectedInt"
-    assert slider[0].get("MinValueInt")=="@Minimum"
-    assert slider[0].get("MaxValueInt")=="@Maximum"
-    assert len(list(root.iter("SliderWidget")))==(1 if n=="CUNativeStatsEditorSafe" else 2)
+    assert not list(viewport.iter("ListPanel"))
+    assert not list(viewport.iter("ItemTemplate"))
+    sliders=[w for w in viewport.iter("SliderWidget")
+        if (w.get("Id") or "").startswith("CUFixedStatSlider")]
+    assert len(sliders)==6
+    for i,slider in enumerate(sliders,1):
+        assert slider.get("ValueInt")==f"@Slot{i}Value"
+        assert slider.get("MinValueInt")==f"@Slot{i}Min"
+        assert slider.get("MaxValueInt")==f"@Slot{i}Max"
+    assert len(list(root.iter("SliderWidget")))==(
+        6 if n=="CUNativeStatsEditorSafe" else 7)
     actions={b.get("Command.Click") for b in root.iter("ButtonWidget")}
-    assert {"ExecuteEditSpouse","ExecuteEditPlayer","ExecuteEditExact","ExecuteContinue"}<=actions
+    assert {"ExecuteEditSpouse","ExecuteEditPlayer",
+            "ExecuteSlot1Exact","ExecuteContinue"}<=actions
 print("PASS: v053 all-stats native bounded paging, spouse sliders, parent inheritance and young face hooks (STATIC ONLY)")

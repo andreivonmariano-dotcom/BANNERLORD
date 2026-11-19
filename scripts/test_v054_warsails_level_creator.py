@@ -59,7 +59,9 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     tree=ET.parse(gui/(name+".xml")).getroot()
     widgets=list(tree.iter("SliderWidget"))
     assert len(widgets)>=1,name
-    assert any(w.get("ValueInt")=="@SelectedInt" for w in widgets),name
+    assert any(w.get("ValueInt")=="@Slot1Value" for w in widgets),name
+    assert all(any(w.get("ValueInt")==f"@Slot{i}Value"
+        for w in widgets) for i in range(1,7)),name
     assert any(w.get("Text")=="@NavalStatus"
         for w in tree.iter("TextWidget")),name
     commands=[w.get("Command.Click") for w in tree.iter("ButtonWidget")]
