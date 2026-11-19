@@ -29,8 +29,10 @@
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="2"
                 VerticalAlignment="Bottom" PositionYOffset="-94"/>
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="1260"
-                HeightSizePolicy="Fixed" SuggestedHeight="696"
+        <Widget WidthSizePolicy="StretchToParent" MaxWidth="1820"
+                MarginLeft="24" MarginRight="24"
+                HeightSizePolicy="StretchToParent" MaxHeight="960"
+                MarginTop="20" MarginBottom="20"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
             <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
@@ -50,8 +52,8 @@
                     PositionXOffset="29" PositionYOffset="48"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#0F1F2EEC"
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
-                    HeightSizePolicy="Fixed" SuggestedHeight="477"
-                    PositionXOffset="24" PositionYOffset="97"/>
+                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
+                    PositionXOffset="24"/>
             <TextWidget Text="CULTURES AVAILABLE IN THIS CAMPAIGN"
                     Color="#E8BB7FFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="415"
@@ -93,8 +95,8 @@
             </ListPanel>
             <Widget Sprite="BlankWhiteSquare_9" Color="#1C2A38FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="738"
-                    HeightSizePolicy="Fixed" SuggestedHeight="477"
-                    PositionXOffset="484" PositionYOffset="97"/>
+                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
+                    PositionXOffset="484"/>
             <TextWidget Text="YOUR CULTURE"
                     Color="#CFA66EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="710"
@@ -125,7 +127,7 @@
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="214"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="27" PositionYOffset="641"
+                    PositionXOffset="27" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteBack">
               <Children>
                 <TextWidget Text="Back to main menu"
@@ -141,7 +143,7 @@
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="235"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="262" PositionYOffset="641"
+                    PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
                 <TextWidget Text="Use native culture UI"
@@ -157,7 +159,7 @@
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="265"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="943" PositionYOffset="641"
+                    HorizontalAlignment="Right" PositionXOffset="-52" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteContinue">
               <Children>
                 <TextWidget Text="Continue to real 3D face"
