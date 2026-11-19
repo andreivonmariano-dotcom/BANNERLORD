@@ -371,7 +371,21 @@ namespace CalradiaUnified
                     return false;
                 }
             }
+            // Conditional children, kingdom and fief fields can enter
+            // or leave the list after this selection. Preserve this
+            // field's KEY, not its old numeric cursor, so Back/Continue
+            // do not land on a different question after a choice changes.
+            string currentKey=Current==null ? key : Current.Key;
             profile=copy;
+            var afterWrite=Visible;
+            int currentAt=Array.FindIndex(afterWrite,
+                f=>f.Key==currentKey);
+            cursor=currentAt>=0 ? currentAt :
+                Math.Max(0,Math.Min(cursor,afterWrite.Length-1));
+            DiagnosticJournal.Event("cu_guided_navigation_state",
+                "field="+currentKey+"|cursor="+cursor+
+                "|visible_steps="+afterWrite.Length+
+                "|conditional_choices_stable=true");
             // The old internal key/value string was appearing on the
             // actual household UI as "Selected: SpouseEnabled = true".
             // Feedback is conveyed by the visible selected choice.
