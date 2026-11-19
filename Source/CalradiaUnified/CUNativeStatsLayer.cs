@@ -546,16 +546,20 @@ namespace CalradiaUnified
         private readonly int native;
         private int selected;
         private readonly bool autoValue;
+        private readonly bool generatedTarget;
         private readonly Action<string,int> change;
         private readonly Action<string,int> setExact;
 
         internal CUNativeStatRowVM(string key,int nativeValue,int selectedValue,
             string help,Action<string,int> onChange,
-            Action<string,int> onSetExact,bool automatic=false)
+            Action<string,int> onSetExact,bool automatic=false,
+            bool generated=false)
         {
             this.key=key;
             string originalName=key.Substring(key.IndexOf('.')+1);
-            name=key.StartsWith("Focus.",StringComparison.Ordinal) ?
+            name=key==SandboxFamilyLevelPolicy.Key?
+                "Character Level":
+                key.StartsWith("Focus.",StringComparison.Ordinal) ?
                 "Focus: "+originalName : key.StartsWith("Skill.",
                 StringComparison.Ordinal) ? "Skill: "+originalName :
                 originalName;
@@ -563,6 +567,7 @@ namespace CalradiaUnified
             native=nativeValue;
             selected=selectedValue;
             autoValue=automatic;
+            generatedTarget=generated;
             change=onChange;
             setExact=onSetExact;
         }
@@ -590,7 +595,9 @@ namespace CalradiaUnified
         public string Name {get{return name;}}
 
         [DataSourceProperty]
-        public string NativeValue {get{return "BASE "+native;}}
+        public string NativeValue
+            {get{return generatedTarget?"GENERATED (AUTO)":
+                "BASE "+native;}}
 
         internal void ApplySelected(int updated)
         {
@@ -804,7 +811,8 @@ namespace CalradiaUnified
             bool custom=ChangesForTarget.TryGetValue(key,out chosen);
             if(!custom)chosen=native;
             Rows.Add(new CUNativeStatRowVM(key,native,chosen,help,
-                Change,ChangeExact,editingSpouse&&!custom));
+                Change,ChangeExact,editingSpouse&&!custom,
+                editingSpouse));
         }
 
         private void Change(string key,int direction)
