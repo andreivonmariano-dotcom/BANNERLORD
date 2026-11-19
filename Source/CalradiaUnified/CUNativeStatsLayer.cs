@@ -123,10 +123,22 @@ namespace CalradiaUnified
             if (backRequested)
             {
                 backRequested=false;
+                bool alreadyOnNarrative=returningFromNativeBanner;
                 Detach();
+                returningFromNativeBanner=false;
+                if(alreadyOnNarrative)
+                {
+                    // Banner's native Back already returned the game to
+                    // the Narrative stage. Revealing that same native
+                    // stage is the correct boundary, not PreviousStage
+                    // again, which could jump behind the life story.
+                    DiagnosticJournal.Event("cu_native_stats_back",
+                        "destination=visible_native_narrative"+
+                        "|no_double_previous_stage=true");
+                    return;
+                }
                 try
                 {
-                    // Manager, not our UI, controls the real narrative Back.
                     manager.PreviousStage();
                     DiagnosticJournal.Event("cu_native_stats_back",
                         "destination=native_narrative");
