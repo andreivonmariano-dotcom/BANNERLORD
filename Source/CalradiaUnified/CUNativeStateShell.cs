@@ -3,7 +3,9 @@ using SandBox.View.CharacterCreation;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection;
+using TaleWorlds.Engine;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.Engine.Screens;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 
@@ -223,7 +225,16 @@ namespace CalradiaUnified
     public sealed class CUNativeStateShellVM : ViewModel
     {
         private readonly string role;
-        private readonly string household;
+        private string household;
+        private string currentStageName="";
+        private string stageTitle="CHARACTER CREATION";
+        private string stageGuidance="Bannerlord retains all native actions.";
+        private string chapterPosition="NATIVE CHARACTER CREATION";
+        private string stepProgress="NATIVE CHARACTER CREATION";
+        private string nextHint="CONTINUE IN THE NATIVE EDITOR";
+        private bool nativeChromeVisible;
+        private bool nativeRailVisible;
+        private int houseRevision;
         private string chapter = "CALRADIA UNIFIED";
         private string nativeStep = "NATIVE CHARACTER CREATION";
         private string culture = "CULTURE: PENDING";
@@ -252,14 +263,16 @@ namespace CalradiaUnified
             {
                 Chapters.Add(new CUNativeChapterBadgeVM(
                     CUNativeChapterPolicy.Chapters[i],
-                    i==3 ? "START OPTIONS SET" : "UPCOMING"));
+                    i==0 ? "WORLD CONFIGURED" :
+                        i==3 ? "AFTER NATIVE CLAN" : "UPCOMING"));
             }
             role = "ROLE: " + profile.Role +
                 (String.IsNullOrEmpty(profile.StartingKingdomId) ?
                     "" : " | " + profile.StartingKingdomId);
             household = profile.SpouseEnabled ?
-                "FAMILY PLAN: SPOUSE + " + profile.ChildCount +
-                    " CHILDREN" : "FAMILY PLAN: INDEPENDENT";
+                "HOUSEHOLD: SPOUSE + " + profile.ChildCount +
+                    " CHILDREN" : "HOUSEHOLD: NOT SET";
+            houseRevision=CUGuidedCreatorVM.HouseRevision;
         }
 
         public void Update(CharacterCreationManager manager,
@@ -275,6 +288,45 @@ namespace CalradiaUnified
             var stage = manager.CurrentStage;
             string stageName = stage == null ? "" :
                 stage.GetType().Name;
+            if(currentStageName!=stageName)
+            {
+                currentStageName=stageName;
+                stageTitle=CUNativeVisualPolicy.StageTitle(stageName);
+                stageGuidance=CUNativeVisualPolicy.StageGuidance(stageName);
+                chapterPosition=CUNativeVisualPolicy.ChapterPosition(stageName);
+                stepProgress=CUNativeVisualPolicy.StepProgress(stageName);
+                nextHint=CUNativeVisualPolicy.NextHint(stageName);
+                nativeChromeVisible=
+                    CUNativeVisualPolicy.IsStandaloneNativeChrome(stageName);
+                OnPropertyChangedWithValue(stageTitle,"StageTitle");
+                OnPropertyChangedWithValue(stageGuidance,"StageGuidance");
+                OnPropertyChangedWithValue(chapterPosition,"ChapterPosition");
+                OnPropertyChangedWithValue(stepProgress,"StepProgress");
+                OnPropertyChangedWithValue(nextHint,"NextHint");
+                OnPropertyChangedWithValue(nativeChromeVisible,
+                    "IsNativeChromeVisible");
+            }
+            bool nextRail=CUNativeVisualPolicy.ShouldShowChapterRail(
+                stageName,(int)Screen.RealScreenResolutionWidth);
+            if(nextRail!=nativeRailVisible)
+            {
+                nativeRailVisible=nextRail;
+                OnPropertyChangedWithValue(nativeRailVisible,"IsRailVisible");
+            }
+            if(houseRevision!=CUGuidedCreatorVM.HouseRevision)
+            {
+                houseRevision=CUGuidedCreatorVM.HouseRevision;
+                var committed=SandboxOriginProfile.Load(
+                    SandboxOriginProfile.UserPath);
+                string nextHousehold=committed.SpouseEnabled ?
+                    "HOUSEHOLD: SPOUSE + "+committed.ChildCount+
+                        " CHILDREN" : "HOUSEHOLD: INDEPENDENT";
+                if(nextHousehold!=household)
+                {
+                    household=nextHousehold;
+                    OnPropertyChangedWithValue(household,"Household");
+                }
+            }
             string chapterNext =
                 NativeStateShellPolicy.ChapterForStage(stageName);
             int chapterIndex=CUNativeChapterPolicy.ActiveChapter(stageName);
@@ -327,7 +379,6 @@ namespace CalradiaUnified
                 faceStatus="";
                 OnPropertyChangedWithValue(isFaceStage,"IsFaceStage");
                 OnPropertyChangedWithValue(!isFaceStage,"IsNotFaceStage");
-                OnPropertyChangedWithValue(IsRailVisible,"IsRailVisible");
                 OnPropertyChangedWithValue(IsFaceDebugVisible,"IsFaceDebugVisible");
                 OnPropertyChangedWithValue(IsFaceDockTrialStage,"IsFaceDockTrialStage");
             }
@@ -348,7 +399,26 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty]
-        public string Title { get { return "CALRADIA UNIFIED | YOUR LEGACY"; } }
+        public string Title { get { return "CALRADIA UNIFIED"; } }
+
+        [DataSourceProperty]
+        public string StageTitle {get{return stageTitle;}}
+
+        [DataSourceProperty]
+        public string StageGuidance {get{return stageGuidance;}}
+
+        [DataSourceProperty]
+        public string ChapterPosition {get{return chapterPosition;}}
+
+        [DataSourceProperty]
+        public string StepProgress {get{return stepProgress;}}
+
+        [DataSourceProperty]
+        public string NextHint {get{return nextHint;}}
+
+        [DataSourceProperty]
+        public bool IsNativeChromeVisible
+            {get{return nativeChromeVisible;}}
 
         [DataSourceProperty]
         public string Chapter { get { return chapter; } }
@@ -372,7 +442,7 @@ namespace CalradiaUnified
         public bool IsNotFaceStage { get { return !isFaceStage; } }
 
         [DataSourceProperty]
-        public bool IsRailVisible { get { return !isFaceStage || !faceDockRequested; } }
+        public bool IsRailVisible { get { return nativeRailVisible; } }
 
         [DataSourceProperty]
         public bool IsFaceDebugVisible { get { return isFaceStage && !faceDockRequested; } }

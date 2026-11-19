@@ -31,6 +31,7 @@
     <Compile Include="../../Source/CalradiaUnified/NativeCreatorParityPolicy.cs" Link="NativeCreatorParityPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/NativeStateShellPolicy.cs" Link="NativeStateShellPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeChapterPolicy.cs" Link="CUNativeChapterPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CUNativeVisualPolicy.cs" Link="CUNativeVisualPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFiefPolicy.cs" Link="SandboxFiefPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyOriginPolicy.cs" Link="SandboxFamilyOriginPolicy.cs" />

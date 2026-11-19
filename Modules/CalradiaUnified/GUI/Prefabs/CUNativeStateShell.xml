@@ -1,149 +1,186 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Prefab>
   <Window>
-    <!-- Opt-in CU identity ribbon inside REAL CharacterCreationScreen.
-         No buttons, input restrictions or fake character tableau.
-         Its background is placed in the upper-right viewport region.
-         Native culture and FaceGen own every input and stage transition. -->
+    <!-- v0.42 native visual chrome, NEVER a native stage replacement.
+         Native game-owned controls and SceneView remain active underneath.
+         This Gauntlet layer is read-only and never becomes the focus layer.
+         Compact 1366px screens get only a shallow top header and 2px trim,
+         avoiding opaque panels over native choices. At 1600px and above,
+         the exact five-chapter rail and a context pane match CU's guided
+         world, stats, family and fortune layout. -->
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent"
             DoNotPassEventsToChildren="false">
       <Children>
+        <!-- The real native stages reuse the CU top bar and gold rule.
+             There are deliberately no buttons in this whole prefab. -->
         <Widget WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"
-                IsVisible="@IsNotFaceStage">
+                IsVisible="@IsNativeChromeVisible"
+                DoNotPassEventsToChildren="false">
           <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE8"
-                WidthSizePolicy="Fixed" SuggestedWidth="430"
-                HeightSizePolicy="Fixed" SuggestedHeight="182"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
-                PositionXOffset="-20" PositionYOffset="18"/>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#C79B5EFF"
-                WidthSizePolicy="Fixed" SuggestedWidth="430"
-                HeightSizePolicy="Fixed" SuggestedHeight="3"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
-                PositionXOffset="-20" PositionYOffset="18"/>
-        <TextWidget Text="@Title" Color="#FFE2ABFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="25"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="29"/>
-        <TextWidget Text="@Chapter" Color="#FCEBD0FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="24"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="56"/>
-        <TextWidget Text="@NativeStep" Color="#E8C17DFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="24"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="79"/>
-        <TextWidget Text="@Culture" Color="#DDE4EDFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="23"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="103"/>
-        <TextWidget Text="@Role" Color="#DDE4EDFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="23"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="125"/>
-        <TextWidget Text="@Household" Color="#FCEBD0FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="23"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="147"/>
-        <TextWidget Text="@Notice" Color="#BAC8D9FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="402"
-                    HeightSizePolicy="Fixed" SuggestedHeight="32"
-                    HorizontalAlignment="Right" VerticalAlignment="Top"
-                    PositionXOffset="-34" PositionYOffset="169"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#172536A8"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="Fixed" SuggestedHeight="91"
+                    VerticalAlignment="Top"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="Fixed" SuggestedHeight="3"
+                    VerticalAlignment="Top" PositionYOffset="91"/>
+            <TextWidget Text="@Title" Color="#F6D7A5FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="280"
+                    HeightSizePolicy="Fixed" SuggestedHeight="35"
+                    PositionXOffset="27" PositionYOffset="20"/>
+            <TextWidget Text="@ChapterPosition" Color="#B6C4D1FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="275"
+                    HeightSizePolicy="Fixed" SuggestedHeight="26"
+                    PositionXOffset="28" PositionYOffset="57"/>
+            <TextWidget Text="@StageTitle" Color="#F3DCB8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="455"
+                    HeightSizePolicy="Fixed" SuggestedHeight="37"
+                    PositionXOffset="320" PositionYOffset="19"/>
+            <TextWidget Text="@StepProgress" Color="#D7E1EBFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="446"
+                    HeightSizePolicy="Fixed" SuggestedHeight="26"
+                    PositionXOffset="324" PositionYOffset="57"/>
+            <TextWidget Text="@NextHint" Color="#DDBB83FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="320"
+                    HeightSizePolicy="Fixed" SuggestedHeight="29"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-24" PositionYOffset="55"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2"
+                    VerticalAlignment="Bottom"/>
           </Children>
         </Widget>
-        <!-- Hide chapter tracker during optional real FaceGen right-dock trial
-             so it never blocks the original native face sliders. -->
+
+        <!-- Extended five-chapter navigation on wide screens ONLY.
+             Matches the guided screen's 226px slate rail and stage labels.
+             No native controls are moved or re-parented. -->
         <Widget WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"
-                IsVisible="@IsRailVisible">
+                IsVisible="@IsRailVisible"
+                DoNotPassEventsToChildren="false">
           <Children>
-        <!-- Persistent five-chapter stage tracker inside real CharacterCreationState.
-             Read-only. Native stage manager retains all input and callbacks. -->
-        <Widget Sprite="BlankWhiteSquare_9" Color="#08131BCB"
-                WidthSizePolicy="Fixed" SuggestedWidth="232"
-                HeightSizePolicy="Fixed" SuggestedHeight="391"
-                HorizontalAlignment="Left" VerticalAlignment="Top"
-                PositionXOffset="13" PositionYOffset="115"/>
-        <TextWidget Text="YOUR LEGACY | FIVE CHAPTERS"
-                Color="#F5D4A0FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="218"
-                HeightSizePolicy="Fixed" SuggestedHeight="33"
-                PositionXOffset="21" PositionYOffset="127"/>
-        <ListPanel DataSource="{Chapters}"
-                WidthSizePolicy="Fixed" SuggestedWidth="218"
-                HeightSizePolicy="Fixed" SuggestedHeight="293"
-                StackLayout.LayoutMethod="VerticalTopToBottom"
-                PositionXOffset="21" PositionYOffset="163">
-          <ItemTemplate>
-            <Widget WidthSizePolicy="Fixed" SuggestedWidth="218"
-                    HeightSizePolicy="Fixed" SuggestedHeight="55">
-              <Children>
-                <Widget Sprite="BlankWhiteSquare_9" Color="#B8915CFF"
-                        IsVisible="@IsSelected"
-                        WidthSizePolicy="Fixed" SuggestedWidth="4"
-                        HeightSizePolicy="StretchToParent"/>
-                <TextWidget Text="@Label" Color="#E4D4BCFF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="202"
-                        HeightSizePolicy="Fixed" SuggestedHeight="27"
-                        PositionXOffset="8" PositionYOffset="2"/>
-                <TextWidget Text="@Status" Color="#9EB3C9FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="202"
-                        HeightSizePolicy="Fixed" SuggestedHeight="22"
-                        PositionXOffset="8" PositionYOffset="29"/>
-              </Children>
-            </Widget>
-          </ItemTemplate>
-        </ListPanel>
-        <TextWidget Text="CHAPTER GUIDE | NATIVE CONTROLS"
-                Color="#CEB280FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="220"
-                HeightSizePolicy="Fixed" SuggestedHeight="25"
-                PositionXOffset="20" PositionYOffset="470"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#0C1928C0"
+                    WidthSizePolicy="Fixed" SuggestedWidth="226"
+                    HeightSizePolicy="Fixed" SuggestedHeight="386"
+                    PositionXOffset="20" PositionYOffset="117"/>
+            <TextWidget Text="YOUR LEGACY | FIVE CHAPTERS"
+                    Color="#DDBB83FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="209" HeightSizePolicy="Fixed"
+                    SuggestedHeight="36" PositionXOffset="29"
+                    PositionYOffset="127"/>
+            <ListPanel DataSource="{Chapters}"
+                    WidthSizePolicy="Fixed" SuggestedWidth="210"
+                    HeightSizePolicy="Fixed" SuggestedHeight="293"
+                    StackLayout.LayoutMethod="VerticalTopToBottom"
+                    PositionXOffset="29" PositionYOffset="168">
+              <ItemTemplate>
+                <Widget WidthSizePolicy="Fixed" SuggestedWidth="210"
+                        HeightSizePolicy="Fixed" SuggestedHeight="55">
+                  <Children>
+                    <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+                            IsVisible="@IsSelected"
+                            WidthSizePolicy="Fixed" SuggestedWidth="4"
+                            HeightSizePolicy="StretchToParent"/>
+                    <TextWidget Text="@Label" Color="#F1DEBEFF"
+                            WidthSizePolicy="Fixed" SuggestedWidth="196"
+                            HeightSizePolicy="Fixed" SuggestedHeight="27"
+                            PositionXOffset="10" PositionYOffset="2"/>
+                    <TextWidget Text="@Status" Color="#B6C4D1FF"
+                            WidthSizePolicy="Fixed" SuggestedWidth="196"
+                            HeightSizePolicy="Fixed" SuggestedHeight="22"
+                            PositionXOffset="10" PositionYOffset="29"/>
+                  </Children>
+                </Widget>
+              </ItemTemplate>
+            </ListPanel>
+            <TextWidget Text="NATIVE CONTROLS REMAIN ACTIVE"
+                    Color="#DDBB83FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="214" HeightSizePolicy="Fixed"
+                    SuggestedHeight="29" PositionXOffset="27"
+                    PositionYOffset="470"/>
+
+            <!-- A concise read-only context pane on wide screens.
+                 No panel is shown on compact screens or during FaceGen.
+                 No duplicate banner/name/story/difficulty inputs exist. -->
+            <Widget Sprite="BlankWhiteSquare_9" Color="#152432C0"
+                    WidthSizePolicy="Fixed" SuggestedWidth="338"
+                    HeightSizePolicy="Fixed" SuggestedHeight="240"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-19" PositionYOffset="117"/>
+            <TextWidget Text="@NativeStep" Color="#F3DCB8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="306"
+                    HeightSizePolicy="Fixed" SuggestedHeight="33"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-35" PositionYOffset="128"/>
+            <TextWidget Text="@StageGuidance" Color="#D5E0E9FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="302"
+                    HeightSizePolicy="Fixed" SuggestedHeight="91"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-35" PositionYOffset="169"/>
+            <TextWidget Text="@Culture" Color="#DDBB83FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="304"
+                    HeightSizePolicy="Fixed" SuggestedHeight="24"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-34" PositionYOffset="265"/>
+            <TextWidget Text="@Role" Color="#B6C4D1FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="304"
+                    HeightSizePolicy="Fixed" SuggestedHeight="24"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-34" PositionYOffset="289"/>
+            <TextWidget Text="@Household" Color="#D5E0E9FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="304"
+                    HeightSizePolicy="Fixed" SuggestedHeight="27"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-34" PositionYOffset="314"/>
+            <TextWidget Text="@Notice" Color="#B6C4D1FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="320"
+                    HeightSizePolicy="Fixed" SuggestedHeight="58"
+                    HorizontalAlignment="Right"
+                    PositionXOffset="-25" PositionYOffset="374"/>
           </Children>
         </Widget>
-        <TextWidget Text="@ViewportCapability"
-                IsVisible="@IsFaceDebugVisible"
-                Color="#B2C7D9FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="410"
-                HeightSizePolicy="Fixed" SuggestedHeight="50"
-                PositionXOffset="17" PositionYOffset="513"/>
-        <!-- Keep native FaceGen's right-hand sliders and real 3D scene
-             unobscured. This verifies active engine-owned layers; it does
-             not claim the full-screen scene has been moved to a rectangle. -->
-        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FD8"
+
+        <!-- FaceGen retains its one real 3D SceneLayer and existing native
+             sliders. The compact badge provides CU identity without hiding
+             the editable agent. The native face right dock remains F9
+             reversible and cannot be treated as a persistent 3D viewport. -->
+        <Widget Sprite="BlankWhiteSquare_9" Color="#172536C0"
                 IsVisible="@IsFaceDebugVisible"
                 WidthSizePolicy="Fixed" SuggestedWidth="465"
-                HeightSizePolicy="Fixed" SuggestedHeight="90"
-                HorizontalAlignment="Left" VerticalAlignment="Top"
-                PositionXOffset="16" PositionYOffset="15"/>
+                HeightSizePolicy="Fixed" SuggestedHeight="91"
+                PositionXOffset="18" PositionYOffset="15"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+                IsVisible="@IsFaceDebugVisible"
+                WidthSizePolicy="Fixed" SuggestedWidth="465"
+                HeightSizePolicy="Fixed" SuggestedHeight="2"
+                PositionXOffset="18" PositionYOffset="15"/>
         <TextWidget Text="CALRADIA UNIFIED | APPEARANCE"
                 IsVisible="@IsFaceDebugVisible" Color="#F6D7A5FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="440"
-                HeightSizePolicy="Fixed" SuggestedHeight="30"
-                PositionXOffset="27" PositionYOffset="22"/>
+                WidthSizePolicy="Fixed" SuggestedWidth="442"
+                HeightSizePolicy="Fixed" SuggestedHeight="29"
+                PositionXOffset="29" PositionYOffset="25"/>
         <TextWidget Text="@FaceStatus"
-                IsVisible="@IsFaceDebugVisible" Color="#C4D7E8FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="440"
-                HeightSizePolicy="Fixed" SuggestedHeight="42"
-                PositionXOffset="27" PositionYOffset="51"/>
-        <!-- F9 restore is a real native scene/view rollback, not a fake
-             decorative character model. -->
+                IsVisible="@IsFaceDebugVisible" Color="#D7E1EBFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="442"
+                HeightSizePolicy="Fixed" SuggestedHeight="44"
+                PositionXOffset="29" PositionYOffset="54"/>
+        <TextWidget Text="@ViewportCapability"
+                IsVisible="@IsFaceDebugVisible"
+                Color="#B6C4D1FF" WidthSizePolicy="Fixed"
+                SuggestedWidth="446" HeightSizePolicy="Fixed"
+                SuggestedHeight="43" PositionXOffset="21"
+                PositionYOffset="117"/>
         <TextWidget Text="@FaceDockStatus"
                 IsVisible="@IsFaceDockTrialStage"
-                Color="#F2D4A4FF"
-                WidthSizePolicy="Fixed" SuggestedWidth="490"
-                HeightSizePolicy="Fixed" SuggestedHeight="43"
-                HorizontalAlignment="Right" VerticalAlignment="Top"
-                PositionXOffset="-20" PositionYOffset="25"/>
+                Color="#F6D7A5FF" WidthSizePolicy="Fixed"
+                SuggestedWidth="470" HeightSizePolicy="Fixed"
+                SuggestedHeight="38"
+                HorizontalAlignment="Right" PositionXOffset="-19"
+                PositionYOffset="24"/>
       </Children>
     </Widget>
   </Window>

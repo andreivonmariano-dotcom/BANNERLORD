@@ -12,6 +12,71 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("all seven real native stages have unified visual metadata",
+            Array.TrueForAll(NativeCreatorParityPolicy.RequiredNativeStages,
+                name=>CUNativeVisualPolicy.IsNativeChapterStage(name) &&
+                    CUNativeVisualPolicy.StageTitle(name)!="CHARACTER CREATION" &&
+                    CUNativeVisualPolicy.StageGuidance(name).Length>30));
+        Check("native culture and FaceGen use dedicated visual surfaces",
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationCultureStage") &&
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationFaceGeneratorStage"));
+        Check("native origins, banner, clan, review and difficulty use safe chrome",
+            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationNarrativeStage") &&
+            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationBannerEditorStage") &&
+            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationClanNamingStage") &&
+            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationReviewStage") &&
+            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "CharacterCreationOptionsStage"));
+        Check("compact 1366 leaves original native controls unobscured",
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationNarrativeStage",1366) &&
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationOptionsStage",1366));
+        Check("wide 1920 allows readable chapter and context panes",
+            CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationNarrativeStage",1920) &&
+            CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationReviewStage",1920));
+        Check("native 3D FaceGen never gets an opaque chapter rail",
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationFaceGeneratorStage",1920));
+        Check("native culture never gets a second overlapping chrome",
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
+                "CharacterCreationCultureStage",1920));
+        Check("unknown mod-added stage is left game-owned and untouched",
+            !CUNativeVisualPolicy.IsNativeChapterStage(
+                "AnotherModExtraCharacterStage") &&
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
+                "AnotherModExtraCharacterStage"));
+        Check("origin chapter matches actual game story before stats",
+            CUNativeVisualPolicy.StepProgress(
+                "CharacterCreationNarrativeStage").Contains("LIFE STORY") &&
+            CUNativeVisualPolicy.NextHint(
+                "CharacterCreationNarrativeStage").Contains("STARTING STATS"));
+        Check("clan naming precedes guided house and fortune",
+            CUNativeVisualPolicy.NextHint(
+                "CharacterCreationClanNamingStage").Contains(
+                    "HOUSEHOLD & FORTUNE"));
+        Check("native review and difficulty not hardcoded to one order",
+            CUNativeVisualPolicy.NextHint(
+                "CharacterCreationReviewStage").Contains("NATIVE") &&
+            CUNativeVisualPolicy.NextHint(
+                "CharacterCreationOptionsStage").Contains(
+                    "NATIVE FINALIZATION"));
+        Check("native visual chapter label uses real five-chapter order",
+            CUNativeVisualPolicy.ChapterPosition(
+                "CharacterCreationNarrativeStage")=="CHAPTER 2 OF 5" &&
+            CUNativeVisualPolicy.ChapterPosition(
+                "CharacterCreationBannerEditorStage")=="CHAPTER 3 OF 5" &&
+            CUNativeVisualPolicy.ChapterPosition(
+                "CharacterCreationOptionsStage")=="CHAPTER 5 OF 5");
+
         Check("starting stats Native is the default for every new profile",
             new SandboxOriginProfile().ProgressionMode=="Native");
         Check("stat modes are exactly Native Balanced and Unrestricted",
