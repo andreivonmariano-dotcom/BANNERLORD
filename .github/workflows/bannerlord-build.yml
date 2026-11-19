@@ -101,6 +101,9 @@ jobs:
       - name: Verify real native control brush/text styling and F10 rollback
         shell: pwsh
         run: python scripts/test_native_control_skin.py
+      - name: Verify measured native content/footer alignment and safe wide chapter rail
+        shell: pwsh
+        run: python scripts/test_native_layout_alignment.py
       - name: Check native-bound CU culture chooser and real 3D face ownership
         shell: pwsh
         run: python scripts/test_cu_native_culture_composition.py
