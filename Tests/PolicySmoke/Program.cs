@@ -12,6 +12,85 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native skin targets game-owned story/house/legacy stages",
+            CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationNarrativeStage") &&
+            CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationBannerEditorStage") &&
+            CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationClanNamingStage") &&
+            CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationReviewStage") &&
+            CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationOptionsStage"));
+        Check("native skin never duplicates culture or modifies FaceGen",
+            !CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationCultureStage") &&
+            !CUNativeWidgetSkinPolicy.CanSkin(
+                "CharacterCreationFaceGeneratorStage"));
+        Check("native skin does not target unknown other-mod stages",
+            !CUNativeWidgetSkinPolicy.CanSkin("OtherModStage") &&
+            CUNativeWidgetSkinPolicy.ExpectedView("OtherModStage")=="");
+        Check("native skin binds exact 1.5.7 native narrative view",
+            CUNativeWidgetSkinPolicy.ExpectedView(
+                "CharacterCreationNarrativeStage")==
+                "CharacterCreationNarrativeStageView");
+        Check("native skin binds exact 1.5.7 native banner view",
+            CUNativeWidgetSkinPolicy.ExpectedView(
+                "CharacterCreationBannerEditorStage")==
+                "CharacterCreationBannerEditorView");
+        Check("native skin binds exact 1.5.7 native clan view",
+            CUNativeWidgetSkinPolicy.ExpectedView(
+                "CharacterCreationClanNamingStage")==
+                "CharacterCreationClanNamingStageView");
+        Check("native skin binds real review and options view",
+            CUNativeWidgetSkinPolicy.ExpectedView(
+                "CharacterCreationReviewStage")==
+                "CharacterCreationReviewStageView" &&
+            CUNativeWidgetSkinPolicy.ExpectedView(
+                "CharacterCreationOptionsStage")==
+                "CharacterCreationOptionsStageView");
+        Check("native skin protects 3D and banner imagery",
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("SceneWidget") &&
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("ImageIdentifierWidget") &&
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("BannerWidget") &&
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("SliderWidget"));
+        Check("native skin protects editable clan inputs",
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("EditableTextWidget") &&
+            CUNativeWidgetSkinPolicy.IsProtectedWidget("InputTextWidget"));
+        Check("native skin accepts native button and text widgets",
+            !CUNativeWidgetSkinPolicy.IsProtectedWidget("ButtonWidget") &&
+            !CUNativeWidgetSkinPolicy.IsProtectedWidget("TextWidget"));
+        Check("native clan naming receives local input color without input mutations",
+            CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationClanNamingStage","EditableTextWidget") &&
+            CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationClanNamingStage","InputTextWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
+                "CharacterCreationBannerEditorStage","EditableTextWidget"));
+        Check("native difficulty sliders receive local slider brush only",
+            CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationOptionsStage","SliderWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationFaceGeneratorStage","SliderWidget") &&
+            !CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(
+                "CharacterCreationBannerEditorStage","SliderWidget"));
+        Check("native skin uses parchment-gold text and buttons",
+            CUNativeWidgetSkinPolicy.TextColor(
+                "CharacterCreationNarrativeStage",false,true)=="#F6D7A5FF" &&
+            CUNativeWidgetSkinPolicy.TextColor(
+                "CharacterCreationNarrativeStage",true,false)=="#F1DEBEFF" &&
+            CUNativeWidgetSkinPolicy.ButtonTint(
+                "CharacterCreationOptionsStage")=="#D7B17AFF");
+        Check("unsupported native stages receive no restyling color",
+            CUNativeWidgetSkinPolicy.TextColor(
+                "CharacterCreationFaceGeneratorStage",false,false)=="" &&
+            CUNativeWidgetSkinPolicy.ButtonTint(
+                "OtherModStage")=="");
+        Check("large native trees fail closed before expensive skinning",
+            CUNativeWidgetSkinPolicy.MaxWidgetsPerStage>100 &&
+            CUNativeWidgetSkinPolicy.MaxWidgetsPerStage<=800);
+
         Check("all seven real native stages have unified visual metadata",
             Array.TrueForAll(NativeCreatorParityPolicy.RequiredNativeStages,
                 name=>CUNativeVisualPolicy.IsNativeChapterStage(name) &&
