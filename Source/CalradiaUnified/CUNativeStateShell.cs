@@ -48,6 +48,26 @@ namespace CalradiaUnified
                     return;
                 }
 
+                // Native-first v0.47: original character-creation
+                // visuals already include the real game stone, parchment,
+                // 3D preview, buttons and callbacks. CU must not add the
+                // trial chapter ribbon, culture chooser, 3D scene offsets
+                // or native-control reskin to accepted Sandbox starts.
+                // Keep only the focused, conditional custom chapters.
+                if(SandboxCreatorOverlay.HasAcceptedCustomStart)
+                {
+                    if(ribbon!=null)Detach();
+                    CUNativeCultureLayer.Clear();
+                    CUNativeFaceDockTrial.Clear();
+                    CUNativeControlSkin.Clear();
+                    CUNativeLayoutAlignment.Clear();
+                    CUNativeStatsLayer.Tick(screen,
+                        active.CharacterCreationManager);
+                    CUNativeHouseLayer.Tick(screen,
+                        active.CharacterCreationManager);
+                    return;
+                }
+
                 if (Object.ReferenceEquals(screen, host))
                 {
                     if (viewModel != null)
