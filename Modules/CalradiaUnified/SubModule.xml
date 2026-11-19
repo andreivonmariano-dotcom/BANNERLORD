@@ -2,7 +2,7 @@
 <Module>
   <Name value="Calradia Unified - Locked Sandbox Flow and Read-only Unavailable Controls Candidate" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.33.0" />
+  <Version value="v0.34.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
