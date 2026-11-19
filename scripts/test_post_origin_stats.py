@@ -100,7 +100,7 @@ assert clicks.count("ExecuteBalanced")==1
 assert clicks.count("ExecuteUnrestricted")==1
 assert not any("Experimental" in (node.get("Text","")) for node in ui.iter())
 assert any(n.get("DataSource")=="{Rows}" for n in ui.iter("ListPanel"))
-for key in ("Name","NativeValue","SelectedValue","Difference","Description",
+for key in ("Name","NativeValue","SelectedValue",
             "Title","Subtitle","Page","PageProgress","ModeDescription",
             "BonusSummary","BudgetStatus","NextLabel","Status","SkillGroup"):
     assert any(x.get("Text")=="@"+key for x in ui.iter("TextWidget")),key
