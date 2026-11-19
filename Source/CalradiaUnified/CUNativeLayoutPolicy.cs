@@ -158,6 +158,35 @@ namespace CalradiaUnified
             return Math.Abs(moveX)>=1f || Math.Abs(moveY)>=1f;
         }
 
+        /// <summary>
+        /// Symmetric interior spacing on an ORIGINAL native button label.
+        /// No click target or sibling widget moves. Respect existing
+        /// larger margins and any localized text that needs the full width.
+        /// </summary>
+        public static bool TryPlanLabelPadding(string stage,
+            float buttonWidth,float textWidth,
+            float marginLeft,float marginRight,
+            out float nextLeft,out float nextRight)
+        {
+            nextLeft=marginLeft;
+            nextRight=marginRight;
+            if(!CanAlignNativeFooter(stage) ||
+                !Valid(buttonWidth)||!Valid(textWidth) ||
+                !Valid(marginLeft)||!Valid(marginRight) ||
+                buttonWidth<140 || textWidth<=0 ||
+                marginLeft>20 || marginRight>20)
+                return false;
+            float desiredLeft=Math.Max(12f,marginLeft);
+            float desiredRight=Math.Max(12f,marginRight);
+            if(textWidth+desiredLeft+desiredRight>buttonWidth-8f)
+                return false;
+            if(desiredLeft==marginLeft && desiredRight==marginRight)
+                return false;
+            nextLeft=desiredLeft;
+            nextRight=desiredRight;
+            return true;
+        }
+
         public static bool RootMatchesResolution(
             float rootWidth,float rootHeight,
             int screenWidth,int screenHeight)
