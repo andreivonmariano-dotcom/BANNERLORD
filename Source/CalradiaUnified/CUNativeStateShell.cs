@@ -199,6 +199,7 @@ namespace CalradiaUnified
         private bool isFaceStage;
         private string faceStatus = "";
         private string dockStatus = "";
+        private readonly bool faceDockRequested;
         private bool cultureCommitObserved;
         private readonly bool[] chaptersReached = new bool[5];
         private int activeChapterIndex = -1;
@@ -214,6 +215,7 @@ namespace CalradiaUnified
 
         public CUNativeStateShellVM(SandboxOriginProfile profile)
         {
+            faceDockRequested = profile.NativeFaceDockTrialEnabled;
             Chapters = new MBBindingList<CUNativeChapterBadgeVM>();
             for (int i=0;i<CUNativeChapterPolicy.Chapters.Length;i++)
             {
@@ -294,6 +296,9 @@ namespace CalradiaUnified
                 faceStatus="";
                 OnPropertyChangedWithValue(isFaceStage,"IsFaceStage");
                 OnPropertyChangedWithValue(!isFaceStage,"IsNotFaceStage");
+                OnPropertyChangedWithValue(IsRailVisible,"IsRailVisible");
+                OnPropertyChangedWithValue(IsFaceDebugVisible,"IsFaceDebugVisible");
+                OnPropertyChangedWithValue(IsFaceDockTrialStage,"IsFaceDockTrialStage");
             }
             if(face && faceStatus!="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
             {
@@ -334,6 +339,15 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public bool IsNotFaceStage { get { return !isFaceStage; } }
+
+        [DataSourceProperty]
+        public bool IsRailVisible { get { return !isFaceStage || !faceDockRequested; } }
+
+        [DataSourceProperty]
+        public bool IsFaceDebugVisible { get { return isFaceStage && !faceDockRequested; } }
+
+        [DataSourceProperty]
+        public bool IsFaceDockTrialStage { get { return isFaceStage && faceDockRequested; } }
 
         [DataSourceProperty]
         public string FaceStatus { get { return faceStatus; } }
