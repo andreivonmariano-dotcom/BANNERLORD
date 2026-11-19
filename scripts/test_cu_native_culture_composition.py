@@ -64,6 +64,9 @@ assert "pendingNativeBack=selected" in layer
 assert "Input.IsKeyReleased(InputKey.Escape)" in layer
 assert "failedHost=nativeScreen" in layer
 assert "RestoreNativeCultureFocus(nativeScreen)" in layer
+assert "CUNativeStateShell.UseNativeFallback(nativeScreen);" in layer
+assert "skippedHost=nativeScreen;" in shell
+assert "cu_native_culture_full_fallback" in shell
 assert 'candidate.Name=="CharacterCreationCulture"' in layer
 assert 'nextLayer.LoadMovie("CUNativeCultureChooser",nextVM)' in layer
 assert "screen.HasLayer" not in layer or "nativeScreen.HasLayer(nextLayer)" in layer
