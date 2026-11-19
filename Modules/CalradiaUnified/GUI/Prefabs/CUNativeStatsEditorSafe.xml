@@ -152,63 +152,7 @@
                   WidthSizePolicy="Fixed" SuggestedWidth="600"
                   HeightSizePolicy="Fixed" SuggestedHeight="50"
                   PositionXOffset="55" PositionYOffset="176"/>
-                <ButtonWidget Brush="ButtonBrush"
-                  DoNotPassEventsToChildren="true"
-                  UpdateChildrenStates="true"
-                  WidthSizePolicy="Fixed" SuggestedWidth="150"
-                  HeightSizePolicy="Fixed" SuggestedHeight="43"
-                  PositionXOffset="81" PositionYOffset="232"
-                  Command.Click="ExecuteAgeDecrease">
-                  <Children><TextWidget Brush.FontSize="17"
-                    Text="− 1 year" Color="#F6E4C4FF"
-                    WidthSizePolicy="StretchToParent"
-                    HeightSizePolicy="StretchToParent"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/></Children>
-                </ButtonWidget>
-                <ButtonWidget Brush="ButtonBrush"
-                  DoNotPassEventsToChildren="true"
-                  UpdateChildrenStates="true"
-                  WidthSizePolicy="Fixed" SuggestedWidth="180"
-                  HeightSizePolicy="Fixed" SuggestedHeight="43"
-                  PositionXOffset="254" PositionYOffset="232"
-                  Command.Click="ExecuteEnterExactAge">
-                  <Children><TextWidget Brush.FontSize="16"
-                    Text="Enter exact age" Color="#F6E4C4FF"
-                    WidthSizePolicy="StretchToParent"
-                    HeightSizePolicy="StretchToParent"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/></Children>
-                </ButtonWidget>
-                <ButtonWidget Brush="ButtonBrush"
-                  DoNotPassEventsToChildren="true"
-                  UpdateChildrenStates="true"
-                  WidthSizePolicy="Fixed" SuggestedWidth="150"
-                  HeightSizePolicy="Fixed" SuggestedHeight="43"
-                  PositionXOffset="456" PositionYOffset="232"
-                  Command.Click="ExecuteAgeIncrease">
-                  <Children><TextWidget Brush.FontSize="17"
-                    Text="+ 1 year" Color="#F6E4C4FF"
-                    WidthSizePolicy="StretchToParent"
-                    HeightSizePolicy="StretchToParent"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/></Children>
-                </ButtonWidget>
-                <ButtonWidget Brush="ButtonBrush"
-                  DoNotPassEventsToChildren="true"
-                  UpdateChildrenStates="true"
-                  WidthSizePolicy="Fixed" SuggestedWidth="245"
-                  HeightSizePolicy="Fixed" SuggestedHeight="43"
-                  PositionXOffset="220" PositionYOffset="299"
-                  Command.Click="ExecuteKeepNativeAge">
-                  <Children><TextWidget Brush.FontSize="16"
-                    Text="Keep native age"
-                    Color="#F6E4C4FF"
-                    WidthSizePolicy="StretchToParent"
-                    HeightSizePolicy="StretchToParent"
-                    HorizontalAlignment="Center"
-                    VerticalAlignment="Center"/></Children>
-                </ButtonWidget>
+
               </Children>
             </Widget>
             <ListPanel IsVisible="@IsStatsPage"
@@ -374,6 +318,76 @@
                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
+            <!-- Keep the original native artwork in the centered age panel.
+                 The interactive controls live in the LAST sibling, above
+                 backgrounds, summary text and any transparent regions.
+                 Gauntlet's hit testing traverses children in reverse. -->
+            <Widget WidthSizePolicy="Fixed" SuggestedWidth="690"
+              HeightSizePolicy="Fixed" SuggestedHeight="373"
+              PositionXOffset="251" PositionYOffset="210"
+              IsVisible="@IsAgePage"
+              DoNotAcceptEvents="true"
+              DoNotPassEventsToChildren="false">
+              <Children>
+                <ButtonWidget Id="CUAgeDecreaseButton" Brush="ButtonBrush"
+                  DoNotPassEventsToChildren="true"
+                  UpdateChildrenStates="true"
+                  WidthSizePolicy="Fixed" SuggestedWidth="150"
+                  HeightSizePolicy="Fixed" SuggestedHeight="43"
+                  PositionXOffset="81" PositionYOffset="232"
+                  Command.Click="ExecuteAgeDecrease">
+                  <Children><TextWidget Brush.FontSize="17"
+                    Text="− 1 year" Color="#F6E4C4FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/></Children>
+                </ButtonWidget>
+                <ButtonWidget Id="CUAgeExactButton" Brush="ButtonBrush"
+                  DoNotPassEventsToChildren="true"
+                  UpdateChildrenStates="true"
+                  WidthSizePolicy="Fixed" SuggestedWidth="180"
+                  HeightSizePolicy="Fixed" SuggestedHeight="43"
+                  PositionXOffset="254" PositionYOffset="232"
+                  Command.Click="ExecuteEnterExactAge">
+                  <Children><TextWidget Brush.FontSize="16"
+                    Text="Enter exact age" Color="#F6E4C4FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/></Children>
+                </ButtonWidget>
+                <ButtonWidget Id="CUAgeIncreaseButton" Brush="ButtonBrush"
+                  DoNotPassEventsToChildren="true"
+                  UpdateChildrenStates="true"
+                  WidthSizePolicy="Fixed" SuggestedWidth="150"
+                  HeightSizePolicy="Fixed" SuggestedHeight="43"
+                  PositionXOffset="456" PositionYOffset="232"
+                  Command.Click="ExecuteAgeIncrease">
+                  <Children><TextWidget Brush.FontSize="17"
+                    Text="+ 1 year" Color="#F6E4C4FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/></Children>
+                </ButtonWidget>
+                <ButtonWidget Id="CUAgeNativeButton" Brush="ButtonBrush"
+                  DoNotPassEventsToChildren="true"
+                  UpdateChildrenStates="true"
+                  WidthSizePolicy="Fixed" SuggestedWidth="245"
+                  HeightSizePolicy="Fixed" SuggestedHeight="43"
+                  PositionXOffset="220" PositionYOffset="299"
+                  Command.Click="ExecuteKeepNativeAge">
+                  <Children><TextWidget Brush.FontSize="16"
+                    Text="Keep native age"
+                    Color="#F6E4C4FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/></Children>
+                </ButtonWidget>
+              </Children>
+            </Widget>
           </Children>
         </Widget>
       </Children>

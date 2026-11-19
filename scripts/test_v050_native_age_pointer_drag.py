@@ -10,27 +10,17 @@ source=root/"Source/CalradiaUnified"
 ui=root/"Modules/CalradiaUnified/GUI/Prefabs"
 layer=(source/"CUNativeStatsLayer.cs").read_text(encoding="utf-8")
 policy=(source/"SandboxFamilyAgePolicy.cs").read_text(encoding="utf-8")
-for name in (
-    "Input.IsKeyDown(InputKey.LeftMouseButton)",
-    "cachedAgeSlider.EventManager.MousePosition",
-    "track.GlobalPosition.X",
-    "cachedAgeSlider.GlobalPosition.Y",
-    "track.Size.X", "handle.Size.X",
-    "ScreenManager.FocusedLayer!=layer",
-    "pointerWasDown", "pointerDragActive", "pointerGrabOffset",
-    "pointerDragChangeCount",
-    "ReadNativeSliderPointer();",
-    "activeVM.PlayerAge=age;",
-    "cachedAgeSlider.ValueInt=age;",
-    "cu_native_age_pointer_press",
-    "cu_native_age_pointer_drag",
-    "cu_native_age_pointer_release",
-    "cu_native_age_slider_value_changed",
-):
-    assert name in layer,name
+# Superseded by v051. The installed Bannerlord EventManager has an
+# incompatible MousePosition return signature: never call that getter.
+assert "cachedAgeSlider.EventManager.MousePosition" not in layer
+assert "ReadNativeSliderPointer()" not in layer
+assert "cu_native_age_hit_trace" in layer
+assert "TraceAgeMouseInput();" in layer
+assert "MaintainAgeLayerFocus();" in layer
+assert "cachedAgeSlider.ValueInt" in layer
+assert "cu_native_age_slider_value_changed" in layer
 assert "AgeFromSliderPointer(" in policy
-assert "trackWidth-handleWidth" in policy
-assert "MidpointRounding.AwayFromZero" in policy
+
 for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback"):
     prefab=ET.parse(ui/(name+".xml")).getroot()
     sliders=list(prefab.iter("SliderWidget"))
@@ -49,4 +39,4 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     commands=[x.get("Command.Click") for x in prefab.iter("ButtonWidget")]
     assert {"ExecuteAgeIncrease","ExecuteAgeDecrease",
             "ExecuteEnterExactAge"}<=set(commands)
-print("PASS: v050 pointer drag, actual Gauntlet geometry, bounded ages and fixed end labels (STATIC)")
+print("PASS: v050 age input contracts retained, incompatible pointer API removed by v051 (STATIC)")
