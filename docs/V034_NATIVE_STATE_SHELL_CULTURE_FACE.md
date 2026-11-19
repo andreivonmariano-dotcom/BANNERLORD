@@ -43,6 +43,22 @@ Do not remove any stock native stage or overwrite `[GameStateScreen(typeof(Chara
 - **In-game (NOT provided by CI):** v0.34 must be tested on a **disposable** new Sandbox with the shell flag On and both extra stages Off. Confirm native culture screen remains fully clickable, selected culture appears correctly in the CU ribbon, 3D face opens and rotates and edits, ribbon persists through background/banner/options, no duplicate layers after Back/Next, Escape still works, map role/fief/spouse/child state correct, then save/quit/reload. Repeat with all experimental flags Off to confirm exact v0.33 behavior.
 - **True one-screen acceptance:** only claim completion after **one CU visual shell** from Sandbox click to map, real 3D character maintained through all chapters, real native culture/face/origins/banner/clan/difficulty values, and *no visible native wizard after the final button*. This gate is **open**.
 
+### User-side Windows proof after a disposable game session
+
+Use the standard read-only playthrough checker from this branch after completing a new Sandbox with **Experimental: show CU ribbon throughout native creator = Yes** and both optional extra 3D stages = No. The script does not change your save.
+
+```powershell
+$game = "D:\\Steam\\steamapps\\common\\Mount & Blade II Bannerlord"
+& .\\scripts\\Test-CU-Playthrough.ps1 `
+    -GameRoot $game `
+    -ExpectedVersion "v0.34.0" `
+    -RequireNativeShell `
+    -ExpectedChildren 1 `
+    -Assert
+```
+
+Run from a checkout of the v0.34 branch or invoke the script's absolute downloaded location. Add `-ExpectedDllSha256` with the exact value from the matching successful CI run. The native shell must log `cu_native_state_shell_attached` and no `cu_native_state_shell_failed`. **The check cannot establish that the ribbon looked right or that face editing worked.** Verify those visually and retain the game-side logs/screenshots.
+
 ### Expected native diagnostics
 
 `cu_native_state_shell_attached` means the layer was mounted to the actual `CharacterCreationScreen`, not that its rendering and mouse behavior were game-tested. `cu_native_state_shell_failed` and `cu_native_shell_detach` point to lifecycle issues. The module still collects `cu_native_sandbox_stage_completed`, `sandbox_start_contract`, `cu_family_verification` and family-home evidence separately.
