@@ -38,6 +38,20 @@ $resolver=[ResolveEventHandler]{
     catch{return $null}
 }
 [AppDomain]::CurrentDomain.add_ReflectionOnlyAssemblyResolve($resolver)
+# Reflection-only GetType on real widget classes resolves Vector2
+# signatures eagerly. Windows PowerShell 5.1 requires explicitly
+# preloading the .NET Framework vectors assembly.
+try {
+    if($script:referencePaths.ContainsKey('System.Numerics.Vectors')){
+        [void][Reflection.Assembly]::ReflectionOnlyLoadFrom(
+            $script:referencePaths['System.Numerics.Vectors'])
+    } else {
+        [void][Reflection.Assembly]::ReflectionOnlyLoad(
+            'System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a')
+    }
+} catch {
+    Write-Output ('WIDGET_LAYOUT_VECTOR_PREFETCH_UNAVAILABLE '+$_.Exception.Message)
+}
 try{
     $lines=New-Object 'System.Collections.Generic.List[string]'
     $lines.Add('PINNED '+$ReferenceVersion)
