@@ -39,6 +39,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="SandboxFamilyAgePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyDevelopmentPolicy.cs" Link="SandboxFamilyDevelopmentPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilySkillInheritancePolicy.cs" Link="SandboxFamilySkillInheritancePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyGrowthState.cs" Link="SandboxFamilyGrowthState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyOriginPolicy.cs" Link="SandboxFamilyOriginPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyHomePolicy.cs" Link="SandboxFamilyHomePolicy.cs" />
