@@ -857,6 +857,7 @@ namespace CalradiaUnified
                     "|start_contract_passed=" + (failures.Length == 0) +
                     "|appearance_template_lookup_only=true" +
                     "|relocation_pending=true" +
+                    "|progression_mode=" + profile.ProgressionMode +
                     "|progression_requested=" + profile.Overrides.Count +
                     "|individual_items_requested=" + profile.ItemIds.Count);
             }
@@ -869,6 +870,33 @@ namespace CalradiaUnified
         private static void ApplyPlayerProgression(Hero hero,
             SandboxOriginProfile profile)
         {
+            // Default is a strict no-op. A leftover profile file must not
+            // silently alter native life-story rewards in a fresh Sandbox.
+            if (profile.ProgressionMode=="Native")
+            {
+                DiagnosticJournal.Event("cu_progression_native_preserved",
+                    "overrides_applied=0");
+                return;
+            }
+
+            // Re-evaluate against the FINAL native Hero after all narrative
+            // and character-creation effects. Reject the WHOLE invalid plan,
+            // never partially spend points or grant unrestricted advantages.
+            var baseline=CUNativeStatsSnapshot.Capture(hero);
+            int spent;
+            string error;
+            if (!SandboxStatBudgetPolicy.TryEvaluate(
+                profile.ProgressionMode,profile.Overrides,baseline,
+                out spent,out error))
+            {
+                DiagnosticJournal.Event("cu_progression_plan_rejected",
+                    "mode="+profile.ProgressionMode+"|reason="+error);
+                return;
+            }
+            DiagnosticJournal.Event("cu_progression_plan_accepted",
+                "mode="+profile.ProgressionMode+"|spent="+spent+
+                "|budget="+SandboxStatBudgetPolicy.StartingBudget+
+                "|changes="+profile.Overrides.Count);
             foreach (var entry in profile.Overrides)
             {
                 string[] parts = entry.Key.Split('.');

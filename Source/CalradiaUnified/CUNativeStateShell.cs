@@ -38,6 +38,7 @@ namespace CalradiaUnified
                 {
                     CUNativeCultureLayer.Clear();
                     CUNativeFaceDockTrial.Clear();
+                    CUNativeStatsLayer.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -52,17 +53,33 @@ namespace CalradiaUnified
                         active.CharacterCreationManager);
                     CUNativeFaceDockTrial.Tick(screen,
                         active.CharacterCreationManager,dockRequested);
+                    CUNativeStatsLayer.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
                     Object.ReferenceEquals(screen, skippedHost))
+                {
+                    // A failed CU culture decoration must not suppress the
+                    // independent post-narrative stats step. Its GameState
+                    // remains the untouched native CharacterCreationScreen.
+                    var fallbackProfile=SandboxOriginProfile.Load(
+                        SandboxOriginProfile.UserPath);
+                    if(SandboxCreatorOverlay.HasAcceptedCustomStart &&
+                        fallbackProfile.Enabled &&
+                        fallbackProfile.NativeStateShellEnabled)
+                        CUNativeStatsLayer.Tick(screen,
+                            active.CharacterCreationManager);
                     return;
+                }
 
                 Detach();
                 var profile = SandboxOriginProfile.Load(
                     SandboxOriginProfile.UserPath);
                 if (!NativeStateShellPolicy.CanAttach(
-                    profile.NativeStateShellEnabled, profile.Enabled,
+                    profile.NativeStateShellEnabled &&
+                    SandboxCreatorOverlay.HasAcceptedCustomStart,
+                    profile.Enabled,
                     active != null, screen != null,
                     profile.NativeFaceWorkshopEnabled,
                     profile.NativeIntegrationReviewEnabled))
@@ -115,6 +132,8 @@ namespace CalradiaUnified
                     active.CharacterCreationManager);
                 CUNativeFaceDockTrial.Tick(screen,
                     active.CharacterCreationManager,dockRequested);
+                CUNativeStatsLayer.Tick(screen,
+                    active.CharacterCreationManager);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -138,6 +157,7 @@ namespace CalradiaUnified
             // Recovery is performed on a later application tick, never
             // inside Gauntlet's click callback. Suppress ALL CU movies for
             // this native screen so the game owns exit/finalization alone.
+            CUNativeStatsLayer.Clear();
             Detach();
             skippedHost=nativeScreen;
             DiagnosticJournal.Event("cu_native_culture_full_fallback",
@@ -147,6 +167,7 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeStatsLayer.Clear();
             CUNativeFaceDockTrial.Clear();
             dockRequested = false;
             CUNativeCultureLayer.Clear();
