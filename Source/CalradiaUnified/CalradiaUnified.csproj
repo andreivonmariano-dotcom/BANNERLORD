@@ -11,6 +11,14 @@
     <Deterministic>true</Deterministic>
     <UsePublicReferences Condition="'$(UsePublicReferences)' == ''">false</UsePublicReferences>
   </PropertyGroup>
+  <!-- SliderWidget mouse coordinates use System.Numerics.Vector2 in
+       the pinned TaleWorlds UI assembly. Reference the existing .NET
+       Framework facade without shipping a duplicate game dependency. -->
+  <ItemGroup>
+    <Reference Include="System.Numerics.Vectors">
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
   <!-- The discarded launcher Gauntlet prototype is excluded from the DLL. -->
   <ItemGroup><Compile Remove="SandboxOriginPanel.cs" /></ItemGroup>
   <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
