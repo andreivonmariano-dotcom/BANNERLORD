@@ -66,7 +66,55 @@ try{
                     $_.FullName -eq $target.FullName})){
                     $selected+=@($target)
                 }
-            }catch{$lines.Add('TYPE_LOOKUP_FAILED '+$nativeType)}
+            }catch{$lines.Add('TYPE_LOOKUP_FAILED '+$nativeType+
+                ' ERROR '+$_.Exception.Message)}
+        }
+        $w=@($types|Where-Object{
+            $_.Name -match '^(Widget|BrushWidget|TextWidget|ButtonWidget|ListPanel|GridWidget|EditableTextWidget)
+            $lines.Add('')
+            $lines.Add('TYPE '+$type.FullName+' BASE '+$type.BaseType.FullName)
+            foreach($c in $type.GetConstructors($flags)){
+                try{$lines.Add('CTOR '+$c.ToString())}
+                catch{$lines.Add('CTOR '+$c.Name+' [dependency unresolved]')}
+            }
+            foreach($p in $type.GetProperties(
+                [Reflection.BindingFlags]'Public,NonPublic,Instance,Static')){
+                try{$lines.Add('PROPERTY '+$p.ToString()+' CANWRITE='+$p.CanWrite)}
+                catch{$lines.Add('PROPERTY '+$p.Name+' CANWRITE='+$p.CanWrite+' [dependency unresolved]')}
+            }
+            foreach($f in $type.GetFields($flags)){
+                try{$lines.Add('FIELD '+$f.ToString())}
+                catch{$lines.Add('FIELD '+$f.Name+' [dependency unresolved]')}
+            }
+            foreach($m in $type.GetMethods($flags)){
+                if(-not $m.IsSpecialName){
+                    try{$lines.Add('METHOD '+$m.ToString())}
+                    catch{$lines.Add('METHOD '+$m.Name+' [dependency unresolved]')}
+                }
+            }
+        }
+    }
+    $out=[IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputPath))
+    [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($out))|Out-Null
+    [IO.File]::WriteAllLines($out,$lines.ToArray(),[Text.Encoding]::UTF8)
+    Write-Output ('WIDGET_API_AUDIT_PASS lines='+$lines.Count+
+        ' version='+$ReferenceVersion)
+    Write-Output ('WIDGET_API_AUDIT_REPORT '+$out)
+    $lines|Where-Object{
+        $_ -match '^TYPE_LOOKUP_FAILED' -or
+        $_ -match '^LAYOUT_WIDGET_FOUND' -or
+        $_ -match '^PROPERTY .* (PositionXOffset|PositionYOffset|MarginTop|MarginBottom|MarginLeft|MarginRight|SuggestedWidth|SuggestedHeight|ActualWidth|ActualHeight|HorizontalAlignment|VerticalAlignment|WidthSizePolicy|HeightSizePolicy)' -or
+        $_ -match '^TYPE .*\.(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|GauntletLayer|GauntletMovieIdentifier|Color)' -or
+        $_ -match '^PROPERTY .* (Color|Brush|Sprite|IsEnabled|IsVisible|Movie|RootWidget|FontSize)'
+    }|Select-Object -First 100
+} finally{
+    [AppDomain]::CurrentDomain.remove_ReflectionOnlyAssemblyResolve($resolver)
+}
+
+        })
+        foreach($widgetType in $w){
+            $lines.Add('LAYOUT_WIDGET_FOUND '+$widgetType.FullName+
+                ' ASSEMBLY '+$name)
         }
         foreach($type in $selected|Sort-Object FullName -Unique){
             $lines.Add('')
