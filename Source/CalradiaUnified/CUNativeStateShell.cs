@@ -317,7 +317,8 @@ namespace CalradiaUnified
                     "IsNativeChromeVisible");
             }
             bool nextRail=CUNativeVisualPolicy.ShouldShowChapterRail(
-                stageName,(int)Screen.RealScreenResolutionWidth);
+                stageName,(int)Screen.RealScreenResolutionWidth) &&
+                CUNativeLayoutAlignment.IsWideRailSafe(stageName);
             if(nextRail!=nativeRailVisible)
             {
                 nativeRailVisible=nextRail;
