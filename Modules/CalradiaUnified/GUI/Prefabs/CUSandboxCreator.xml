@@ -37,17 +37,14 @@
             <!-- No modal frame: content is visually part of the
                  full-screen native-inspired canvas. -->
             <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1280"
-                    HeightSizePolicy="StretchToParent" MarginTop="0" MarginBottom="0"
-                    PositionXOffset="0" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="0" MarginRight="0"
+                    HeightSizePolicy="StretchToParent" MarginTop="0" MarginBottom="0" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#152636E9"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1252"
-                    HeightSizePolicy="Fixed" SuggestedHeight="67"
-                    PositionXOffset="14" PositionYOffset="14" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14"
+                    HeightSizePolicy="Fixed" SuggestedHeight="67" PositionYOffset="14" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#CBA36BFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1252"
-                    HeightSizePolicy="Fixed" SuggestedHeight="3"
-                    PositionXOffset="14" PositionYOffset="81" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14"
+                    HeightSizePolicy="Fixed" SuggestedHeight="3" PositionYOffset="81" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0A1422ED"
                     WidthSizePolicy="Fixed" SuggestedWidth="242"
                     HeightSizePolicy="StretchToParent" MarginTop="96" MarginBottom="84"
@@ -68,13 +65,11 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     HorizontalAlignment="Right" PositionXOffset="-26" PositionYOffset="306" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#152636E9"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1250"
-                    HeightSizePolicy="Fixed" SuggestedHeight="56"
-                    PositionXOffset="15" VerticalAlignment="Bottom" PositionYOffset="-16" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="15" MarginRight="15"
+                    HeightSizePolicy="Fixed" SuggestedHeight="56" VerticalAlignment="Bottom" PositionYOffset="-16" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#B9925EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1250"
-                    HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="15" VerticalAlignment="Bottom" PositionYOffset="-73" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="15" MarginRight="15"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom" PositionYOffset="-73" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0C1929EE"
                     WidthSizePolicy="StretchToParent" MarginLeft="292" MarginRight="349"
                     HeightSizePolicy="Fixed" SuggestedHeight="112" PositionYOffset="242" />
