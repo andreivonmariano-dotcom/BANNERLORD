@@ -98,6 +98,9 @@ jobs:
       - name: Verify unified native culture FaceGen origins banner clan review and difficulty chrome
         shell: pwsh
         run: python scripts/test_unified_native_chrome.py
+      - name: Verify real native control brush/text styling and F10 rollback
+        shell: pwsh
+        run: python scripts/test_native_control_skin.py
       - name: Check native-bound CU culture chooser and real 3D face ownership
         shell: pwsh
         run: python scripts/test_cu_native_culture_composition.py
