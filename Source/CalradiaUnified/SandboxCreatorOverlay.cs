@@ -164,7 +164,22 @@ namespace CalradiaUnified
             };
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
-            layer.LoadMovie("CUGuidedCreator", viewModel);
+            try
+            {
+                // First try original Bannerlord textures/brushes referenced
+                // directly from its installed GUI atlases.
+                layer.LoadMovie("CUGuidedCreator", viewModel);
+                DiagnosticJournal.Event("cu_native_creator_assets",
+                    "screen=guided|source=installed_game|art=native");
+            }
+            catch(Exception missingNativeArt)
+            {
+                // Never break new Sandbox starts just to show a missing
+                // texture from a different installed game build.
+                DiagnosticJournal.Exception(
+                    "cu_native_creator_art_fallback",missingNativeArt);
+                layer.LoadMovie("CUGuidedCreatorPlainFallback",viewModel);
+            }
         }
 
         protected override void OnActivate()
