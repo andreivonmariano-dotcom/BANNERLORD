@@ -30,6 +30,8 @@ namespace CalradiaUnified
         private static GauntletMovieIdentifier movie;
         private static CUNativeStatsVM activeVM;
         private static bool sliderWarningLogged;
+        private static bool sliderProbeUnavailable;
+        private static object cachedAgeSlider;
         private static bool narrativeSeen;
         private static bool completed;
         private static bool closeRequested;
@@ -228,6 +230,8 @@ namespace CalradiaUnified
                 movie=nextMovie;
                 activeVM=vm;
                 sliderWarningLogged=false;
+                sliderProbeUnavailable=false;
+                cachedAgeSlider=null;
                 failedHost=null;
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
                     "transition=after_narrative_before_banner" +
@@ -268,6 +272,8 @@ namespace CalradiaUnified
             movie=null;
             activeVM=null;
             sliderWarningLogged=false;
+            sliderProbeUnavailable=false;
+            cachedAgeSlider=null;
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -294,33 +300,97 @@ namespace CalradiaUnified
             }
         }
 
+        private static object FindSliderWidget(object root)
+        {
+            if(root==null)return null;
+            // Public FindChild is present on some supported Gauntlet builds.
+            // The pinned metadata confirms Widget.Id and ChildCount but
+            // does not guarantee any one FindChild overload.
+            try
+            {
+                var find=root.GetType().GetMethod("FindChild",
+                    new[] {typeof(string),typeof(bool)});
+                if(find!=null)
+                {
+                    object found=find.Invoke(root,new object[] {
+                        "CUPlayerAgeSlider",true});
+                    if(found!=null)return found;
+                }
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_native_age_find_child_fallback",error);
+            }
+            return FindSliderInTree(root,0);
+        }
+
+        private static object FindSliderInTree(object root,int depth)
+        {
+            // Iterative depth limit protects against malformed/recursive
+            // prefab trees. The plain and native-art movies share IDs.
+            if(root==null || depth>24)return null;
+            var type=root.GetType();
+            var id=type.GetProperty("Id");
+            if(id!=null &&
+                String.Equals(id.GetValue(root,null) as string,
+                    "CUPlayerAgeSlider",StringComparison.Ordinal))
+                return root;
+            var countProp=type.GetProperty("ChildCount");
+            if(countProp==null)return null;
+            object raw=countProp.GetValue(root,null);
+            if(!(raw is int))return null;
+            int count=Math.Min((int)raw,512);
+            var oneIndex=new[] {typeof(int)};
+            var getChild=type.GetMethod("GetChild",
+                BindingFlags.Public|BindingFlags.NonPublic|
+                    BindingFlags.Instance,null,oneIndex,null);
+            if(getChild==null)
+                getChild=type.GetMethod("GetChildAt",
+                    BindingFlags.Public|BindingFlags.NonPublic|
+                        BindingFlags.Instance,null,oneIndex,null);
+            if(getChild!=null)
+            {
+                for(int index=0;index<count;index++)
+                {
+                    var child=getChild.Invoke(root,new object[] {index});
+                    var matched=FindSliderInTree(child,depth+1);
+                    if(matched!=null)return matched;
+                }
+            }
+            return null;
+        }
+
         private static void ReadNativeSliderValue()
         {
             if(activeVM==null || !activeVM.IsAgePage ||
-                movie==null || movie.Movie==null)
+                movie==null || movie.Movie==null ||
+                sliderProbeUnavailable)
                 return;
             try
             {
-                var root=movie.Movie.RootWidget;
-                if(root==null)return;
-                var find=root.GetType().GetMethod("FindChild",
-                    new[] {typeof(string),typeof(bool)});
-                if(find==null)
+                if(cachedAgeSlider==null)
                 {
-                    if(!sliderWarningLogged)
+                    cachedAgeSlider=FindSliderWidget(movie.Movie.RootWidget);
+                    if(cachedAgeSlider==null)
                     {
-                        sliderWarningLogged=true;
+                        sliderProbeUnavailable=true;
                         DiagnosticJournal.Event("cu_native_age_slider_probe",
-                            "supported=false|fallback=one_year_buttons");
+                            "supported=false|reason=slider_not_found"+
+                            "|fallback=one_year_buttons");
+                        return;
                     }
+                    DiagnosticJournal.Event("cu_native_age_slider_probe",
+                        "supported=true|source=real_gauntlet_tree");
+                }
+                var valueProperty=cachedAgeSlider.GetType().GetProperty(
+                    "ValueInt");
+                if(valueProperty==null)
+                {
+                    sliderProbeUnavailable=true;
                     return;
                 }
-                var slider=find.Invoke(root,new object[]{
-                    "CUPlayerAgeSlider",true});
-                if(slider==null)return;
-                var valueProperty=slider.GetType().GetProperty("ValueInt");
-                if(valueProperty==null)return;
-                object raw=valueProperty.GetValue(slider,null);
+                object raw=valueProperty.GetValue(cachedAgeSlider,null);
                 if(!(raw is int))return;
                 int age=(int)raw;
                 if(SandboxFamilyAgePolicy.ValidPlayerAge(age) &&
@@ -333,6 +403,7 @@ namespace CalradiaUnified
             }
             catch(Exception error)
             {
+                sliderProbeUnavailable=true;
                 if(!sliderWarningLogged)
                 {
                     sliderWarningLogged=true;
