@@ -198,15 +198,28 @@ namespace CalradiaUnified
                 try
                 {
                     nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                    DiagnosticJournal.Event("cu_native_creator_assets",
+                        "screen=stats|source=installed_game|art=native");
                 }
-                catch(Exception sliderFailure)
+                catch(Exception nativeArtFailure)
                 {
-                    // A malformed/newer engine SliderWidget must never
-                    // discard the entire character stats step. The safe
-                    // movie retains the same warm UI and per-year buttons.
                     DiagnosticJournal.Exception(
-                        "cu_native_age_slider_fallback",sliderFailure);
-                    nextMovie=next.LoadMovie("CUNativeStatsEditorSafe",vm);
+                        "cu_native_stats_art_fallback",nativeArtFailure);
+                    try
+                    {
+                        // Original flat assets retain the same working
+                        // one-year SliderWidget and all game-affecting
+                        // callbacks, no missing vanilla texture required.
+                        nextMovie=next.LoadMovie(
+                            "CUNativeStatsEditorPlainFallback",vm);
+                    }
+                    catch(Exception sliderFailure)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_age_slider_fallback",sliderFailure);
+                        nextMovie=next.LoadMovie(
+                            "CUNativeStatsEditorSafe",vm);
+                    }
                 }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
