@@ -91,6 +91,9 @@ namespace CalradiaUnified
         // clan with real parent links. No existing hero is married directly.
         public string SpouseBackground = "Commoner";
         public string SpouseBirthClanId = "";
+        // The household's social climate shapes starting relations, a
+        // generated spouse's personality and each child's upbringing.
+        public string FamilyScenario = "Natural";
         // Where the generated household lives at campaign start.
         // Only native, owned and safe fortified settlements qualify.
         public string FamilyHomeMode = "OwnedFief";
@@ -120,6 +123,7 @@ namespace CalradiaUnified
             public string Culture;
             public string FaceSeed;
             public string EquipmentKit;
+            public string Upbringing;
             public OriginRelative(string kind, int index)
             {
                 // These must pass the same name validator used by Save().
@@ -136,6 +140,7 @@ namespace CalradiaUnified
                 Culture = "";
                 FaceSeed = "";
                 EquipmentKit = "Vanilla";
+                Upbringing = "FamilyTradition";
             }
         }
 
@@ -166,6 +171,9 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            FamilyScenario="Natural";
+            foreach(var child in Children)
+                child.Upbringing="FamilyTradition";
             ProgressionMode="Native";
             Overrides.Clear();
             ItemIds.Clear();
@@ -362,6 +370,10 @@ namespace CalradiaUnified
                 case "SpouseBirthClanId":
                     if (!Identifier(value, 80)) return false;
                     SpouseBirthClanId = value; return true;
+                case "FamilyScenario":
+                    if (!SandboxFamilyDevelopmentPolicy.IsScenario(value))
+                        return false;
+                    FamilyScenario=value; return true;
                 case "FamilyHomeMode":
                     if (!Allowed(value,SandboxFamilyHomePolicy.Modes))
                         return false;
@@ -442,6 +454,11 @@ namespace CalradiaUnified
                     case "EquipmentKit":
                         if (!Allowed(value, Kits)) return false;
                         relative.EquipmentKit = value; return true;
+                    case "Upbringing":
+                        if(parts[0]!="Child" ||
+                            !SandboxFamilyDevelopmentPolicy.IsUpbringing(value))
+                            return false;
+                        relative.Upbringing=value; return true;
                 }
             }
             return false;
@@ -459,6 +476,11 @@ namespace CalradiaUnified
             if (playerAge < 18 || playerAge > 100)
             {
                 error = "Player must be an adult.";
+                return false;
+            }
+            if (!SandboxFamilyDevelopmentPolicy.IsScenario(FamilyScenario))
+            {
+                error = "Choose a supported family scenario.";
                 return false;
             }
             if (SpouseEnabled && !PersonName(SpouseName))
@@ -479,7 +501,9 @@ namespace CalradiaUnified
             for (int i = 0; i < ChildCount; i++)
             {
                 var child = Children[i];
-                if (!PersonName(child.Name) || child.Age < 0 ||
+                if (!SandboxFamilyDevelopmentPolicy.IsUpbringing(
+                        child.Upbringing) ||
+                    !PersonName(child.Name) || child.Age < 0 ||
                     child.Age > playerAge - 16 ||
                     (SpouseEnabled && child.Age > SpouseAge - 16))
                 {
@@ -503,6 +527,7 @@ namespace CalradiaUnified
                 ", " + Troops + " additional troops, kit=" + EquipmentKit +
                 ", family=" + (SpouseEnabled ?
                     SpouseBackground + " spouse " + SpouseName : "none") +
+                ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
@@ -569,6 +594,7 @@ namespace CalradiaUnified
                 "SpouseCulture=" + SpouseCulture,
                 "SpouseBackground=" + SpouseBackground,
                 "SpouseBirthClanId=" + SpouseBirthClanId,
+                "FamilyScenario=" + FamilyScenario,
                 "FamilyHomeMode=" + FamilyHomeMode,
                 "FamilyHomeId=" + FamilyHomeId,
                 "SpouseFaceSeed=" + SpouseFaceSeed,
@@ -599,6 +625,8 @@ namespace CalradiaUnified
             lines.Add(prefix + "Culture=" + r.Culture);
             lines.Add(prefix + "FaceSeed=" + r.FaceSeed);
             lines.Add(prefix + "EquipmentKit=" + r.EquipmentKit);
+            if(kind=="Child")
+                lines.Add(prefix + "Upbringing=" + r.Upbringing);
         }
 
         public static SandboxOriginProfile Parse(string text)
