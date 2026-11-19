@@ -664,7 +664,8 @@ namespace CalradiaUnified
         // One short exact-age page follows the native story and precedes
         // optional attributes/skills/traits. The narrative owns its bonuses.
         private int pageIndex=CUNativeStatsNavigationPolicy.Age;
-        private int skillGroupIndex;
+        private int statsRowPageIndex;
+        private int statsRowPageCount=1;
         private string status="";
         private readonly string[] bonusLines;
         private int bonusIndex;
@@ -712,27 +713,69 @@ namespace CalradiaUnified
         private IDictionary<string,int> ChangesForTarget
             {get{return editingSpouse?profile.SpouseOverrides:
                 profile.Overrides;}}
+        // One logical All Stats screen with six active Gauntlet sliders
+        // per page. Building >50 slider widgets in an unverified native
+        // scroll hierarchy caused a hard game exit on the user's 1.5.7
+        // runtime when leaving the confirmed-working Age screen.
+        private List<string> AllStatKeys()
+        {
+            var keys=new List<string>();
+            keys.Add(SandboxFamilyLevelPolicy.Key);
+            foreach(string name in SandboxOriginProfile.Attributes)
+                keys.Add("Attribute."+name);
+            foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
+            {
+                keys.Add("Skill."+name);
+                keys.Add("Focus."+name);
+            }
+            foreach(string name in SandboxOriginProfile.Traits)
+                keys.Add("Trait."+name);
+            return keys;
+        }
         private void Refresh()
         {
+            DiagnosticJournal.Event("cu_stats_page_refresh_enter",
+                "creator_page="+pageIndex+
+                "|target="+(editingSpouse?"spouse":"player")+
+                "|row_page="+statsRowPageIndex);
             Rows.Clear();
             if(pageIndex>=0)
             {
-                // Display one level slider and all live native stats
-                // together, with optional War Sails skills if registered.
-                AddRow(SandboxFamilyLevelPolicy.Key,
-                    "Hero level | 1-50. XP matched to the selected level.");
-                foreach(string name in SandboxOriginProfile.Attributes)
-                    AddRow("Attribute."+name,"Native attribute | 1-10");
-                foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
+                var keys=AllStatKeys();
+                statsRowPageCount=SandboxStatsPagePolicy.PageCount(
+                    keys.Count);
+                statsRowPageIndex=SandboxStatsPagePolicy.ClampPage(
+                    statsRowPageIndex,keys.Count);
+                int start=SandboxStatsPagePolicy.StartIndex(
+                    statsRowPageIndex,keys.Count);
+                int count=SandboxStatsPagePolicy.PageSize(
+                    statsRowPageIndex,keys.Count);
+                for(int i=start;i<start+count;i++)
                 {
-                    AddRow("Skill."+name,
-                        "Native skill | 0-330 | inherited training");
-                    AddRow("Focus."+name,
-                        "Native focus | 0-5 | learning potential");
+                    string key=keys[i];
+                    if(key==SandboxFamilyLevelPolicy.Key)
+                        AddRow(key,"Hero level | 1-50 | native XP matched");
+                    else if(key.StartsWith("Attribute.",
+                        StringComparison.Ordinal))
+                        AddRow(key,"Native attribute | 1-10");
+                    else if(key.StartsWith("Skill.",
+                        StringComparison.Ordinal))
+                        AddRow(key,"Native skill | 0-330 | trained by age");
+                    else if(key.StartsWith("Focus.",
+                        StringComparison.Ordinal))
+                        AddRow(key,"Native focus | 0-5");
+                    else if(key.StartsWith("Trait.",
+                        StringComparison.Ordinal))
+                        AddRow(key,SandboxStatBudgetPolicy.TraitDescription(
+                            key.Substring("Trait.".Length)));
                 }
-                foreach(string name in SandboxOriginProfile.Traits)
-                    AddRow("Trait."+name,
-                        SandboxStatBudgetPolicy.TraitDescription(name));
+                DiagnosticJournal.Event("cu_stats_page_rows_built",
+                    "page="+(statsRowPageIndex+1)+"/"+
+                    statsRowPageCount+
+                    "|visible="+Rows.Count+
+                    "|total="+keys.Count+
+                    "|scrollable_panel=false"+
+                    "|game_native_slider=true");
             }
             OnPropertyChangedWithValue(Page,"Page");
             OnPropertyChangedWithValue(PageProgress,"PageProgress");
@@ -775,6 +818,7 @@ namespace CalradiaUnified
         public void ExecuteEditPlayer()
         {
             editingSpouse=false;
+            statsRowPageIndex=0;
             status="Editing the founder after native life-story bonuses.";
             DiagnosticJournal.Event("cu_all_stats_target","target=player");
             Refresh();
@@ -782,6 +826,7 @@ namespace CalradiaUnified
         public void ExecuteEditSpouse()
         {
             editingSpouse=true;
+            statsRowPageIndex=0;
             status="Editing spouse before House generates a native Hero."+
                 " Manual values influence children's training.";
             DiagnosticJournal.Event("cu_all_stats_target","target=spouse");
@@ -919,15 +964,17 @@ namespace CalradiaUnified
         }
         public void ExecutePreviousGroup()
         {
-            skillGroupIndex=(skillGroupIndex+
-                SandboxStatBudgetPolicy.SkillGroups.Length-1)%
-                SandboxStatBudgetPolicy.SkillGroups.Length;
+            statsRowPageIndex=Math.Max(0,statsRowPageIndex-1);
+            DiagnosticJournal.Event("cu_stats_rows_page_button",
+                "direction=previous|page="+(statsRowPageIndex+1));
             Refresh();
         }
         public void ExecuteNextGroup()
         {
-            skillGroupIndex=(skillGroupIndex+1)%
-                SandboxStatBudgetPolicy.SkillGroups.Length;
+            statsRowPageIndex=Math.Min(statsRowPageCount-1,
+                statsRowPageIndex+1);
+            DiagnosticJournal.Event("cu_stats_rows_page_button",
+                "direction=next|page="+(statsRowPageIndex+1));
             Refresh();
         }
         public void ExecuteBack()
@@ -1135,7 +1182,8 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(status,"Status");
         }
         [DataSourceProperty] public string SkillGroup
-            {get{return SandboxStatBudgetPolicy.SkillGroups[skillGroupIndex];}}
+            {get{return "STATS "+(statsRowPageIndex+1)+
+                " / "+statsRowPageCount;}}
         [DataSourceProperty] public string BudgetStatus
         {
             get
