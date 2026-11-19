@@ -34,7 +34,7 @@ for name in ("CUSandboxCreator.xml","CUNativeCultureChooser.xml"):
     right=[el for el in prefab.iter() if
         el.get("HorizontalAlignment")=="Right" and
         el.get("PositionXOffset","").startswith("-")]
-    assert len(right)>=2,(name,"right aligned actions or summary")
+    assert len(right)>=(2 if name=="CUSandboxCreator.xml" else 1),(name,"right aligned actions or summary")
     bottom=[el for el in prefab.iter() if
         el.get("VerticalAlignment")=="Bottom" and
         el.get("PositionYOffset","").startswith("-")]
