@@ -1292,7 +1292,7 @@ internal static class Program
             }
         }
         Check("catalog covers every public configurable value",
-            catalogKeys.Count == 64);
+            catalogKeys.Count == 65);
         var origin = new SandboxOriginProfile();
         Check("roles cannot forge king or lord titles",
             !SandboxRolePolicy.MatchesNativeStatus("King", false, false) &&
