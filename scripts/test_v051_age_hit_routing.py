@@ -29,6 +29,13 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     buttons=[w for w in root.iter("ButtonWidget")]
     for cmd in controls:
         assert sum(w.get("Command.Click")==cmd for w in buttons)==1,(name,cmd)
+    age_ids={"ExecuteAgeDecrease":"CUAgeDecreaseButton",
+      "ExecuteAgeIncrease":"CUAgeIncreaseButton",
+      "ExecuteEnterExactAge":"CUAgeExactButton",
+      "ExecuteKeepNativeAge":"CUAgeNativeButton"}
+    for cmd,wid in age_ids.items():
+        actual=next(w for w in buttons if w.get("Command.Click")==cmd)
+        assert actual.get("Id")==wid,(name,cmd)
     last=children[-1]
     assert last.tag=="Widget" and last.get("IsVisible")=="@IsAgePage",name
     assert last.get("DoNotAcceptEvents")=="true"
