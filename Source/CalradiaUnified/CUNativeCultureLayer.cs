@@ -69,8 +69,7 @@ namespace CalradiaUnified
 
             if (abandonRequested)
             {
-                failedHost=nativeScreen;
-                Detach();
+                CUNativeStateShell.UseNativeFallback(nativeScreen);
                 RestoreNativeCultureFocus(nativeScreen);
                 return;
             }
@@ -95,6 +94,7 @@ namespace CalradiaUnified
                 failedHost=nativeScreen;
                 DiagnosticJournal.Event("cu_native_culture_fallback",
                     "reason="+reason+"|native_controls_retained=true");
+                CUNativeStateShell.UseNativeFallback(nativeScreen);
                 return;
             }
 
@@ -142,6 +142,7 @@ namespace CalradiaUnified
                     DiagnosticJournal.Exception(
                         "cu_native_culture_cleanup_failed",cleanup);
                 }
+                CUNativeStateShell.UseNativeFallback(nativeScreen);
                 RestoreNativeCultureFocus(nativeScreen);
             }
         }
