@@ -180,8 +180,15 @@ namespace CalradiaUnified
             if (ScreenManager.TopScreen == this &&
                 Input.IsKeyReleased(InputKey.Escape))
             {
-                SandboxCreatorOverlay.Cancel();
-                CloseSafely();
+                // Escape uses the same guided Back navigation as native
+                // character creation; only Escape at the first question
+                // leaves the new Sandbox without creating a campaign.
+                if(viewModel!=null) viewModel.ExecuteBack();
+                else
+                {
+                    SandboxCreatorOverlay.Cancel();
+                    CloseSafely();
+                }
             }
         }
 
