@@ -96,61 +96,76 @@ internal static class Program
             !loaded.TryAdvance("generated_child_a",19,out _) &&
             SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(18) &&
             !SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(17));
-        Check("four fixed Chapter II pages independent of stats mode",
+        Check("one page of all native stats after verified age control",
             CUNativeStatsNavigationPolicy.Age==-1 &&
             CUNativeStatsNavigationPolicy.Attributes==0 &&
-            CUNativeStatsNavigationPolicy.Skills==1 &&
-            CUNativeStatsNavigationPolicy.Traits==2 &&
-            CUNativeStatsNavigationPolicy.PageCount==4);
-        Check("Back from attributes returns to exact age",
-            CUNativeStatsNavigationPolicy.BackPage(
-                CUNativeStatsNavigationPolicy.Attributes)==
-                CUNativeStatsNavigationPolicy.Age);
-        Check("Back from skills returns to attributes",
-            CUNativeStatsNavigationPolicy.BackPage(
-                CUNativeStatsNavigationPolicy.Skills)==
-                CUNativeStatsNavigationPolicy.Attributes);
-        Check("Back from traits returns to skills",
-            CUNativeStatsNavigationPolicy.BackPage(
-                CUNativeStatsNavigationPolicy.Traits)==
-                CUNativeStatsNavigationPolicy.Skills);
-        Check("Back from exact age is the only native-narrative boundary",
-            CUNativeStatsNavigationPolicy.BackToNativeNarrative(
-                CUNativeStatsNavigationPolicy.Age) &&
-            !CUNativeStatsNavigationPolicy.BackToNativeNarrative(
-                CUNativeStatsNavigationPolicy.Attributes));
-        Check("Next from age and attributes never finalizes early",
-            CUNativeStatsNavigationPolicy.NextPage(
-                CUNativeStatsNavigationPolicy.Age)==
-                CUNativeStatsNavigationPolicy.Attributes &&
-            CUNativeStatsNavigationPolicy.NextPage(
-                CUNativeStatsNavigationPolicy.Attributes)==
-                CUNativeStatsNavigationPolicy.Skills &&
-            !CUNativeStatsNavigationPolicy.IsFinal(
-                CUNativeStatsNavigationPolicy.Attributes));
-        Check("Only traits finalizes, never native-mode shortcut",
+            CUNativeStatsNavigationPolicy.PageCount==2 &&
             CUNativeStatsNavigationPolicy.IsFinal(
-                CUNativeStatsNavigationPolicy.Traits) &&
+                CUNativeStatsNavigationPolicy.Attributes) &&
             !CUNativeStatsNavigationPolicy.IsFinal(
-                CUNativeStatsNavigationPolicy.Age) &&
-            !CUNativeStatsNavigationPolicy.IsFinal(
-                CUNativeStatsNavigationPolicy.Skills));
-        Check("Back then Next round trip preserves same step",
-            CUNativeStatsNavigationPolicy.NextPage(
-                CUNativeStatsNavigationPolicy.BackPage(
-                    CUNativeStatsNavigationPolicy.Attributes))==
-                    CUNativeStatsNavigationPolicy.Attributes &&
+                CUNativeStatsNavigationPolicy.Age));
+        Check("back from all stats returns to exact age",
             CUNativeStatsNavigationPolicy.BackPage(
-                CUNativeStatsNavigationPolicy.NextPage(
-                    CUNativeStatsNavigationPolicy.Skills))==
-                    CUNativeStatsNavigationPolicy.Skills);
-        Check("displayed four-page sequence matches actual transitions",
+                CUNativeStatsNavigationPolicy.Attributes)==
+                CUNativeStatsNavigationPolicy.Age &&
+            CUNativeStatsNavigationPolicy.BackToNativeNarrative(
+                CUNativeStatsNavigationPolicy.Age));
+        Check("age and all-stats page labels match actual transitions",
+            CUNativeStatsNavigationPolicy.NextPage(-1)==0 &&
             CUNativeStatsNavigationPolicy.StepNumber(-1)==1 &&
             CUNativeStatsNavigationPolicy.StepNumber(0)==2 &&
-            CUNativeStatsNavigationPolicy.StepNumber(1)==3 &&
-            CUNativeStatsNavigationPolicy.StepNumber(2)==4 &&
-            CUNativeStatsNavigationPolicy.NextLabel(-1)=="Next: Attributes" &&
-            CUNativeStatsNavigationPolicy.NextLabel(2)=="Confirm & Continue");
+            CUNativeStatsNavigationPolicy.NextLabel(-1)=="Next: All Stats" &&
+            CUNativeStatsNavigationPolicy.NextLabel(0)=="Confirm & Continue");
+        Check("stat editor never enters obsolete multi-page skill editor",
+            !CUNativeStatsNavigationPolicy.IsValidPage(
+                CUNativeStatsNavigationPolicy.Skills) &&
+            !CUNativeStatsNavigationPolicy.IsValidPage(
+                CUNativeStatsNavigationPolicy.Traits));
+        Check("nineteen year old cannot inherit an adult's full skill",
+            SandboxFamilySkillInheritancePolicy.AgeCap(19)==75 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                19,330,330,true,9)<=75);
+        Check("father's skilled one-handed training shapes child's aptitude",
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                19,270,30,true,2)>
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                19,0,30,true,2));
+        Check("both parents influence child independently",
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                25,200,180,true,3)>
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                25,200,0,true,3));
+        Check("preschoolers never inherit advanced combat ability",
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                4,330,330,true,9)==0 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                8,330,330,true,9)<=12 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                13,330,330,true,9)<=28);
+        Check("young adults gain a broad, nonzero baseline",
+            SandboxFamilySkillInheritancePolicy.SuggestedSkill(
+                19,0,0,false,0)>=4 &&
+            SandboxFamilySkillInheritancePolicy.IsYouth(19) &&
+            !SandboxFamilySkillInheritancePolicy.IsYouth(25));
+        var spousePlan=new SandboxOriginProfile();
+        Check("spouse slider stats are independent from player overrides",
+            spousePlan.TrySet("SpouseStat.Skill.OneHanded","175") &&
+            spousePlan.TrySet("SpouseStat.Attribute.Vigor","5") &&
+            spousePlan.SpouseOverrides["Skill.OneHanded"]==175 &&
+            spousePlan.Overrides.Count==0);
+        Check("spouse exact native stat values survive profile reload",
+            SandboxOriginProfile.Parse(spousePlan.Serialize())
+                .SpouseOverrides["Skill.OneHanded"]==175 &&
+            SandboxOriginProfile.Parse(spousePlan.Serialize())
+                .SpouseOverrides["Attribute.Vigor"]==5);
+        Check("invalid spouse stat keys and values are refused",
+            !spousePlan.TrySet("SpouseStat.Skill.Nonexistent","12") &&
+            !spousePlan.TrySet("SpouseStat.Focus.OneHanded","13") &&
+            !spousePlan.TrySet("SpouseStat.Trait.Mercy","8"));
+        spousePlan.ResetForNewCampaign();
+        Check("spouse edits do not leak into next Sandbox",
+            spousePlan.SpouseOverrides.Count==0 &&
+            spousePlan.Overrides.Count==0);
         Check("minor residence recorded is distinct from castle scene roster",
             SandboxFamilyResidencePolicy.Classify(true,true,false)==
                 SandboxFamilyResidencePolicy.MinorResident &&
