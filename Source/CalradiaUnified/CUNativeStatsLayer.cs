@@ -6,6 +6,7 @@ using System.Reflection;
 using SandBox.View.CharacterCreation;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
+using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Engine.GauntletUI;
 using TaleWorlds.InputSystem;
@@ -221,9 +222,11 @@ namespace CalradiaUnified
         private readonly int native;
         private readonly int selected;
         private readonly Action<string,int> change;
+        private readonly Action<string,int> setExact;
 
         internal CUNativeStatRowVM(string key,int nativeValue,int selectedValue,
-            string help,Action<string,int> onChange)
+            string help,Action<string,int> onChange,
+            Action<string,int> onSetExact)
         {
             this.key=key;
             name=key.Substring(key.IndexOf('.')+1);
@@ -231,10 +234,27 @@ namespace CalradiaUnified
             native=nativeValue;
             selected=selectedValue;
             change=onChange;
+            setExact=onSetExact;
         }
 
         public void ExecuteIncrease(){change(key,+1);}
         public void ExecuteDecrease(){change(key,-1);}
+        public void ExecuteEditExact()
+        {
+            // Optional native inquiry for an exact legal skill value. The
+            // same cost and range validation runs after its confirmation.
+            InformationManager.ShowTextInquiry(new TextInquiryData(
+                "Set "+name,
+                "Enter the exact starting value. Native attribute, skill, " +
+                    "focus and trait limits still apply.",
+                true,true,"Apply","Cancel",
+                value=>
+                {
+                    int exact;
+                    if(Int32.TryParse(value,out exact))
+                        setExact(key,exact);
+                },()=>{},false,null,"",selected.ToString()));
+        }
 
         [DataSourceProperty]
         public string Name {get{return name;}}
@@ -339,7 +359,8 @@ namespace CalradiaUnified
             if(!baseline.TryGetValue(key,out native)) return;
             int chosen;
             if(!profile.Overrides.TryGetValue(key,out chosen)) chosen=native;
-            Rows.Add(new CUNativeStatRowVM(key,native,chosen,help,Change));
+            Rows.Add(new CUNativeStatRowVM(key,native,chosen,help,
+                Change,ChangeExact));
         }
 
         private void Change(string key,int direction)
@@ -360,6 +381,24 @@ namespace CalradiaUnified
             int current;
             if(!profile.Overrides.TryGetValue(key,out current)) current=native;
             int next=current+SandboxStatBudgetPolicy.Step(key)*direction;
+            ChangeExact(key,next);
+        }
+
+        private void ChangeExact(string key,int next)
+        {
+            if(profile.ProgressionMode=="Native")
+            {
+                status="Select Balanced or Unrestricted to edit values.";
+                Refresh();
+                return;
+            }
+            int native;
+            if(!baseline.TryGetValue(key,out native))
+            {
+                status="Native value not found. This field cannot be edited.";
+                Refresh();
+                return;
+            }
             if(!SandboxStatBudgetPolicy.InRange(key,next))
             {
                 status="Native value limit reached.";
