@@ -12,6 +12,39 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native CU shell maps culture to Starting Life",
+            NativeStateShellPolicy.ChapterForStage(
+                "CharacterCreationCultureStage") == "01  STARTING LIFE");
+        Check("native CU shell maps real editable face to Starting Life",
+            NativeStateShellPolicy.ChapterForStage(
+                "CharacterCreationFaceGeneratorStage") == "01  STARTING LIFE");
+        Check("native CU shell maps narrative to Fortune",
+            NativeStateShellPolicy.ChapterForStage(
+                "CharacterCreationNarrativeStage") == "03  FORTUNE");
+        Check("native CU shell maps banner to Bloodline",
+            NativeStateShellPolicy.ChapterForStage(
+                "CharacterCreationBannerEditorStage") == "02  BLOODLINE");
+        Check("native CU shell maps options to Review",
+            NativeStateShellPolicy.ChapterForStage(
+                "CharacterCreationOptionsStage") == "05  REVIEW YOUR HOUSE");
+        Check("native CU shell knows live face stage only",
+            NativeStateShellPolicy.UsesNativeLiveFace(
+                "CharacterCreationFaceGeneratorStage") &&
+            !NativeStateShellPolicy.UsesNativeLiveFace(
+                "CharacterCreationCultureStage"));
+        Check("native CU shell is off by default",
+            !NativeStateShellPolicy.CanAttach(false,true,true,true,false,false));
+        Check("native CU shell refuses non-CU campaign",
+            !NativeStateShellPolicy.CanAttach(true,false,true,true,false,false));
+        Check("native CU shell refuses outside native game state",
+            !NativeStateShellPolicy.CanAttach(true,true,false,true,false,false));
+        Check("native CU shell refuses native face workshop collision",
+            !NativeStateShellPolicy.CanAttach(true,true,true,true,true,false));
+        Check("native CU shell refuses extra review stage collision",
+            !NativeStateShellPolicy.CanAttach(true,true,true,true,false,true));
+        Check("native CU shell permits only explicit native-state opt-in",
+            NativeStateShellPolicy.CanAttach(true,true,true,true,false,false));
+
         Check("native creator requires all seven game-owned stages",
             NativeCreatorParityPolicy.MissingStages(
                 NativeCreatorParityPolicy.RequiredNativeStages).Length == 0);
