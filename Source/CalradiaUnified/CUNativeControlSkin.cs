@@ -227,6 +227,8 @@ namespace CalradiaUnified
                 {
                     if(!processedWidgets.Add(widget))continue;
                     string type=widget.GetType().Name;
+                    try
+                    {
                     if(CUNativeWidgetSkinPolicy.CanSkinClanTextInput(
                         stage,type))
                     {
@@ -254,6 +256,15 @@ namespace CalradiaUnified
                     {
                         if(TryNativeTextColor(widget,stage))
                             paintedText++;
+                    }
+                    }
+                    catch(Exception e)
+                    {
+                        // One unexpected native widget must not undo the
+                        // successfully cloned styles on other game controls.
+                        // The one widget keeps its native appearance.
+                        DiagnosticJournal.Exception(
+                            "cu_native_widget_skin_widget_skipped",e);
                     }
                 }
                 if(paintedText==0 && paintedButtons==0 &&
@@ -285,6 +296,19 @@ namespace CalradiaUnified
                     "|total_widgets="+widgets.Count+
                     "|native_click_bindings_retained=true" +
                     "|native_scene_retained=true|F10_restore=true");
+                if(!refresh &&
+                    ((stage=="CharacterCreationNarrativeStage" &&
+                        paintedButtons==0) ||
+                     (stage=="CharacterCreationClanNamingStage" &&
+                        paintedInputs==0) ||
+                     (stage=="CharacterCreationOptionsStage" &&
+                        paintedSliders==0)))
+                {
+                    DiagnosticJournal.Event("cu_native_widget_skin_partial",
+                        "stage="+stage+
+                        "|reason=expected_native_control_type_not_styled" +
+                        "|original_unstyled_controls_remain_usable=true");
+                }
             }
             catch
             {
