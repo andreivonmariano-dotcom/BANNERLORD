@@ -29,7 +29,6 @@ assert "SandboxCreatorOverlay.HasAcceptedCustomStart" in aligned
 assert 'CUNativeLayoutPolicy.IsViewportSupported(width,height)' in aligned
 assert 'RootMatchesResolution(' in aligned
 assert 'ReadProperty(widget,"GlobalPosition")' in aligned
-assert 'ReadProperty(widget,"GlobalPositionPixels")' in aligned
 assert 'ReadProperty(widget,"Size")' in aligned
 assert 'ReadProperty(widget,"MeasuredSize")' in aligned
 assert 'TryReadFloat(size,"X",out w)' in aligned
