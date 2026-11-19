@@ -103,8 +103,12 @@ assert any(w.get("IsVisible")=="@IsAgePage"
            for w in stats.iter("Widget"))
 assert any(w.get("DataSource")=="{Rows}"
            for w in stats.iter("ListPanel"))
-assert any(w.get("IsVisible")=="@IsStatsPage"
-           for w in stats.iter("ScrollablePanel"))
+# The v0.55 crash guard deliberately eliminates the old
+# ScrollablePanel and keeps the six-row native stats viewport visible.
+assert any(w.get("Id")=="CUStatsPageViewport" and
+           w.get("IsVisible")=="@IsStatsPage"
+           for w in stats.iter("Widget"))
+assert len(list(stats.iter("ScrollablePanel")))==0
 commands={b.get("Command.Click") for b in stats.iter("ButtonWidget")}
 assert {"ExecuteAgeIncrease","ExecuteAgeDecrease",
         "ExecuteKeepNativeAge"}<=commands
