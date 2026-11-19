@@ -18,12 +18,12 @@ for name in ("CUGuidedCreator","CUNativeStatsEditor",
 guided=files["CUGuidedCreator"]
 stats=files["CUNativeStatsEditor"]
 culture=files["CUNativeCultureChooser"]
-text_stats=(src/"CUNativeStatsLayer.cs").read_text()
-text_guided=(src/"CUGuidedCreatorVM.cs").read_text()
-visual=(src/"CUNativeVisualPolicy.cs").read_text()
-shell=(src/"CUNativeStateShell.cs").read_text()
-layout=(src/"CUNativeLayoutAlignment.cs").read_text()
-family=(src/"SandboxFamilyAgePolicy.cs").read_text()
+text_stats=(src/"CUNativeStatsLayer.cs").read_text(encoding="utf-8")
+text_guided=(src/"CUGuidedCreatorVM.cs").read_text(encoding="utf-8")
+visual=(src/"CUNativeVisualPolicy.cs").read_text(encoding="utf-8")
+shell=(src/"CUNativeStateShell.cs").read_text(encoding="utf-8")
+layout=(src/"CUNativeLayoutAlignment.cs").read_text(encoding="utf-8")
+family=(src/"SandboxFamilyAgePolicy.cs").read_text(encoding="utf-8")
 
 # Actual screenshot showed blue/slate panels clashing with native wood,
 # heavy oversized type and redundant technical headings. All the active
