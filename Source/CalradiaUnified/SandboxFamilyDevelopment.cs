@@ -297,7 +297,17 @@ namespace CalradiaUnified
                 p.FamilyScenario,plan.Upbringing);
             Personality(h,mother,father,p.FamilyScenario,
                 plan.Upbringing,false,index);
-            if(h.Age>=6f)Train(h,upbringing,father,mother,true);
+            if(h.Age<6f)
+            {
+                // Native CreateChild may copy developed donor skills.
+                // Pre-school children have no formal skill training.
+                // Clear only THIS newly generated Hero, not either parent.
+                h.ClearSkills();
+                DiagnosticJournal.Event("cu_family_preschool_skills",
+                    "hero="+h.StringId+"|age="+h.Age+
+                    "|all_native_skills_zero=true");
+            }
+            else Train(h,upbringing,father,mother,true);
             var random=RandomHero();
             int baseline=SandboxFamilyDevelopmentPolicy.ChildRelationBase(
                 p.FamilyScenario);
