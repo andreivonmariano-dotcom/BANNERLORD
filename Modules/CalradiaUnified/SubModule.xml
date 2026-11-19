@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Fullscreen Native-Styled Sandbox Creator" />
+  <Name value="Calradia Unified - Responsive Native UI and 3D Face Dock Trial" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.37.0" />
+  <Version value="v0.38.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>

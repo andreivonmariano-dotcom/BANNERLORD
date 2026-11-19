@@ -81,7 +81,8 @@ assert 'new CharacterCreationFaceGeneratorView(' not in inspector
 assert 'CUNativeFaceInspector.TryInspect(screen,out observed)' in shell
 assert 'cu_native_face_layers_verified' in shell
 assert 'cu_native_culture_commit_observed' in shell
-assert any(el.get("IsVisible")=="@IsFaceStage" for el in ribbon.iter("TextWidget"))
+assert any(el.get("IsVisible")=="@IsFaceDebugVisible" for el in ribbon.iter("TextWidget"))
+assert any(el.get("IsVisible")=="@IsFaceDockTrialStage" for el in ribbon.iter("TextWidget"))
 assert not any(el.tag in ("ButtonWidget","SliderWidget","InputTextWidget") for el in ribbon.iter())
 assert 'public bool IsNotFaceStage' in shell
 assert 'public bool IsFaceStage' in shell

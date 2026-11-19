@@ -61,7 +61,7 @@ for text in ("@Label","@Status"):
     assert any(el.get("Text")==text for el in chapter_lists[0].iter("TextWidget"))
 assert any(el.get("IsVisible")=="@IsSelected" for el in chapter_lists[0].iter())
 assert any(el.get("Text")=="@ViewportCapability" and
-           el.get("IsVisible")=="@IsFaceStage"
+           el.get("IsVisible")=="@IsFaceDebugVisible"
            for el in xml.iter("TextWidget"))
 assert not any(True for el in xml.iter("ButtonWidget")),"stage tracker cannot skip effects"
 assert not any(True for el in xml.iter("InputTextWidget"))

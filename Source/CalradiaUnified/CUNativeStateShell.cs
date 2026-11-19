@@ -24,6 +24,7 @@ namespace CalradiaUnified
         private static GauntletLayer ribbon;
         private static GauntletMovieIdentifier ribbonMovie;
         private static CUNativeStateShellVM viewModel;
+        private static bool dockRequested;
 
         public static void Tick()
         {
@@ -36,6 +37,7 @@ namespace CalradiaUnified
                 if (screen == null || active == null || screen.IsFinalized)
                 {
                     CUNativeCultureLayer.Clear();
+                    CUNativeFaceDockTrial.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -48,6 +50,8 @@ namespace CalradiaUnified
                         viewModel.Update(active.CharacterCreationManager,screen);
                     CUNativeCultureLayer.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeFaceDockTrial.Tick(screen,
+                        active.CharacterCreationManager,dockRequested);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -106,8 +110,11 @@ namespace CalradiaUnified
                 ribbon = nextLayer;
                 ribbonMovie = nextMovie;
                 viewModel = nextVM;
+                dockRequested = profile.NativeFaceDockTrialEnabled;
                 CUNativeCultureLayer.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeFaceDockTrial.Tick(screen,
+                    active.CharacterCreationManager,dockRequested);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -120,6 +127,7 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception("cu_native_state_shell_failed",error);
                 failedHost = ScreenManager.TopScreen as CharacterCreationScreen;
                 CUNativeCultureLayer.Clear();
+                CUNativeFaceDockTrial.Clear();
                 Detach();
             }
         }
@@ -139,6 +147,8 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeFaceDockTrial.Clear();
+            dockRequested = false;
             CUNativeCultureLayer.Clear();
             var oldHost = host;
             var oldLayer = ribbon;
@@ -188,6 +198,8 @@ namespace CalradiaUnified
         private string culture = "CULTURE: PENDING";
         private bool isFaceStage;
         private string faceStatus = "";
+        private string dockStatus = "";
+        private readonly bool faceDockRequested;
         private bool cultureCommitObserved;
         private readonly bool[] chaptersReached = new bool[5];
         private int activeChapterIndex = -1;
@@ -203,6 +215,7 @@ namespace CalradiaUnified
 
         public CUNativeStateShellVM(SandboxOriginProfile profile)
         {
+            faceDockRequested = profile.NativeFaceDockTrialEnabled;
             Chapters = new MBBindingList<CUNativeChapterBadgeVM>();
             for (int i=0;i<CUNativeChapterPolicy.Chapters.Length;i++)
             {
@@ -222,6 +235,12 @@ namespace CalradiaUnified
             CharacterCreationScreen screen)
         {
             if (manager == null) return;
+            string nextDockStatus = CUNativeFaceDockTrial.Status;
+            if (dockStatus != nextDockStatus)
+            {
+                dockStatus = nextDockStatus;
+                OnPropertyChangedWithValue(dockStatus,"FaceDockStatus");
+            }
             var stage = manager.CurrentStage;
             string stageName = stage == null ? "" :
                 stage.GetType().Name;
@@ -277,6 +296,9 @@ namespace CalradiaUnified
                 faceStatus="";
                 OnPropertyChangedWithValue(isFaceStage,"IsFaceStage");
                 OnPropertyChangedWithValue(!isFaceStage,"IsNotFaceStage");
+                OnPropertyChangedWithValue(IsRailVisible,"IsRailVisible");
+                OnPropertyChangedWithValue(IsFaceDebugVisible,"IsFaceDebugVisible");
+                OnPropertyChangedWithValue(IsFaceDockTrialStage,"IsFaceDockTrialStage");
             }
             if(face && faceStatus!="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
             {
@@ -319,7 +341,19 @@ namespace CalradiaUnified
         public bool IsNotFaceStage { get { return !isFaceStage; } }
 
         [DataSourceProperty]
+        public bool IsRailVisible { get { return !isFaceStage || !faceDockRequested; } }
+
+        [DataSourceProperty]
+        public bool IsFaceDebugVisible { get { return isFaceStage && !faceDockRequested; } }
+
+        [DataSourceProperty]
+        public bool IsFaceDockTrialStage { get { return isFaceStage && faceDockRequested; } }
+
+        [DataSourceProperty]
         public string FaceStatus { get { return faceStatus; } }
+
+        [DataSourceProperty]
+        public string FaceDockStatus { get { return dockStatus; } }
 
         [DataSourceProperty]
         public string Notice

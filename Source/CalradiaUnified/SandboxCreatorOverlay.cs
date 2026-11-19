@@ -262,6 +262,9 @@ namespace CalradiaUnified
                 new Field("Identity","NativeStateShellEnabled",
                     "Experimental: CU culture chooser and real 3D face audit",
                     "boolean"),
+                new Field("Identity","NativeFaceDockTrialEnabled",
+                    "Experimental: move real 3D face to RIGHT (F9 restores)",
+                    "boolean"),
                 new Field("Identity","PlayerAge",
                     "Starting age (use native creator)","unavailable"),
                 new Field("Household","SpouseEnabled",
@@ -388,7 +391,8 @@ namespace CalradiaUnified
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
             if (key == "NativeIntegrationReviewEnabled" ||
                 key == "NativeFaceWorkshopEnabled" ||
-                key == "NativeStateShellEnabled")
+                key == "NativeStateShellEnabled" ||
+                key == "NativeFaceDockTrialEnabled")
                 return advancedFieldsVisible;
             if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
@@ -582,7 +586,8 @@ namespace CalradiaUnified
                 if (key=="StartingKingdomId") return "Required for Lord, Knight, King and Soldier. Select your actual political allegiance.";
                 if (key=="NativeIntegrationReviewEnabled") return "Experimental and off by default: append one CU summary AFTER native difficulty. It reuses the actual native 3D review. No face or culture view is replaced. Disable if the new stage fails.";
                 if (key=="NativeFaceWorkshopEnabled") return "Experimental 3D prototype, OFF by default. Adds a CU-branded face editor after the native pages. Edits real player body properties, but this does NOT yet remove the native wizard. Do not enable together with CU 3D Review.";
-                if (key=="NativeStateShellEnabled") return "Experimental and OFF by default. Replaces the VISIBLE native culture panel with CU controls that call the REAL native culture VM. The original native view stays alive underneath, with an explicit fallback button. The real 3D face scene and sliders remain untouched on the next page. Not a one-screen creator yet. Do not combine with extra CU 3D stages.";
+                if (key=="NativeStateShellEnabled") return "Experimental and OFF by default. Uses the real native culture controller, game-owned stages and CU chapter rail. No native callbacks are skipped.";
+                if (key=="NativeFaceDockTrialEnabled") return "REQUIRES CU native-state shell = Yes. Experimental and OFF by default: moves the ORIGINAL native 3D FaceGen render to the right and its stock sliders to the left. Press F9 during the face stage to restore or retry stock layout. This is not a persistent scene across all five chapters.";
                 if (key=="StartingCulture") return "Culture will still be confirmed in Bannerlord's safe native character editor.";
                 if (key=="PlayerAge") return "Unavailable here: choose your actual player age using Bannerlord\'s native character creation until the CU native-state bridge is finished.";
                 if (key=="SiblingCount") return "Unavailable: sibling creation requires real native parent Heroes. This build never adds placeholder relatives.";
@@ -985,6 +990,12 @@ namespace CalradiaUnified
                 SetStatus("CU native-state shell cannot be combined with a separate extra 3D stage.");
                 return;
             }
+            if (candidate.NativeFaceDockTrialEnabled &&
+                !candidate.NativeStateShellEnabled)
+            {
+                SetStatus("Right-hand real 3D FaceGen trial requires the CU native-state shell to be Yes.");
+                return;
+            }
             // A deliberate spouse/children choice is an actual native family
             // request. Do not leave users with a decorative family profile.
             candidate.RealFamilyEnabled = candidate.SpouseEnabled ||
@@ -1058,6 +1069,7 @@ namespace CalradiaUnified
                 "|native_cu_review="+profile.NativeIntegrationReviewEnabled+
                 "|native_face_workshop="+profile.NativeFaceWorkshopEnabled+
                 "|native_state_shell="+profile.NativeStateShellEnabled+
+                "|real_face_dock_trial="+profile.NativeFaceDockTrialEnabled+
                 "|hand_off=native_culture_appearance_origins_age_difficulty");
             if(close!=null) close();
         }

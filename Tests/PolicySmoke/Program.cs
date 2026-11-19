@@ -12,6 +12,24 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("Native FaceGen right dock only attempts wide-enough screen",
+            CUNativeViewportPolicy.CanTryNativeFaceDock(1366,768) &&
+            CUNativeViewportPolicy.CanTryNativeFaceDock(1920,1080) &&
+            !CUNativeViewportPolicy.CanTryNativeFaceDock(1024,768) &&
+            !CUNativeViewportPolicy.CanTryNativeFaceDock(1366,700));
+        Check("Native FaceGen right dock leaves half screen at 1366",
+            CUNativeViewportPolicy.NativeFaceDockRightFraction(1366)>.48f);
+        Check("Native FaceGen right dock grants wide model viewport at 1920",
+            CUNativeViewportPolicy.NativeFaceDockRightFraction(1920)>.63f);
+        Check("Native FaceGen right-dock helper is guarded against zero width",
+            CUNativeViewportPolicy.NativeFaceDockLeftFraction(0)==0f);
+        Check("Native right-dock experiment is not falsely treated as a completed permanent scene",
+            !CUNativeViewportPolicy.HasVerifiedRectangularSceneDock);
+        Check("Native FaceGen dock defaults off in new Sandbox",
+            !new SandboxOriginProfile().NativeFaceDockTrialEnabled);
+        Check("Native FaceGen right-dock flag survives strict serialization",
+            SandboxOriginProfile.Parse("NativeFaceDockTrialEnabled=true\n")
+                .NativeFaceDockTrialEnabled);
         Check("CU five chapters retain frozen order",
             CUNativeChapterPolicy.Chapters.Length==5 &&
             CUNativeChapterPolicy.Chapters[0]=="01  STARTING LIFE" &&

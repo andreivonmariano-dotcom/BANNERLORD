@@ -29,8 +29,10 @@
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="Fixed" SuggestedHeight="2"
                 VerticalAlignment="Bottom" PositionYOffset="-94"/>
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="1260"
-                HeightSizePolicy="Fixed" SuggestedHeight="696"
+        <Widget WidthSizePolicy="StretchToParent" MaxWidth="1820"
+                MarginLeft="24" MarginRight="24"
+                HeightSizePolicy="StretchToParent" MaxHeight="960"
+                MarginTop="20" MarginBottom="20"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
             <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
@@ -50,8 +52,8 @@
                     PositionXOffset="29" PositionYOffset="48"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#0F1F2EEC"
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
-                    HeightSizePolicy="Fixed" SuggestedHeight="477"
-                    PositionXOffset="24" PositionYOffset="97"/>
+                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"
+                    PositionXOffset="24"/>
             <TextWidget Text="CULTURES AVAILABLE IN THIS CAMPAIGN"
                     Color="#E8BB7FFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="415"
@@ -92,40 +94,33 @@
               </ItemTemplate>
             </ListPanel>
             <Widget Sprite="BlankWhiteSquare_9" Color="#1C2A38FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="738"
-                    HeightSizePolicy="Fixed" SuggestedHeight="477"
-                    PositionXOffset="484" PositionYOffset="97"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="484" MarginRight="38"
+                    HeightSizePolicy="StretchToParent" MarginTop="97" MarginBottom="122"/>
             <TextWidget Text="YOUR CULTURE"
                     Color="#CFA66EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="710"
-                    HeightSizePolicy="Fixed" SuggestedHeight="26"
-                    PositionXOffset="507" PositionYOffset="113"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="43"
+                    HeightSizePolicy="Fixed" SuggestedHeight="26" PositionYOffset="113"/>
             <TextWidget Text="@SelectedName" Color="#FFEBD1FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="690"
-                    HeightSizePolicy="Fixed" SuggestedHeight="66"
-                    PositionXOffset="507" PositionYOffset="155"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="63"
+                    HeightSizePolicy="Fixed" SuggestedHeight="66" PositionYOffset="155"/>
             <TextWidget Text="@SelectedDescription" Color="#E8E8E8FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="687"
-                    HeightSizePolicy="Fixed" SuggestedHeight="227"
-                    PositionXOffset="508" PositionYOffset="239"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="508" MarginRight="65"
+                    HeightSizePolicy="Fixed" SuggestedHeight="227" PositionYOffset="239"/>
             <TextWidget Text="@Notice" Color="#ACC2D9FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="679"
-                    HeightSizePolicy="Fixed" SuggestedHeight="70"
-                    PositionXOffset="510" PositionYOffset="473"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="510" MarginRight="71"
+                    HeightSizePolicy="Fixed" SuggestedHeight="70" PositionYOffset="473"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#2B3949FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1197"
-                    HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="26" PositionYOffset="595"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="26" MarginRight="37"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2" PositionYOffset="595"/>
             <TextWidget Text="@Status" Color="#F6D5A6FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1100"
-                    HeightSizePolicy="Fixed" SuggestedHeight="28"
-                    PositionXOffset="29" PositionYOffset="602"/>
+                    WidthSizePolicy="StretchToParent" MarginLeft="29" MarginRight="131"
+                    HeightSizePolicy="Fixed" SuggestedHeight="28" PositionYOffset="602"/>
             <ButtonWidget Brush="ButtonBrush"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="214"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="27" PositionYOffset="641"
+                    PositionXOffset="27" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteBack">
               <Children>
                 <TextWidget Text="Back to main menu"
@@ -141,7 +136,7 @@
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="235"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="262" PositionYOffset="641"
+                    PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
                 <TextWidget Text="Use native culture UI"
@@ -157,7 +152,7 @@
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="265"
                     HeightSizePolicy="Fixed" SuggestedHeight="46"
-                    PositionXOffset="943" PositionYOffset="641"
+                    HorizontalAlignment="Right" PositionXOffset="-52" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteContinue">
               <Children>
                 <TextWidget Text="Continue to real 3D face"

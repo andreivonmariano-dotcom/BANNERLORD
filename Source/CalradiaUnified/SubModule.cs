@@ -49,11 +49,11 @@ namespace CalradiaUnified
                 if (DiagnosticJournal.Enabled)
                 {
                     DiagnosticJournal.InstallManagedExceptionHooks();
-                    DiagnosticJournal.Event("module_loaded", "version=0.37.0");
+                    DiagnosticJournal.Event("module_loaded", "version=0.38.0");
                 }
             }
             catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
-            Log.Write("Calradia Unified 0.37.0 initialized; diagnostics configured; no Harmony patches applied.");
+            Log.Write("Calradia Unified 0.38.0 initialized; diagnostics configured; no Harmony patches applied.");
         }
 
         protected override void OnGameStart(Game game, IGameStarter starter)

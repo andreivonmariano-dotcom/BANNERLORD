@@ -88,7 +88,9 @@ assert "CUNativeFaceInspector.TryInspect(screen,out observed)" in shell
 assert "cu_native_face_layers_verified" in shell
 assert 'relocated=false' in shell
 assert not list(ribbon.iter("ButtonWidget")), "face-state ribbon must not intercept input"
-assert any(x.get("Text")=="@FaceStatus" and x.get("IsVisible")=="@IsFaceStage"
+assert any(x.get("Text")=="@FaceStatus" and x.get("IsVisible")=="@IsFaceDebugVisible"
+           for x in ribbon.iter("TextWidget"))
+assert any(x.get("Text")=="@FaceDockStatus" and x.get("IsVisible")=="@IsFaceDockTrialStage"
            for x in ribbon.iter("TextWidget"))
 assert all(not re.search(r'new\s+(?:BodyGeneratorView|CharacterCreationFaceGeneratorView)\s*\(',src.read_text(encoding="utf-8")) for src in
            (S/"CUNativeCultureLayer.cs",S/"CUNativeCultureController.cs",S/"CUNativeFaceInspector.cs",S/"CUNativeStateShell.cs"))

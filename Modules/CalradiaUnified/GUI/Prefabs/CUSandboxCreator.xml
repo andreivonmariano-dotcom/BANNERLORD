@@ -28,84 +28,76 @@
         <!-- At 1366 x 768 this safe content area spans almost the entire
              screen. At large resolutions the native screen's dark canvas
              extends to the edges, and content stays legible and centered. -->
-        <Widget WidthSizePolicy="Fixed" SuggestedWidth="1280"
-                HeightSizePolicy="Fixed" SuggestedHeight="700"
+        <Widget WidthSizePolicy="StretchToParent" MaxWidth="1820"
+                MarginLeft="24" MarginRight="24"
+                HeightSizePolicy="StretchToParent" MaxHeight="960"
+                MarginTop="20" MarginBottom="20"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
             <!-- No modal frame: content is visually part of the
                  full-screen native-inspired canvas. -->
             <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1280"
-                    HeightSizePolicy="Fixed" SuggestedHeight="700"
-                    PositionXOffset="0" PositionYOffset="0" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="0" MarginRight="0"
+                    HeightSizePolicy="StretchToParent" MarginTop="0" MarginBottom="0" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#152636E9"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1252"
-                    HeightSizePolicy="Fixed" SuggestedHeight="67"
-                    PositionXOffset="14" PositionYOffset="14" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14"
+                    HeightSizePolicy="Fixed" SuggestedHeight="67" PositionYOffset="14" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#CBA36BFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1252"
-                    HeightSizePolicy="Fixed" SuggestedHeight="3"
-                    PositionXOffset="14" PositionYOffset="81" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="14" MarginRight="14"
+                    HeightSizePolicy="Fixed" SuggestedHeight="3" PositionYOffset="81" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0A1422ED"
                     WidthSizePolicy="Fixed" SuggestedWidth="242"
-                    HeightSizePolicy="Fixed" SuggestedHeight="520"
-                    PositionXOffset="15" PositionYOffset="96" />
+                    HeightSizePolicy="StretchToParent" MarginTop="96" MarginBottom="84"
+                    PositionXOffset="15" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#122132E6"
-                    WidthSizePolicy="Fixed" SuggestedWidth="686"
-                    HeightSizePolicy="Fixed" SuggestedHeight="520"
-                    PositionXOffset="270" PositionYOffset="96" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="270" MarginRight="324"
+                    HeightSizePolicy="StretchToParent" MarginTop="96" MarginBottom="84" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0B1724EF"
                     WidthSizePolicy="Fixed" SuggestedWidth="297"
-                    HeightSizePolicy="Fixed" SuggestedHeight="520"
-                    PositionXOffset="968" PositionYOffset="96" />
+                    HeightSizePolicy="StretchToParent" MarginTop="96" MarginBottom="84"
+                    HorizontalAlignment="Right" PositionXOffset="-15" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#1C2D3CEE"
                     WidthSizePolicy="Fixed" SuggestedWidth="272"
                     HeightSizePolicy="Fixed" SuggestedHeight="118"
-                    PositionXOffset="982" PositionYOffset="305" />
+                    HorizontalAlignment="Right" PositionXOffset="-26" PositionYOffset="305" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#C49B64FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="272"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="982" PositionYOffset="306" />
+                    HorizontalAlignment="Right" PositionXOffset="-26" PositionYOffset="306" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#152636E9"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1250"
-                    HeightSizePolicy="Fixed" SuggestedHeight="56"
-                    PositionXOffset="15" PositionYOffset="628" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="15" MarginRight="15"
+                    HeightSizePolicy="Fixed" SuggestedHeight="56" VerticalAlignment="Bottom" PositionYOffset="-16" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#B9925EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1250"
-                    HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="15" PositionYOffset="625" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="15" MarginRight="15"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2" VerticalAlignment="Bottom" PositionYOffset="-73" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0C1929EE"
-                    WidthSizePolicy="Fixed" SuggestedWidth="639"
-                    HeightSizePolicy="Fixed" SuggestedHeight="112"
-                    PositionXOffset="292" PositionYOffset="242" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="292" MarginRight="349"
+                    HeightSizePolicy="Fixed" SuggestedHeight="112" PositionYOffset="242" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#24384BEE"
-                    WidthSizePolicy="Fixed" SuggestedWidth="639"
-                    HeightSizePolicy="Fixed" SuggestedHeight="60"
-                    PositionXOffset="292" PositionYOffset="357" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="292" MarginRight="349"
+                    HeightSizePolicy="Fixed" SuggestedHeight="60" PositionYOffset="357" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#0C1826F7"
-                    WidthSizePolicy="Fixed" SuggestedWidth="639"
-                    HeightSizePolicy="Fixed" SuggestedHeight="82"
-                    PositionXOffset="292" PositionYOffset="491" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="292" MarginRight="349"
+                    HeightSizePolicy="Fixed" SuggestedHeight="82" PositionYOffset="491" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#D0AD7ACC"
-                    WidthSizePolicy="Fixed" SuggestedWidth="641"
-                    HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="291" PositionYOffset="575" />
+                    WidthSizePolicy="StretchToParent" MarginLeft="291" MarginRight="348"
+                    HeightSizePolicy="Fixed" SuggestedHeight="2" PositionYOffset="575" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#8B744FCB"
                     WidthSizePolicy="Fixed" SuggestedWidth="258"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="988" PositionYOffset="178" />
+                    HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="178" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#8B744FCB"
                     WidthSizePolicy="Fixed" SuggestedWidth="258"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="988" PositionYOffset="298" />
+                    HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="298" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#8B744FCB"
                     WidthSizePolicy="Fixed" SuggestedWidth="258"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="988" PositionYOffset="418" />
+                    HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="418" />
             <Widget Sprite="BlankWhiteSquare_9" Color="#8B744FCB"
                     WidthSizePolicy="Fixed" SuggestedWidth="258"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
-                    PositionXOffset="988" PositionYOffset="505" />
+                    HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="505" />
             <TextWidget Text="CALRADIA UNIFIED" Color="#EBC68EFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="555"
                         HeightSizePolicy="Fixed" SuggestedHeight="39"
@@ -117,7 +109,7 @@
             <TextWidget Text="@PageProgress" Color="#E8C17DFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="150"
                         HeightSizePolicy="Fixed" SuggestedHeight="34"
-                        PositionXOffset="1092" PositionYOffset="32" />
+                        HorizontalAlignment="Right" PositionXOffset="-38" PositionYOffset="32" />
             <TextWidget Text="YOUR LEGACY" Color="#D2A965FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="208"
                         HeightSizePolicy="Fixed" SuggestedHeight="30"
@@ -228,28 +220,22 @@
               </Children>
             </ButtonWidget>
             <TextWidget Text="@PageTitle" Color="#E9BF7CFF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="622"
-                        HeightSizePolicy="Fixed" SuggestedHeight="41"
-                        PositionXOffset="296" PositionYOffset="113" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="296" MarginRight="362"
+                        HeightSizePolicy="Fixed" SuggestedHeight="41" PositionYOffset="113" />
             <TextWidget Text="@PageDescription" Color="#F1E9D8FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="622"
-                        HeightSizePolicy="Fixed" SuggestedHeight="75"
-                        PositionXOffset="296" PositionYOffset="160" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="296" MarginRight="362"
+                        HeightSizePolicy="Fixed" SuggestedHeight="75" PositionYOffset="160" />
             <TextWidget Text="@SelectedPosition" Color="#C7A269FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="592"
-                        HeightSizePolicy="Fixed" SuggestedHeight="32"
-                        PositionXOffset="310" PositionYOffset="252" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="310" MarginRight="378"
+                        HeightSizePolicy="Fixed" SuggestedHeight="32" PositionYOffset="252" />
             <TextWidget Text="@SelectedLabel" Color="#F1E9D8FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="598"
-                        HeightSizePolicy="Fixed" SuggestedHeight="55"
-                        PositionXOffset="309" PositionYOffset="287" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="309" MarginRight="373"
+                        HeightSizePolicy="Fixed" SuggestedHeight="55" PositionYOffset="287" />
             <TextWidget Text="@SelectedValue" Color="#FFF1C9FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="601"
-                        HeightSizePolicy="Fixed" SuggestedHeight="49"
-                        PositionXOffset="314" PositionYOffset="365" />
-            <SliderWidget IsVisible="@IsNumber" WidthSizePolicy="Fixed"
-                          SuggestedWidth="586" HeightSizePolicy="Fixed"
-                          SuggestedHeight="31" PositionXOffset="319"
+                        WidthSizePolicy="StretchToParent" MarginLeft="314" MarginRight="365"
+                        HeightSizePolicy="Fixed" SuggestedHeight="49" PositionYOffset="365" />
+            <SliderWidget IsVisible="@IsNumber" WidthSizePolicy="StretchToParent" MarginLeft="319" MarginRight="375" HeightSizePolicy="Fixed"
+                          SuggestedHeight="31"
                           PositionYOffset="424" MinValueInt="@NumberMinimum"
                           MaxValueInt="@NumberMaximum" ValueInt="@PendingNumber"/>
             <ButtonWidget Brush="ButtonBrush"
@@ -365,76 +351,73 @@
               </Children>
             </ButtonWidget>
             <TextWidget Text="UNAVAILABLE IN THIS BUILD" Color="#D8A27AFF"
-                        IsVisible="@IsUnavailable" WidthSizePolicy="Fixed"
-                        SuggestedWidth="600" HeightSizePolicy="Fixed"
-                        SuggestedHeight="42" PositionXOffset="309"
+                        IsVisible="@IsUnavailable" WidthSizePolicy="StretchToParent" MarginLeft="309" MarginRight="371" HeightSizePolicy="Fixed"
+                        SuggestedHeight="42"
                         PositionYOffset="440" />
             <TextWidget Text="@FieldHelp" Color="#E6D8BEFF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="608"
-                        HeightSizePolicy="Fixed" SuggestedHeight="64"
-                        PositionXOffset="307" PositionYOffset="504" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="307" MarginRight="365"
+                        HeightSizePolicy="Fixed" SuggestedHeight="64" PositionYOffset="504" />
             <TextWidget Text="@Status" Color="#E8BD79FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="620"
-                        HeightSizePolicy="Fixed" SuggestedHeight="32"
-                        PositionXOffset="299" PositionYOffset="584" />
+                        WidthSizePolicy="StretchToParent" MarginLeft="299" MarginRight="361"
+                        HeightSizePolicy="Fixed" SuggestedHeight="32" PositionYOffset="584" />
             <TextWidget Text="HOUSE AND HOLDINGS" Color="#E6C07FFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="262"
                         HeightSizePolicy="Fixed" SuggestedHeight="39"
-                        PositionXOffset="990" PositionYOffset="121" />
+                        HorizontalAlignment="Right" PositionXOffset="-28" PositionYOffset="121" />
             <TextWidget Text="@NativeNextSummary" Color="#A7BCD0FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="267"
                         HeightSizePolicy="Fixed" SuggestedHeight="26"
-                        PositionXOffset="988" PositionYOffset="155" />
+                        HorizontalAlignment="Right" PositionXOffset="-25" PositionYOffset="155" />
             <TextWidget Text="STARTING ROLE" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="25"
-                        PositionXOffset="990" PositionYOffset="187" />
+                        HorizontalAlignment="Right" PositionXOffset="-35" PositionYOffset="187" />
             <TextWidget Text="@RoleSummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="254"
                         HeightSizePolicy="Fixed" SuggestedHeight="48"
-                        PositionXOffset="990" PositionYOffset="216" />
+                        HorizontalAlignment="Right" PositionXOffset="-36" PositionYOffset="216" />
             <TextWidget Text="FAMILY" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="250"
                         HeightSizePolicy="Fixed" SuggestedHeight="28"
-                        PositionXOffset="990" PositionYOffset="306" />
+                        HorizontalAlignment="Right" PositionXOffset="-40" PositionYOffset="306" />
             <TextWidget Text="@FamilySummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
                         HeightSizePolicy="Fixed" SuggestedHeight="32"
-                        PositionXOffset="990" PositionYOffset="336" />
+                        HorizontalAlignment="Right" PositionXOffset="-38" PositionYOffset="336" />
             <TextWidget Text="@SpousePreviewSummary" Color="#DCE2EAFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
                         HeightSizePolicy="Fixed" SuggestedHeight="28"
-                        PositionXOffset="990" PositionYOffset="359" />
+                        HorizontalAlignment="Right" PositionXOffset="-38" PositionYOffset="359" />
             <TextWidget Text="@ChildPreview" Color="#E8C17DFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="252"
                         HeightSizePolicy="Fixed" SuggestedHeight="30"
-                        PositionXOffset="990" PositionYOffset="391" />
+                        HorizontalAlignment="Right" PositionXOffset="-38" PositionYOffset="391" />
             <TextWidget Text="LAND AND RESIDENCE" Color="#C9A46CFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="255"
                         HeightSizePolicy="Fixed" SuggestedHeight="29"
-                        PositionXOffset="990" PositionYOffset="426" />
+                        HorizontalAlignment="Right" PositionXOffset="-35" PositionYOffset="426" />
             <TextWidget Text="@LandSummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="254"
                         HeightSizePolicy="Fixed" SuggestedHeight="43"
-                        PositionXOffset="990" PositionYOffset="455" />
+                        HorizontalAlignment="Right" PositionXOffset="-36" PositionYOffset="455" />
             <TextWidget Text="@WorldSummary" Color="#F6E8D1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="256"
                         HeightSizePolicy="Fixed" SuggestedHeight="24"
-                        PositionXOffset="990" PositionYOffset="501" />
+                        HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="501" />
             <TextWidget Text="@FamilyHomeSummary" Color="#E8C17DFF"
                         WidthSizePolicy="Fixed" SuggestedWidth="256"
                         HeightSizePolicy="Fixed" SuggestedHeight="34"
-                        PositionXOffset="990" PositionYOffset="529" />
+                        HorizontalAlignment="Right" PositionXOffset="-34" PositionYOffset="529" />
             <TextWidget Text="@StartNotice" Color="#C4BAA8FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="254"
                         HeightSizePolicy="Fixed" SuggestedHeight="47"
-                        PositionXOffset="990" PositionYOffset="565" />
+                        HorizontalAlignment="Right" PositionXOffset="-36" PositionYOffset="565" />
             <ButtonWidget Brush="ButtonBrush"
                           DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="206" HeightSizePolicy="Fixed"
                           SuggestedHeight="50" PositionXOffset="32"
-                          PositionYOffset="630" Command.Click="ExecuteReturnToNative">
+                          VerticalAlignment="Bottom" PositionYOffset="-20" Command.Click="ExecuteReturnToNative">
               <Children>
                 <TextWidget Text="Return to menu" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
@@ -448,7 +431,7 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="160" HeightSizePolicy="Fixed"
                           SuggestedHeight="50" PositionXOffset="278"
-                          PositionYOffset="630" Command.Click="ExecutePreviousField">
+                          VerticalAlignment="Bottom" PositionYOffset="-20" Command.Click="ExecutePreviousField">
               <Children>
                 <TextWidget Text="Previous" Color="#F6E9D2FF"
                             WidthSizePolicy="StretchToParent"
@@ -462,7 +445,7 @@
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="227" HeightSizePolicy="Fixed"
                           SuggestedHeight="50" PositionXOffset="463"
-                          PositionYOffset="630" Command.Click="ExecuteNextField" IsVisible="@IsNotReviewPage">
+                          VerticalAlignment="Bottom" PositionYOffset="-20" Command.Click="ExecuteNextField" IsVisible="@IsNotReviewPage">
               <Children>
                 <TextWidget Text="Continue" Color="#F8E3BDFF"
                             WidthSizePolicy="StretchToParent"
@@ -475,8 +458,8 @@
                           DoNotPassEventsToChildren="true"
                           UpdateChildrenStates="true" WidthSizePolicy="Fixed"
                           SuggestedWidth="281" HeightSizePolicy="Fixed"
-                          SuggestedHeight="50" PositionXOffset="963"
-                          PositionYOffset="630" Command.Click="ExecuteApplyAndContinue" IsVisible="@IsReviewPage">
+                          SuggestedHeight="50" HorizontalAlignment="Right" PositionXOffset="-36"
+                          VerticalAlignment="Bottom" PositionYOffset="-20" Command.Click="ExecuteApplyAndContinue" IsVisible="@IsReviewPage">
               <Children>
                 <TextWidget Text="NEXT: NATIVE CREATOR" Color="#FDE1ADFF"
                             WidthSizePolicy="StretchToParent"

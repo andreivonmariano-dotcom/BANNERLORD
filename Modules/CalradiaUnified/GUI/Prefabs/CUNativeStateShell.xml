@@ -60,6 +60,12 @@
                     PositionXOffset="-34" PositionYOffset="169"/>
           </Children>
         </Widget>
+        <!-- Hide chapter tracker during optional real FaceGen right-dock trial
+             so it never blocks the original native face sliders. -->
+        <Widget WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                IsVisible="@IsRailVisible">
+          <Children>
         <!-- Persistent five-chapter stage tracker inside real CharacterCreationState.
              Read-only. Native stage manager retains all input and callbacks. -->
         <Widget Sprite="BlankWhiteSquare_9" Color="#08131BCB"
@@ -102,8 +108,10 @@
                 WidthSizePolicy="Fixed" SuggestedWidth="220"
                 HeightSizePolicy="Fixed" SuggestedHeight="25"
                 PositionXOffset="20" PositionYOffset="470"/>
+          </Children>
+        </Widget>
         <TextWidget Text="@ViewportCapability"
-                IsVisible="@IsFaceStage"
+                IsVisible="@IsFaceDebugVisible"
                 Color="#B2C7D9FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="410"
                 HeightSizePolicy="Fixed" SuggestedHeight="50"
@@ -112,21 +120,30 @@
              unobscured. This verifies active engine-owned layers; it does
              not claim the full-screen scene has been moved to a rectangle. -->
         <Widget Sprite="BlankWhiteSquare_9" Color="#07111FD8"
-                IsVisible="@IsFaceStage"
+                IsVisible="@IsFaceDebugVisible"
                 WidthSizePolicy="Fixed" SuggestedWidth="465"
                 HeightSizePolicy="Fixed" SuggestedHeight="90"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
                 PositionXOffset="16" PositionYOffset="15"/>
         <TextWidget Text="CALRADIA UNIFIED  |  REAL FACE EDITOR"
-                IsVisible="@IsFaceStage" Color="#F6D7A5FF"
+                IsVisible="@IsFaceDebugVisible" Color="#F6D7A5FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="440"
                 HeightSizePolicy="Fixed" SuggestedHeight="30"
                 PositionXOffset="27" PositionYOffset="22"/>
         <TextWidget Text="@FaceStatus"
-                IsVisible="@IsFaceStage" Color="#C4D7E8FF"
+                IsVisible="@IsFaceDebugVisible" Color="#C4D7E8FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="440"
                 HeightSizePolicy="Fixed" SuggestedHeight="42"
                 PositionXOffset="27" PositionYOffset="51"/>
+        <!-- F9 restore is a real native scene/view rollback, not a fake
+             decorative character model. -->
+        <TextWidget Text="@FaceDockStatus"
+                IsVisible="@IsFaceDockTrialStage"
+                Color="#F2D4A4FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="490"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                PositionXOffset="-20" PositionYOffset="25"/>
       </Children>
     </Widget>
   </Window>

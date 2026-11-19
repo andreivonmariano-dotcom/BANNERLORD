@@ -68,7 +68,28 @@ namespace CalradiaUnified
     {
         public static bool HasVerifiedRectangularSceneDock
         {
+            // The experimental native FaceGen-only dock is NOT a proven
+            // persistent five-chapter viewport.
             get { return false; }
+        }
+
+        public const int NativeFacePanelPixels = 694;
+
+        public static bool CanTryNativeFaceDock(int width,int height)
+        {
+            return width >= 1366 && height >= 768 &&
+                width > NativeFacePanelPixels + 500;
+        }
+
+        public static float NativeFaceDockLeftFraction(int width)
+        {
+            if(width <= 0) return 0f;
+            return (float)NativeFacePanelPixels / width;
+        }
+
+        public static float NativeFaceDockRightFraction(int width)
+        {
+            return 1f - NativeFaceDockLeftFraction(width);
         }
 
         public static int NavigationWidth(int screenWidth)

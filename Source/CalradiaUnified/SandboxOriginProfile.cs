@@ -47,6 +47,8 @@ namespace CalradiaUnified
         public bool NativeFaceWorkshopEnabled;
         // Opt-in persistent native-state CU ribbon. Never overrides stage views.
         public bool NativeStateShellEnabled;
+        // Original native FaceGen SceneView right-dock experiment; OFF on new game.
+        public bool NativeFaceDockTrialEnabled;
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
@@ -155,6 +157,7 @@ namespace CalradiaUnified
             NativeIntegrationReviewEnabled=false;
             NativeFaceWorkshopEnabled=false;
             NativeStateShellEnabled=false;
+            NativeFaceDockTrialEnabled=false;
             RealFamilyEnabled=false;
             RoleAffiliationsEnabled=false;
             SpouseEnabled=false;
@@ -234,6 +237,9 @@ namespace CalradiaUnified
                 case "NativeStateShellEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     NativeStateShellEnabled = b; return true;
+                case "NativeFaceDockTrialEnabled":
+                    if (!Boolean.TryParse(value, out b)) return false;
+                    NativeFaceDockTrialEnabled = b; return true;
                 case "RealFamilyEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     RealFamilyEnabled = b; return true;
@@ -498,6 +504,8 @@ namespace CalradiaUnified
                     NativeFaceWorkshopEnabled.ToString().ToLowerInvariant(),
                 "NativeStateShellEnabled=" +
                     NativeStateShellEnabled.ToString().ToLowerInvariant(),
+                "NativeFaceDockTrialEnabled=" +
+                    NativeFaceDockTrialEnabled.ToString().ToLowerInvariant(),
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,

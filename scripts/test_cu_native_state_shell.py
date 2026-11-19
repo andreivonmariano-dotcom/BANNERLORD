@@ -56,7 +56,7 @@ assert not list(prefab.iter("SliderWidget"))
 assert not list(prefab.iter("InputTextWidget"))
 labels = [node.get("Text","")[1:] for node in prefab.iter("TextWidget")
           if node.get("Text","").startswith("@")]
-assert set(labels)=={"Title","Chapter","NativeStep","Culture","Role","Household","Notice","FaceStatus","Label","Status","ViewportCapability"}
+assert set(labels)=={"Title","Chapter","NativeStep","Culture","Role","Household","Notice","FaceStatus","Label","Status","ViewportCapability","FaceDockStatus"}
 for key in labels:
     assert re.search(r"public string\s+"+key+r"\b",shell),key
 
@@ -66,7 +66,8 @@ assert "NativeStateShellEnabled=false;" in profile
 assert 'case "NativeStateShellEnabled":' in profile
 assert '"NativeStateShellEnabled=" +' in profile
 assert 'new Field("Identity","NativeStateShellEnabled",' in creator
-assert 'key == "NativeStateShellEnabled")' in creator
+assert 'key == "NativeStateShellEnabled" ||' in creator
+assert 'key == "NativeFaceDockTrialEnabled")' in creator
 assert 'if (candidate.NativeStateShellEnabled &&' in creator
 assert 'candidate.NativeFaceWorkshopEnabled ||' in creator
 assert 'candidate.NativeIntegrationReviewEnabled)' in creator

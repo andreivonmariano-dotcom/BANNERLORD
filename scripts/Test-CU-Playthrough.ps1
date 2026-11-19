@@ -10,6 +10,8 @@ param(
     [switch]$RequireNativeShell,
     [switch]$RequireCuCulture,
     [switch]$RequireNativeFaceLayers,
+    [switch]$RequireNativeFaceDockTrial,
+    [switch]$RequireNativeFaceDockRestore,
     [switch]$RequireCUCultureSelection,
     [switch]$RequireRealFaceScene,
     [ValidateRange(-1,12)][int]$ExpectedPortraits = -1,
@@ -126,6 +128,10 @@ $cuCultureConfirmed = Event-Last $session 'cu_native_culture_confirmed'
 $cuCultureCommitted = Event-Last $session 'cu_native_culture_commit_observed'
 $cuCultureFallback = Event-Last $session 'cu_native_culture_fallback'
 $faceSceneVerified = Event-Last $session 'cu_native_face_layers_verified'
+$dockApplied = Event-Last $session 'cu_real_face_dock_trial_applied'
+$dockFallback = Event-Last $session 'cu_real_face_dock_fallback'
+$dockFailure = Event-Last $session 'cu_real_face_dock_failed'
+$dockRestored = Event-Last @($session | Where-Object { $_.context -eq 'cu_real_face_dock_toggle' -and (Detail-Value $_.detail 'right_dock') -eq 'False' }) 'cu_real_face_dock_toggle'
 $galleryOpened = Event-Last $session 'cu_family_portraits_open'
 $galleryFailed = Event-Last $session 'cu_family_portrait_screen_failed'
 
@@ -210,6 +216,17 @@ if (($RequireRealFaceScene -or $RequireNativeFaceLayers) -and
     $null -eq $faceSceneVerified) {
     $issues.Add('Real native BodyGeneratorView SceneLayer and GauntletLayer were not both observed')
 }
+if ($RequireNativeFaceDockTrial) {
+    if ($null -eq $dockApplied) {
+        $issues.Add('Native FaceGen original scene right-dock trial was not applied in this accepted session')
+    }
+    if ($null -ne $dockFallback -or $null -ne $dockFailure) {
+        $issues.Add('Native FaceGen right-dock reported fallback or failure')
+    }
+}
+if ($RequireNativeFaceDockRestore -and $null -eq $dockRestored) {
+    $issues.Add('F9 did not log restoration of the stock native face layout')
+}
 if ($ExpectedPortraits -ge 0) {
     if ($null -eq $galleryOpened) {
         $issues.Add('Expected real-Hero portrait gallery was not opened in this logged session')
@@ -256,6 +273,8 @@ if ($sessionUtc) {
     Write-Host "CU native culture chooser: $(if ($null -ne $cuCultureAttached) { 'ATTACHED' } elseif ($null -ne $cuCultureFallback) { 'NATIVE FALLBACK' } else { 'not logged' })"
     Write-Host "Native culture confirmed: $(if ($null -ne $cuCultureCommitted) { $cuCultureCommitted.detail } else { 'not verified' })"
     Write-Host "Actual native FaceGen scene and sliders: $(if ($null -ne $faceSceneVerified) { 'VERIFIED BY RUNTIME LAYER REFERENCES (viewport position not proven)' } else { 'not logged' })"
+    Write-Host "Real FaceGen right-dock trial: $(if ($null -ne $dockApplied) { 'APPLIED (must check visual/input in game)' } elseif ($null -ne $dockFallback) { 'NATIVE FALLBACK' } else { 'not logged' })"
+    Write-Host "F9 face-layout restore: $(if ($null -ne $dockRestored) { 'RESTORED' } else { 'not logged' })"
     Write-Host "Real Hero portrait gallery: $(if ($null -ne $galleryOpened) { $galleryOpened.detail } else { 'not opened in latest accepted start' })"
 } else {
     Write-Host 'No accepted custom Sandbox start found in events.csv.'
@@ -297,6 +316,12 @@ $report = [ordered]@{
     cu_culture_fallback = ($null -ne $cuCultureFallback)
     native_face_layers_required = [bool]$RequireNativeFaceLayers
     native_face_layers_verified = ($null -ne $faceSceneVerified)
+    native_face_dock_required = [bool]$RequireNativeFaceDockTrial
+    native_face_dock_applied = ($null -ne $dockApplied)
+    native_face_dock_failed = ($null -ne $dockFailure)
+    native_face_dock_fallback = ($null -ne $dockFallback)
+    native_face_restore_required = [bool]$RequireNativeFaceDockRestore
+    native_face_restore_logged = ($null -ne $dockRestored)
     cu_culture_selection_required = [bool]$RequireCUCultureSelection
     cu_culture_chooser_attached = ($null -ne $cuCultureAttached)
     cu_culture_selected_id = $(if ($null -ne $cuCultureSelected) { Detail-Value $cuCultureSelected.detail 'id' } else { '' })
