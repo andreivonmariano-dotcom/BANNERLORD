@@ -456,10 +456,10 @@ namespace CalradiaUnified
         public bool IsRailVisible { get { return nativeRailVisible; } }
 
         [DataSourceProperty]
-        public bool IsFaceDebugVisible { get { return isFaceStage && !faceDockRequested; } }
+        public bool IsFaceDebugVisible { get { return false; } }
 
         [DataSourceProperty]
-        public bool IsFaceDockTrialStage { get { return isFaceStage && faceDockRequested; } }
+        public bool IsFaceDockTrialStage { get { return false; } }
 
         [DataSourceProperty]
         public string FaceStatus { get { return faceStatus; } }
