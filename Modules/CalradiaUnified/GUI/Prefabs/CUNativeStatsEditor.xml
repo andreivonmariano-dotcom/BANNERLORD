@@ -149,6 +149,9 @@
                   MaxValueInt="80" IsDiscrete="true"
                   DiscreteIncrementInterval="1"
                   UpdateValueContinuously="true"
+                  UpdateValueOnRelease="false"
+                  AlignmentAxis="Horizontal"
+                  DoNotUpdateHandleSize="true"
                   SliderArea="CUPlayerAgeTrack"
                   Handle="CUPlayerAgeHandle">
                   <Children>
@@ -157,10 +160,14 @@
                       WidthSizePolicy="StretchToParent"
                       HeightSizePolicy="Fixed" SuggestedHeight="12"
                       VerticalAlignment="Center"/>
-                    <Widget Id="CUPlayerAgeHandle"
-                      Sprite="BlankWhiteSquare_9" Color="#E3B575FF"
-                      WidthSizePolicy="Fixed" SuggestedWidth="22"
-                      HeightSizePolicy="Fixed" SuggestedHeight="35"
+                    <!-- Use a real interactive native ButtonWidget for
+                         the drag handle. A plain Widget renders its marker
+                         but does not own button/pointer interaction. -->
+                    <ButtonWidget Id="CUPlayerAgeHandle"
+                      Brush="ButtonBrush"
+                      UpdateChildrenStates="true"
+                      WidthSizePolicy="Fixed" SuggestedWidth="38"
+                      HeightSizePolicy="Fixed" SuggestedHeight="46"
                       VerticalAlignment="Center"/>
                   </Children>
                 </SliderWidget>
