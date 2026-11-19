@@ -64,7 +64,8 @@ namespace CalradiaUnified
                 "|parental_inheritance="+(mother!=null && father!=null));
         }
         private static int Train(Hero h,string upbringing,
-            Hero father=null,Hero mother=null,bool generatedChild=false)
+            Hero father=null,Hero mother=null,bool generatedChild=false,
+            bool initialGeneration=true)
         {
             if(h==null || h.HeroDeveloper==null)
                 throw new InvalidOperationException(
@@ -130,7 +131,8 @@ namespace CalradiaUnified
                     // Only newly generated children are set to this
                     // age-bound target. Ordinary Heroes and future game
                     // training are never overwritten.
-                    h.HeroDeveloper.SetInitialSkillLevel(skill,target);
+                    if(initialGeneration || target>before)
+                        h.HeroDeveloper.SetInitialSkillLevel(skill,target);
                     DiagnosticJournal.Event("cu_family_inherited_skill",
                         "hero="+h.StringId+"|skill="+name+
                         "|age="+h.Age+
@@ -315,6 +317,7 @@ namespace CalradiaUnified
                 resolved=="Martial"?"Valor":
                 resolved=="Scholarly"?"Honor":
                 resolved=="Mercantile"?"Calculating":
+                resolved=="Seafaring"?"Valor":
                 SandboxFamilyDevelopmentPolicy.Personality[
                     random.Next(Traits.Length)];
             int i=Array.IndexOf(
@@ -323,7 +326,9 @@ namespace CalradiaUnified
             int before=child.GetTraitLevel(trait);
             if(random.Next(100)<65 && before<2)
                 child.SetTraitLevel(trait,before+1);
-            if(child.Age>=6f)Train(child,resolved);
+            if(child.Age>=6f)
+                Train(child,resolved,child.Father,child.Mother,
+                    true,false);
             DiagnosticJournal.Event("cu_family_upbringing_milestone",
                 "hero="+child.StringId+"|milestone="+age+
                 "|scenario="+scenario+"|upbringing="+upbringing+
