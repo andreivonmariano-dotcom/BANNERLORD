@@ -972,13 +972,17 @@ namespace CalradiaUnified
             // Crash recovery: never request competing CharacterCreationStageView
             // handlers. The original native FaceGen owns appearance in v0.23.
             candidate.NativeStageEnabled=false;
-            if ((candidate.NativeFaceWorkshopEnabled &&
-                candidate.NativeIntegrationReviewEnabled) ||
-                (candidate.NativeStateShellEnabled &&
-                    (candidate.NativeFaceWorkshopEnabled ||
-                     candidate.NativeIntegrationReviewEnabled)))
+            if (candidate.NativeFaceWorkshopEnabled &&
+                candidate.NativeIntegrationReviewEnabled)
             {
-                SetStatus("Choose only one experimental native integration: CU state shell, Face Workshop or 3D Review.");
+                SetStatus("Choose one experimental 3D stage: CU Face Workshop OR CU 3D Review.");
+                return;
+            }
+            if (candidate.NativeStateShellEnabled &&
+                (candidate.NativeFaceWorkshopEnabled ||
+                 candidate.NativeIntegrationReviewEnabled))
+            {
+                SetStatus("CU native-state shell cannot be combined with a separate extra 3D stage.");
                 return;
             }
             // A deliberate spouse/children choice is an actual native family
