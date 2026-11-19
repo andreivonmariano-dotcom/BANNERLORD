@@ -92,7 +92,7 @@ assert 'manager.NextStage(' not in age_probe
 # through the original NextStage instead of creating a new game state.
 assert "previousNativeStage" in stats
 assert "returningFromNativeBanner=true;" in stats
-assert "CUNativeStatsNavigationPolicy.Traits" in stats
+assert "CUNativeStatsNavigationPolicy.Attributes" in stats
 assert "manager.NextStage();" in stats
 assert '"cu_native_banner_back_to_traits"' in stats
 assert '"cu_native_stats_return_to_banner"' in stats
