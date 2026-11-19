@@ -58,6 +58,8 @@ namespace CalradiaUnified
         private static string activeStage="";
         private static int buttonsStyled;
         private static int textStyled;
+        private static int inputsStyled;
+        private static int slidersStyled;
 
         public static void Tick(CharacterCreationScreen screen,
             CharacterCreationManager nativeManager)
@@ -216,6 +218,8 @@ namespace CalradiaUnified
 
             int paintedText=0;
             int paintedButtons=0;
+            int paintedInputs=0;
+            int paintedSliders=0;
             bool refresh=currentRoot!=null;
             try
             {
@@ -223,6 +227,26 @@ namespace CalradiaUnified
                 {
                     if(!processedWidgets.Add(widget))continue;
                     string type=widget.GetType().Name;
+                    if(stage=="CharacterCreationClanNamingStage" &&
+                        (type.IndexOf("EditableText",
+                            StringComparison.OrdinalIgnoreCase)>=0 ||
+                         type.IndexOf("InputText",
+                            StringComparison.OrdinalIgnoreCase)>=0))
+                    {
+                        if(TryPrivateUtilityBrush(widget,
+                            "#455568FF","#F1DEBEFF"))
+                            paintedInputs++;
+                        continue;
+                    }
+                    if(stage=="CharacterCreationOptionsStage" &&
+                        type.IndexOf("Slider",
+                            StringComparison.OrdinalIgnoreCase)>=0)
+                    {
+                        if(TryPrivateUtilityBrush(widget,
+                            "#D7B17AFF","#F1DEBEFF"))
+                            paintedSliders++;
+                        continue;
+                    }
                     if(CUNativeWidgetSkinPolicy.IsProtectedWidget(type))
                         continue;
                     if(widget is ButtonWidget)
@@ -236,7 +260,8 @@ namespace CalradiaUnified
                             paintedText++;
                     }
                 }
-                if(paintedText==0 && paintedButtons==0 && !refresh)
+                if(paintedText==0 && paintedButtons==0 &&
+                    paintedInputs==0 && paintedSliders==0 && !refresh)
                 {
                     reportedUnavailable=currentView;
                     DiagnosticJournal.Event("cu_native_widget_skin_unavailable",
@@ -248,7 +273,10 @@ namespace CalradiaUnified
                 currentRoot=root;
                 buttonsStyled+=paintedButtons;
                 textStyled+=paintedText;
-                if(refresh && paintedText==0 && paintedButtons==0)
+                inputsStyled+=paintedInputs;
+                slidersStyled+=paintedSliders;
+                if(refresh && paintedText==0 && paintedButtons==0 &&
+                    paintedInputs==0 && paintedSliders==0)
                     return;
                 DiagnosticJournal.Event(
                     refresh?"cu_native_widget_skin_refreshed":
@@ -256,6 +284,8 @@ namespace CalradiaUnified
                     "stage="+stage+
                     "|game_owned_root=true|text="+paintedText+
                     "|private_button_brushes="+paintedButtons+
+                    "|clan_text_inputs="+paintedInputs+
+                    "|difficulty_sliders="+paintedSliders+
                     "|total_widgets="+widgets.Count+
                     "|native_click_bindings_retained=true" +
                     "|native_scene_retained=true|F10_restore=true");
@@ -265,6 +295,28 @@ namespace CalradiaUnified
                 Restore();
                 throw;
             }
+        }
+
+        private static bool TryPrivateUtilityBrush(Widget widget,
+            string background,string foreground)
+        {
+            // Only exact native ClanNaming edit and Options slider widgets
+            // reach this path. Recolor a private brush, never the controls'
+            // input, drag, focus, selection or value bindings.
+            var property=widget.GetType().GetProperty("Brush",
+                BindingFlags.Instance|BindingFlags.Public);
+            if(property==null || property.GetSetMethod(false)==null ||
+                property.PropertyType!=typeof(Brush))return false;
+            Brush source=property.GetValue(widget,null) as Brush;
+            if(source==null)return false;
+            Brush local=source.Clone();
+            if(local==null || Object.ReferenceEquals(local,source))
+                return false;
+            local.Color=Hex(background);
+            local.FontColor=Hex(foreground);
+            property.SetValue(widget,local,null);
+            changes.Add(new Change(widget,property,source));
+            return true;
         }
 
         private static bool TryPrivateButtonBrush(Widget widget,string stage)
@@ -411,12 +463,16 @@ namespace CalradiaUnified
                     "stage="+activeStage+
                     "|text="+textStyled+
                     "|buttons="+buttonsStyled+
+                    "|clan_text_inputs="+inputsStyled+
+                    "|difficulty_sliders="+slidersStyled+
                     "|native_callbacks_untouched=true");
             changes.Clear();
             processedWidgets.Clear();
             refreshTicks=0;
             buttonsStyled=0;
             textStyled=0;
+            inputsStyled=0;
+            slidersStyled=0;
             currentRoot=null;
             currentView=null;
             retryCount=0;
