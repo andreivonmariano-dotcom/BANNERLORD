@@ -47,6 +47,8 @@ assert "NativeNarrativeBonusReader.Read(manager)" in layer
 assert 'GetField(' in layer and '"SelectedOptions",flags' in layer
 assert 'IDictionary<NarrativeMenu,NarrativeMenuOption>' in layer
 assert 'foreach(var option in selected.Values)' in layer
+assert "descriptions.ToArray();" in layer
+assert 'bonusLines.Skip(bonusIndex)' in layer, "must show all selected bonuses"
 assert 'Command.Click="ExecuteEditExact"' in ET.tostring(ui,encoding="unicode")
 assert 'option.PositiveEffectText.ToString()' in layer
 assert "Detailed selection history is " in layer, "never invent missing bonus history"
@@ -82,7 +84,7 @@ clicks=[x.get("Command.Click") for x in ui.iter("ButtonWidget")]
 for action in ("ExecuteNative","ExecuteBalanced","ExecuteUnrestricted",
                "ExecuteReset","ExecutePreviousGroup","ExecuteNextGroup",
                "ExecuteBack","ExecuteContinue","ExecuteIncrease","ExecuteDecrease",
-               "ExecuteEditExact"):
+               "ExecuteEditExact","ExecuteNextBonus","ExecutePreviousBonus"):
     assert action in clicks,action
     assert re.search(r'public void '+action+r'\s*\(',layer),action
 assert clicks.count("ExecuteNative")==1
