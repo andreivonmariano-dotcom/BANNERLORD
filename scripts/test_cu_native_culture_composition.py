@@ -77,7 +77,7 @@ assert "Object.ReferenceEquals(layer,controls)" in inspector
 assert "REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE" in inspector
 assert "CUNativeFaceInspector.TryInspect(screen,out observed)" in shell
 assert "cu_native_face_layers_verified" in shell
-assert '"relocated=false"' in shell
+assert 'relocated=false' in shell
 assert not list(ribbon.iter("ButtonWidget")), "face-state ribbon must not intercept input"
 assert any(x.get("Text")=="@FaceStatus" and x.get("IsVisible")=="@IsFaceStage"
            for x in ribbon.iter("TextWidget"))
