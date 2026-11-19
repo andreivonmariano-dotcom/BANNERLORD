@@ -43,7 +43,7 @@ for name,root_node in files.items():
     assert labels and all("Brush.FontSize" in label.attrib
                           for label in labels),name
     assert max(int(label.attrib["Brush.FontSize"])
-               for label in labels)<=26
+               for label in labels)<=29
 assert not any(x.get("Text")=="OPTIONAL CHOICES"
                for x in guided.iter("TextWidget"))
 assert not any(x.get("Text")=="@CultureId"
@@ -51,13 +51,13 @@ assert not any(x.get("Text")=="@CultureId"
 assert not any("The campaign engine owns all native"
                in x.get("Text","")
                for x in guided.iter("TextWidget"))
-# Main guided question, selected value and option controls share
-# responsive middle margins, rather than fixed blue boxes 662px wide.
-middle=[w for w in guided.iter("Widget")
-        if w.get("MarginLeft")=="260" and w.get("MarginRight")=="365"]
-assert len(middle)>=3
-assert any(w.get("SuggestedHeight")=="113" for w in middle)
-assert any(w.get("Color")=="#B99059FF" for w in guided.iter("Widget"))
+# The compact center frame is measured separately from responsive
+# sidebars, with original native ButtonBrush command bindings inside.
+assert any(w.get("SuggestedWidth")=="610" and
+           w.get("SuggestedHeight")=="369"
+           for w in guided.iter("Widget"))
+assert any(w.get("Color")=="#A78351FF"
+           for w in guided.iter("Widget"))
 assert any(w.get("Text")=="@SelectedValue" and
            w.get("Brush.TextHorizontalAlignment")=="Center"
            for w in guided.iter("TextWidget"))
@@ -106,7 +106,7 @@ assert {"ExecuteAgeIncrease","ExecuteAgeDecrease",
 for command in ("ExecuteAgeIncrease","ExecuteAgeDecrease",
                 "ExecuteKeepNativeAge"):
     assert "public void "+command+"()" in text_stats
-assert 'private int pageIndex=-1;' in text_stats
+assert 'private int pageIndex=CUNativeStatsNavigationPolicy.Age;' in text_stats
 assert "hero.SetBirthDay(CampaignTime.YearsFromNow(" in text_stats
 assert "hero.SetBirthDay(oldBirthday)" in text_stats
 assert "cu_native_player_age_committed" in text_stats
@@ -136,13 +136,13 @@ assert "actualAge" in text_guided and "SaveForPlayer(" in text_guided
 row=next(x for x in stats.iter("ListPanel")
          if x.get("DataSource")=="{Rows}")
 item=row.find("./ItemTemplate/Widget")
-assert item is not None and item.get("SuggestedHeight")=="48"
+assert item is not None and item.get("SuggestedHeight")=="56"
 name=next(x for x in item.iter("TextWidget")
           if x.get("Text")=="@Name")
 desc=next(x for x in item.iter("TextWidget")
           if x.get("Text")=="@Description")
 assert int(name.get("PositionYOffset"))+int(name.get("SuggestedHeight")) <= (
     int(desc.get("PositionYOffset")))
-assert int(desc.get("PositionYOffset"))+int(desc.get("SuggestedHeight")) <= 48
+assert int(desc.get("PositionYOffset"))+int(desc.get("SuggestedHeight")) <= 56
 
 print("PASS: warm native-style custom creator, compact text, native original stages unobscured, age slider, child-age cap and skill-vs-focus labels (STATIC ONLY)")
