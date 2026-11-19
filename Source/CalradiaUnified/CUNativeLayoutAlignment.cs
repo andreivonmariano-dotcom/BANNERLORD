@@ -61,7 +61,17 @@ namespace CalradiaUnified
         private static string stage="";
         private static bool enabled=true;
         private static bool primaryInspected;
+        private static bool wideRailSafe;
         private static int refreshTicks;
+
+        internal static bool IsWideRailSafe(string stageName)
+        {
+            // Unknown or unmeasurable native layouts get original
+            // controls and no oversized CU sidebars.
+            return enabled && wideRailSafe &&
+                currentView!=null && root!=null &&
+                stage==stageName;
+        }
         private static int viewportWidth;
         private static int viewportHeight;
         private static int contentMoved;
@@ -226,11 +236,14 @@ namespace CalradiaUnified
                 if(depth<1 || depth>2)continue;
                 Rect bounds;
                 if(!TryMeasure(widget,out bounds))continue;
-                float dx,dy;
-                if(!CUNativeLayoutPolicy.TryPlanPrimary(nativeStage,
+                float dx=0,dy=0;
+                bool fits=CUNativeLayoutPolicy.FitsPrimary(nativeStage,
                     width,height,bounds.X,bounds.Y,
-                    bounds.Width,bounds.Height,out dx,out dy))
-                    continue;
+                    bounds.Width,bounds.Height);
+                bool movable=CUNativeLayoutPolicy.TryPlanPrimary(
+                    nativeStage,width,height,bounds.X,bounds.Y,
+                    bounds.Width,bounds.Height,out dx,out dy);
+                if(!fits && !movable)continue;
 
                 int score=ContentScore(widget,nativeStage);
                 if(score<2)continue;
@@ -248,15 +261,27 @@ namespace CalradiaUnified
 
             if(winner==null || ambiguous)
             {
+                wideRailSafe=false;
                 DiagnosticJournal.Event("cu_native_layout_native_preserved",
                     "stage="+nativeStage+
                     "|reason="+(ambiguous?
                         "ambiguous_native_content_panels":
-                        "native_content_already_fits_or_is_unmeasured"));
+                        "native_content_unmeasured_or_out_of_bounds")+
+                    "|wide_chapter_rail_hidden=true");
+                return;
+            }
+            if(Math.Abs(winnerDX)<1f && Math.Abs(winnerDY)<1f)
+            {
+                wideRailSafe=true;
+                DiagnosticJournal.Event("cu_native_layout_content_verified",
+                    "stage="+nativeStage+
+                    "|already_inside_CU_content_frame=true" +
+                    "|wide_chapter_rail_permitted=true");
                 return;
             }
             if(TryTranslate(winner,winnerDX,winnerDY))
             {
+                wideRailSafe=true;
                 contentMoved++;
                 DiagnosticJournal.Event("cu_native_layout_content_aligned",
                     "stage="+nativeStage+
@@ -265,7 +290,8 @@ namespace CalradiaUnified
                     "|dy="+winnerDY.ToString("0.0",
                         CultureInfo.InvariantCulture)+
                     "|original_native_panel=true" +
-                    "|source=measured_widget_bounds");
+                    "|source=measured_widget_bounds" +
+                    "|wide_chapter_rail_permitted=true");
             }
         }
 
@@ -492,6 +518,7 @@ namespace CalradiaUnified
             currentView=null;
             root=null;
             primaryInspected=false;
+            wideRailSafe=false;
             refreshTicks=0;
             viewportWidth=0;
             viewportHeight=0;
