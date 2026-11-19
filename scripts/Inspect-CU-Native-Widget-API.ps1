@@ -51,13 +51,14 @@ try{
             $types=@($_.Exception.Types|Where-Object{$null -ne $_})
         }
         $selected=@($types|Where-Object{
-            $_.Name -match '^(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|BrushState|GauntletLayer|GauntletMovieIdentifier|Color|CharacterCreation.+View|CharacterCreationScreen)$'
+            $_.Name -match '^(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|BrushState|GauntletLayer|GauntletMovieIdentifier|Color|BannerEditorView|CharacterCreation.+View|CharacterCreationScreen)$'
         })
         foreach($nativeType in @(
             'TaleWorlds.GauntletUI.BaseTypes.Widget',
             'TaleWorlds.GauntletUI.BaseTypes.TextWidget',
             'TaleWorlds.GauntletUI.BaseTypes.ButtonWidget',
-            'TaleWorlds.Engine.GauntletUI.GauntletLayer'
+            'TaleWorlds.Engine.GauntletUI.GauntletLayer',
+            'SandBox.GauntletUI.BannerEditor.BannerEditorView'
         )){
             try{
                 $target=$asm.GetType($nativeType,$false)
