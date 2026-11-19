@@ -50,7 +50,10 @@ namespace CalradiaUnified
         private static Widget currentRoot;
         private static object reportedUnavailable;
         private static readonly List<Change> changes=new List<Change>();
+        private static readonly HashSet<Widget> processedWidgets=
+            new HashSet<Widget>();
         private static bool enabled=true;
+        private static int refreshTicks;
         private static int retryCount;
         private static string activeStage="";
         private static int buttonsStyled;
@@ -113,8 +116,19 @@ namespace CalradiaUnified
                     activeStage=stage;
                     retryCount=0;
                 }
-                if(currentRoot!=null ||
-                    Object.ReferenceEquals(reportedUnavailable,view))
+                if(currentRoot!=null)
+                {
+                    // Native narrative menus reuse the same view but can
+                    // create fresh option button widgets each chapter.
+                    // Restyle NEW widgets without changing existing bindings.
+                    if(++refreshTicks>=18)
+                    {
+                        refreshTicks=0;
+                        Apply(currentRoot,stage);
+                    }
+                    return;
+                }
+                if(Object.ReferenceEquals(reportedUnavailable,view))
                     return;
 
                 Widget root=GetGameOwnedRoot(view,stage);
@@ -137,8 +151,9 @@ namespace CalradiaUnified
             catch(Exception e)
             {
                 DiagnosticJournal.Exception("cu_native_widget_skin_failed",e);
+                object failedView=currentView;
                 Restore();
-                reportedUnavailable=currentView;
+                reportedUnavailable=failedView;
             }
         }
 
@@ -201,10 +216,12 @@ namespace CalradiaUnified
 
             int paintedText=0;
             int paintedButtons=0;
+            bool refresh=currentRoot!=null;
             try
             {
                 foreach(Widget widget in widgets)
                 {
+                    if(!processedWidgets.Add(widget))continue;
                     string type=widget.GetType().Name;
                     if(CUNativeWidgetSkinPolicy.IsProtectedWidget(type))
                         continue;
@@ -219,7 +236,7 @@ namespace CalradiaUnified
                             paintedText++;
                     }
                 }
-                if(paintedText==0 && paintedButtons==0)
+                if(paintedText==0 && paintedButtons==0 && !refresh)
                 {
                     reportedUnavailable=currentView;
                     DiagnosticJournal.Event("cu_native_widget_skin_unavailable",
@@ -229,9 +246,13 @@ namespace CalradiaUnified
                     return;
                 }
                 currentRoot=root;
-                buttonsStyled=paintedButtons;
-                textStyled=paintedText;
-                DiagnosticJournal.Event("cu_native_widget_skin_applied",
+                buttonsStyled+=paintedButtons;
+                textStyled+=paintedText;
+                if(refresh && paintedText==0 && paintedButtons==0)
+                    return;
+                DiagnosticJournal.Event(
+                    refresh?"cu_native_widget_skin_refreshed":
+                        "cu_native_widget_skin_applied",
                     "stage="+stage+
                     "|game_owned_root=true|text="+paintedText+
                     "|private_button_brushes="+paintedButtons+
@@ -248,6 +269,10 @@ namespace CalradiaUnified
 
         private static bool TryPrivateButtonBrush(Widget widget,string stage)
         {
+            // Never recolor actual banner color swatches or icon-only
+            // controls. A native button must contain actual text in its
+            // original widget tree to qualify for decorative styling.
+            if(!HasTextChild(widget))return false;
             // Read the actual brush property from the native button. A
             // shared resource brush is NEVER mutated: clone and replace
             // the button's local instance only if a public setter exists.
@@ -267,6 +292,17 @@ namespace CalradiaUnified
             property.SetValue(widget,own,null);
             changes.Add(new Change(widget,property,original));
             return true;
+        }
+
+        private static bool HasTextChild(Widget widget)
+        {
+            foreach(Widget child in widget.GetAllChildrenRecursive())
+            {
+                var text=child as TextWidget;
+                if(text!=null && !String.IsNullOrWhiteSpace(text.Text))
+                    return true;
+            }
+            return false;
         }
 
         private static bool TryNativeTextColor(Widget widget,string stage)
@@ -377,6 +413,8 @@ namespace CalradiaUnified
                     "|buttons="+buttonsStyled+
                     "|native_callbacks_untouched=true");
             changes.Clear();
+            processedWidgets.Clear();
+            refreshTicks=0;
             buttonsStyled=0;
             textStyled=0;
             currentRoot=null;
