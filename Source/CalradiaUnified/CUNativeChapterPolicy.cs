@@ -12,11 +12,11 @@ namespace CalradiaUnified
     {
         public static readonly string[] Chapters =
         {
-            "01  STARTING LIFE",
-            "02  BLOODLINE",
-            "03  FORTUNE",
-            "04  LAND & HOME",
-            "05  REVIEW YOUR HOUSE"
+            "01  YOUR WORLD",
+            "02  YOUR CHARACTER",
+            "03  YOUR HOUSE",
+            "04  YOUR FORTUNE",
+            "05  BEGIN YOUR LEGACY"
         };
 
         public static int ActiveChapter(string nativeStage)
@@ -25,11 +25,10 @@ namespace CalradiaUnified
             {
                 case "CharacterCreationCultureStage":
                 case "CharacterCreationFaceGeneratorStage":
-                    return 0;
+                case "CharacterCreationNarrativeStage":
+                    return 1;
                 case "CharacterCreationBannerEditorStage":
                 case "CharacterCreationClanNamingStage":
-                    return 1;
-                case "CharacterCreationNarrativeStage":
                     return 2;
                 case "CharacterCreationReviewStage":
                 case "CharacterCreationOptionsStage":
@@ -41,20 +40,19 @@ namespace CalradiaUnified
 
         public static bool IsLiveNativeChoice(int chapterIndex)
         {
-            // No standalone Land & Home stage in Bannerlord 1.5.7.
-            // Role, fief and scenario are committed into gameOptions before
-            // the native CharacterCreationState exists.
-            return chapterIndex >= 0 && chapterIndex < Chapters.Length &&
-                   chapterIndex != 3;
+            // World and role are committed before SandBoxGameManager starts.
+            // Fortune/family are edited by a dedicated CU layer after clan,
+            // never by jumping the game's native stage history.
+            return chapterIndex == 1 || chapterIndex == 2 ||
+                chapterIndex == 4;
         }
 
         public static string ChapterStatus(int chapterIndex,
             int activeChapter, bool visited)
         {
-            if (chapterIndex == 3)
-                return "START OPTIONS SET";
-            if (chapterIndex == activeChapter)
-                return "NATIVE STAGE ACTIVE";
+            if(chapterIndex==0) return "WORLD CONFIGURED";
+            if(chapterIndex==3) return "AFTER NATIVE CLAN";
+            if(chapterIndex==activeChapter) return "NATIVE STEP ACTIVE";
             return visited ? "REACHED" : "UPCOMING";
         }
     }
