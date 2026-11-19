@@ -569,7 +569,17 @@ namespace CalradiaUnified
         [DataSourceProperty] public string StepTitle
             {get{return Current==null?"":Current.Label;}}
         [DataSourceProperty] public string Hint
-            {get{return Current==null?"":Current.Hint;}}
+        {
+            get
+            {
+                if(Current==null)return "";
+                if(IsChildAge)return "Allowed age: 0 to "+
+                    EffectiveMaximum(Current)+" years. Your age: "+
+                    ActualFounderAge+". Spouse age: "+profile.SpouseAge+
+                    ". Ages beyond this are disabled.";
+                return Current.Hint;
+            }
+        }
         [DataSourceProperty] public string SelectedValue
         {
             get
@@ -615,8 +625,8 @@ namespace CalradiaUnified
             {get{return cursor>=Visible.Length-1;}}
         [DataSourceProperty] public string ContinueLabel
             {get{return IsLastStep ?
-                (preCampaign?"Continue to your character":
-                    "Confirm house & continue to native review") :
+                (preCampaign?"Create Character":
+                    "Confirm & Continue") :
                 "Continue";}}
         [DataSourceProperty] public string AdvancedLabel
             {get{return advanced?"Hide optional choices":"Show optional choices";}}
