@@ -62,6 +62,8 @@ namespace CalradiaUnified
                         active.CharacterCreationManager);
                     CUNativeControlSkin.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeLayoutAlignment.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
