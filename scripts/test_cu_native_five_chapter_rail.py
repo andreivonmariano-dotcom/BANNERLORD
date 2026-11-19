@@ -16,18 +16,19 @@ smoke=(root/"Tests/PolicySmoke/Program.cs").read_text(encoding="utf-8")
 csproj=(root/"Tests/PolicySmoke/PolicySmoke.csproj").read_text(encoding="utf-8")
 doc=(root/"docs/V036_NATIVE_FIVE_CHAPTER_SHELL_VIEWPORT_CONTRACT.md").read_text(encoding="utf-8")
 
-pages=["01  STARTING LIFE","02  BLOODLINE","03  FORTUNE",
-       "04  LAND & HOME","05  REVIEW YOUR HOUSE"]
+pages=["01  YOUR WORLD","02  YOUR CHARACTER","03  YOUR HOUSE",
+       "04  YOUR FORTUNE","05  BEGIN YOUR LEGACY"]
 assert re.findall(r'"(0[1-5]  [A-Z &]+)"',p)[:5]==pages
-for stage,idx in [("CharacterCreationCultureStage",0),
-                  ("CharacterCreationFaceGeneratorStage",0),
-                  ("CharacterCreationBannerEditorStage",1),
-                  ("CharacterCreationClanNamingStage",1),
-                  ("CharacterCreationNarrativeStage",2),
+for stage,idx in [("CharacterCreationCultureStage",1),
+                  ("CharacterCreationFaceGeneratorStage",1),
+                  ("CharacterCreationBannerEditorStage",2),
+                  ("CharacterCreationClanNamingStage",2),
+                  ("CharacterCreationNarrativeStage",1),
                   ("CharacterCreationOptionsStage",4)]:
     assert stage in p,stage
-assert 'return "START OPTIONS SET";' in p
-assert "chapterIndex != 3" in p
+assert 'return "WORLD CONFIGURED";' in p
+assert 'return "AFTER NATIVE CLAN";' in p
+assert "chapterIndex == 1 || chapterIndex == 2" in p
 assert "HasVerifiedRectangularSceneDock" in p
 assert "get { return false; }" in p
 assert "NavigationWidth(1366)" not in p or "172" in p
@@ -74,9 +75,10 @@ for token in ("SandboxNativeStartOptions.TryPrepare(",
               "new SandBoxGameManager(",
               "new Campaign(CampaignGameMode.Campaign,gameOptions)"):
     assert token in creator,token
-assert '"Identity", "Household", "Resources", "Location", "Review"' in creator
+assert 'new CUGuidedCreatorVM(true,' in creator
+assert 'layer.LoadMovie("CUGuidedCreator", viewModel);' in creator
 assert 'NEXT: NATIVE CREATOR' in (root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
 assert 'CUNativeChapterPolicy.cs' in csproj
 assert "native 3D scene crop is unverified" in smoke
 assert "single-screen" in doc and "not" in doc.lower()
-print("PASS: opt-in five-chapter native-state rail, ASO-before-game-state barrier, unchanged native FaceGen and explicit unverified right viewport (STATIC ONLY)")
+print("PASS: reordered five-chapter native-state rail, World before Hero, House/Fortune after identity, real FaceGen kept (STATIC ONLY)")
