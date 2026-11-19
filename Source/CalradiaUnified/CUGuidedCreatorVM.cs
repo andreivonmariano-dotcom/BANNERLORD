@@ -190,10 +190,9 @@ namespace CalradiaUnified
                     "Exact family residence",
                     "Specify your owned town or castle's settlement ID.",
                     "text"));
-                list.Add(new Field("CHAPTER V | BEGIN YOUR LEGACY","Review",
-                    "Confirm your household and starting fortune",
-                    "All details are ready for Bannerlord's native character review and difficulty settings.",
-                    "review"));
+                // The next real Bannerlord Review/Options stage already
+                // displays the final character. Do not insert a duplicate
+                // CU review page before that genuine native step.
             }
             return list;
         }
