@@ -148,8 +148,8 @@
  </ButtonWidget>
             <TextWidget Text="@Status" Color="#DDBB83FF"
               WidthSizePolicy="Fixed" SuggestedWidth="680"
-              HeightSizePolicy="Fixed" SuggestedHeight="86"
-              PositionXOffset="263" PositionYOffset="620"/>
+              HeightSizePolicy="Fixed" SuggestedHeight="42"
+              PositionXOffset="263" PositionYOffset="590"/>
             <TextWidget Text="YOUR STARTING PLAN" Color="#DDBB83FF"
               WidthSizePolicy="Fixed" SuggestedWidth="313"
               HeightSizePolicy="Fixed" SuggestedHeight="43"
@@ -163,8 +163,8 @@
             <TextWidget Text="The campaign engine owns all native culture, appearance, origin, clan and difficulty effects."
               Color="#BCCBD8FF" WidthSizePolicy="Fixed"
               SuggestedWidth="298" HeightSizePolicy="Fixed"
-              SuggestedHeight="129" HorizontalAlignment="Right"
-              PositionXOffset="-28" PositionYOffset="568"/>
+              SuggestedHeight="61" HorizontalAlignment="Right"
+              PositionXOffset="-28" PositionYOffset="564"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#203043FF"
               WidthSizePolicy="StretchToParent" MarginLeft="12"
               MarginRight="12" HeightSizePolicy="Fixed"
