@@ -265,6 +265,13 @@ namespace CalradiaUnified
 
             public void OnCharacterCreationFinalize(CharacterCreationManager manager)
             {
+                // CharacterCreationManager.ApplyFinalEffects invokes this
+                // BEFORE CharacterCreationState.FinalizeCharacterCreationState
+                // destroys the native screen. Release all CU Gauntlet movies
+                // here so ScreenBase cannot finalize a live CU movie twice.
+                CUNativeStateShell.Clear();
+                DiagnosticJournal.Event("cu_native_shell_released_before_finalization",
+                    "native_character_creator_owned_by_game=true");
                 DiagnosticJournal.Event("cu_native_sandbox_finish",
                     "native_handler_finished=true" +
                     "|native_review_opt_in=" +
