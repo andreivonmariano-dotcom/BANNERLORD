@@ -141,7 +141,7 @@
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
  HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
- PositionYOffset="537" Command.Click="ExecuteNativeDefault" IsVisible="@IsNumber">
+ PositionYOffset="537" Command.Click="ExecuteNativeDefault" IsVisible="@IsNativeDefaultAvailable">
  <Children><TextWidget Text="Use native default" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
