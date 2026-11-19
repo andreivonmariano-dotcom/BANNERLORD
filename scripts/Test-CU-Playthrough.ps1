@@ -125,12 +125,6 @@ $cuCultureSelected = Event-Last $session 'cu_native_culture_selected'
 $cuCultureConfirmed = Event-Last $session 'cu_native_culture_confirmed'
 $cuCultureCommitted = Event-Last $session 'cu_native_culture_commit_observed'
 $cuCultureFallback = Event-Last $session 'cu_native_culture_fallback'
-$cuFaceVerified = Event-Last $session 'cu_native_face_layers_verified'
-$cuCultureAttached = Event-Last $session 'cu_native_culture_composer_attached'
-$cuCultureSelected = Event-Last $session 'cu_native_culture_selected'
-$cuCultureConfirmed = Event-Last $session 'cu_native_culture_confirmed'
-$cuCultureCommitted = Event-Last $session 'cu_native_culture_commit_observed'
-$cuCultureFallback = Event-Last $session 'cu_native_culture_fallback'
 $faceSceneVerified = Event-Last $session 'cu_native_face_layers_verified'
 $galleryOpened = Event-Last $session 'cu_family_portraits_open'
 $galleryFailed = Event-Last $session 'cu_family_portrait_screen_failed'
@@ -192,7 +186,7 @@ if ($RequireNativeShell) {
             $nativeShellFailed.detail)
     }
 }
-if ($RequireCUCultureSelection) {
+if ($RequireCUCultureSelection -or $RequireCuCulture) {
     if ($null -eq $cuCultureAttached) {
         $issues.Add('CU native culture chooser was not attached to the actual culture stage')
     }
@@ -212,26 +206,9 @@ if ($RequireCUCultureSelection) {
         $issues.Add('CU culture chooser failed native binding: ' + $cuCultureFallback.detail)
     }
 }
-if ($RequireRealFaceScene -and $null -eq $faceSceneVerified) {
+if (($RequireRealFaceScene -or $RequireNativeFaceLayers) -and
+    $null -eq $faceSceneVerified) {
     $issues.Add('Real native BodyGeneratorView SceneLayer and GauntletLayer were not both observed')
-}
-if ($RequireCuCulture) {
-    foreach ($step in @(
-        @{name='CU culture chooser attached'; row=$cuCultureAttached},
-        @{name='CU native culture selected'; row=$cuCultureSelected},
-        @{name='CU culture confirmed'; row=$cuCultureConfirmed},
-        @{name='Real native culture committed'; row=$cuCultureCommitted}
-    )) {
-        if ($null -eq $step.row) {
-            $issues.Add('Missing ' + $step.name + ' in accepted CU session')
-        }
-    }
-    if ($null -ne $cuCultureFallback) {
-        $issues.Add('CU culture chooser fell back: ' + $cuCultureFallback.detail)
-    }
-}
-if ($RequireNativeFaceLayers -and $null -eq $cuFaceVerified) {
-    $issues.Add('Native 3D FaceGen scene and slider layer identity not recorded')
 }
 if ($ExpectedPortraits -ge 0) {
     if ($null -eq $galleryOpened) {
@@ -278,9 +255,7 @@ if ($sessionUtc) {
     Write-Host "CU native-state shell: $(if ($null -ne $nativeShellAttached) { 'ATTACHED (rendering needs visual check)' } elseif ($null -ne $nativeShellFailed) { 'FAILED' } else { 'not enabled or not logged' })"
     Write-Host "CU native culture chooser: $(if ($null -ne $cuCultureAttached) { 'ATTACHED' } elseif ($null -ne $cuCultureFallback) { 'NATIVE FALLBACK' } else { 'not logged' })"
     Write-Host "Native culture confirmed: $(if ($null -ne $cuCultureCommitted) { $cuCultureCommitted.detail } else { 'not verified' })"
-    Write-Host "Actual native FaceGen scene and sliders: $(if ($null -ne $cuFaceVerified) { 'VERIFIED BY RUNTIME LAYER REFERENCES' } else { 'not logged' })"
-    Write-Host "CU culture native selection: $(if ($null -ne $cuCultureCommitted) { $cuCultureCommitted.detail } else { 'not observed' })"
-    Write-Host "Real FaceGen layers: $(if ($null -ne $faceSceneVerified) { 'VERIFIED PRESENT (viewport position not proven)' } else { 'not observed' })"
+    Write-Host "Actual native FaceGen scene and sliders: $(if ($null -ne $faceSceneVerified) { 'VERIFIED BY RUNTIME LAYER REFERENCES (viewport position not proven)' } else { 'not logged' })"
     Write-Host "Real Hero portrait gallery: $(if ($null -ne $galleryOpened) { $galleryOpened.detail } else { 'not opened in latest accepted start' })"
 } else {
     Write-Host 'No accepted custom Sandbox start found in events.csv.'
@@ -316,12 +291,12 @@ $report = [ordered]@{
     native_shell_failed = ($null -ne $nativeShellFailed)
     cu_culture_required = [bool]$RequireCuCulture
     cu_culture_attached = ($null -ne $cuCultureAttached)
-    cu_culture_selected = ($null -ne $cuCultureSelected)
+    cu_culture_selection_logged = ($null -ne $cuCultureSelected)
     cu_culture_confirmed = ($null -ne $cuCultureConfirmed)
     cu_culture_committed = ($null -ne $cuCultureCommitted)
     cu_culture_fallback = ($null -ne $cuCultureFallback)
     native_face_layers_required = [bool]$RequireNativeFaceLayers
-    native_face_layers_verified = ($null -ne $cuFaceVerified)
+    native_face_layers_verified = ($null -ne $faceSceneVerified)
     cu_culture_selection_required = [bool]$RequireCUCultureSelection
     cu_culture_chooser_attached = ($null -ne $cuCultureAttached)
     cu_culture_selected_id = $(if ($null -ne $cuCultureSelected) { Detail-Value $cuCultureSelected.detail 'id' } else { '' })
