@@ -2,7 +2,7 @@
 <Module>
   <Name value="Calradia Unified - Native Five Chapter Stage Shell and Face Viewport Contract" />
   <Id value="CalradiaUnified" />
-  <Version value="v0.36.0" />
+  <Version value="v0.37.0" />
   <SingleplayerModule value="true" />
   <MultiplayerModule value="false" />
   <DependedModules>
