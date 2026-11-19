@@ -59,7 +59,18 @@ namespace CalradiaUnified
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
                     Object.ReferenceEquals(screen, skippedHost))
+                {
+                    // A failed CU culture decoration must not suppress the
+                    // independent post-narrative stats step. Its GameState
+                    // remains the untouched native CharacterCreationScreen.
+                    var fallbackProfile=SandboxOriginProfile.Load(
+                        SandboxOriginProfile.UserPath);
+                    if(fallbackProfile.Enabled &&
+                        fallbackProfile.NativeStateShellEnabled)
+                        CUNativeStatsLayer.Tick(screen,
+                            active.CharacterCreationManager);
                     return;
+                }
 
                 Detach();
                 var profile = SandboxOriginProfile.Load(
