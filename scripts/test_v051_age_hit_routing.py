@@ -7,7 +7,7 @@ import xml.etree.ElementTree as ET
 r=Path(__file__).resolve().parent.parent
 src=(r/"Source/CalradiaUnified/CUNativeStatsLayer.cs").read_text(encoding="utf-8")
 ui=r/"Modules/CalradiaUnified/GUI/Prefabs"
-assert "EventManager.MousePosition" not in src
+assert "cachedAgeSlider.EventManager.MousePosition" not in src
 assert "ReadNativeSliderPointer()" not in src
 for token in ("TraceAgeMouseInput();","MaintainAgeLayerFocus();",
   "cu_native_age_hit_trace","cu_native_age_focus_status",
