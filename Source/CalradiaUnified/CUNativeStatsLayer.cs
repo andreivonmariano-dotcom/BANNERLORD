@@ -686,9 +686,7 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string NextLabel
         {
-            get{return Mode=="Native"?"Confirm age & keep native stats":
-                pageIndex==2?"Confirm stats & continue":
-                "Next: "+SandboxStatBudgetPolicy.Pages[pageIndex+1];}
+            get{return CUNativeStatsNavigationPolicy.NextLabel(pageIndex);}
         }
         [DataSourceProperty] public string Status {get{return status;}}
     }
