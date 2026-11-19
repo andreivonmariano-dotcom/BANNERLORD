@@ -101,6 +101,9 @@ namespace CalradiaUnified
         public int SiblingCount;
 
         // Explicit overrides only; absent entry means retain the game's value.
+        // Native is the safe default. The dedicated post-origins editor
+        // changes this only after the real narrative has been completed.
+        public string ProgressionMode = "Native";
         public readonly SortedDictionary<string, int> Overrides =
             new SortedDictionary<string, int>(StringComparer.Ordinal);
         // Up to 12 exact, engine-resolved item IDs; missing IDs are never granted.
@@ -163,6 +166,8 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            ProgressionMode="Native";
+            Overrides.Clear();
             // Never carry unimplemented draft requests into a new campaign.
             PlayerAge=-1;
             StartingTown="";
@@ -222,6 +227,9 @@ namespace CalradiaUnified
                 case "OverhauledCreatorEnabled":
                     if (!Boolean.TryParse(value, out b)) return false;
                     OverhauledCreatorEnabled = b; return true;
+                case "ProgressionMode":
+                    if (!SandboxStatBudgetPolicy.IsMode(value)) return false;
+                    ProgressionMode = value; return true;
                 case "StartingCulture":
                     if (!Identifier(value, 80)) return false;
                     StartingCulture = value; return true;
@@ -426,6 +434,11 @@ namespace CalradiaUnified
         public bool IsValid(int actualPlayerAge, out string error)
         {
             error = "";
+            if (!SandboxStatBudgetPolicy.IsMode(ProgressionMode))
+            {
+                error = "Unknown starting-stats mode.";
+                return false;
+            }
             int playerAge = PlayerAge >= 18 ? PlayerAge : actualPlayerAge;
             if (playerAge < 18 || playerAge > 100)
             {
@@ -480,6 +493,7 @@ namespace CalradiaUnified
                 ", fief=" + (StartingFiefMode == "Native" ? "native" :
                     StartingFiefMode + ":" + StartingFiefId) +
                 ", town=" + (StartingTown.Length == 0 ? "native" : StartingTown) +
+                ", stat mode=" + ProgressionMode +
                 ", stat overrides=" + Overrides.Count +
                 ". Profile applies to a NEW Sandbox campaign only.";
         }
@@ -497,6 +511,7 @@ namespace CalradiaUnified
                 "OverhauledCreatorEnabled=" +
                     OverhauledCreatorEnabled.ToString().ToLowerInvariant(),
                 "StartingCulture=" + StartingCulture,
+                "ProgressionMode=" + ProgressionMode,
                 "NativeStageEnabled=" + NativeStageEnabled.ToString().ToLowerInvariant(),
                 "NativeIntegrationReviewEnabled=" +
                     NativeIntegrationReviewEnabled.ToString().ToLowerInvariant(),
