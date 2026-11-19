@@ -107,6 +107,9 @@ jobs:
       - name: Verify fullscreen native-style Sandbox and culture screens
         shell: pwsh
         run: python scripts/test_fullscreen_native_style.py
+      - name: Audit responsive full-screen CU and reversible original native FaceGen right dock
+        shell: pwsh
+        run: python scripts/test_responsive_native_face_trial.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
