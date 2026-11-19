@@ -23,6 +23,7 @@ xml=ET.parse(root/"Modules/CalradiaUnified/GUI/Prefabs/CUGuidedCreator.xml").get
 # creator. Both front and post-clan panels use exactly the same movie.
 assert 'viewModel = new CUGuidedCreatorVM(true,' in entry
 assert 'layer.LoadMovie("CUGuidedCreator", viewModel);' in entry
+assert 'if(viewModel!=null) viewModel.ExecuteBack();' in entry
 assert 'new CUGuidedCreatorVM(false,' in house
 assert 'nextMovie=next.LoadMovie("CUGuidedCreator",vm);' in house
 assert 'CUNativeHouseLayer.Tick(screen,' in shell
