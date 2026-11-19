@@ -138,11 +138,16 @@
                   HeightSizePolicy="Fixed" SuggestedHeight="103"
                   PositionXOffset="26" PositionYOffset="21"/>
                 <TextWidget Brush.FontSize="15"
-                  Text="18                                         80 YEARS"
-                  Color="#B9996EFF"
-                  WidthSizePolicy="Fixed" SuggestedWidth="520"
+                  Text="18 YEARS" Color="#B9996EFF"
+                  WidthSizePolicy="Fixed" SuggestedWidth="120"
                   HeightSizePolicy="Fixed" SuggestedHeight="27"
-                  PositionXOffset="87" PositionYOffset="131"/>
+                  PositionXOffset="81" PositionYOffset="131"/>
+                <TextWidget Brush.FontSize="15"
+                  Text="80 YEARS" Color="#B9996EFF"
+                  Brush.TextHorizontalAlignment="Right"
+                  WidthSizePolicy="Fixed" SuggestedWidth="120"
+                  HeightSizePolicy="Fixed" SuggestedHeight="27"
+                  PositionXOffset="485" PositionYOffset="131"/>
                 <SliderWidget Id="CUPlayerAgeSlider"
                   WidthSizePolicy="Fixed" SuggestedWidth="524"
                   HeightSizePolicy="Fixed" SuggestedHeight="49"

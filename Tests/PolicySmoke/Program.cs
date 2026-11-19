@@ -90,6 +90,20 @@ internal static class Program
             !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
                 false,true,true,false,true));
 
+        Check("native age slider maps endpoints to 18 and 80",
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,120f,20f)==18 &&
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,580f,20f)==80);
+        Check("native age slider midpoint and handle grip",
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,350f,20f)==49 &&
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,345f,15f)==49 &&
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,-500f,20f)==18 &&
+            SandboxFamilyAgePolicy.AgeFromSliderPointer(
+                100f,500f,40f,1500f,20f)==80);
         Check("exact birthday matches requested spouse age, not donor age",
             SandboxFamilyAgePolicy.MatchesRequestedAge(48.0f,48) &&
             SandboxFamilyAgePolicy.MatchesRequestedAge(48.03f,48) &&

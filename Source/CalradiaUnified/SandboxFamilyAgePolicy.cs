@@ -38,6 +38,26 @@ namespace CalradiaUnified
                 requested>=0 && Math.Abs(actual-requested)<0.1f;
         }
 
+        // Map actual native UIContext pointer coordinates to the desired
+        // one-year age step. Preserve the user's offset from a grabbed
+        // handle so the thumb does not jump on the initial mouse press.
+        public static int AgeFromSliderPointer(float trackLeft,
+            float trackWidth,float handleWidth,float mouseX,
+            float grabOffset)
+        {
+            float travel=trackWidth-handleWidth;
+            if(Single.IsNaN(travel) || Single.IsInfinity(travel) ||
+                travel<=0f || Single.IsNaN(mouseX) ||
+                Single.IsInfinity(mouseX) ||
+                Single.IsNaN(trackLeft) || Single.IsInfinity(trackLeft))
+                return MinimumPlayerAge;
+            float position=(mouseX-grabOffset-trackLeft)/travel;
+            position=Math.Max(0f,Math.Min(1f,position));
+            return MinimumPlayerAge+(int)Math.Round(
+                position*(MaximumPlayerAge-MinimumPlayerAge),
+                MidpointRounding.AwayFromZero);
+        }
+
         public static bool ValidPlayerAge(int age)
         {
             return age>=MinimumPlayerAge && age<=MaximumPlayerAge;
