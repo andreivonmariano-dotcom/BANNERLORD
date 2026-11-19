@@ -124,6 +124,10 @@ namespace CalradiaUnified
                     "Begin married?",
                     "Your character's native age and culture are now known. No spouse is created until the campaign begins.",
                     "boolean"));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE","FamilyScenario",
+                    "Household story",
+                    "Natural: varied personalities. Honorable: honorable spouse, kinder children. Martial, Scholarly, Mercantile or Strained change family bonds and upbringing.",
+                    choices:SandboxFamilyDevelopmentPolicy.Scenarios));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseName",
                     "Spouse name","Name your generated starting spouse.","text"));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseAge",
@@ -161,6 +165,10 @@ namespace CalradiaUnified
                         prefix+"Gender","Child "+i+" | Gender",
                         "Set this child's native sex.",
                         choices:new[]{"Female","Male"}));
+                    list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                        prefix+"Upbringing","Child "+i+" | Upbringing",
+                        "FamilyTradition follows the household story; choose Kind, Martial, Scholarly, Mercantile or Independent for this child.",
+                        choices:SandboxFamilyDevelopmentPolicy.Upbringings));
                 }
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
@@ -216,7 +224,8 @@ namespace CalradiaUnified
             if(key=="StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
-            if(key=="SpouseName" || key=="SpouseAge" ||
+            if(key=="FamilyScenario" ||
+                key=="SpouseName" || key=="SpouseAge" ||
                 key=="SpouseGender" || key=="SpouseBackground" ||
                 key=="SpouseCulture")
                 return profile.SpouseEnabled;
@@ -322,6 +331,7 @@ namespace CalradiaUnified
                     case "Name":return child.Name;
                     case "Age":return child.Age.ToString(CultureInfo.InvariantCulture);
                     case "Gender":return child.Gender;
+                    case "Upbringing":return child.Upbringing;
                 }
             }
             return "";
@@ -583,7 +593,11 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_guided_house_fortune_committed",
                 "age="+actualAge+"|spouse="+candidate.SpouseEnabled+
                 "|spouse_age="+candidate.SpouseAge+
+                "|family_scenario="+candidate.FamilyScenario+
                 "|children="+candidate.ChildCount+
+                "|child_upbringings="+String.Join(",",
+                    candidate.Children.Take(candidate.ChildCount)
+                        .Select(x=>x.Upbringing)) +
                 "|child_ages="+String.Join(",",
                     candidate.Children.Take(candidate.ChildCount)
                         .Select(x=>x.Age.ToString()))+
@@ -713,6 +727,8 @@ namespace CalradiaUnified
                     "Role: "+profile.Role+"\n"+
                     "Spouse: "+(profile.SpouseEnabled?profile.SpouseName:
                         "No spouse")+"\n"+
+                    "Household: "+(profile.SpouseEnabled?
+                        profile.FamilyScenario:"None")+"\n"+
                     "Children: "+profile.ChildCount+"\n"+
                     "Gold: "+(profile.Gold<0?"Native":
                         profile.Gold.ToString())+"\n"+

@@ -11,8 +11,91 @@ internal static class Program
         passed++;
         Console.WriteLine("PASS " + name);
     }
+    private static bool ResetAndCheck(SandboxOriginProfile plan)
+    {
+        plan.ResetForNewCampaign();
+        return true;
+    }
     private static void Main()
     {
+        var family=new SandboxOriginProfile();
+        Check("family starts natural and no old preset leaks",
+            family.FamilyScenario=="Natural" &&
+            family.Children.All(c=>c.Upbringing=="FamilyTradition"));
+        Check("six choices for household story and per-child upbringing",
+            SandboxFamilyDevelopmentPolicy.Scenarios.Length==6 &&
+            SandboxFamilyDevelopmentPolicy.Upbringings.Length==6 &&
+            SandboxFamilyDevelopmentPolicy.IsScenario("Honorable") &&
+            !SandboxFamilyDevelopmentPolicy.IsScenario("Nonexistent"));
+        Check("family story and upbringing persist in profile",
+            family.TrySet("FamilyScenario","Honorable") &&
+            family.TrySet("Child.1.Upbringing","Kind") &&
+            SandboxOriginProfile.Parse(family.Serialize()).FamilyScenario==
+                "Honorable" &&
+            SandboxOriginProfile.Parse(family.Serialize())
+                .Children[0].Upbringing=="Kind");
+        Check("no unsupported upbringing or family story",
+            !family.TrySet("FamilyScenario","Exploit") &&
+            !family.TrySet("Child.1.Upbringing","Unknown") &&
+            !family.TrySet("Sibling.1.Upbringing","Kind"));
+        Check("new Sandbox reset clears household personalities",
+            family.Children[0].Upbringing=="Kind" &&
+            ResetAndCheck(family) &&
+            family.FamilyScenario=="Natural" &&
+            family.Children[0].Upbringing=="FamilyTradition");
+        Check("honorable marriage and kind children's bias",
+            SandboxFamilyDevelopmentPolicy.Bias(
+                "Honorable","FamilyTradition","Honor",true)==2 &&
+            SandboxFamilyDevelopmentPolicy.Bias(
+                "Honorable","FamilyTradition","Mercy",false)==2 &&
+            SandboxFamilyDevelopmentPolicy.ResolveUpbringing(
+                "Honorable","FamilyTradition")=="Kind");
+        Check("independent child upbringing overrides family default",
+            SandboxFamilyDevelopmentPolicy.ResolveUpbringing(
+                "Honorable","Martial")=="Martial" &&
+            SandboxFamilyDevelopmentPolicy.Bias(
+                "Honorable","Martial","Valor",false)==2);
+        Check("children inherit from either parent and can differ",
+            SandboxFamilyDevelopmentPolicy.PersonalityValue(
+                2,-1,0,1,0,20,false)==2 &&
+            SandboxFamilyDevelopmentPolicy.PersonalityValue(
+                2,-1,0,31,0,20,false)==-1 &&
+            SandboxFamilyDevelopmentPolicy.PersonalityValue(
+                0,0,2,65,0,20,true)>=1);
+        Check("adult child skills are age-appropriate and never zero",
+            SandboxFamilyDevelopmentPolicy.SkillLevel(18,0,0)>=40 &&
+            SandboxFamilyDevelopmentPolicy.SkillLevel(25,2,0)>20 &&
+            SandboxFamilyDevelopmentPolicy.SkillLevel(16,1,0)>0 &&
+            SandboxFamilyDevelopmentPolicy.SkillLevel(4,0,9)==0 &&
+            SandboxFamilyDevelopmentPolicy.Training("Martial").Length>=5);
+        Check("family relation story ranges include warm and strained",
+            SandboxFamilyDevelopmentPolicy.SpouseRelationBase(
+                "Honorable")>70 &&
+            SandboxFamilyDevelopmentPolicy.ChildRelationBase(
+                "Honorable")>60 &&
+            SandboxFamilyDevelopmentPolicy.SpouseRelationBase(
+                "Strained")<20 &&
+            SandboxFamilyDevelopmentPolicy.ClampRelation(123)==100);
+        var growth=new SandboxFamilyGrowthState();
+        growth.SetScenario("Honorable");
+        growth.Register("generated_child_a","Kind",10);
+        Check("historical milestones not granted twice",
+            growth.LastMilestone("generated_child_a")==10 &&
+            !growth.TryAdvance("generated_child_a",10,out _) &&
+            growth.TryAdvance("generated_child_a",14,out _) &&
+            !growth.TryAdvance("generated_child_a",14,out _));
+        var loaded=SandboxFamilyGrowthState.Parse(growth.Serialize());
+        Check("upbringing survives campaign save/reload without replay",
+            loaded.Scenario=="Honorable" &&
+            loaded.Count==1 &&
+            loaded.LastMilestone("generated_child_a")==14 &&
+            !loaded.TryAdvance("generated_child_a",10,out _) &&
+            loaded.TryAdvance("generated_child_a",18,out var future) &&
+            future=="Kind");
+        Check("only milestone ages can grant upbringing changes",
+            !loaded.TryAdvance("generated_child_a",19,out _) &&
+            SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(18) &&
+            !SandboxFamilyDevelopmentPolicy.IsDevelopmentMilestone(17));
         Check("four fixed Chapter II pages independent of stats mode",
             CUNativeStatsNavigationPolicy.Age==-1 &&
             CUNativeStatsNavigationPolicy.Attributes==0 &&

@@ -191,6 +191,11 @@ namespace CalradiaUnified
                     if (spouseHero.Clan != Clan.PlayerClan)
                         throw new InvalidOperationException(
                             "Spouse was not moved into the player's clan");
+                    // The new Hero now belongs to the real married
+                    // family. Train native skills, set a distinct
+                    // personality and establish actual starting relations.
+                    SandboxFamilyDevelopment.Spouse(
+                        profile,player,spouseHero);
                     DiagnosticJournal.Event("cu_family_spouse_created",
                         "id=" + spouseHero.StringId +
                         "|birth_background=" + profile.SpouseBackground +
@@ -282,6 +287,8 @@ namespace CalradiaUnified
                         !mother.Children.Contains(child))
                         throw new InvalidOperationException(
                             "Child was created without complete native family links");
+                    SandboxFamilyDevelopment.Child(
+                        profile,player,spouseHero,child,childProfile,i);
                     madeChildren++;
                     DiagnosticJournal.Event("cu_family_child_created",
                         "id=" + child.StringId + "|age=" + childProfile.Age);
