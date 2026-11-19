@@ -174,6 +174,7 @@ namespace CalradiaUnified
         private string culture = "CULTURE: PENDING";
         private bool isFaceStage;
         private string faceStatus = "";
+        private bool cultureCommitObserved;
 
         public CUNativeStateShellVM(SandboxOriginProfile profile)
         {
@@ -201,6 +202,15 @@ namespace CalradiaUnified
             string cultureNext = selected == null ?
                 "CULTURE: PENDING" :
                 "CULTURE: " + selected.Name.ToString();
+            if (stageName=="CharacterCreationFaceGeneratorStage" &&
+                selected!=null && !cultureCommitObserved)
+            {
+                cultureCommitObserved=true;
+                DiagnosticJournal.Event("cu_native_culture_commit_observed",
+                    "real_selected_culture="+selected.StringId+
+                    "|current_stage=CharacterCreationFaceGeneratorStage" +
+                    "|native_manager=true");
+            }
             if (chapterNext != chapter)
             {
                 chapter = chapterNext;
