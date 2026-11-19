@@ -65,7 +65,8 @@ namespace CalradiaUnified
                     // remains the untouched native CharacterCreationScreen.
                     var fallbackProfile=SandboxOriginProfile.Load(
                         SandboxOriginProfile.UserPath);
-                    if(fallbackProfile.Enabled &&
+                    if(SandboxCreatorOverlay.HasAcceptedCustomStart &&
+                        fallbackProfile.Enabled &&
                         fallbackProfile.NativeStateShellEnabled)
                         CUNativeStatsLayer.Tick(screen,
                             active.CharacterCreationManager);
