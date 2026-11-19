@@ -69,7 +69,7 @@ assert '"Lord": return "vassal"' not in aso or 'case "Lord": return "vassal"' in
 assert 'case "Lord": return "vassal"' in aso or 'case "Lord": return "vassal";' in aso or ('case "Lord": return "vassal"' in aso) or ('case "Lord":' in aso and 'case "Knight":' in aso)
 assert "new CUSandboxNoIntroGameManager(" in src
 assert "public override void OnLoadFinished()" in (
-    root/"Source/CalradiaUnified/CUSandboxNoIntroGameManager.cs").read_text(encoding="utf-8")
+    ROOT/"Source/CalradiaUnified/CUSandboxNoIntroGameManager.cs").read_text(encoding="utf-8")
 assert "MBGameManager.StartNewGame(" in src
 assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
 assert "SandboxCreatorOverlay.Arm(manager)" not in origin
