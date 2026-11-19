@@ -95,6 +95,9 @@ jobs:
       - name: Check persistent CU native-state culture and face shell pilot
         shell: pwsh
         run: python scripts/test_cu_native_state_shell.py
+      - name: Check native-bound CU culture chooser and real 3D face ownership
+        shell: pwsh
+        run: python scripts/test_cu_native_culture_composition.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
