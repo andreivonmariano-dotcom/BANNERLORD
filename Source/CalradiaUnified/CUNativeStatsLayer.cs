@@ -609,10 +609,13 @@ namespace CalradiaUnified
             }
         }
         [DataSourceProperty] public int Minimum
-            {get{return key.StartsWith("Attribute.")?1:
+            {get{return key==SandboxFamilyLevelPolicy.Key?1:
+                key.StartsWith("Attribute.")?1:
                 key.StartsWith("Trait.")?-2:0;}}
         [DataSourceProperty] public int Maximum
-            {get{return key.StartsWith("Attribute.")?10:
+            {get{return key==SandboxFamilyLevelPolicy.Key?
+                SandboxFamilyLevelPolicy.Maximum:
+                key.StartsWith("Attribute.")?10:
                 key.StartsWith("Trait.")?2:
                 key.StartsWith("Focus.")?5:330;}}
         [DataSourceProperty] public int Increment
@@ -675,9 +678,15 @@ namespace CalradiaUnified
             baseline=CUNativeStatsSnapshot.Capture(Hero.MainHero);
             spouseBaseline=new SortedDictionary<string,int>(
                 StringComparer.Ordinal);
+            // No spouse Hero exists yet. Display a provisional level,
+            // never claim that this is the generated character's actual
+            // native starting level. Manual entry is applied exactly later.
+            spouseBaseline[SandboxFamilyLevelPolicy.Key]=
+                Math.Max(1,Math.Min(SandboxFamilyLevelPolicy.Maximum,
+                    8+(profile.SpouseAge-18)/3));
             foreach(var name in SandboxOriginProfile.Attributes)
                 spouseBaseline["Attribute."+name]=3;
-            foreach(var name in SandboxOriginProfile.Skills)
+            foreach(var name in SandboxNativeSkillCatalog.AvailableNames())
             {
                 spouseBaseline["Skill."+name]=0;
                 spouseBaseline["Focus."+name]=0;
@@ -701,11 +710,13 @@ namespace CalradiaUnified
             Rows.Clear();
             if(pageIndex>=0)
             {
-                // Display every game stat in ONE scrollable collection.
-                // Parents are switched without losing their drafts.
+                // Display one level slider and all live native stats
+                // together, with optional War Sails skills if registered.
+                AddRow(SandboxFamilyLevelPolicy.Key,
+                    "Hero level | 1-50. XP matched to the selected level.");
                 foreach(string name in SandboxOriginProfile.Attributes)
                     AddRow("Attribute."+name,"Native attribute | 1-10");
-                foreach(string name in SandboxOriginProfile.Skills)
+                foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
                 {
                     AddRow("Skill."+name,
                         "Native skill | 0-330 | inherited training");
@@ -734,6 +745,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsPlayerTarget,"IsPlayerTarget");
             OnPropertyChangedWithValue(IsSpouseTarget,"IsSpouseTarget");
             OnPropertyChangedWithValue(TargetHelp,"TargetHelp");
+            OnPropertyChangedWithValue(NavalStatus,"NavalStatus");
             OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
             OnPropertyChangedWithValue(status,"Status");
         }
@@ -772,13 +784,17 @@ namespace CalradiaUnified
             {get{return !editingSpouse;}}
         [DataSourceProperty] public bool IsSpouseTarget
             {get{return editingSpouse;}}
+        [DataSourceProperty] public string NavalStatus
+            {get{return SandboxNativeSkillCatalog.Status();}}
         [DataSourceProperty] public string TargetHelp
             {get{return editingSpouse ?
                 "SPOUSE | AUTO keeps native values. Drag a slider to set an"+
-                " exact requested starting value. Your child inherits"+
+                " exact requested starting value, including level and"+
+                " registered naval skills. Children inherit training"+
                 " from both parents after House creation." :
                 "PLAYER | All native attributes, skills, focus and traits"+
-                " in one place. Choose Balanced or Unrestricted to edit.";}}
+                " and level in one scrollable page. Choose Balanced or"+
+                " Unrestricted to edit. Naval skills appear with War Sails.";}}
 
         private void AddRow(string key,string help)
         {
