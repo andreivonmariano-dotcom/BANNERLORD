@@ -50,16 +50,32 @@ try{
         catch [Reflection.ReflectionTypeLoadException]{
             $types=@($_.Exception.Types|Where-Object{$null -ne $_})
         }
-        foreach($type in $types|Where-Object{
+        $selected=@($types|Where-Object{
             $_.Name -match '^(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|BrushState|GauntletLayer|GauntletMovieIdentifier|Color|CharacterCreation.+View|CharacterCreationScreen)$'
-        }|Sort-Object FullName){
+        })
+        foreach($nativeType in @(
+            'TaleWorlds.GauntletUI.BaseTypes.Widget',
+            'TaleWorlds.GauntletUI.BaseTypes.TextWidget',
+            'TaleWorlds.GauntletUI.BaseTypes.ButtonWidget',
+            'TaleWorlds.Engine.GauntletUI.GauntletLayer'
+        )){
+            try{
+                $target=$asm.GetType($nativeType,$false)
+                if($target -and -not ($selected|Where-Object{
+                    $_.FullName -eq $target.FullName})){
+                    $selected+=@($target)
+                }
+            }catch{$lines.Add('TYPE_LOOKUP_FAILED '+$nativeType)}
+        }
+        foreach($type in $selected|Sort-Object FullName -Unique){
             $lines.Add('')
             $lines.Add('TYPE '+$type.FullName+' BASE '+$type.BaseType.FullName)
             foreach($c in $type.GetConstructors($flags)){
                 try{$lines.Add('CTOR '+$c.ToString())}
                 catch{$lines.Add('CTOR '+$c.Name+' [dependency unresolved]')}
             }
-            foreach($p in $type.GetProperties($flags)){
+            foreach($p in $type.GetProperties(
+                [Reflection.BindingFlags]'Public,NonPublic,Instance,Static')){
                 try{$lines.Add('PROPERTY '+$p.ToString()+' CANWRITE='+$p.CanWrite)}
                 catch{$lines.Add('PROPERTY '+$p.Name+' CANWRITE='+$p.CanWrite+' [dependency unresolved]')}
             }
