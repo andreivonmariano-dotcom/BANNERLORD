@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.35.0 experimental native face workshop
+name: Calradia Unified 1.5.7 - v0.35.0 native culture and FaceGen bridge
 on:
   workflow_dispatch:
   push:
@@ -98,6 +98,9 @@ jobs:
       - name: Check native-bound CU culture chooser and real 3D face ownership
         shell: pwsh
         run: python scripts/test_cu_native_culture_composition.py
+      - name: Audit native-bound CU culture chooser and real FaceGen scene retention
+        shell: pwsh
+        run: python scripts/test_native_culture_and_face_dock.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
