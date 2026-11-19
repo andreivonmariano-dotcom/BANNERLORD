@@ -73,6 +73,11 @@
               WidthSizePolicy="Fixed" SuggestedWidth="214"
               HeightSizePolicy="Fixed" SuggestedHeight="70"
               PositionXOffset="22" PositionYOffset="353"/>
+            <TextWidget Brush.FontSize="13" Text="@NavalStatus"
+              Color="#D8B884FF" IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="214"
+              HeightSizePolicy="Fixed" SuggestedHeight="70"
+              PositionXOffset="22" PositionYOffset="429"/>
             <ButtonWidget Brush="ButtonBrush" Id="CUStatsEditPlayer"
               DoNotPassEventsToChildren="true"
               UpdateChildrenStates="true"
