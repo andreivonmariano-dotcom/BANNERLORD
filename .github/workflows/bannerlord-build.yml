@@ -113,6 +113,9 @@ jobs:
       - name: Verify new Sandbox auto-attaches the native bridge without experimental toggles
         shell: pwsh
         run: python scripts/test_auto_native_creator_bridge.py
+      - name: Verify post-origins native attributes skills and trait editor
+        shell: pwsh
+        run: python scripts/test_post_origin_stats.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
