@@ -8,6 +8,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 
@@ -90,8 +91,16 @@ namespace CalradiaUnified
                 }
                 return;
             }
+            if (Object.ReferenceEquals(host,screen))
+            {
+                // Match native Escape=Back. Teardown remains deferred,
+                // outside the movie click / input callback.
+                if(ScreenManager.FocusedLayer==layer &&
+                    Input.IsKeyReleased(InputKey.Escape))
+                    backRequested=true;
+                return;
+            }
             if (!narrativeSeen || completed ||
-                Object.ReferenceEquals(host,screen) ||
                 Object.ReferenceEquals(failedHost,screen))
                 return;
 
