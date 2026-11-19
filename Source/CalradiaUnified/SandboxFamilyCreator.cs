@@ -258,7 +258,9 @@ namespace CalradiaUnified
                         SandboxFamilySkillInheritancePolicy.IsYouth(
                             childProfile.Age))
                     {
-                        child.BeardTags="";
+                        // Pinned Hero 1.5.7 does not expose BeardTags
+                        // as a public member. Use the actual FaceGen API
+                        // to select its clean-shaven beard index.
                         child.ModifyHair(-1,0,-1);
                         DiagnosticJournal.Event("cu_family_youth_face",
                             "id="+child.StringId+
