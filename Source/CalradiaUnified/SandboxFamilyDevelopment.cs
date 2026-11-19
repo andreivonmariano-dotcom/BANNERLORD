@@ -68,6 +68,27 @@ namespace CalradiaUnified
             if(h==null || h.HeroDeveloper==null)
                 throw new InvalidOperationException(
                     "Generated relative has no native HeroDeveloper");
+            // An adult created from an offspring template can have
+            // missing attributes along with zero skills. Keep native
+            // higher attributes and supply only an age-based floor.
+            int positiveAttributes=0;
+            foreach(string name in SandboxOriginProfile.Attributes)
+            {
+                var prop=typeof(DefaultCharacterAttributes).GetProperty(name,
+                    BindingFlags.Public|BindingFlags.Static);
+                var attribute=prop==null?null:
+                    prop.GetValue(null,null) as CharacterAttribute;
+                if(attribute==null)
+                    throw new InvalidOperationException(
+                        "Native attribute missing: "+name);
+                int actual=h.HeroDeveloper.GetAttributeValue(attribute);
+                int minimum=h.Age>=18f?2:1;
+                if(actual<minimum)
+                    h.HeroDeveloper.AddAttribute(
+                        attribute,minimum-actual,false);
+                if(h.HeroDeveloper.GetAttributeValue(attribute)>0)
+                    positiveAttributes++;
+            }
             var random=RandomHero();
             var names=SandboxFamilyDevelopmentPolicy.Training(upbringing);
             for(int i=0;i<names.Length;i++)
@@ -96,7 +117,11 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_family_native_skills_audited",
                 "hero="+h.StringId+"|age="+h.Age+
                 "|upbringing="+upbringing+
-                "|positive_skill_count="+positive);
+                "|positive_skill_count="+positive+
+                "|positive_attribute_count="+positiveAttributes);
+            if(h.Age>=18f && positiveAttributes<6)
+                throw new InvalidOperationException(
+                    "Adult relative has missing native attributes");
             if(h.Age>=18f && positive<3)
                 throw new InvalidOperationException(
                     "Adult relative has fewer than three developed native skills");
