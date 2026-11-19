@@ -12,6 +12,32 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("starting character age permits each adult year 18 to 80",
+            SandboxFamilyAgePolicy.ValidPlayerAge(18) &&
+            SandboxFamilyAgePolicy.ValidPlayerAge(37) &&
+            SandboxFamilyAgePolicy.ValidPlayerAge(80) &&
+            !SandboxFamilyAgePolicy.ValidPlayerAge(17) &&
+            !SandboxFamilyAgePolicy.ValidPlayerAge(81));
+        Check("maximum child age follows younger actual parent, not age 30",
+            SandboxFamilyAgePolicy.ChildAgeMaximum(35,30)==14 &&
+            SandboxFamilyAgePolicy.ChildAgeMaximum(60,25)==9 &&
+            SandboxFamilyAgePolicy.ChildAgeMaximum(50,60)==34);
+        Check("child age never exceeds 55 or drops below 0",
+            SandboxFamilyAgePolicy.ChildAgeMaximum(75,80)==55 &&
+            SandboxFamilyAgePolicy.ChildAgeMaximum(18,18)==2 &&
+            SandboxFamilyAgePolicy.ClampChildAge(28,20,40)==4 &&
+            SandboxFamilyAgePolicy.ClampChildAge(-5,20,40)==0);
+        Check("age eligibility is shown before parent-age validation",
+            SandboxFamilyAgePolicy.CanChooseChildAge(10,26,31) &&
+            !SandboxFamilyAgePolicy.CanChooseChildAge(11,26,31) &&
+            SandboxFamilyAgePolicy.CanChooseChildAge(0,18,18));
+        Check("skill levels reach 330 even though focus caps at five",
+            SandboxStatBudgetPolicy.InRange("Skill.Riding",330) &&
+            !SandboxStatBudgetPolicy.InRange("Skill.Riding",331) &&
+            SandboxStatBudgetPolicy.InRange("Focus.Riding",5) &&
+            !SandboxStatBudgetPolicy.InRange("Focus.Riding",6) &&
+            SandboxStatBudgetPolicy.Step("Skill.Riding")==10);
+
         Check("native content alignment targets story clan review and difficulty",
             CUNativeLayoutPolicy.CanMovePrimaryPanel(
                 "CharacterCreationNarrativeStage") &&
@@ -220,26 +246,26 @@ internal static class Program
                 "CharacterCreationCultureStage") &&
             !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationFaceGeneratorStage"));
-        Check("native origins, banner, clan, review and difficulty use safe chrome",
-            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+        Check("native original titles remain unoccluded by CU duplicate chrome",
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationNarrativeStage") &&
-            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationBannerEditorStage") &&
-            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationClanNamingStage") &&
-            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationReviewStage") &&
-            CUNativeVisualPolicy.IsStandaloneNativeChrome(
+            !CUNativeVisualPolicy.IsStandaloneNativeChrome(
                 "CharacterCreationOptionsStage"));
         Check("compact 1366 leaves original native controls unobscured",
             !CUNativeVisualPolicy.ShouldShowChapterRail(
                 "CharacterCreationNarrativeStage",1366) &&
             !CUNativeVisualPolicy.ShouldShowChapterRail(
                 "CharacterCreationOptionsStage",1366));
-        Check("wide 1920 allows readable chapter and context panes",
-            CUNativeVisualPolicy.ShouldShowChapterRail(
+        Check("native full-screen stages never receive a covering CU rail",
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
                 "CharacterCreationNarrativeStage",1920) &&
-            CUNativeVisualPolicy.ShouldShowChapterRail(
+            !CUNativeVisualPolicy.ShouldShowChapterRail(
                 "CharacterCreationReviewStage",1920));
         Check("native 3D FaceGen never gets an opaque chapter rail",
             !CUNativeVisualPolicy.ShouldShowChapterRail(
