@@ -41,6 +41,15 @@ assert 'ContentScore(widget,nativeStage)' in aligned
 assert 'CUNativeLayoutPolicy.TryPlanPrimary(' in aligned
 assert 'CUNativeLayoutPolicy.FitsPrimary(' in aligned
 assert 'CUNativeLayoutPolicy.TryPlanFooter(' in aligned
+assert 'CUNativeLayoutPolicy.TryPlanLabelPadding(' in aligned
+assert 'private static void TryPadNativeButtonLabels(' in aligned
+assert 'margins.Add(new SavedMargin(widget,left,right,' in aligned
+assert 'item.LeftProperty.SetValue(item.Widget,' in aligned
+assert 'item.RightProperty.SetValue(item.Widget,' in aligned
+assert '"cu_native_layout_button_padding"' in aligned
+assert 'native_labels="+labelsPadded' in aligned
+assert 'original native buttons get symmetric CU text padding' in test
+assert 'long localized native button labels are never clipped' in test
 assert 'CUNativeLayoutPolicy.CanSkin' not in aligned
 assert 'CUNativeWidgetSkinPolicy.CanSkinClanTextInput(' in aligned
 assert 'CUNativeWidgetSkinPolicy.CanSkinDifficultySlider(' in aligned
