@@ -62,6 +62,8 @@ namespace CalradiaUnified
                         active.CharacterCreationManager);
                     CUNativeControlSkin.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeLayoutAlignment.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -148,6 +150,8 @@ namespace CalradiaUnified
                     active.CharacterCreationManager);
                 CUNativeControlSkin.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeLayoutAlignment.Tick(screen,
+                    active.CharacterCreationManager);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -182,6 +186,7 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeLayoutAlignment.Clear();
             CUNativeControlSkin.Clear();
             CUNativeHouseLayer.Clear();
             CUNativeStatsLayer.Clear();
@@ -312,7 +317,8 @@ namespace CalradiaUnified
                     "IsNativeChromeVisible");
             }
             bool nextRail=CUNativeVisualPolicy.ShouldShowChapterRail(
-                stageName,(int)Screen.RealScreenResolutionWidth);
+                stageName,(int)Screen.RealScreenResolutionWidth) &&
+                CUNativeLayoutAlignment.IsWideRailSafe(stageName);
             if(nextRail!=nativeRailVisible)
             {
                 nativeRailVisible=nextRail;

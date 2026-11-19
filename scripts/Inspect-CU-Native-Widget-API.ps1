@@ -38,6 +38,20 @@ $resolver=[ResolveEventHandler]{
     catch{return $null}
 }
 [AppDomain]::CurrentDomain.add_ReflectionOnlyAssemblyResolve($resolver)
+# Reflection-only GetType on real widget classes resolves Vector2
+# signatures eagerly. Windows PowerShell 5.1 requires explicitly
+# preloading the .NET Framework vectors assembly.
+try {
+    if($script:referencePaths.ContainsKey('System.Numerics.Vectors')){
+        [void][Reflection.Assembly]::ReflectionOnlyLoadFrom(
+            $script:referencePaths['System.Numerics.Vectors'])
+    } else {
+        [void][Reflection.Assembly]::ReflectionOnlyLoad(
+            'System.Numerics.Vectors, Version=4.1.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a')
+    }
+} catch {
+    Write-Output ('WIDGET_LAYOUT_VECTOR_PREFETCH_UNAVAILABLE '+$_.Exception.Message)
+}
 try{
     $lines=New-Object 'System.Collections.Generic.List[string]'
     $lines.Add('PINNED '+$ReferenceVersion)
@@ -66,7 +80,15 @@ try{
                     $_.FullName -eq $target.FullName})){
                     $selected+=@($target)
                 }
-            }catch{$lines.Add('TYPE_LOOKUP_FAILED '+$nativeType)}
+            }catch{$lines.Add('TYPE_LOOKUP_FAILED '+$nativeType+
+                ' ERROR '+$_.Exception.Message)}
+        }
+        $w=@($types|Where-Object{
+            $_.Name -match '^(Widget|BrushWidget|TextWidget|ButtonWidget|ListPanel|GridWidget|EditableTextWidget)$'
+        })
+        foreach($widgetType in $w){
+            $lines.Add('LAYOUT_WIDGET_FOUND '+$widgetType.FullName+
+                ' ASSEMBLY '+$name)
         }
         foreach($type in $selected|Sort-Object FullName -Unique){
             $lines.Add('')
@@ -99,6 +121,9 @@ try{
         ' version='+$ReferenceVersion)
     Write-Output ('WIDGET_API_AUDIT_REPORT '+$out)
     $lines|Where-Object{
+        $_ -match '^TYPE_LOOKUP_FAILED' -or
+        $_ -match '^LAYOUT_WIDGET_FOUND' -or
+        $_ -match '^PROPERTY .* (PositionXOffset|PositionYOffset|MarginTop|MarginBottom|MarginLeft|MarginRight|SuggestedWidth|SuggestedHeight|ActualWidth|ActualHeight|HorizontalAlignment|VerticalAlignment|WidthSizePolicy|HeightSizePolicy)' -or
         $_ -match '^TYPE .*\.(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|GauntletLayer|GauntletMovieIdentifier|Color)' -or
         $_ -match '^PROPERTY .* (Color|Brush|Sprite|IsEnabled|IsVisible|Movie|RootWidget|FontSize)'
     }|Select-Object -First 100

@@ -1,3 +1,17 @@
+# Calradia Unified v0.44 development: aligned native creator control positions
+
+**Native layout alignment:** The original Bannerlord narrative, clan naming, review and difficulty controls now have a measured, bounded layout adjustment path compatible with the CU guided creator's header, 226px wide chapter rail, right context panel and footer. Native banner editor content, real 3D FaceGen and heraldry symbols remain game-owned and unshifted; original native Back/Continue footer controls receive measured alignment only where safe. Text-bearing native buttons can receive symmetric 12px interior label spacing, preserving long localized labels and click targets.
+
+**Version-pinned API:** Native widget geometry is read from `Widget.Size` and `GlobalPosition` on Bannerlord PC `1.5.7.125802`. The new Windows PE metadata audit checks writable offsets and margins, and large CU sidebars hide unless actual native content clearance is verified. Original offsets, margins and v0.43 native colors revert with **F10**, no duplicate GameState or native callbacks.
+
+**Pinned Windows CI:** [run 44471172868](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44471172868), implementation/test source SHA `44d8f2eddc53bcadff0a9b98ca0d3fc389800fa5`. **730 gameplay policy checks passed**, zero C# warnings and errors. The 1.5.7 widget and geometry audits passed, with ZIP CRC and installer/hash checks. Compiled DLL SHA-256: `b41f980e899a2bc898dd2f4c05db2661b271ec5b7234293b331d50bb1ce4c44f`. Verified direct-install ZIP SHA-256: `a836d8abf4fdfcf598d7706a02b8c125d58a9f775f197b0bf4d8312cb22c32d4`. **Gate B only, compiled and not tested in-game.**
+
+**Engineering status:** The system is conditionally applied in the existing source. No observed Bannerlord session has yet proven that every native stage exposes movable panels or that in-game control placement is pixel-identical. Full game input, resolution, FaceGen, fief/family and save/reload tests remain required. The development module manifest remains `v0.38.0`.
+
+[Measured alignment and live acceptance checklist](docs/V044_MEASURED_NATIVE_CONTROL_LAYOUT.md) · [Draft PR #75](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/75)
+
+---
+
 # Calradia Unified v0.43 development: original native creator control styling
 
 **Q1 implemented at source level:** Unlike v0.42's header-only framing, v0.43 now alters the actual game-owned `CharacterCreationNarrativeStageView`, `CharacterCreationBannerEditorView`, `CharacterCreationClanNamingStageView`, `CharacterCreationReviewStageView` and `CharacterCreationOptionsStageView` **control brushes and text colors in place**. It uses the exact native `GauntletMovieIdentifier.Movie.RootWidget`, a per-widget `Brush.Clone()` and a saved original appearance. Heraldry color swatches and native 3D FaceGen are untouched. Native clan input and difficulty sliders get guarded private brush styling. Dynamic new life-story choices receive the same colors; **F10 restores native control styling**, and **F9 remains the native face-dock restore**.
