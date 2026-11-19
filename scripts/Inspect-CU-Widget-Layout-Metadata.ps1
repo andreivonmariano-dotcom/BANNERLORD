@@ -69,7 +69,13 @@ foreach($required in @(
     'PROPERTY GlobalPosition SETTER=False',
     'PROPERTY PositionXOffset SETTER=True',
     'PROPERTY PositionYOffset SETTER=True',
-    'PROPERTY ParentWidget SETTER=True'
+    'PROPERTY ParentWidget SETTER=True',
+    'PROPERTY ValueInt SETTER=True',
+    'PROPERTY MinValueInt SETTER=True',
+    'PROPERTY MaxValueInt SETTER=True',
+    'PROPERTY DiscreteIncrementInterval SETTER=True',
+    'PROPERTY SliderArea SETTER=True',
+    'PROPERTY Handle SETTER=True'
 )){
     if(-not $lines.Contains($required)){
         throw ('Native geometry contract missing: '+$required)
