@@ -36,7 +36,8 @@ namespace CalradiaUnified
         public static void Tick(CharacterCreationScreen screen,
             CharacterCreationManager manager)
         {
-            if (screen==null || screen.IsFinalized || manager==null)
+            if (screen==null || screen.IsFinalized || manager==null ||
+                !SandboxCreatorOverlay.HasAcceptedCustomStart)
             {
                 Clear();
                 return;
