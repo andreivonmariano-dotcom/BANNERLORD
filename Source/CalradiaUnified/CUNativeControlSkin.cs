@@ -219,6 +219,15 @@ namespace CalradiaUnified
                             paintedText++;
                     }
                 }
+                if(paintedText==0 && paintedButtons==0)
+                {
+                    reportedUnavailable=currentView;
+                    DiagnosticJournal.Event("cu_native_widget_skin_unavailable",
+                        "stage="+stage+
+                        "|reason=no_writable_native_text_or_button_brush" +
+                        "|game_owned_controls_retained=true");
+                    return;
+                }
                 currentRoot=root;
                 buttonsStyled=paintedButtons;
                 textStyled=paintedText;
@@ -265,13 +274,6 @@ namespace CalradiaUnified
             // EditableText, native TextInput, face and banner geometry
             // are excluded by the type allowlist above. Text controls
             // keep the same data-binding and localization source.
-            var property=widget.GetType().GetProperty("Color",
-                BindingFlags.Instance|BindingFlags.Public);
-            if(property==null || property.GetSetMethod(false)==null ||
-                property.PropertyType!=typeof(Color))
-                return false;
-            object old=property.GetValue(widget,null);
-            if(old==null)return false;
             bool insideButton=HasNativeButtonParent(widget);
             bool largeHeading=false;
             var size=widget.GetType().GetProperty("FontSize",
@@ -283,7 +285,40 @@ namespace CalradiaUnified
             }
             var next=Hex(CUNativeWidgetSkinPolicy.TextColor(stage,
                 insideButton,largeHeading));
-            if(next.Equals(old))return false;
+
+            // TextWidget inherits BrushWidget in Bannerlord's Gauntlet
+            // tree. Clone its brush locally just like native buttons:
+            // setting a shared Brush.FontColor would recolor every screen.
+            // The live binding, hover and accessibility identity remain.
+            var brushProperty=widget.GetType().GetProperty("Brush",
+                BindingFlags.Instance|BindingFlags.Public);
+            if(brushProperty!=null &&
+                brushProperty.GetSetMethod(false)!=null &&
+                brushProperty.PropertyType==typeof(Brush))
+            {
+                Brush original=brushProperty.GetValue(widget,null) as Brush;
+                if(original!=null)
+                {
+                    Brush local=original.Clone();
+                    if(local!=null && !Object.ReferenceEquals(local,original))
+                    {
+                        local.FontColor=next;
+                        brushProperty.SetValue(widget,local,null);
+                        changes.Add(new Change(widget,brushProperty,original));
+                        return true;
+                    }
+                }
+            }
+
+            // Older or specialized native text widgets can expose an
+            // independent Color property instead of a brush setter.
+            var property=widget.GetType().GetProperty("Color",
+                BindingFlags.Instance|BindingFlags.Public);
+            if(property==null || property.GetSetMethod(false)==null ||
+                property.PropertyType!=typeof(Color))
+                return false;
+            object old=property.GetValue(widget,null);
+            if(old==null || next.Equals(old))return false;
             property.SetValue(widget,next,null);
             changes.Add(new Change(widget,property,old));
             return true;
