@@ -389,11 +389,15 @@ namespace CalradiaUnified
             if (key == "StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
                     SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+            // Native compositing is now selected automatically for every
+            // accepted CU Sandbox start. No experimental toggle is exposed
+            // in the player-facing five-chapter form. The native fallback
+            // still protects all original creation callbacks.
             if (key == "NativeIntegrationReviewEnabled" ||
                 key == "NativeFaceWorkshopEnabled" ||
                 key == "NativeStateShellEnabled" ||
                 key == "NativeFaceDockTrialEnabled")
-                return advancedFieldsVisible;
+                return false;
             if (key == "SpouseBirthClanId")
                 return profile.SpouseEnabled &&
                     profile.SpouseBackground == "NobleChosen";
@@ -977,6 +981,17 @@ namespace CalradiaUnified
             // Crash recovery: never request competing CharacterCreationStageView
             // handlers. The original native FaceGen owns appearance in v0.23.
             candidate.NativeStageEnabled=false;
+            // v0.39 automatic native bridge. No user-facing experimental
+            // switch is required. The optional extra stages remain disabled,
+            // and the existing native face and finalization remain game-owned.
+            // Face dock has an F9 restore and reverts on failed inspection.
+            candidate.NativeIntegrationReviewEnabled=false;
+            candidate.NativeFaceWorkshopEnabled=false;
+            candidate.NativeStateShellEnabled=true;
+            candidate.NativeFaceDockTrialEnabled=true;
+            DiagnosticJournal.Event("cu_native_creator_auto_bridge",
+                "shell=true|culture=native_vm|face=original_dock_with_restore" +
+                "|supplemental_stages=false|visible_wizard_still_pending=true");
             if (candidate.NativeFaceWorkshopEnabled &&
                 candidate.NativeIntegrationReviewEnabled)
             {
