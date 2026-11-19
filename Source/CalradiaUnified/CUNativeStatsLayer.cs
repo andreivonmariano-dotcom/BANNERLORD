@@ -291,7 +291,9 @@ namespace CalradiaUnified
         private readonly IDictionary<string,int> baseline;
         private readonly Action completed;
         private readonly Action back;
-        private int pageIndex;
+        // One short exact-age page follows the native story and precedes
+        // optional attributes/skills/traits. The narrative owns its bonuses.
+        private int pageIndex=-1;
         private int skillGroupIndex;
         private string status="Choose Native, Balanced or Unrestricted.";
         private readonly string[] bonusLines;
@@ -317,8 +319,10 @@ namespace CalradiaUnified
         private void Refresh()
         {
             Rows.Clear();
-            string current=SandboxStatBudgetPolicy.Pages[pageIndex];
-            foreach(string name in current=="Attributes" ?
+            string current=pageIndex<0 ? "Starting Age" :
+                SandboxStatBudgetPolicy.Pages[pageIndex];
+            foreach(string name in current=="Starting Age" ?
+                new string[0] : current=="Attributes" ?
                 SandboxOriginProfile.Attributes :
                 current=="Skills" ?
                 SandboxOriginProfile.Skills.Where(s=>
@@ -346,6 +350,10 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(ModeDescription,"ModeDescription");
             OnPropertyChangedWithValue(BudgetStatus,"BudgetStatus");
             OnPropertyChangedWithValue(IsSkillsPage,"IsSkillsPage");
+            OnPropertyChangedWithValue(IsAgePage,"IsAgePage");
+            OnPropertyChangedWithValue(IsStatsPage,"IsStatsPage");
+            OnPropertyChangedWithValue(PlayerAge,"PlayerAge");
+            OnPropertyChangedWithValue(AgeDescription,"AgeDescription");
             OnPropertyChangedWithValue(SkillGroup,"SkillGroup");
             OnPropertyChangedWithValue(NextLabel,"NextLabel");
             OnPropertyChangedWithValue(IsNativeMode,"IsNativeMode");
@@ -477,7 +485,7 @@ namespace CalradiaUnified
         }
         public void ExecuteBack()
         {
-            if(pageIndex>0)
+            if(pageIndex>=0)
             {
                 pageIndex--;
                 Refresh();
@@ -486,8 +494,9 @@ namespace CalradiaUnified
         }
         public void ExecuteContinue()
         {
-            // Native is the default and needs ONE confirmation, not
-            // needless visits to three custom-edit pages.
+            // The native Age menu grants its original bonuses. CU's exact
+            // age selector affects the birthday only, once confirmed.
+            // Native starting stats need no extra stat editing pages.
             if(profile.ProgressionMode!="Native" &&
                 pageIndex<SandboxStatBudgetPolicy.Pages.Length-1)
             {
@@ -506,12 +515,39 @@ namespace CalradiaUnified
                 Refresh();
                 return;
             }
-            if(!profile.Save(SandboxOriginProfile.UserPath,out problem))
+            // Apply the exact birthday to the REAL native Hero, not a
+            // UI-only number. Preserve the native age selection bonuses,
+            // story rewards and real BodyProperties. If anything fails,
+            // restore the original birthday and keep this editor open.
+            var hero=Hero.MainHero;
+            bool ageOverride=profile.PlayerAge>=18;
+            CampaignTime oldBirthday=hero==null ?
+                CampaignTime.Zero : hero.BirthDay;
+            try
             {
-                status="Could not save starting stats: "+problem;
+                if(ageOverride && hero!=null)
+                    hero.SetBirthDay(CampaignTime.YearsFromNow(
+                        -profile.PlayerAge));
+                if(!profile.Save(SandboxOriginProfile.UserPath,out problem))
+                    throw new InvalidOperationException(
+                        "Could not save starting stats: "+problem);
+            }
+            catch(Exception error)
+            {
+                if(ageOverride && hero!=null)
+                {
+                    try{hero.SetBirthDay(oldBirthday);}catch{}
+                }
+                status="Starting age or stats were not saved: "+
+                    error.Message;
                 Refresh();
                 return;
             }
+            DiagnosticJournal.Event("cu_native_player_age_committed",
+                "native_hero=true|age="+
+                (hero==null?"none":hero.Age.ToString("0.0"))+
+                "|requested="+profile.PlayerAge+
+                "|native_story_bonuses_preserved=true");
             DiagnosticJournal.Event("cu_native_stats_committed",
                 "mode="+profile.ProgressionMode+
                 "|spent="+spent+
@@ -526,9 +562,10 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Subtitle
             {get{return "CHAPTER 02 OF 05 | STARTING STATS & TRAITS";}}
         [DataSourceProperty] public string Page
-            {get{return SandboxStatBudgetPolicy.Pages[pageIndex];}}
+            {get{return pageIndex<0?"Starting Age":
+                SandboxStatBudgetPolicy.Pages[pageIndex];}}
         [DataSourceProperty] public string PageProgress
-            {get{return "STEP "+(pageIndex+1)+" / 3";}}
+            {get{return "STEP "+(pageIndex+2)+" / 4";}}
         [DataSourceProperty] public string Mode
             {get{return profile.ProgressionMode;}}
         [DataSourceProperty] public string ModeDescription
@@ -552,6 +589,52 @@ namespace CalradiaUnified
             {get{return Mode=="Unrestricted";}}
         [DataSourceProperty] public bool IsSkillsPage
             {get{return pageIndex==1;}}
+        [DataSourceProperty] public bool IsAgePage
+            {get{return pageIndex<0;}}
+        [DataSourceProperty] public bool IsStatsPage
+            {get{return pageIndex>=0;}}
+        [DataSourceProperty] public int PlayerAge
+        {
+            get
+            {
+                if(profile.PlayerAge>=18)return profile.PlayerAge;
+                var hero=Hero.MainHero;
+                return hero==null ? 30 : Math.Max(18,
+                    Math.Min(80,(int)hero.Age));
+            }
+            set
+            {
+                int age=Math.Max(SandboxFamilyAgePolicy.MinimumPlayerAge,
+                    Math.Min(SandboxFamilyAgePolicy.MaximumPlayerAge,value));
+                if(age==PlayerAge)return;
+                profile.PlayerAge=age;
+                status="Exact starting age: "+age+
+                    ". Original native story rewards are unchanged.";
+                OnPropertyChangedWithValue(age,"PlayerAge");
+                OnPropertyChangedWithValue(AgeDescription,"AgeDescription");
+                OnPropertyChangedWithValue(status,"Status");
+            }
+        }
+        [DataSourceProperty] public string AgeDescription
+        {
+            get
+            {
+                return "AGE "+PlayerAge+" YEARS  |  CHOOSE 18–80"+
+                    "\nEach slider step is one year. The native age"+
+                    " choice still decides its original attribute and"+
+                    " focus bonuses.";
+            }
+        }
+        public void ExecuteAgeDecrease(){PlayerAge=PlayerAge-1;}
+        public void ExecuteAgeIncrease(){PlayerAge=PlayerAge+1;}
+        public void ExecuteKeepNativeAge()
+        {
+            profile.PlayerAge=-1;
+            status="Keep the age selected in the native life story.";
+            OnPropertyChangedWithValue(PlayerAge,"PlayerAge");
+            OnPropertyChangedWithValue(AgeDescription,"AgeDescription");
+            OnPropertyChangedWithValue(status,"Status");
+        }
         [DataSourceProperty] public string SkillGroup
             {get{return SandboxStatBudgetPolicy.SkillGroups[skillGroupIndex];}}
         [DataSourceProperty] public string BudgetStatus
