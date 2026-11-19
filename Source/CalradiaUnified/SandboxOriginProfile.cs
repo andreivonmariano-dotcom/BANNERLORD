@@ -28,6 +28,10 @@ namespace CalradiaUnified
             "Riding","Athletics","Crafting","Scouting","Tactics","Roguery",
             "Charm","Leadership","Trade","Steward","Medicine","Engineering"
         };
+        public static readonly string[] NavalSkills =
+            { "Mariner", "Boatswain", "Shipmaster" };
+        public static readonly string[] AllPotentialSkills =
+            Skills.Concat(NavalSkills).ToArray();
         public static readonly string[] Traits =
             { "Mercy", "Valor", "Honor", "Generosity", "Calculating" };
 
@@ -414,7 +418,8 @@ namespace CalradiaUnified
                 key.StartsWith("Attribute.", StringComparison.Ordinal) ||
                 key.StartsWith("Skill.", StringComparison.Ordinal) ||
                 key.StartsWith("Focus.", StringComparison.Ordinal) ||
-                key.StartsWith("Trait.", StringComparison.Ordinal))
+                key.StartsWith("Trait.", StringComparison.Ordinal) ||
+                key==SandboxFamilyLevelPolicy.Key)
             {
                 string[] parts = key.Split('.');
                 if (parts.Length != 2) return false;
@@ -423,12 +428,16 @@ namespace CalradiaUnified
                 bool focus = parts[0] == "Focus";
                 bool trait = parts[0] == "Trait";
                 if (!(attribute && Allowed(parts[1], Attributes) ||
-                      (skill || focus) && Allowed(parts[1], Skills) ||
-                      trait && Allowed(parts[1], Traits))) return false;
+                      (skill || focus) && Allowed(parts[1],AllPotentialSkills) ||
+                      trait && Allowed(parts[1],Traits) ||
+                      key==SandboxFamilyLevelPolicy.Key))return false;
                 if (!Number(value,
-                    trait ? -2 : attribute ? 1 : 0,
-                    trait ? 2 : attribute ? 10 : focus ? 5 : 330,
-                    out n)) return false;
+                    trait ? -2 : attribute ? 1 :
+                        key==SandboxFamilyLevelPolicy.Key?1:0,
+                    trait ? 2 : attribute ? 10 : focus ? 5 :
+                        key==SandboxFamilyLevelPolicy.Key?
+                            SandboxFamilyLevelPolicy.Maximum:330,
+                    out n))return false;
                 Overrides[(attribute ? "Attribute" : parts[0]) + "." + parts[1]] = n;
                 return true;
             }
