@@ -258,7 +258,6 @@ namespace CalradiaUnified
                         SandboxFamilySkillInheritancePolicy.IsYouth(
                             childProfile.Age))
                     {
-                        child.BeardTags="";
                         child.ModifyHair(-1,0,-1);
                         DiagnosticJournal.Event("cu_family_youth_face",
                             "id="+child.StringId+
