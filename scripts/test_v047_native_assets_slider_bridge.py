@@ -43,8 +43,8 @@ assert '"CUNativeStatsEditorPlainFallback",vm' in stats
 assert '"CUNativeStatsEditorSafe",vm' in stats
 
 slider=list(s.iter("SliderWidget"))
-assert len(slider)==1
-sl=slider[0]
+assert len(slider)==2
+sl=next(w for w in slider if w.get("Id")=="CUPlayerAgeSlider")
 assert sl.get("ValueInt")=="@PlayerAge"
 assert sl.get("MinValueInt")=="18"
 assert sl.get("MaxValueInt")=="80"
