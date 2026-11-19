@@ -67,7 +67,7 @@ namespace CalradiaUnified
                     if (String.IsNullOrEmpty(profile.StartingKingdomId))
                     {
                         error = "Select a starting kingdom for " + profile.Role +
-                                " on the Identity page.";
+                                " in Starting Position.";
                         return false;
                     }
                     if (!SetList(kingdom, profile.StartingKingdomId))

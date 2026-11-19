@@ -94,6 +94,48 @@ internal static class Program
         Check("fresh campaign clears stat changes and uses native",
             storedStats.ProgressionMode=="Native" &&
             storedStats.Overrides.Count==0);
+        var newFounder=new SandboxOriginProfile();
+        newFounder.TrySet("SpouseEnabled","true");
+        newFounder.TrySet("SpouseAge","50");
+        newFounder.TrySet("ChildCount","1");
+        newFounder.TrySet("Child.1.Age","19");
+        string founderAgeError;
+        Check("family validity checks the actual player age",
+            !newFounder.IsValid(30,out founderAgeError) &&
+            newFounder.IsValid(45,out founderAgeError));
+        var savedFounder=System.IO.Path.Combine(
+            System.IO.Path.GetTempPath(),
+            "CU-Guided-Family-"+Guid.NewGuid().ToString("N"),"profile.ini");
+        try
+        {
+            Check("post-identity save uses real founder age not age 30",
+                newFounder.SaveForPlayer(savedFounder,45,
+                    out founderAgeError) &&
+                SandboxOriginProfile.Load(savedFounder).ChildCount==1 &&
+                SandboxOriginProfile.Load(savedFounder).Children[0].Age==19);
+        }
+        finally
+        {
+            var dir=System.IO.Path.GetDirectoryName(savedFounder);
+            if(System.IO.Directory.Exists(dir))
+                System.IO.Directory.Delete(dir,true);
+        }
+        var stale=new SandboxOriginProfile();
+        stale.TrySet("Gold","50000");
+        stale.TrySet("Influence","200");
+        stale.TrySet("Troops","10");
+        stale.TrySet("WorldSeed","44");
+        stale.TrySet("StartFastMode","true");
+        stale.TrySet("Item.1","grain");
+        stale.ResetForNewCampaign();
+        Check("fresh guided start clears hidden resource/item grants",
+            stale.Gold==-1 && stale.Influence==-1 &&
+            stale.Troops==0 && stale.ItemIds.Count==0 &&
+            stale.WorldSeed==-1 && !stale.StartFastMode);
+        Check("nonfamily creator remains independent of native clan",
+            !stale.SpouseEnabled && stale.ChildCount==0 &&
+            stale.StartingFiefMode=="Native" &&
+            !stale.AllowStartingFiefTransfer);
         Check("all five traits have effect descriptions",
             System.Array.TrueForAll(SandboxOriginProfile.Traits,
                 name=>SandboxStatBudgetPolicy.TraitDescription(name).Length>48));
@@ -116,26 +158,30 @@ internal static class Program
         Check("Native FaceGen right-dock flag survives strict serialization",
             SandboxOriginProfile.Parse("NativeFaceDockTrialEnabled=true\n")
                 .NativeFaceDockTrialEnabled);
-        Check("CU five chapters retain frozen order",
+        Check("CU five chapters keep world before identity and household",
             CUNativeChapterPolicy.Chapters.Length==5 &&
-            CUNativeChapterPolicy.Chapters[0]=="01  STARTING LIFE" &&
-            CUNativeChapterPolicy.Chapters[1]=="02  BLOODLINE" &&
-            CUNativeChapterPolicy.Chapters[2]=="03  FORTUNE" &&
-            CUNativeChapterPolicy.Chapters[3]=="04  LAND & HOME" &&
-            CUNativeChapterPolicy.Chapters[4]=="05  REVIEW YOUR HOUSE");
-        Check("CU native page maps real face to Starting Life",
-            CUNativeChapterPolicy.ActiveChapter("CharacterCreationFaceGeneratorStage")==0);
-        Check("CU native page maps banner to Bloodline",
-            CUNativeChapterPolicy.ActiveChapter("CharacterCreationBannerEditorStage")==1);
-        Check("CU native page maps narrative to Fortune",
-            CUNativeChapterPolicy.ActiveChapter("CharacterCreationNarrativeStage")==2);
-        Check("CU native page maps difficulty to Review",
+            CUNativeChapterPolicy.Chapters[0]=="01  YOUR WORLD" &&
+            CUNativeChapterPolicy.Chapters[1]=="02  YOUR CHARACTER" &&
+            CUNativeChapterPolicy.Chapters[2]=="03  YOUR HOUSE" &&
+            CUNativeChapterPolicy.Chapters[3]=="04  YOUR FORTUNE" &&
+            CUNativeChapterPolicy.Chapters[4]=="05  BEGIN YOUR LEGACY");
+        Check("CU native face is part of Your Character",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationFaceGeneratorStage")==1);
+        Check("CU native culture and life story share Your Character",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationCultureStage")==1 &&
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationNarrativeStage")==1);
+        Check("CU native banner and clan share Your House",
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationBannerEditorStage")==2 &&
+            CUNativeChapterPolicy.ActiveChapter("CharacterCreationClanNamingStage")==2);
+        Check("CU native difficulty remains final",
             CUNativeChapterPolicy.ActiveChapter("CharacterCreationOptionsStage")==4);
-        Check("CU native state cannot retroactively edit pregame land/start options",
+        Check("CU pregame World and post-clan Fortune require distinct lifecycles",
+            !CUNativeChapterPolicy.IsLiveNativeChoice(0) &&
             !CUNativeChapterPolicy.IsLiveNativeChoice(3) &&
-            CUNativeChapterPolicy.ChapterStatus(3,0,false)=="START OPTIONS SET");
-        Check("CU five-chapter tracker will not skip native consequences",
-            CUNativeChapterPolicy.ChapterStatus(2,2,true)=="NATIVE STAGE ACTIVE");
+            CUNativeChapterPolicy.ChapterStatus(0,1,false)=="WORLD CONFIGURED" &&
+            CUNativeChapterPolicy.ChapterStatus(3,1,false)=="AFTER NATIVE CLAN");
+        Check("CU native tracker does not skip game callbacks",
+            CUNativeChapterPolicy.ChapterStatus(2,2,true)=="NATIVE STEP ACTIVE");
         Check("CU 1366 layout leaves actual model viewport room",
             CUNativeViewportPolicy.IsUsableLayout(1366,768));
         Check("CU 1920 viewport target is large",
@@ -144,21 +190,21 @@ internal static class Program
         Check("native 3D scene crop is unverified and cannot claim completed dock",
             !CUNativeViewportPolicy.HasVerifiedRectangularSceneDock &&
             CUNativeViewportPolicy.CapabilityStatus().Contains("NOT YET VERIFIED"));
-        Check("native CU shell maps culture to Starting Life",
+        Check("native CU shell maps culture to Your Character",
             NativeStateShellPolicy.ChapterForStage(
-                "CharacterCreationCultureStage") == "01  STARTING LIFE");
-        Check("native CU shell maps real editable face to Starting Life",
+                "CharacterCreationCultureStage") == "02  YOUR CHARACTER");
+        Check("native CU shell maps real editable face to Your Character",
             NativeStateShellPolicy.ChapterForStage(
-                "CharacterCreationFaceGeneratorStage") == "01  STARTING LIFE");
-        Check("native CU shell maps narrative to Fortune",
+                "CharacterCreationFaceGeneratorStage") == "02  YOUR CHARACTER");
+        Check("native CU shell maps narrative to Your Character",
             NativeStateShellPolicy.ChapterForStage(
-                "CharacterCreationNarrativeStage") == "03  FORTUNE");
-        Check("native CU shell maps banner to Bloodline",
+                "CharacterCreationNarrativeStage") == "02  YOUR CHARACTER");
+        Check("native CU shell maps banner to Your House",
             NativeStateShellPolicy.ChapterForStage(
-                "CharacterCreationBannerEditorStage") == "02  BLOODLINE");
-        Check("native CU shell maps options to Review",
+                "CharacterCreationBannerEditorStage") == "03  YOUR HOUSE");
+        Check("native CU shell maps options to Begin Your Legacy",
             NativeStateShellPolicy.ChapterForStage(
-                "CharacterCreationOptionsStage") == "05  REVIEW YOUR HOUSE");
+                "CharacterCreationOptionsStage") == "05  BEGIN YOUR LEGACY");
         Check("native CU shell knows live face stage only",
             NativeStateShellPolicy.UsesNativeLiveFace(
                 "CharacterCreationFaceGeneratorStage") &&

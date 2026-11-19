@@ -39,6 +39,7 @@ namespace CalradiaUnified
                     CUNativeCultureLayer.Clear();
                     CUNativeFaceDockTrial.Clear();
                     CUNativeStatsLayer.Clear();
+                    CUNativeHouseLayer.Clear();
                     Detach();
                     skippedHost = null;
                     failedHost = null;
@@ -55,6 +56,8 @@ namespace CalradiaUnified
                         active.CharacterCreationManager,dockRequested);
                     CUNativeStatsLayer.Tick(screen,
                         active.CharacterCreationManager);
+                    CUNativeHouseLayer.Tick(screen,
+                        active.CharacterCreationManager);
                     return;
                 }
                 if (Object.ReferenceEquals(screen, failedHost) ||
@@ -69,6 +72,9 @@ namespace CalradiaUnified
                         fallbackProfile.Enabled &&
                         fallbackProfile.NativeStateShellEnabled)
                         CUNativeStatsLayer.Tick(screen,
+                            active.CharacterCreationManager);
+                    if(SandboxCreatorOverlay.HasAcceptedCustomStart)
+                        CUNativeHouseLayer.Tick(screen,
                             active.CharacterCreationManager);
                     return;
                 }
@@ -134,6 +140,8 @@ namespace CalradiaUnified
                     active.CharacterCreationManager,dockRequested);
                 CUNativeStatsLayer.Tick(screen,
                     active.CharacterCreationManager);
+                CUNativeHouseLayer.Tick(screen,
+                    active.CharacterCreationManager);
                 if (Object.ReferenceEquals(host,screen))
                     DiagnosticJournal.Event("cu_native_state_shell_attached",
                         "native_state=true|native_screen_unchanged=true" +
@@ -158,6 +166,7 @@ namespace CalradiaUnified
             // inside Gauntlet's click callback. Suppress ALL CU movies for
             // this native screen so the game owns exit/finalization alone.
             CUNativeStatsLayer.Clear();
+            CUNativeHouseLayer.Clear();
             Detach();
             skippedHost=nativeScreen;
             DiagnosticJournal.Event("cu_native_culture_full_fallback",
@@ -167,6 +176,7 @@ namespace CalradiaUnified
 
         private static void Detach()
         {
+            CUNativeHouseLayer.Clear();
             CUNativeStatsLayer.Clear();
             CUNativeFaceDockTrial.Clear();
             dockRequested = false;
@@ -338,7 +348,7 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty]
-        public string Title { get { return "CALRADIA UNIFIED | NATIVE BRIDGE"; } }
+        public string Title { get { return "CALRADIA UNIFIED | YOUR LEGACY"; } }
 
         [DataSourceProperty]
         public string Chapter { get { return chapter; } }
@@ -381,8 +391,8 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Native controls remain active. CU shell is a " +
-                    "read-only test, not yet one-screen creation.";
+                return "The original Bannerlord controls preserve " +
+                    "culture, appearance, origins and final game effects.";
             }
         }
     }

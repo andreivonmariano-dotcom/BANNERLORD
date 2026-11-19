@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <!-- Unified shared full-screen CU visual shell. The same movie serves
+         World/Starting Position before campaign construction and House/
+         Fortune after native identity, life story, banner and clan naming.
+         One question and one short control group per page. -->
+    <Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#08121EFF"
+          WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#172536F0"
+          WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+          SuggestedHeight="91" VerticalAlignment="Top"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+          WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+          SuggestedHeight="3" PositionYOffset="91"/>
+        <Widget WidthSizePolicy="StretchToParent" MaxWidth="1820"
+          MarginLeft="24" MarginRight="24"
+          HeightSizePolicy="StretchToParent" MaxHeight="960"
+          MarginTop="20" MarginBottom="20"
+          HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#0C1928E8"
+              WidthSizePolicy="Fixed" SuggestedWidth="226"
+              HeightSizePolicy="StretchToParent" MarginTop="92"
+              MarginBottom="81" PositionXOffset="8"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#152432EF"
+              WidthSizePolicy="Fixed" SuggestedWidth="338"
+              HeightSizePolicy="StretchToParent" MarginTop="92"
+              MarginBottom="81" HorizontalAlignment="Right"
+              PositionXOffset="-9"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#C9A16BFF"
+              WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
+              SuggestedHeight="2" VerticalAlignment="Bottom"
+              PositionYOffset="-81"/>
+            <TextWidget Text="@Title" Color="#F6D7A5FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="615"
+              HeightSizePolicy="Fixed" SuggestedHeight="39"
+              PositionXOffset="22" PositionYOffset="21"/>
+            <TextWidget Text="@PhaseLabel" Color="#B6C4D1FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="720"
+              HeightSizePolicy="Fixed" SuggestedHeight="30"
+              PositionXOffset="28" PositionYOffset="59"/>
+            <TextWidget Text="YOUR LEGACY" Color="#DDBB83FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="220"
+              HeightSizePolicy="Fixed" SuggestedHeight="34"
+              PositionXOffset="22" PositionYOffset="121"/>
+            <TextWidget Text="@Chapter" Color="#F3DCB8FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="206"
+              HeightSizePolicy="Fixed" SuggestedHeight="122"
+              PositionXOffset="22" PositionYOffset="173"/>
+            <TextWidget Text="@StepProgress" Color="#E5C38CFF"
+              WidthSizePolicy="Fixed" SuggestedWidth="203"
+              HeightSizePolicy="Fixed" SuggestedHeight="48"
+              PositionXOffset="22" PositionYOffset="335"/>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="194"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="22"
+ PositionYOffset="481" Command.Click="ExecuteAdvanced" >
+ <Children><TextWidget Text="@AdvancedLabel" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <TextWidget Text="OPTIONAL CHOICES" Color="#B9C8D6FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="199"
+              HeightSizePolicy="Fixed" SuggestedHeight="48"
+              PositionXOffset="26" PositionYOffset="540"/>
+            <TextWidget Text="@StepTitle" Color="#F3DCB8FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="691"
+              HeightSizePolicy="Fixed" SuggestedHeight="55"
+              PositionXOffset="260" PositionYOffset="128"/>
+            <TextWidget Text="@Hint" Color="#D5E0E9FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="658"
+              HeightSizePolicy="Fixed" SuggestedHeight="108"
+              PositionXOffset="263" PositionYOffset="209"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#203246EE"
+              WidthSizePolicy="Fixed" SuggestedWidth="662"
+              HeightSizePolicy="Fixed" SuggestedHeight="117"
+              PositionXOffset="260" PositionYOffset="337"/>
+            <TextWidget Text="@SelectedValue" Color="#F6E7C8FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="625"
+              HeightSizePolicy="Fixed" SuggestedHeight="96"
+              PositionXOffset="281" PositionYOffset="352"/>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
+ PositionYOffset="477" Command.Click="ExecutePreviousChoice" IsVisible="@IsChoice">
+ <Children><TextWidget Text="Previous option" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="562"
+ PositionYOffset="477" Command.Click="ExecuteNextChoice" IsVisible="@IsChoice">
+ <Children><TextWidget Text="Next option" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
+ PositionYOffset="477" Command.Click="ExecuteToggle" IsVisible="@IsBoolean">
+ <Children><TextWidget Text="Toggle Yes / No" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
+ PositionYOffset="477" Command.Click="ExecuteDecrease" IsVisible="@IsNumber">
+ <Children><TextWidget Text="Decrease" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="167"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="450"
+ PositionYOffset="477" Command.Click="ExecuteIncrease" IsVisible="@IsNumber">
+ <Children><TextWidget Text="Increase" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="632"
+ PositionYOffset="477" Command.Click="ExecuteExact" IsVisible="@IsNumber">
+ <Children><TextWidget Text="Exact value" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
+ PositionYOffset="477" Command.Click="ExecuteEditText" IsVisible="@IsText">
+ <Children><TextWidget Text="Edit text" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+ HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="270"
+ PositionYOffset="537" Command.Click="ExecuteNativeDefault" IsVisible="@IsNativeDefaultAvailable">
+ <Children><TextWidget Text="Use native default" Color="#F1DEBEFF"
+ WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+ HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+ </ButtonWidget>
+            <TextWidget Text="@Status" Color="#DDBB83FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="680"
+              HeightSizePolicy="Fixed" SuggestedHeight="86"
+              PositionXOffset="263" PositionYOffset="620"/>
+            <TextWidget Text="YOUR STARTING PLAN" Color="#DDBB83FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="313"
+              HeightSizePolicy="Fixed" SuggestedHeight="43"
+              HorizontalAlignment="Right" PositionXOffset="-26"
+              PositionYOffset="125"/>
+            <TextWidget Text="@Summary" Color="#D7E1EBFF"
+              WidthSizePolicy="Fixed" SuggestedWidth="304"
+              HeightSizePolicy="Fixed" SuggestedHeight="370"
+              HorizontalAlignment="Right" PositionXOffset="-26"
+              PositionYOffset="183"/>
+            <TextWidget Text="The campaign engine owns all native culture, appearance, origin, clan and difficulty effects."
+              Color="#BCCBD8FF" WidthSizePolicy="Fixed"
+              SuggestedWidth="298" HeightSizePolicy="Fixed"
+              SuggestedHeight="129" HorizontalAlignment="Right"
+              PositionXOffset="-28" PositionYOffset="568"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#203043FF"
+              WidthSizePolicy="StretchToParent" MarginLeft="12"
+              MarginRight="12" HeightSizePolicy="Fixed"
+              SuggestedHeight="69" VerticalAlignment="Bottom"
+              PositionYOffset="-12"/>
+            <ButtonWidget Brush="ButtonBrush"
+              DoNotPassEventsToChildren="true" UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="185"
+              HeightSizePolicy="Fixed" SuggestedHeight="47"
+              PositionXOffset="29" VerticalAlignment="Bottom"
+              PositionYOffset="-24" Command.Click="ExecuteBack">
+              <Children><TextWidget Text="Back" Color="#F1DEBEFF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+              DoNotPassEventsToChildren="true" UpdateChildrenStates="true"
+              WidthSizePolicy="Fixed" SuggestedWidth="353"
+              HeightSizePolicy="Fixed" SuggestedHeight="47"
+              HorizontalAlignment="Right" PositionXOffset="-31"
+              VerticalAlignment="Bottom" PositionYOffset="-24"
+              Command.Click="ExecuteContinue">
+              <Children><TextWidget Text="@ContinueLabel" Color="#F4DCB3FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"/></Children>
+            </ButtonWidget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

@@ -72,7 +72,7 @@ assert 'if (candidate.NativeStateShellEnabled &&' in creator
 assert 'candidate.NativeFaceWorkshopEnabled ||' in creator
 assert 'candidate.NativeIntegrationReviewEnabled)' in creator
 assert "NativeStateShellPolicy.cs" in csproj
-assert "native CU shell maps culture to Starting Life" in tests
+assert "native CU shell maps culture to Your Character" in tests
 assert "native CU shell permits only explicit native-state opt-in" in tests
 assert 'NEXT: NATIVE CREATOR' in (
     root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")

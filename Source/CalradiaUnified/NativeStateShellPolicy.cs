@@ -14,17 +14,16 @@ namespace CalradiaUnified
             {
                 case "CharacterCreationCultureStage":
                 case "CharacterCreationFaceGeneratorStage":
+                case "CharacterCreationNarrativeStage":
                 case "CUFaceWorkshopStage":
-                    return "01  STARTING LIFE";
+                    return "02  YOUR CHARACTER";
                 case "CharacterCreationBannerEditorStage":
                 case "CharacterCreationClanNamingStage":
-                    return "02  BLOODLINE";
-                case "CharacterCreationNarrativeStage":
-                    return "03  FORTUNE";
+                    return "03  YOUR HOUSE";
                 case "CharacterCreationReviewStage":
                 case "CharacterCreationOptionsStage":
                 case "CUNativeOriginReviewStage":
-                    return "05  REVIEW YOUR HOUSE";
+                    return "05  BEGIN YOUR LEGACY";
                 default:
                     return "CALRADIA UNIFIED";
             }

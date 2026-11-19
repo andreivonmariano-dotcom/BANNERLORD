@@ -148,19 +148,23 @@ namespace CalradiaUnified
     public sealed class SandboxCreatorScreen : ScreenBase
     {
         private GauntletLayer layer;
-        private SandboxCreatorViewModel viewModel;
+        private CUGuidedCreatorVM viewModel;
 
         protected override void OnInitialize()
         {
             base.OnInitialize();
-            viewModel = new SandboxCreatorViewModel(CloseSafely);
+            // World and starting position precede campaign construction.
+            // Family and fortune are deferred until the player is real.
+            viewModel = new CUGuidedCreatorVM(true,
+                ()=>{SandboxCreatorOverlay.Accept();CloseSafely();},
+                ()=>{SandboxCreatorOverlay.Cancel();CloseSafely();});
             layer = new GauntletLayer("CalradiaUnifiedSandboxCreator", 150, false)
             {
                 IsFocusLayer = true
             };
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
-            layer.LoadMovie("CUSandboxCreator", viewModel);
+            layer.LoadMovie("CUGuidedCreator", viewModel);
         }
 
         protected override void OnActivate()
@@ -176,8 +180,15 @@ namespace CalradiaUnified
             if (ScreenManager.TopScreen == this &&
                 Input.IsKeyReleased(InputKey.Escape))
             {
-                SandboxCreatorOverlay.Cancel();
-                CloseSafely();
+                // Escape uses the same guided Back navigation as native
+                // character creation; only Escape at the first question
+                // leaves the new Sandbox without creating a campaign.
+                if(viewModel!=null) viewModel.ExecuteBack();
+                else
+                {
+                    SandboxCreatorOverlay.Cancel();
+                    CloseSafely();
+                }
             }
         }
 
