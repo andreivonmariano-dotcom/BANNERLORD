@@ -101,6 +101,9 @@ jobs:
       - name: Audit native-bound CU culture chooser and real FaceGen scene retention
         shell: pwsh
         run: python scripts/test_native_culture_and_face_dock.py
+      - name: Lock native five-chapter stage rail and explicit 3D dock capability
+        shell: pwsh
+        run: python scripts/test_cu_native_five_chapter_rail.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
