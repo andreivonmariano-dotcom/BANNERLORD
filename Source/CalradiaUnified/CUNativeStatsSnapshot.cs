@@ -30,12 +30,10 @@ namespace CalradiaUnified
                 if(attr!=null)
                     result["Attribute."+name] = hero.GetAttributeValue(attr);
             }
-            foreach (string name in SandboxOriginProfile.Skills)
+            result[SandboxFamilyLevelPolicy.Key]=hero.Level;
+            foreach (string name in SandboxNativeSkillCatalog.AvailableNames())
             {
-                var info = typeof(DefaultSkills).GetProperty(
-                    name,BindingFlags.Public|BindingFlags.Static);
-                var skill = info==null ? null :
-                    info.GetValue(null,null) as SkillObject;
+                var skill=SandboxNativeSkillCatalog.Find(name);
                 if(skill==null) continue;
                 result["Skill."+name] = hero.GetSkillValue(skill);
                 result["Focus."+name] = hero.HeroDeveloper.GetFocus(skill);
