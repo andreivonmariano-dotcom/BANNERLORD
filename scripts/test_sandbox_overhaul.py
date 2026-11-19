@@ -61,7 +61,7 @@ assert 'Text="PART 1 OF 2: STARTING CONDITIONS"' in p.read_text()
 assert 'Text="NEXT: NATIVE CREATOR"' in p.read_text()
 assert "ExecuteAppearance" not in clicks
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
-assert re.search(r"Input.IsKeyReleased\(InputKey.Escape\)\)\s*\{\s*SandboxCreatorOverlay.Cancel\(\)",src)
+assert "if(viewModel!=null) viewModel.ExecuteBack();" in src, "Escape must navigate guided Back before quitting"
 assert "SandboxNativeStartOptions.TryPrepare" in src
 aso=(ROOT/"Source/CalradiaUnified/SandboxNativeStartOptions.cs").read_text()
 assert "AdvancedStartOptionsManager.CreateCampaignStartOptions()" in aso
