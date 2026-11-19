@@ -30,8 +30,11 @@ assert 'CUNativeLayoutPolicy.IsViewportSupported(width,height)' in aligned
 assert 'RootMatchesResolution(' in aligned
 assert 'ReadProperty(widget,"GlobalPosition")' in aligned
 assert 'ReadProperty(widget,"GlobalPositionPixels")' in aligned
-assert 'TryReadFloat(widget,"ActualWidth",out w)' in aligned
-assert 'TryReadFloat(widget,"ActualHeight",out h)' in aligned
+assert 'ReadProperty(widget,"Size")' in aligned
+assert 'ReadProperty(widget,"MeasuredSize")' in aligned
+assert 'TryReadFloat(size,"X",out w)' in aligned
+assert 'TryReadFloat(size,"Y",out h)' in aligned
+assert 'ActualWidth' not in aligned.split('private static bool TryMeasure(')[1] or 'NOT WPF-style ActualWidth' in aligned
 assert 'GetAllChildrenRecursive()' in aligned
 assert 'DepthUnder(widget,gameRoot)' in aligned
 assert 'if(depth<1 || depth>2)continue;' in aligned
