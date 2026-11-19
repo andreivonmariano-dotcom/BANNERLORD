@@ -732,6 +732,7 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsBalancedMode,"IsBalancedMode");
             OnPropertyChangedWithValue(IsUnrestrictedMode,"IsUnrestrictedMode");
             OnPropertyChangedWithValue(IsPlayerTarget,"IsPlayerTarget");
+            OnPropertyChangedWithValue(IsPlayerStatPage,"IsPlayerStatPage");
             OnPropertyChangedWithValue(IsSpouseTarget,"IsSpouseTarget");
             OnPropertyChangedWithValue(TargetHelp,"TargetHelp");
             OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
@@ -768,17 +769,16 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_all_stats_target","target=spouse");
             Refresh();
         }
+        [DataSourceProperty] public bool IsPlayerStatPage
+            {get{return !editingSpouse && pageIndex>=0;}}
         [DataSourceProperty] public bool IsPlayerTarget
             {get{return !editingSpouse;}}
         [DataSourceProperty] public bool IsSpouseTarget
             {get{return editingSpouse;}}
         [DataSourceProperty] public string TargetHelp
             {get{return editingSpouse ?
-                "SPOUSE | AUTO keeps native values. Drag a slider to set an"+
-                " exact requested starting value. Your child inherits"+
-                " from both parents after House creation." :
-                "PLAYER | All native attributes, skills, focus and traits"+
-                " in one place. Choose Balanced or Unrestricted to edit.";}}
+                "SPOUSE | AUTO keeps native values. Edits influence children." :
+                "PLAYER | Choose Balanced or Unrestricted to edit stats.";}}
 
         private void AddRow(string key,string help)
         {
@@ -1006,7 +1006,7 @@ namespace CalradiaUnified
             {get{return "CHAPTER 02 OF 05 | STARTING STATS & TRAITS";}}
         [DataSourceProperty] public string Page
             {get{return pageIndex<0?"Starting Age":
-                "All Attributes, Skills, Focus & Traits";}}
+                "All Stats | Player & Spouse";}}
         [DataSourceProperty] public string PageProgress
             {get{return "STEP "+
                 CUNativeStatsNavigationPolicy.StepNumber(pageIndex)+
