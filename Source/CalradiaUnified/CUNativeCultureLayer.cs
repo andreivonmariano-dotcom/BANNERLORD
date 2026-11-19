@@ -30,6 +30,15 @@ namespace CalradiaUnified
         public static void Tick(CharacterCreationScreen nativeScreen,
             CharacterCreationManager manager)
         {
+            // v0.47: player requested the original Bannerlord culture
+            // screen, including its native art and actual 3D controls.
+            // The trial CU chooser remains in source for explicit audit
+            // only. It must not obscure accepted Sandbox culture pages.
+            if(SandboxCreatorOverlay.HasAcceptedCustomStart)
+            {
+                Detach();
+                return;
+            }
             // The Back button queues an action. Perform screen teardown
             // outside Gauntlet's own click callback, releasing the movie
             // before the native culture stage pops the game state.
