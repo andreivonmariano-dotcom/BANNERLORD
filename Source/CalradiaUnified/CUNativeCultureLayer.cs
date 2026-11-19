@@ -138,8 +138,8 @@ namespace CalradiaUnified
 
                 foreach(var candidate in nativeScreen.Layers)
                 {
-                    if(candidate is GauntletLayer && candidate!=layer &&
-                        candidate.InputRestrictions.Order<60)
+                    if(candidate is GauntletLayer &&
+                        candidate.Name=="CharacterCreationCulture")
                     {
                         candidate.IsFocusLayer=true;
                         ScreenManager.TrySetFocus(candidate);
