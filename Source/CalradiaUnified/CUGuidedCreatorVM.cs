@@ -126,7 +126,7 @@ namespace CalradiaUnified
                     "boolean"));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","FamilyScenario",
                     "Household story",
-                    "Natural: varied personalities. Honorable: honorable spouse, kinder children. Martial, Scholarly, Mercantile or Strained change family bonds and upbringing.",
+                    "Natural: varied traits. Honorable: honorable spouse and kinder children. Martial, Scholarly, Mercantile, Seafaring or Strained change family bonds and upbringing.",
                     choices:SandboxFamilyDevelopmentPolicy.Scenarios));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseName",
                     "Spouse name","Name your generated starting spouse.","text"));
