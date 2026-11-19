@@ -372,7 +372,10 @@ namespace CalradiaUnified
                 }
             }
             profile=copy;
-            Report("Selected: "+key+" = "+value);
+            // The old internal key/value string was appearing on the
+            // actual household UI as "Selected: SpouseEnabled = true".
+            // Feedback is conveyed by the visible selected choice.
+            Report("");
             Refresh();
             return true;
         }
