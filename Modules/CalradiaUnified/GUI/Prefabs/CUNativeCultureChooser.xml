@@ -8,8 +8,10 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <!-- The native culture panel shares the full-bleed CU Sandbox
-             visual language. Native stage view and VM remain underneath. -->
+        <!-- Culture is already a native-VM-bound CU full-screen page. Its
+             top header, chapter subtitle, slim gold rule and Back/Continue
+             use the same visual grammar as CUGuidedCreator and the
+             nonfocus native chrome. Actual native culture effects persist. -->
         <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
@@ -123,7 +125,7 @@
                     PositionXOffset="27" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteBack">
               <Children>
-                <TextWidget Text="Back to main menu"
+                <TextWidget Text="Back"
                             Color="#F4E3C5FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
@@ -139,7 +141,7 @@
                     PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
-                <TextWidget Text="Use native culture UI"
+                <TextWidget Text="Restore native controls"
                             Color="#F4E8D5FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
@@ -155,7 +157,7 @@
                     HorizontalAlignment="Right" PositionXOffset="-52" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteContinue">
               <Children>
-                <TextWidget Text="Continue to real 3D face"
+                <TextWidget Text="Continue"
                             Color="#FFE0B0FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
