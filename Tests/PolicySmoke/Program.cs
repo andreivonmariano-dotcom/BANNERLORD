@@ -142,6 +142,17 @@ internal static class Program
                 8,330,330,true,9)<=12 &&
             SandboxFamilySkillInheritancePolicy.SuggestedSkill(
                 13,330,330,true,9)<=28);
+        Check("offspring attributes respect age and both parents",
+            SandboxFamilySkillInheritancePolicy.SuggestedAttribute(
+                4,10,10,1)==1 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedAttribute(
+                19,10,10,1)<=5 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedAttribute(
+                25,10,10,1)<=7 &&
+            SandboxFamilySkillInheritancePolicy.SuggestedAttribute(
+                19,8,8,0)>
+            SandboxFamilySkillInheritancePolicy.SuggestedAttribute(
+                19,1,1,0));
         Check("young adults gain a broad, nonzero baseline",
             SandboxFamilySkillInheritancePolicy.SuggestedSkill(
                 19,0,0,false,0)>=4 &&
