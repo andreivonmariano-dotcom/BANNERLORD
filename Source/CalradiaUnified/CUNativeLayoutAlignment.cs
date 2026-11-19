@@ -42,6 +42,24 @@ namespace CalradiaUnified
             }
         }
 
+        private sealed class SavedMargin
+        {
+            internal readonly Widget Widget;
+            internal readonly PropertyInfo LeftProperty;
+            internal readonly PropertyInfo RightProperty;
+            internal readonly object OriginalLeft;
+            internal readonly object OriginalRight;
+            internal SavedMargin(Widget widget,PropertyInfo left,
+                PropertyInfo right,object oldLeft,object oldRight)
+            {
+                Widget=widget;
+                LeftProperty=left;
+                RightProperty=right;
+                OriginalLeft=oldLeft;
+                OriginalRight=oldRight;
+            }
+        }
+
         private struct Rect
         {
             internal float X;
@@ -76,11 +94,16 @@ namespace CalradiaUnified
         private static int viewportHeight;
         private static int contentMoved;
         private static int footerMoved;
+        private static int labelsPadded;
         private static object unavailableView;
         private static readonly List<SavedOffset> saved=
             new List<SavedOffset>();
         private static readonly HashSet<Widget> adjusted=
             new HashSet<Widget>();
+        private static readonly HashSet<Widget> padded=
+            new HashSet<Widget>();
+        private static readonly List<SavedMargin> margins=
+            new List<SavedMargin>();
 
         public static void Tick(CharacterCreationScreen screen,
             CharacterCreationManager nativeManager)
@@ -214,6 +237,7 @@ namespace CalradiaUnified
                         screenWidth,screenHeight);
             }
             TryAlignFooter(widgets,nativeStage,screenWidth,screenHeight);
+            TryPadNativeButtonLabels(widgets,nativeStage);
         }
 
         private static void TryAlignContent(Widget gameRoot,
@@ -323,6 +347,72 @@ namespace CalradiaUnified
                         "|original_native_button=true");
                 }
             }
+        }
+
+        private static void TryPadNativeButtonLabels(
+            List<Widget> widgets,string nativeStage)
+        {
+            int count=0;
+            foreach(Widget widget in widgets)
+            {
+                TextWidget label=widget as TextWidget;
+                if(label==null || padded.Contains(widget) ||
+                    String.IsNullOrWhiteSpace(label.Text))
+                    continue;
+                ButtonWidget parent=ReadProperty(widget,"ParentWidget")
+                    as ButtonWidget;
+                if(parent==null)continue;
+                Rect parentRect,labelRect;
+                if(!TryMeasure(parent,out parentRect) ||
+                    !TryMeasure(widget,out labelRect))continue;
+
+                var type=widget.GetType();
+                var left=type.GetProperty("MarginLeft",PublicInstance);
+                var right=type.GetProperty("MarginRight",PublicInstance);
+                if(left==null || right==null ||
+                    left.GetSetMethod(false)==null ||
+                    right.GetSetMethod(false)==null ||
+                    !IsFloatType(left.PropertyType) ||
+                    !IsFloatType(right.PropertyType))
+                    continue;
+                object oldLeft=left.GetValue(widget,null);
+                object oldRight=right.GetValue(widget,null);
+                if(oldLeft==null || oldRight==null)continue;
+                float leftValue=Convert.ToSingle(oldLeft,
+                    CultureInfo.InvariantCulture);
+                float rightValue=Convert.ToSingle(oldRight,
+                    CultureInfo.InvariantCulture);
+                float nextLeft,nextRight;
+                if(!CUNativeLayoutPolicy.TryPlanLabelPadding(
+                    nativeStage,parentRect.Width,labelRect.Width,
+                    leftValue,rightValue,out nextLeft,out nextRight))
+                    continue;
+                try
+                {
+                    left.SetValue(widget,ConvertNumber(nextLeft,
+                        left.PropertyType),null);
+                    right.SetValue(widget,ConvertNumber(nextRight,
+                        right.PropertyType),null);
+                    margins.Add(new SavedMargin(widget,left,right,
+                        oldLeft,oldRight));
+                    padded.Add(widget);
+                    labelsPadded++;
+                    count++;
+                }
+                catch(Exception e)
+                {
+                    try{left.SetValue(widget,oldLeft,null);}catch{}
+                    try{right.SetValue(widget,oldRight,null);}catch{}
+                    DiagnosticJournal.Exception(
+                        "cu_native_layout_label_skipped",e);
+                }
+            }
+            if(count>0)
+                DiagnosticJournal.Event("cu_native_layout_button_padding",
+                    "stage="+nativeStage+
+                    "|original_native_labels="+count+
+                    "|symmetric_margin=12" +
+                    "|native_click_targets_unchanged=true");
         }
 
         private static bool InsideAlreadyMovedPanel(Widget widget)
@@ -503,6 +593,22 @@ namespace CalradiaUnified
 
         private static void Restore()
         {
+            for(int i=margins.Count-1;i>=0;i--)
+            {
+                SavedMargin item=margins[i];
+                try
+                {
+                    item.LeftProperty.SetValue(item.Widget,
+                        item.OriginalLeft,null);
+                    item.RightProperty.SetValue(item.Widget,
+                        item.OriginalRight,null);
+                }
+                catch(Exception e)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_native_layout_margin_restore_error",e);
+                }
+            }
             for(int i=saved.Count-1;i>=0;i--)
             {
                 SavedOffset item=saved[i];
@@ -519,14 +625,18 @@ namespace CalradiaUnified
                         "cu_native_layout_restore_error",e);
                 }
             }
-            if(saved.Count>0)
+            if(saved.Count>0 || margins.Count>0)
                 DiagnosticJournal.Event("cu_native_layout_restored",
                     "stage="+stage+
                     "|native_panels="+contentMoved+
                     "|native_footer_buttons="+footerMoved+
+                    "|native_labels="+labelsPadded+
                     "|original_geometry_reinstated=true");
             saved.Clear();
+            margins.Clear();
             adjusted.Clear();
+            padded.Clear();
+            labelsPadded=0;
             contentMoved=0;
             footerMoved=0;
             currentView=null;
