@@ -8,6 +8,7 @@ using TaleWorlds.CampaignSystem.CharacterCreationContent;
 using TaleWorlds.Core;
 using TaleWorlds.Core.ViewModelCollection;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.GauntletUI.BaseTypes;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
@@ -31,7 +32,10 @@ namespace CalradiaUnified
         private static CUNativeStatsVM activeVM;
         private static bool sliderWarningLogged;
         private static bool sliderProbeUnavailable;
-        private static object cachedAgeSlider;
+        private static SliderWidget cachedAgeSlider;
+        private static int ageSliderProbeFrames;
+        private static int lastSliderValue=-1;
+        private static int lastModelValue=-1;
         private static bool narrativeSeen;
         private static bool completed;
         private static bool closeRequested;
@@ -232,6 +236,9 @@ namespace CalradiaUnified
                 sliderWarningLogged=false;
                 sliderProbeUnavailable=false;
                 cachedAgeSlider=null;
+                ageSliderProbeFrames=0;
+                lastSliderValue=-1;
+                lastModelValue=-1;
                 failedHost=null;
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
                     "transition=after_narrative_before_banner" +
@@ -274,6 +281,9 @@ namespace CalradiaUnified
             sliderWarningLogged=false;
             sliderProbeUnavailable=false;
             cachedAgeSlider=null;
+            ageSliderProbeFrames=0;
+            lastSliderValue=-1;
+            lastModelValue=-1;
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -300,63 +310,26 @@ namespace CalradiaUnified
             }
         }
 
-        private static object FindSliderWidget(object root)
+        private static SliderWidget FindSliderWidget(Widget root)
         {
             if(root==null)return null;
-            // Public FindChild is present on some supported Gauntlet builds.
-            // The pinned metadata confirms Widget.Id and ChildCount but
-            // does not guarantee any one FindChild overload.
-            try
-            {
-                var find=root.GetType().GetMethod("FindChild",
-                    new[] {typeof(string),typeof(bool)});
-                if(find!=null)
-                {
-                    object found=find.Invoke(root,new object[] {
-                        "CUPlayerAgeSlider",true});
-                    if(found!=null)return found;
-                }
-            }
-            catch(Exception error)
-            {
-                DiagnosticJournal.Exception(
-                    "cu_native_age_find_child_fallback",error);
-            }
-            return FindSliderInTree(root,0);
+            // Prefer the actual Gauntlet widget API, not reflected
+            // private method guesses that can fail in a different build.
+            var direct=root.FindChild("CUPlayerAgeSlider",true)
+                as SliderWidget;
+            return direct ?? FindSliderInTree(root,0);
         }
 
-        private static object FindSliderInTree(object root,int depth)
+        private static SliderWidget FindSliderInTree(Widget root,int depth)
         {
-            // Iterative depth limit protects against malformed/recursive
-            // prefab trees. The plain and native-art movies share IDs.
             if(root==null || depth>24)return null;
-            var type=root.GetType();
-            var id=type.GetProperty("Id");
-            if(id!=null &&
-                String.Equals(id.GetValue(root,null) as string,
-                    "CUPlayerAgeSlider",StringComparison.Ordinal))
-                return root;
-            var countProp=type.GetProperty("ChildCount");
-            if(countProp==null)return null;
-            object raw=countProp.GetValue(root,null);
-            if(!(raw is int))return null;
-            int count=Math.Min((int)raw,512);
-            var oneIndex=new[] {typeof(int)};
-            var getChild=type.GetMethod("GetChild",
-                BindingFlags.Public|BindingFlags.NonPublic|
-                    BindingFlags.Instance,null,oneIndex,null);
-            if(getChild==null)
-                getChild=type.GetMethod("GetChildAt",
-                    BindingFlags.Public|BindingFlags.NonPublic|
-                        BindingFlags.Instance,null,oneIndex,null);
-            if(getChild!=null)
+            if(root.Id=="CUPlayerAgeSlider")
+                return root as SliderWidget;
+            int count=Math.Min(root.ChildCount,512);
+            for(int i=0;i<count;i++)
             {
-                for(int index=0;index<count;index++)
-                {
-                    var child=getChild.Invoke(root,new object[] {index});
-                    var matched=FindSliderInTree(child,depth+1);
-                    if(matched!=null)return matched;
-                }
+                var candidate=FindSliderInTree(root.GetChild(i),depth+1);
+                if(candidate!=null)return candidate;
             }
             return null;
         }
@@ -371,35 +344,83 @@ namespace CalradiaUnified
             {
                 if(cachedAgeSlider==null)
                 {
+                    // Loaded movies may create the widget tree one tick
+                    // after LoadMovie, so retry for a bounded interval.
                     cachedAgeSlider=FindSliderWidget(movie.Movie.RootWidget);
                     if(cachedAgeSlider==null)
                     {
-                        sliderProbeUnavailable=true;
-                        DiagnosticJournal.Event("cu_native_age_slider_probe",
-                            "supported=false|reason=slider_not_found"+
-                            "|fallback=one_year_buttons");
+                        if(++ageSliderProbeFrames>=60)
+                        {
+                            sliderProbeUnavailable=true;
+                            DiagnosticJournal.Event("cu_native_age_slider_probe",
+                                "supported=false|reason=slider_not_found"+
+                                "|fallback=one_year_buttons_and_exact_entry");
+                        }
                         return;
                     }
+                    if(cachedAgeSlider.SliderArea==null ||
+                        cachedAgeSlider.Handle==null ||
+                        cachedAgeSlider.MinValueInt!=18 ||
+                        cachedAgeSlider.MaxValueInt!=80)
+                    {
+                        sliderProbeUnavailable=true;
+                        cachedAgeSlider=null;
+                        DiagnosticJournal.Event("cu_native_age_slider_probe",
+                            "supported=false|reason=invalid_widget_contract"+
+                            "|fallback=one_year_buttons_and_exact_entry");
+                        return;
+                    }
+                    lastModelValue=activeVM.PlayerAge;
+                    lastSliderValue=cachedAgeSlider.ValueInt;
+                    if(lastSliderValue!=lastModelValue)
+                    {
+                        cachedAgeSlider.ValueInt=lastModelValue;
+                        lastSliderValue=lastModelValue;
+                    }
                     DiagnosticJournal.Event("cu_native_age_slider_probe",
-                        "supported=true|source=real_gauntlet_tree");
-                }
-                var valueProperty=cachedAgeSlider.GetType().GetProperty(
-                    "ValueInt");
-                if(valueProperty==null)
-                {
-                    sliderProbeUnavailable=true;
+                        "supported=true|source=real_gauntlet_tree"+
+                        "|widget=native_SliderWidget|handle=ButtonWidget"+
+                        "|range=18-80");
                     return;
                 }
-                object raw=valueProperty.GetValue(cachedAgeSlider,null);
-                if(!(raw is int))return;
-                int age=(int)raw;
-                if(SandboxFamilyAgePolicy.ValidPlayerAge(age) &&
-                    age!=activeVM.PlayerAge)
+                int model=activeVM.PlayerAge;
+                int widget=cachedAgeSlider.ValueInt;
+                bool pressed=cachedAgeSlider.Handle!=null &&
+                    cachedAgeSlider.Handle.IsPressed;
+                if(model!=lastModelValue)
                 {
-                    activeVM.PlayerAge=age;
-                    DiagnosticJournal.Event("cu_native_age_slider_drag",
-                        "chosen_year="+age+"|source=real_slider_widget");
+                    // A native two-way binding or year/exact-entry action
+                    // already changed the model. The model takes priority
+                    // over a stale widget to prevent age reversal.
+                    if(widget!=model)
+                        cachedAgeSlider.ValueInt=model;
+                    if(pressed && SandboxFamilyAgePolicy.ValidPlayerAge(model))
+                        DiagnosticJournal.Event("cu_native_age_slider_drag",
+                            "chosen_year="+model+"|source=pressed_native_handle");
+                    lastModelValue=model;
+                    lastSliderValue=model;
+                    return;
                 }
+                if(widget==lastSliderValue)return;
+                if(!SandboxFamilyAgePolicy.ValidPlayerAge(widget))
+                {
+                    cachedAgeSlider.ValueInt=model;
+                    lastSliderValue=model;
+                    DiagnosticJournal.Event("cu_native_age_slider_rejected",
+                        "reason=out_of_range|value="+widget);
+                    return;
+                }
+                lastSliderValue=widget;
+                activeVM.PlayerAge=widget;
+                lastModelValue=activeVM.PlayerAge;
+                DiagnosticJournal.Event("cu_native_age_slider_value_changed",
+                    "chosen_year="+widget+"|source=native_slider_widget"+
+                    "|handle_pressed="+pressed);
+                // Never label a programmatic binding update as a mouse drag
+                // without a pressed native handle.
+                if(pressed)
+                    DiagnosticJournal.Event("cu_native_age_slider_drag",
+                        "chosen_year="+widget+"|source=pressed_native_handle");
             }
             catch(Exception error)
             {
@@ -765,8 +786,14 @@ namespace CalradiaUnified
             try
             {
                 if(ageOverride && hero!=null)
+                {
                     hero.SetBirthDay(CampaignTime.YearsFromNow(
                         -profile.PlayerAge));
+                    if(!SandboxFamilyAgePolicy.MatchesRequestedAge(
+                        hero.Age,profile.PlayerAge))
+                        throw new InvalidOperationException(
+                            "Native hero age does not match requested year");
+                }
                 if(!profile.Save(SandboxOriginProfile.UserPath,out problem))
                     throw new InvalidOperationException(
                         "Could not save starting stats: "+problem);
@@ -866,8 +893,38 @@ namespace CalradiaUnified
                     " focus bonuses.";
             }
         }
-        public void ExecuteAgeDecrease(){PlayerAge=PlayerAge-1;}
-        public void ExecuteAgeIncrease(){PlayerAge=PlayerAge+1;}
+        public void ExecuteAgeDecrease()
+        {
+            PlayerAge=PlayerAge-1;
+            DiagnosticJournal.Event("cu_native_age_button",
+                "direction=decrease|selected="+PlayerAge);
+        }
+        public void ExecuteAgeIncrease()
+        {
+            PlayerAge=PlayerAge+1;
+            DiagnosticJournal.Event("cu_native_age_button",
+                "direction=increase|selected="+PlayerAge);
+        }
+        public void ExecuteEnterExactAge()
+        {
+            InformationManager.ShowTextInquiry(new TextInquiryData(
+                "Enter exact starting age",
+                "Enter a whole number from 18 to 80.",
+                true,false,"Set age","Cancel",
+                entered=>{
+                    int age;
+                    if(!Int32.TryParse(entered,out age) ||
+                        !SandboxFamilyAgePolicy.ValidPlayerAge(age))
+                    {
+                        status="Age must be a whole number from 18 to 80.";
+                        Refresh();
+                        return;
+                    }
+                    PlayerAge=age;
+                    DiagnosticJournal.Event("cu_native_age_exact_entry",
+                        "requested="+age+"|displayed="+PlayerAge);
+                },()=>{},false,null,"",PlayerAge.ToString()));
+        }
         public void ExecuteKeepNativeAge()
         {
             profile.PlayerAge=-1;

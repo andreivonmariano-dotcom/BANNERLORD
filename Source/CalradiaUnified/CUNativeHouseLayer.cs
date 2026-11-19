@@ -122,7 +122,23 @@ namespace CalradiaUnified
                 next=new GauntletLayer("CUGuidedHouseFortune",85,false);
                 next.IsFocusLayer=true;
                 next.InputRestrictions.SetInputRestrictions();
-                nextMovie=next.LoadMovie("CUGuidedCreator",vm);
+                try
+                {
+                    nextMovie=next.LoadMovie("CUGuidedCreator",vm);
+                    DiagnosticJournal.Event("cu_native_creator_assets",
+                        "screen=house|source=installed_game|art=native");
+                }
+                catch(Exception nativeArtError)
+                {
+                    // A game-owned sprite missing in the current build
+                    // must not silently remove the household editor.
+                    DiagnosticJournal.Exception(
+                        "cu_guided_house_art_fallback",nativeArtError);
+                    nextMovie=next.LoadMovie("CUGuidedCreatorPlainFallback",vm);
+                    DiagnosticJournal.Event("cu_native_creator_assets",
+                        "screen=house|source=cu_plain_fallback"+
+                        "|native_character_creation_preserved=true");
+                }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=screen;
@@ -140,6 +156,9 @@ namespace CalradiaUnified
                 completed=true;
                 DiagnosticJournal.Exception(
                     "cu_guided_house_attach_failed",e);
+                DiagnosticJournal.Event("cu_guided_house_unavailable",
+                    "household_not_confirmed=true|reason=both_prefabs_failed"+
+                    "|native_game_screen_preserved=true");
                 try
                 {
                     if(next!=null && !screen.IsFinalized)

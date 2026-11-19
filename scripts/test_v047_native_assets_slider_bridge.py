@@ -34,6 +34,10 @@ for ui in (gp,sp,safe):
     sprites={w.get("Sprite") for w in ui.iter("Widget")}
     assert native_panel not in sprites
     assert native_gradient not in sprites
+house=read("CUNativeHouseLayer.cs")
+assert '"CUGuidedCreatorPlainFallback",vm' in house
+assert '"cu_guided_house_art_fallback"' in house
+assert '"cu_guided_house_unavailable"' in house
 assert '"CUGuidedCreatorPlainFallback"' in overlay
 assert '"CUNativeStatsEditorPlainFallback",vm' in stats
 assert '"CUNativeStatsEditorSafe",vm' in stats
@@ -52,12 +56,14 @@ handle=next(w for w in sl.iter("ButtonWidget")
             if w.get("Id")=="CUPlayerAgeHandle")
 assert handle.get("Brush")=="ButtonBrush"
 assert "ReadNativeSliderValue();" in stats
-assert '"CUPlayerAgeSlider",true' in stats
+assert 'root.FindChild("CUPlayerAgeSlider",true)' in stats
 assert "FindSliderWidget(movie.Movie.RootWidget)" in stats
-assert 'GetMethod("FindChild",' in stats
-assert 'GetMethod("GetChild",' in stats
-assert 'GetMethod("GetChildAt",' in stats
+assert "root.GetChild(i)" in stats
 assert "FindSliderInTree(root,0)" in stats
+assert "private static SliderWidget cachedAgeSlider" in stats
+assert "cachedAgeSlider.ValueInt" in stats
+assert "cachedAgeSlider.Handle.IsPressed" in stats
+assert "cu_native_age_slider_value_changed" in stats
 assert 'source=real_gauntlet_tree' in stats
 assert 'fallback=one_year_buttons' in stats
 assert "cu_native_age_slider_drag" in stats
