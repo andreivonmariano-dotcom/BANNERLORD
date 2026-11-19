@@ -48,6 +48,8 @@ Back navigates internally, then returns to the actual preceding native narrative
 
 The Gauntlet content uses the previous native-inspired charcoal, slate and brass color system. An explicit compact layout targets **1366x768** without six-row lists covering the bottom action bar; a centered max-size layout covers wider screens. In-game screen tests must still verify actual widget placement and mouse/controller input.
 
+**Pinned Windows CI:** [run 44459027527](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44459027527), source SHA `095d79d3001f38b9e1ec5d7f491c42878a20c5d8`, **677 policy checks passed**, zero compiler warnings/errors. The DLL SHA-256 is `352cd1a169cd63965d2fb85a1bb41110c361a6465f6923f76f72841a09a9f7a9`. ZIP CRC and installer simulations passed. **Gate B only: compiled, not observed in-game.**
+
 ## Tests and evidence
 
 - `scripts/test_post_origin_stats.py`: stage transition, original input ownership, selected-option dictionary access, Hero snapshot, XML commands and no redundant pregame stat fields.
