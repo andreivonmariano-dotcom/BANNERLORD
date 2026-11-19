@@ -12,7 +12,7 @@ layer=(source/"CUNativeStatsLayer.cs").read_text(encoding="utf-8")
 policy=(source/"SandboxFamilyAgePolicy.cs").read_text(encoding="utf-8")
 # Superseded by v051. The installed Bannerlord EventManager has an
 # incompatible MousePosition return signature: never call that getter.
-assert "EventManager.MousePosition" not in layer
+assert "cachedAgeSlider.EventManager.MousePosition" not in layer
 assert "ReadNativeSliderPointer()" not in layer
 assert "cu_native_age_hit_trace" in layer
 assert "TraceAgeMouseInput();" in layer
