@@ -26,12 +26,18 @@ namespace CalradiaUnified
         private static bool creatorOpen;
         private static bool launchQueued;
         private static bool cancelled;
+        // Session-only authority. A persisted profile from a prior campaign
+        // cannot attach CU creator UI to an ordinary native Sandbox start.
+        private static bool acceptedCustomStart;
 
         public static bool BlockNewGameProfile { get { return cancelled; } }
+        public static bool HasAcceptedCustomStart
+            { get { return acceptedCustomStart && !cancelled; } }
 
         public static void OpenFromMainMenu(Action nativeStart)
         {
             if (creatorOpen || launchQueued) return;
+            acceptedCustomStart=false;
             var profile = SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
             if (!profile.OverhauledCreatorEnabled)
             {
@@ -113,6 +119,7 @@ namespace CalradiaUnified
         public static void Accept()
         {
             cancelled = false;
+            acceptedCustomStart=true;
             if (creatorOpen) launchQueued = true;
             creatorOpen = false;
             DiagnosticJournal.Event("sandbox_creator_pre_game_accepted",
@@ -122,6 +129,7 @@ namespace CalradiaUnified
         public static void Cancel()
         {
             cancelled = true;
+            acceptedCustomStart=false;
             creatorOpen = false;
             launchQueued = false;
             DiagnosticJournal.Event("sandbox_creator_exit",
@@ -130,6 +138,7 @@ namespace CalradiaUnified
 
         public static void Clear()
         {
+            acceptedCustomStart=false;
             creatorOpen = false;
             launchQueued = false;
             cancelled = false;
