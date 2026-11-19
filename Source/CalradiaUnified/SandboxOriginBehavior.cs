@@ -736,6 +736,8 @@ namespace CalradiaUnified
                 // This distinguishes a UI save defect from child creation.
                 DiagnosticJournal.Event("cu_family_loaded_plan",
                     "spouse=" + profile.SpouseEnabled +
+                    "|requested_spouse_age=" + profile.SpouseAge +
+                    "|actual_player_age=" + hero.Age +
                     "|requested_children=" + profile.ChildCount +
                     "|details=" + String.Join(";",
                         profile.Children.Take(profile.ChildCount).Select(
@@ -827,6 +829,43 @@ namespace CalradiaUnified
                     hero.Spouse != null,
                     profile.ChildCount,
                     hero.Children == null ? 0 : hero.Children.Count);
+                bool spouseAgeMatches=!profile.SpouseEnabled ||
+                    (hero.Spouse!=null &&
+                     SandboxFamilyAgePolicy.MatchesRequestedAge(
+                         hero.Spouse.Age,profile.SpouseAge));
+                var unmatched=hero.Children==null ?
+                    new Hero[0].ToList() :
+                    hero.Children.Where(x=>x!=null).ToList();
+                bool allChildAgesMatch=true;
+                foreach(var expected in profile.Children.Take(
+                    profile.ChildCount))
+                {
+                    var actual=unmatched.FirstOrDefault(x=>
+                        x.Name.ToString()==expected.Name &&
+                        x.IsFemale==(expected.Gender=="Female") &&
+                        SandboxFamilyAgePolicy.MatchesRequestedAge(
+                            x.Age,expected.Age));
+                    if(actual==null)
+                    {
+                        allChildAgesMatch=false;
+                        break;
+                    }
+                    unmatched.Remove(actual);
+                }
+                if(!spouseAgeMatches || !allChildAgesMatch)
+                    failures=failures.Concat(new[]{
+                        !spouseAgeMatches?"spouse_age_mismatch":"",
+                        !allChildAgesMatch?"child_identity_or_age_mismatch":""
+                    }).Where(x=>x.Length>0).ToArray();
+                DiagnosticJournal.Event("cu_family_age_contract",
+                    "spouse_requested="+profile.SpouseAge+
+                    "|spouse_actual="+(hero.Spouse==null?
+                        "missing":hero.Spouse.Age.ToString())+
+                    "|spouse_age_match="+spouseAgeMatches+
+                    "|requested_children="+profile.ChildCount+
+                    "|actual_children="+(hero.Children==null?
+                        0:hero.Children.Count)+
+                    "|child_identities_ages_match="+allChildAgesMatch);
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
                     "|role=" + profile.Role +

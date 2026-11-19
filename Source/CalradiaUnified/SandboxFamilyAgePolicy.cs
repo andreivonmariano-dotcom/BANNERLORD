@@ -29,6 +29,15 @@ namespace CalradiaUnified
             return age>=0 && age<=ChildAgeMaximum(playerAge,spouseAge);
         }
 
+        // Native Hero.Age is a float. A newly applied birthday should be
+        // within a fraction of a year of the requested integer, not 22
+        // when the player typed 48. This checks game state, not just the UI.
+        public static bool MatchesRequestedAge(float actual,int requested)
+        {
+            return !Single.IsNaN(actual) && !Single.IsInfinity(actual) &&
+                requested>=0 && Math.Abs(actual-requested)<0.1f;
+        }
+
         public static bool ValidPlayerAge(int age)
         {
             return age>=MinimumPlayerAge && age<=MaximumPlayerAge;

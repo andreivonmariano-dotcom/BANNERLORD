@@ -765,8 +765,14 @@ namespace CalradiaUnified
             try
             {
                 if(ageOverride && hero!=null)
+                {
                     hero.SetBirthDay(CampaignTime.YearsFromNow(
                         -profile.PlayerAge));
+                    if(!SandboxFamilyAgePolicy.MatchesRequestedAge(
+                        hero.Age,profile.PlayerAge))
+                        throw new InvalidOperationException(
+                            "Native hero age does not match requested year");
+                }
                 if(!profile.Save(SandboxOriginProfile.UserPath,out problem))
                     throw new InvalidOperationException(
                         "Could not save starting stats: "+problem);
@@ -866,8 +872,38 @@ namespace CalradiaUnified
                     " focus bonuses.";
             }
         }
-        public void ExecuteAgeDecrease(){PlayerAge=PlayerAge-1;}
-        public void ExecuteAgeIncrease(){PlayerAge=PlayerAge+1;}
+        public void ExecuteAgeDecrease()
+        {
+            PlayerAge=PlayerAge-1;
+            DiagnosticJournal.Event("cu_native_age_button",
+                "direction=decrease|selected="+PlayerAge);
+        }
+        public void ExecuteAgeIncrease()
+        {
+            PlayerAge=PlayerAge+1;
+            DiagnosticJournal.Event("cu_native_age_button",
+                "direction=increase|selected="+PlayerAge);
+        }
+        public void ExecuteEnterExactAge()
+        {
+            InformationManager.ShowTextInquiry(new TextInquiryData(
+                "Enter exact starting age",
+                "Enter a whole number from 18 to 80.",
+                true,false,"Set age","Cancel",
+                entered=>{
+                    int age;
+                    if(!Int32.TryParse(entered,out age) ||
+                        !SandboxFamilyAgePolicy.ValidPlayerAge(age))
+                    {
+                        status="Age must be a whole number from 18 to 80.";
+                        Refresh();
+                        return;
+                    }
+                    PlayerAge=age;
+                    DiagnosticJournal.Event("cu_native_age_exact_entry",
+                        "requested="+age+"|displayed="+PlayerAge);
+                },()=>{},false,null,"",PlayerAge.ToString()));
+        }
         public void ExecuteKeepNativeAge()
         {
             profile.PlayerAge=-1;

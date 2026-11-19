@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using CalradiaUnified;
 
 internal static class Program
@@ -89,6 +90,21 @@ internal static class Program
             !SandboxFamilyResidencePolicy.EligibleForAdultRecall(
                 false,true,true,false,true));
 
+        Check("exact birthday matches requested spouse age, not donor age",
+            SandboxFamilyAgePolicy.MatchesRequestedAge(48.0f,48) &&
+            SandboxFamilyAgePolicy.MatchesRequestedAge(48.03f,48) &&
+            !SandboxFamilyAgePolicy.MatchesRequestedAge(22.25f,48) &&
+            !SandboxFamilyAgePolicy.MatchesRequestedAge(float.NaN,48));
+        Check("six offspring valid with age 50 lord and 48 year spouse",
+            new[] {25,22,20,18,16,15}.All(a=>
+                SandboxFamilyAgePolicy.CanChooseChildAge(a,50,48)));
+        Check("40-year-old spouse rejects child age over 24",
+            SandboxFamilyAgePolicy.ChildAgeMaximum(50,40)==24 &&
+            !SandboxFamilyAgePolicy.CanChooseChildAge(25,50,40) &&
+            SandboxFamilyAgePolicy.CanChooseChildAge(24,50,40));
+        Check("four adult offspring older than 20 fit two parents",
+            new[] {24,23,22,21,16,15}.All(a=>
+                SandboxFamilyAgePolicy.CanChooseChildAge(a,50,40)));
         Check("starting character age permits each adult year 18 to 80",
             SandboxFamilyAgePolicy.ValidPlayerAge(18) &&
             SandboxFamilyAgePolicy.ValidPlayerAge(37) &&

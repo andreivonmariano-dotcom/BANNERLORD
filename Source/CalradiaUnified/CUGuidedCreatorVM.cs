@@ -279,12 +279,26 @@ namespace CalradiaUnified
 
         private void ClampChildrenToParents()
         {
+            // Historical creator builds silently overwrote child ages
+            // after a parent-age edit. Keep every user's entered age and
+            // show an explicit conflict until the user corrects the plan.
             if(preCampaign || !profile.SpouseEnabled)return;
             int max=SandboxFamilyAgePolicy.ChildAgeMaximum(
                 ActualFounderAge,profile.SpouseAge);
-            for(int i=0;i<profile.ChildCount && i<profile.Children.Count;i++)
-                if(profile.Children[i].Age>max)
-                    profile.Children[i].Age=max;
+            var conflicts=Enumerable.Range(0,
+                Math.Min(profile.ChildCount,profile.Children.Count))
+                .Where(i=>profile.Children[i].Age>max)
+                .Select(i=>(i+1)+":"+profile.Children[i].Age)
+                .ToArray();
+            if(conflicts.Length>0)
+                status="AGE CONFLICT: children "+
+                    String.Join(", ",conflicts)+
+                    " exceed "+max+
+                    ". Edit their ages or increase a parent's age."+
+                    " Nothing has been changed automatically.";
+            else if(status!=null &&
+                status.StartsWith("AGE CONFLICT:",StringComparison.Ordinal))
+                status="";
         }
 
         private string Raw(string key)
@@ -568,7 +582,12 @@ namespace CalradiaUnified
             HouseRevision++;
             DiagnosticJournal.Event("cu_guided_house_fortune_committed",
                 "age="+actualAge+"|spouse="+candidate.SpouseEnabled+
-                "|children="+candidate.ChildCount+"|gold="+
+                "|spouse_age="+candidate.SpouseAge+
+                "|children="+candidate.ChildCount+
+                "|child_ages="+String.Join(",",
+                    candidate.Children.Take(candidate.ChildCount)
+                        .Select(x=>x.Age.ToString()))+
+                "|gold="+
                 candidate.Gold+"|fief="+candidate.StartingFiefMode+
                 "|native_review_next=true");
             if(complete!=null)complete();

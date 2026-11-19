@@ -176,6 +176,14 @@ namespace CalradiaUnified
                             (prerequisite.Length == 0 ?
                                 "other_native_marriage_rule" : prerequisite));
                     MarriageAction.Apply(player,spouseHero,false);
+                    if (!SandboxFamilyAgePolicy.MatchesRequestedAge(
+                        spouseHero.Age,profile.SpouseAge))
+                        throw new InvalidOperationException(
+                            "Spouse birthday changed during native marriage");
+                    DiagnosticJournal.Event("cu_family_spouse_age_verified",
+                        "requested=" + profile.SpouseAge +
+                        "|actual=" + spouseHero.Age +
+                        "|source=native_hero_birthday");
                     if (player.Spouse != spouseHero ||
                         spouseHero.Spouse != player)
                         throw new InvalidOperationException(
@@ -213,6 +221,21 @@ namespace CalradiaUnified
                             "Native CreateChild returned null");
                     child.SetName(new TextObject(childProfile.Name),
                         new TextObject(childProfile.Name));
+                    // Native CreateChild can use the template birthday.
+                    // The user's requested year is the authoritative plan.
+                    float nativeChildAge = child.Age;
+                    child.SetBirthDay(CampaignTime.YearsFromNow(
+                        -childProfile.Age));
+                    if (!SandboxFamilyAgePolicy.MatchesRequestedAge(
+                        child.Age,childProfile.Age))
+                        throw new InvalidOperationException(
+                            "Generated child has the wrong native birthday: " +
+                            (i+1));
+                    DiagnosticJournal.Event("cu_family_child_age_verified",
+                        "index=" + (i+1) +
+                        "|requested=" + childProfile.Age +
+                        "|native_initial=" + nativeChildAge +
+                        "|actual=" + child.Age);
                     // CreateChild initializes with isOffspring=false. Supply
                     // actual parents, then ask the native offspring model to
                     // blend their body properties rather than keeping an
@@ -222,6 +245,28 @@ namespace CalradiaUnified
                     child.Father = father;
                     child.StaticBodyProperties = Campaign.Current.Models
                         .HeroCreationModel.GetStaticBodyProperties(child,true);
+                    // An adult is a usable native clan Hero even if there is
+                    // no valid family-owned castle to assign as a residence.
+                    // Never activate an underage native Hero.
+                    if (!child.IsChild)
+                    {
+                        child.SetNewOccupation(Occupation.Lord);
+                        if (child.IsNotSpawned)
+                            child.ChangeState(Hero.CharacterStates.Active);
+                        if (!child.IsActive)
+                            throw new InvalidOperationException(
+                                "Adult offspring could not be activated: " +
+                                (i+1));
+                    }
+                    DiagnosticJournal.Event("cu_family_child_life_stage",
+                        "index=" + (i+1) +
+                        "|requested_age=" + childProfile.Age +
+                        "|actual_age=" + child.Age +
+                        "|is_minor=" + child.IsChild +
+                        "|active=" + child.IsActive +
+                        "|state=" + child.HeroState +
+                        "|clan=" + (child.Clan == null ?
+                            "none" : child.Clan.StringId));
                     DiagnosticJournal.Event("cu_family_inherited_appearance",
                         "child=" + child.StringId +
                         "|mother=" + mother.StringId +
@@ -311,6 +356,20 @@ namespace CalradiaUnified
             if (result == null)
                 throw new InvalidOperationException("HeroCreator returned null");
             result.SetName(new TextObject(name),new TextObject(name));
+            // The native factory can override an explicitly passed age
+            // for a wanderer-derived donor template. Setting the NEW
+            // hero's birthday fixes that without changing the donor.
+            float nativeInitialAge = result.Age;
+            result.SetBirthDay(CampaignTime.YearsFromNow(-age));
+            DiagnosticJournal.Event("cu_family_hero_exact_age",
+                "hero=" + result.StringId +
+                "|requested=" + age +
+                "|native_initial=" + nativeInitialAge +
+                "|actual=" + result.Age);
+            if (!SandboxFamilyAgePolicy.MatchesRequestedAge(
+                result.Age,age))
+                throw new InvalidOperationException(
+                    "Generated hero birthday does not match requested age");
             // CreateSpecialHero constructs a NotSpawned Hero by default.
             // Native IsSuitableForMarriage explicitly requires IsActive.
             // Activating must precede MarriageAction, not follow it.

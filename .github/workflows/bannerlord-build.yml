@@ -134,6 +134,9 @@ jobs:
       - name: Verify game-native assets, real age slider, original screens and Banner Back
         shell: pwsh
         run: python scripts/test_v047_native_assets_slider_bridge.py
+      - name: Audit v048 native age, family, lifespan and creator handoff
+        shell: pwsh
+        run: python scripts/test_v048_sandbox_family_age_contract.py
       - name: Verify four-step Back Next and underage family residence reports
         shell: pwsh
         run: python scripts/test_v046_creator_navigation_residence_ui.py

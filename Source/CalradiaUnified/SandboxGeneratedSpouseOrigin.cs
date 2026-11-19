@@ -67,8 +67,26 @@ namespace CalradiaUnified
                 .ToArray();
             if (families.Length == 0)
             {
-                refusal = "no_valid_parent_couple_in_selected_kingdom_or_clan";
-                return false;
+                // No invented parents. NobleRandom still permits an actual
+                // native noble birth clan when no married couple is old
+                // enough to parent the requested adult spouse (e.g. age 48).
+                // A missing ancestor must not cancel a genuine family.
+                if (candidates.Length == 0)
+                {
+                    refusal = "no_valid_noble_clan_in_selected_kingdom";
+                    return false;
+                }
+                birthClan = profile.SpouseBackground == "NobleRandom" ?
+                    candidates[MBRandom.RandomInt(candidates.Length)] :
+                    candidates[0];
+                DiagnosticJournal.Event("cu_family_noble_origin_selected",
+                    "mode=" + profile.SpouseBackground +
+                    "|birth_clan=" + birthClan.StringId +
+                    "|father=unknown|mother=unknown" +
+                    "|kingdom=" + kingdom.StringId +
+                    "|ancestry=unrecorded" +
+                    "|reason=no_valid_parent_couple_in_selected_kingdom_or_clan");
+                return true;
             }
 
             var selected = profile.SpouseBackground == "NobleRandom" ?

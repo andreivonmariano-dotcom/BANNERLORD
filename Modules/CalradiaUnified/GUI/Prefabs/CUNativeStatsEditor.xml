@@ -190,6 +190,20 @@
                 <ButtonWidget Brush="ButtonBrush"
                   DoNotPassEventsToChildren="true"
                   UpdateChildrenStates="true"
+                  WidthSizePolicy="Fixed" SuggestedWidth="180"
+                  HeightSizePolicy="Fixed" SuggestedHeight="43"
+                  PositionXOffset="254" PositionYOffset="232"
+                  Command.Click="ExecuteEnterExactAge">
+                  <Children><TextWidget Brush.FontSize="16"
+                    Text="Enter exact age" Color="#F6E4C4FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/></Children>
+                </ButtonWidget>
+                <ButtonWidget Brush="ButtonBrush"
+                  DoNotPassEventsToChildren="true"
+                  UpdateChildrenStates="true"
                   WidthSizePolicy="Fixed" SuggestedWidth="150"
                   HeightSizePolicy="Fixed" SuggestedHeight="43"
                   PositionXOffset="456" PositionYOffset="232"
