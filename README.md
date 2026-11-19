@@ -4,6 +4,8 @@
 
 **Version-pinned API:** Native widget geometry is read from `Widget.Size` and `GlobalPosition` on Bannerlord PC `1.5.7.125802`. The new Windows PE metadata audit checks writable offsets and margins, and large CU sidebars hide unless actual native content clearance is verified. Original offsets, margins and v0.43 native colors revert with **F10**, no duplicate GameState or native callbacks.
 
+**Pinned Windows CI:** [run 44471172868](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44471172868), implementation/test source SHA `44d8f2eddc53bcadff0a9b98ca0d3fc389800fa5`. **730 gameplay policy checks passed**, zero C# warnings and errors. The 1.5.7 widget and geometry audits passed, with ZIP CRC and installer/hash checks. Compiled DLL SHA-256: `b41f980e899a2bc898dd2f4c05db2661b271ec5b7234293b331d50bb1ce4c44f`. Verified direct-install ZIP SHA-256: `a836d8abf4fdfcf598d7706a02b8c125d58a9f775f197b0bf4d8312cb22c32d4`. **Gate B only, compiled and not tested in-game.**
+
 **Engineering status:** The system is conditionally applied in the existing source. No observed Bannerlord session has yet proven that every native stage exposes movable panels or that in-game control placement is pixel-identical. Full game input, resolution, FaceGen, fief/family and save/reload tests remain required. The development module manifest remains `v0.38.0`.
 
 [Measured alignment and live acceptance checklist](docs/V044_MEASURED_NATIVE_CONTROL_LAYOUT.md) · [Draft PR #75](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/75)
