@@ -24,8 +24,10 @@ assert "AgeFromSliderPointer(" in policy
 for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback"):
     prefab=ET.parse(ui/(name+".xml")).getroot()
     sliders=list(prefab.iter("SliderWidget"))
-    assert len(sliders)==1
-    sl=sliders[0]
+    # v0.53 adds a repeating stats-row SliderWidget alongside the
+    # original working Age slider. Check the distinct Age identity.
+    assert len(sliders)==2
+    sl=next(x for x in sliders if x.get("Id")=="CUPlayerAgeSlider")
     assert sl.get("ValueInt")=="@PlayerAge"
     assert sl.get("MinValueInt")=="18" and sl.get("MaxValueInt")=="80"
     assert sl.get("Handle")=="CUPlayerAgeHandle"
