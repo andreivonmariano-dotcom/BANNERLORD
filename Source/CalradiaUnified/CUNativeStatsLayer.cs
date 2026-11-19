@@ -229,7 +229,11 @@ namespace CalradiaUnified
             Action<string,int> onSetExact)
         {
             this.key=key;
-            name=key.Substring(key.IndexOf('.')+1);
+            string originalName=key.Substring(key.IndexOf('.')+1);
+            name=key.StartsWith("Focus.",StringComparison.Ordinal) ?
+                "Focus: "+originalName : key.StartsWith("Skill.",
+                StringComparison.Ordinal) ? "Skill: "+originalName :
+                originalName;
             description=help;
             native=nativeValue;
             selected=selectedValue;
@@ -260,10 +264,10 @@ namespace CalradiaUnified
         public string Name {get{return name;}}
 
         [DataSourceProperty]
-        public string NativeValue {get{return "NATIVE "+native;}}
+        public string NativeValue {get{return "BASE "+native;}}
 
         [DataSourceProperty]
-        public string SelectedValue {get{return "CHOSEN "+selected;}}
+        public string SelectedValue {get{return "NEW "+selected;}}
 
         [DataSourceProperty]
         public string Difference
@@ -332,10 +336,10 @@ namespace CalradiaUnified
             {
                 if(current=="Skills")
                 {
-                    AddRow("Skill."+name,"Native skill level. "+name+
-                        " improves through gameplay.");
-                    AddRow("Focus."+name,"Native focus points for "+name+
-                        ". These affect skill learning.");
+                    AddRow("Skill."+name,
+                        "SKILL LEVEL | 0–330. Increases by 10 per click.");
+                    AddRow("Focus."+name,
+                        "FOCUS POINTS | Native cap: 5. Learning bonus.");
                 }
                 else if(current=="Traits")
                     AddRow("Trait."+name,
@@ -655,8 +659,8 @@ namespace CalradiaUnified
         }
         [DataSourceProperty] public string NextLabel
         {
-            get{return Mode=="Native"?"Keep native stats & continue":
-                pageIndex==2?"Confirm stats & continue to banner":
+            get{return Mode=="Native"?"Confirm age & keep native stats":
+                pageIndex==2?"Confirm stats & continue":
                 "Next: "+SandboxStatBudgetPolicy.Pages[pageIndex+1];}
         }
         [DataSourceProperty] public string Status {get{return status;}}
