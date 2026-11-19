@@ -121,21 +121,35 @@
                       HeightSizePolicy="Fixed" SuggestedHeight="28"
                       PositionXOffset="417" PositionYOffset="5"/>
                     <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="69"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="525"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
+ HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="510"
  PositionYOffset="4" Command.Click="ExecuteDecrease" >
  <Children><TextWidget Text="−" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
                     <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="69"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="602"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="50"
+ HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="566"
  PositionYOffset="4" Command.Click="ExecuteIncrease" >
  <Children><TextWidget Text="+" Color="#F1DEBEFF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
+                    <ButtonWidget Brush="ButtonBrush"
+                      DoNotPassEventsToChildren="true"
+                      UpdateChildrenStates="true" WidthSizePolicy="Fixed"
+                      SuggestedWidth="78" HeightSizePolicy="Fixed"
+                      SuggestedHeight="45" PositionXOffset="622"
+                      PositionYOffset="4" Command.Click="ExecuteEditExact">
+                      <Children>
+                        <TextWidget Text="Exact" Color="#F1DEBEFF"
+                          WidthSizePolicy="StretchToParent"
+                          HeightSizePolicy="StretchToParent"
+                          HorizontalAlignment="Center"
+                          VerticalAlignment="Center"/>
+                      </Children>
+                    </ButtonWidget>
                     <TextWidget Text="@Description" Color="#B9C8D6FF"
                       WidthSizePolicy="Fixed" SuggestedWidth="499"
                       HeightSizePolicy="Fixed" SuggestedHeight="29"
