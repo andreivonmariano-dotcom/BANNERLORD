@@ -1,3 +1,19 @@
+# Calradia Unified v0.46 development: final page order, native family presence truth, cleaner creator UI
+
+**Player-screenshot repairs:** World and House now have a compact gold-edged 610px choice card, shorter side panels and no `Selected: SpouseEnabled = true` internal debug string. Age is a focused separate page; stats rows are taller and more readable. Culture has a framed lore section. Native FaceGen, Narrative, Banner, Clan, Review and Difficulty keep their original active game control surfaces.
+
+**Deterministic Back and Continue:** `Starting Age → Attributes → Skills → Traits → Confirm` regardless of Native, Balanced or Unrestricted mode. Back from Attributes returns to Age. Only the age page's Back returns to native life story. Conditional guided questions now keep their selected field after spouse, child count, role or fief changes.
+
+**Why Alden is recorded at Caleus Castle but not recallable:** The game records a minor Hero's home without spawning that child as an adult hero or granting native party recall. This affects male and female children, irrespective of which portraits the settlement UI shows. The family home path no longer reports minor residence as failed due to absence from `HeroesWithoutParty`. **CU: View my household portraits** now gives every actual son/daughter a separate residence and eligibility status. Adult relatives retain native teleport/rehome handling.
+
+**Pinned Windows build:** [run 44485361161](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44485361161), source SHA `decdf9b6d3e9ca5b2a7be178627ca2791256df71`. **747 C# policy checks**, zero compiler warnings/errors, pinned native API reflection, ZIP integrity, DLL identity and installer simulation passed. DLL SHA-256 `e71ce307ac40e04b084e58474e7d2392974887fea7b9680e728dc90095f77085`.
+
+**Release gate: COMPILED_UNTESTED.** The supplied prior screenshots were of v0.45. The v0.46 layout, all Back/Next sequences, Alden's live `HeroState` and actual adult castle scene placement require a new game test. A minor cannot be forced into adult recall without violating native Bannerlord life-stage rules. Module manifest remains `v0.38.0` in development.
+
+[Detailed v0.46 implementation](docs/V046_CREATOR_NAVIGATION_FAMILY_UI_HARDENING.md) · [Draft PR #77](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/77)
+
+---
+
 # Calradia Unified v0.45 development: screenshot-driven creator repair
 
 **Player-observed defects addressed:** The v0.44 guided World/Stats/Household and Culture screenshots showed flat navy panels, crowded text, raw culture IDs colliding with culture names, a duplicate Calradia Unified header over native Family/Banner/Review/Difficulty, and a black experimental FaceGen dock. v0.45 changes active custom GUI prefabs to native-inspired dark brown, stone, brass and parchment with measured font sizes, compact stat rows, centered responsive question controls and clear button labels. It removes the overlaid CU native header, preserves the original native layouts and defaults to the original game-owned 3D FaceGen camera.
