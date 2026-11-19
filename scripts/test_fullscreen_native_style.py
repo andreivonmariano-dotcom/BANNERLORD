@@ -39,16 +39,17 @@ for name,xml in (("pregame",creator),("native_culture",culture)):
     assert sum(n.get("VerticalAlignment")=="Bottom" for n in bands)>=2,name
     assert any(n.get("Color")=="#C19B62FF" for n in bands),name
     assert any(n.get("Color")=="#B99361FF" for n in bands),name
-    # Safe centered native-style control region. Edges remain covered on
-    # wider resolutions, unlike the old floated modal window.
+    # Responsive centered native-style control region. At 1366 x 768 it
+    # fits with margins; at 1920 x 1080 it expands, then caps cleanly.
     safe=[n for n in root_widget.iter("Widget") if
         n.get("HorizontalAlignment")=="Center" and
         n.get("VerticalAlignment")=="Center" and
-        n.get("WidthSizePolicy")=="Fixed" and
-        n.get("HeightSizePolicy")=="Fixed"]
-    assert safe,name+": missing centered native content region"
-    assert max(int(n.get("SuggestedWidth","0")) for n in safe)<=1366,name
-    assert max(int(n.get("SuggestedHeight","0")) for n in safe)<=768,name
+        n.get("WidthSizePolicy")=="StretchToParent" and
+        n.get("HeightSizePolicy")=="StretchToParent" and
+        n.get("MaxWidth")=="1820" and n.get("MaxHeight")=="960"]
+    assert len(safe)==1,name+": missing responsive centered content region"
+    assert int(safe[0].get("MarginLeft"))>=20,name
+    assert int(safe[0].get("MarginBottom"))>=20,name
 
 labels=[n.get("Text","") for n in creator.iter("TextWidget")]
 commands=[n.get("Command.Click") for n in creator.iter("ButtonWidget")]
