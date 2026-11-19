@@ -348,7 +348,7 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty]
-        public string Title { get { return "CALRADIA UNIFIED | NATIVE BRIDGE"; } }
+        public string Title { get { return "CALRADIA UNIFIED | YOUR LEGACY"; } }
 
         [DataSourceProperty]
         public string Chapter { get { return chapter; } }
@@ -391,8 +391,8 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Native controls remain active. CU shell is a " +
-                    "read-only test, not yet one-screen creation.";
+                return "The original Bannerlord controls preserve " +
+                    "culture, appearance, origins and final game effects.";
             }
         }
     }
