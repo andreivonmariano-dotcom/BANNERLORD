@@ -45,7 +45,8 @@ for key in ("SpouseEnabled","SpouseAge","ChildCount","Gold","Influence",
             "FamilyHomeMode","FamilyHomeId"):
     assert '"'+key+'"' in tail,key
     assert '"'+key+'"' not in front, "uninitialized family/resources asked before identity"
-assert 'new Field("CHAPTER V | BEGIN YOUR LEGACY","Review"' in tail
+assert 'new Field("CHAPTER V | BEGIN YOUR LEGACY","Review"' not in tail
+assert 'stage!="CharacterCreationReviewStage"' in house, "only the native final review remains"
 assert 'profile.ResetForNewCampaign();' in flow
 assert 'profile.SaveForPlayer(' not in front
 assert 'SaveForPlayer(' in flow
