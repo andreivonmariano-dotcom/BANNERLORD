@@ -14,7 +14,7 @@ family = (source / "SandboxFamilyCreator.cs").read_text()
 # Regression #43: v0.19 always started with unchanged native options.
 assert 'SandboxNativeStartOptions.TryPrepare(profile,out options,out reason)' in overlay
 assert 'options.GetChangedOptions()' in overlay
-assert 'MBGameManager.StartNewGame(new SandBoxGameManager(' in overlay
+assert 'MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(' in overlay
 assert 'case "Knight":' in roles and 'case "Lord": return "vassal";' in roles
 assert 'case "King": return "king";' in roles
 assert 'case "Soldier": return "mercenary";' in roles
