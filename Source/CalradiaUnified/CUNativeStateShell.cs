@@ -123,6 +123,19 @@ namespace CalradiaUnified
             }
         }
 
+        internal static void UseNativeFallback(
+            CharacterCreationScreen nativeScreen)
+        {
+            // Recovery is performed on a later application tick, never
+            // inside Gauntlet's click callback. Suppress ALL CU movies for
+            // this native screen so the game owns exit/finalization alone.
+            Detach();
+            skippedHost=nativeScreen;
+            DiagnosticJournal.Event("cu_native_culture_full_fallback",
+                "native_culture_screen_untouched=true" +
+                "|cu_layers_released=true");
+        }
+
         private static void Detach()
         {
             CUNativeCultureLayer.Clear();
