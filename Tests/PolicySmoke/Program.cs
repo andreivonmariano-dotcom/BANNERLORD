@@ -95,6 +95,32 @@ internal static class Program
             !CUNativeLayoutPolicy.TryPlanFooter(
                 "CharacterCreationNarrativeStage",1920,1080,
                 210,1000,170,50,out moveX,out moveY));
+        float labelLeft,labelRight;
+        Check("original native buttons get symmetric CU text padding",
+            CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationNarrativeStage",300,180,
+                0,0,out labelLeft,out labelRight) &&
+            labelLeft==12 && labelRight==12);
+        Check("long localized native button labels are never clipped",
+            !CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationNarrativeStage",300,290,
+                0,0,out labelLeft,out labelRight));
+        Check("larger game-owned native button margins are kept intact",
+            !CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationNarrativeStage",300,180,
+                14,14,out labelLeft,out labelRight));
+        Check("native banner text labels can match CU spacing without moving artwork",
+            CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationBannerEditorStage",260,180,
+                2,2,out labelLeft,out labelRight) &&
+            labelLeft==12 && labelRight==12);
+        Check("culture and FaceGen labels retain original native placement",
+            !CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationFaceGeneratorStage",260,180,
+                0,0,out labelLeft,out labelRight) &&
+            !CUNativeLayoutPolicy.TryPlanLabelPadding(
+                "CharacterCreationCultureStage",260,180,
+                0,0,out labelLeft,out labelRight));
         Check("native root must match the physical unscaled viewport",
             CUNativeLayoutPolicy.RootMatchesResolution(1920,1080,1920,1080) &&
             !CUNativeLayoutPolicy.RootMatchesResolution(
