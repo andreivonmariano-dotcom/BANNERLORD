@@ -34,6 +34,8 @@ namespace CalradiaUnified
         private static bool completed;
         private static bool closeRequested;
         private static bool backRequested;
+        private static bool returningFromNativeBanner;
+        private static string previousNativeStage;
 
         public static void Tick(CharacterCreationScreen screen,
             CharacterCreationManager manager)
@@ -51,17 +53,38 @@ namespace CalradiaUnified
             }
             string stage=manager.CurrentStage==null ? "" :
                 manager.CurrentStage.GetType().Name;
-            if(stage=="CharacterCreationNarrativeStage")
+            bool isNarrative=stage=="CharacterCreationNarrativeStage";
+            bool isBanner=stage=="CharacterCreationBannerEditorStage";
+            if(isNarrative &&
+                previousNativeStage=="CharacterCreationBannerEditorStage" &&
+                completed)
             {
-                // Replaying native background choices requires a fresh
-                // native baseline and another edit confirmation.
-                narrativeSeen=true;
+                // User clicked the ORIGINAL native Banner Back. Native
+                // stage history knows nothing about CU's Traits overlay.
+                // Reopen Traits over the real narrative page, then let
+                // Bannerlord advance back to Banner on confirmation.
+                returningFromNativeBanner=true;
                 completed=false;
                 failedHost=null;
-                Detach();
-                return;
+                DiagnosticJournal.Event("cu_native_banner_back_to_traits",
+                    "original_back_callback_retained=true"+
+                    "|reopen=Traits|native_stage=narrative");
             }
-            if(stage!="CharacterCreationBannerEditorStage")
+            previousNativeStage=stage;
+            if(isNarrative)
+            {
+                narrativeSeen=true;
+                if(!returningFromNativeBanner)
+                {
+                    // An explicit Back from CU's Age step reveals
+                    // the original native life story.
+                    completed=false;
+                    failedHost=null;
+                    Detach();
+                    return;
+                }
+            }
+            if(!isBanner && !(isNarrative && returningFromNativeBanner))
             {
                 Detach();
                 return;
@@ -70,10 +93,31 @@ namespace CalradiaUnified
             if (closeRequested)
             {
                 closeRequested=false;
-                completed=true;
+                bool needsBannerReturn=returningFromNativeBanner;
                 Detach();
-                DiagnosticJournal.Event("cu_native_stats_step_closed",
-                    "resume=original_banner_stage|wizard_still_native=true");
+                returningFromNativeBanner=false;
+                completed=true;
+                if(needsBannerReturn)
+                {
+                    try
+                    {
+                        // Return through the game-owned native transition.
+                        // Do not create an extra Banner stage or game state.
+                        manager.NextStage();
+                        DiagnosticJournal.Event(
+                            "cu_native_stats_return_to_banner",
+                            "from=Traits|native_next_stage=true");
+                    }
+                    catch(Exception error)
+                    {
+                        completed=false;
+                        DiagnosticJournal.Exception(
+                            "cu_native_stats_return_to_banner_failed",error);
+                    }
+                }
+                else
+                    DiagnosticJournal.Event("cu_native_stats_step_closed",
+                        "resume=original_banner_stage|wizard_still_native=true");
                 return;
             }
             if (backRequested)
@@ -132,7 +176,10 @@ namespace CalradiaUnified
                     return;
                 }
                 var vm=new CUNativeStatsVM(manager,profile,
-                    ()=>closeRequested=true,()=>backRequested=true);
+                    ()=>closeRequested=true,()=>backRequested=true,
+                    returningFromNativeBanner ?
+                    CUNativeStatsNavigationPolicy.Traits :
+                    CUNativeStatsNavigationPolicy.Age);
                 next=new GauntletLayer("CUNativeStatsEditor",85,false);
                 next.IsFocusLayer=true;
                 next.InputRestrictions.SetInputRestrictions();
@@ -160,7 +207,9 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("cu_native_stats_step_attached",
                     "transition=after_narrative_before_banner" +
                     "|hero_real=true|native_stages_preserved=true" +
-                    "|default_mode=Native|no_experimental_toggle=true");
+                    "|default_mode=Native|no_experimental_toggle=true"+
+                    "|entry_page="+
+                    (returningFromNativeBanner?"Traits":"Age"));
             }
             catch(Exception e)
             {
@@ -277,6 +326,8 @@ namespace CalradiaUnified
             completed=false;
             closeRequested=false;
             backRequested=false;
+            returningFromNativeBanner=false;
+            previousNativeStage=null;
         }
     }
 
@@ -378,8 +429,12 @@ namespace CalradiaUnified
         public MBBindingList<CUNativeStatRowVM> Rows {get;private set;}
 
         internal CUNativeStatsVM(CharacterCreationManager manager,
-            SandboxOriginProfile source,Action onCompleted,Action onBack)
+            SandboxOriginProfile source,Action onCompleted,Action onBack,
+            int startingPage)
         {
+            if(!CUNativeStatsNavigationPolicy.IsValidPage(startingPage))
+                throw new ArgumentOutOfRangeException("startingPage");
+            pageIndex=startingPage;
             profile=SandboxOriginProfile.Parse(source.Serialize());
             // The existing advanced Resources fields no longer authorize
             // arbitrary early override values. Defaults are native.
