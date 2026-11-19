@@ -15,6 +15,7 @@ controller=(S/"CUNativeCultureController.cs").read_text(encoding="utf-8")
 layer=(S/"CUNativeCultureLayer.cs").read_text(encoding="utf-8")
 inspector=(S/"CUNativeFaceInspector.cs").read_text(encoding="utf-8")
 shell=(S/"CUNativeStateShell.cs").read_text(encoding="utf-8")
+behavior=(S/"SandboxOriginBehavior.cs").read_text(encoding="utf-8")
 menu=(S/"SandboxCreatorOverlay.cs").read_text(encoding="utf-8")
 profile=(S/"SandboxOriginProfile.cs").read_text(encoding="utf-8")
 ui=ET.parse(ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUNativeCultureChooser.xml").getroot()
@@ -65,6 +66,8 @@ assert 'nextLayer.LoadMovie("CUNativeCultureChooser",nextVM)' in layer
 assert "screen.HasLayer" not in layer or "nativeScreen.HasLayer(nextLayer)" in layer
 assert "CUNativeCultureLayer.Tick(screen," in shell
 assert "CUNativeCultureLayer.Clear();" in shell
+assert "CUNativeStateShell.Clear();" in behavior
+assert "cu_native_shell_released_before_finalization" in behavior
 
 # FaceGen remains native, one live FaceGen SceneLayer and UI layer;
 # no fake new BodyGeneratorView or second CharacterCreationScreen.
