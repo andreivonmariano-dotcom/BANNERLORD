@@ -16,6 +16,7 @@ shell=read("CUNativeStateShell.cs")
 culture=read("CUNativeCultureLayer.cs")
 overlay=read("SandboxCreatorOverlay.cs")
 no_intro=read("CUSandboxNoIntroGameManager.cs")
+age_probe=read("CUNativeAgeMenuProbe.cs")
 g=prefab("CUGuidedCreator")
 s=prefab("CUNativeStatsEditor")
 gp=prefab("CUGuidedCreatorPlainFallback")
@@ -71,6 +72,15 @@ assert "CUNativeControlSkin.Clear();" in shell
 assert "CUNativeLayoutAlignment.Clear();" in shell
 assert 'CUNativeStatsLayer.Tick(screen,' in shell
 assert 'CUNativeHouseLayer.Tick(screen,' in shell
+assert 'CUNativeAgeMenuProbe.Tick(' in shell
+assert 'CUNativeAgeMenuProbe.Clear();' in shell
+assert 'cu_native_final_narrative_menu' in age_probe
+assert 'manager.GetSuitableNarrativeMenuOptions()' in age_probe
+assert 'manager.NarrativeMenus' in age_probe
+assert 'manager.CurrentMenu' in age_probe
+assert 'manager.OnNarrativeMenuOptionSelected(' not in age_probe
+assert 'manager.TrySwitchToNextMenu(' not in age_probe
+assert 'manager.NextStage(' not in age_probe
 
 # Banner Back reenters Traits on the game-owned stage, then confirms
 # through the original NextStage instead of creating a new game state.
