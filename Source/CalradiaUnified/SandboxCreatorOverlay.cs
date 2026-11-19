@@ -434,6 +434,14 @@ namespace CalradiaUnified
                 return profile.StartingScenario=="twofactionwar";
             if (key=="ScenarioVariant")
                 return profile.StartingScenario=="alternativecalradia";
+            // All starting attributes, skills, focus and traits live in
+            // the new post-narrative native editor. Never ask twice in the
+            // pre-campaign Resources pages, not even under More options.
+            if (key.StartsWith("Skill.",StringComparison.Ordinal) ||
+                key.StartsWith("Focus.",StringComparison.Ordinal) ||
+                key.StartsWith("Attribute.",StringComparison.Ordinal) ||
+                key.StartsWith("Trait.",StringComparison.Ordinal))
+                return false;
             if (key=="WorldSeed" || key=="StartingTown" ||
                 key=="PlayerAge" || key=="SiblingCount" ||
                 key=="EquipmentKit" ||
@@ -634,7 +642,7 @@ namespace CalradiaUnified
             {
                 if (page=="Identity") return "Your place in Calradia. Choose a career first, then a kingdom if required.";
                 if (page=="Household") return "Design a real starting family: spouse, noble ancestry, children and ages. Only registered native Heroes receive portraits after creation.";
-                if (page=="Resources") return "Choose starting gold, influence and recruits. Skills and exact equipment are under Advanced.";
+                if (page=="Resources") return "Choose starting gold, influence and recruits. Starting stats and personality traits follow your native youth and adulthood choices.";
                 if (page=="Location") return "Set your family's home in a town or castle, then choose your fief policy. No party recall is needed for infants.";
                 return "Your starting life is ready. Continue to Bannerlord's true culture, live 3D body editor and native origins. Opt-in CU 3D review runs after difficulty.";
             }
@@ -819,7 +827,7 @@ namespace CalradiaUnified
         {
             get
             {
-                return "NEXT: native culture, face, origins, age and difficulty. A minor stays a child, never a party troop.";
+                return "NEXT: native culture, face, origins, age, starting stats and difficulty. A minor stays a child, never a party troop.";
             }
         }
         [DataSourceProperty] public string ProfileSummary
@@ -850,7 +858,7 @@ namespace CalradiaUnified
             advancedFieldsVisible=!advancedFieldsVisible;
             selectedIndex=0;
             SetStatus(advancedFieldsVisible ?
-                "Advanced options shown. These are optional and some remain experimental." :
+                "Advanced options shown. Starting stats are edited after your life story." :
                 "Quick setup active. Only relevant starting choices are shown.");
             Refresh();
         }
