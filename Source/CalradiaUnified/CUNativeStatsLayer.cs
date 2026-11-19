@@ -601,10 +601,9 @@ namespace CalradiaUnified
 
         internal void ApplySelected(int updated)
         {
+            // Native fixed-slot bindings belong to the parent editor.
+            // Do not fire independent Gauntlet row item-template events.
             selected=updated;
-            OnPropertyChangedWithValue(selected,"SelectedInt");
-            OnPropertyChangedWithValue(SelectedValue,"SelectedValue");
-            OnPropertyChangedWithValue(Difference,"Difference");
         }
         [DataSourceProperty] public int SelectedInt
         {
@@ -670,8 +669,12 @@ namespace CalradiaUnified
         private readonly string[] bonusLines;
         private int bonusIndex;
 
-        [DataSourceProperty]
-        public MBBindingList<CUNativeStatRowVM> Rows {get;private set;}
+        // The user's 1.5.7 game exited directly after row generation
+        // in both v0.54 and v0.55. The dynamic ListPanel ItemTemplate
+        // is no longer attached to Gauntlet. Use six static slot widgets
+        // backed by ordinary ViewModel values and callbacks instead.
+        private readonly List<CUNativeStatRowVM> rows =
+            new List<CUNativeStatRowVM>();
 
         internal CUNativeStatsVM(CharacterCreationManager manager,
             SandboxOriginProfile source,Action onCompleted,Action onBack,
@@ -703,7 +706,6 @@ namespace CalradiaUnified
                 spouseBaseline["Trait."+name]=0;
             completed=onCompleted;
             back=onBack;
-            Rows=new MBBindingList<CUNativeStatRowVM>();
             bonusLines=NativeNarrativeBonusReader.Read(manager);
             Refresh();
         }
@@ -738,7 +740,7 @@ namespace CalradiaUnified
                 "creator_page="+pageIndex+
                 "|target="+(editingSpouse?"spouse":"player")+
                 "|row_page="+statsRowPageIndex);
-            Rows.Clear();
+            rows.Clear();
             if(pageIndex>=0)
             {
                 var keys=AllStatKeys();
@@ -772,10 +774,11 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("cu_stats_page_rows_built",
                     "page="+(statsRowPageIndex+1)+"/"+
                     statsRowPageCount+
-                    "|visible="+Rows.Count+
+                    "|visible="+rows.Count+
                     "|total="+keys.Count+
                     "|scrollable_panel=false"+
-                    "|game_native_slider=true");
+                    "|item_template=false"+
+                    "|fixed_slots=6|game_native_slider=true");
             }
             OnPropertyChangedWithValue(Page,"Page");
             OnPropertyChangedWithValue(PageProgress,"PageProgress");
@@ -798,12 +801,17 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(NavalStatus,"NavalStatus");
             OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
             OnPropertyChangedWithValue(status,"Status");
+            NotifyStaticSlots();
+            DiagnosticJournal.Event("cu_stats_static_slots_notified",
+                "visible="+rows.Count+
+                "|template=false|static_widgets=6"+
+                "|row_page="+(statsRowPageIndex+1));
         }
         private void RefreshRowValues()
         {
             var changes=ChangesForTarget;
             var foundation=BaseForTarget;
-            foreach(var row in Rows)
+            foreach(var row in rows)
             {
                 int starting;
                 if(!foundation.TryGetValue(row.Key,out starting))continue;
@@ -814,7 +822,216 @@ namespace CalradiaUnified
             }
             OnPropertyChangedWithValue(BudgetStatus,"BudgetStatus");
             OnPropertyChangedWithValue(status,"Status");
+            NotifyStaticSlots();
         }
+        // Fixed stat slots bind directly to this ViewModel. No repeating
+        // Gauntlet ItemTemplate or row data context is created at runtime.
+        private CUNativeStatRowVM AtSlot(int slot)
+        {
+            return slot>=0 && slot<rows.Count?rows[slot]:null;
+        }
+        private bool VisibleSlot(int slot)
+        {
+            return pageIndex>=0 && AtSlot(slot)!=null;
+        }
+        private string NameSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?"":row.Name;
+        }
+        private string BaseSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?"":row.NativeValue;
+        }
+        private string SelectedSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?"":row.SelectedValue;
+        }
+        private int ValueSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?0:row.SelectedInt;
+        }
+        private int MinSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?0:row.Minimum;
+        }
+        private int MaxSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?1:row.Maximum;
+        }
+        private int IncrementSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            return row==null?1:row.Increment;
+        }
+        private void SetSlot(int slot,int next)
+        {
+            var row=AtSlot(slot);
+            if(row!=null && row.SelectedInt!=next)
+                ChangeExact(row.Key,next);
+        }
+        private void ChangeSlot(int slot,int direction)
+        {
+            var row=AtSlot(slot);
+            if(row!=null)Change(row.Key,direction);
+        }
+        private void ExactSlot(int slot)
+        {
+            var row=AtSlot(slot);
+            if(row==null)return;
+            // This is still the native TextInquiryData entry and
+            // the exact same validation as +/- and the slider.
+            row.ExecuteEditExact();
+        }
+        private void NotifyStaticSlots()
+        {
+            // The static widget tree holds six permanently named slots.
+            // These events update the existing widgets, not ItemTemplates.
+            OnPropertyChangedWithValue(Slot1Visible,"Slot1Visible");
+            OnPropertyChangedWithValue(Slot1Name,"Slot1Name");
+            OnPropertyChangedWithValue(Slot1Native,"Slot1Native");
+            OnPropertyChangedWithValue(Slot1Selected,"Slot1Selected");
+            OnPropertyChangedWithValue(Slot1Value,"Slot1Value");
+            OnPropertyChangedWithValue(Slot1Min,"Slot1Min");
+            OnPropertyChangedWithValue(Slot1Max,"Slot1Max");
+            OnPropertyChangedWithValue(Slot1Increment,"Slot1Increment");
+            OnPropertyChangedWithValue(Slot2Visible,"Slot2Visible");
+            OnPropertyChangedWithValue(Slot2Name,"Slot2Name");
+            OnPropertyChangedWithValue(Slot2Native,"Slot2Native");
+            OnPropertyChangedWithValue(Slot2Selected,"Slot2Selected");
+            OnPropertyChangedWithValue(Slot2Value,"Slot2Value");
+            OnPropertyChangedWithValue(Slot2Min,"Slot2Min");
+            OnPropertyChangedWithValue(Slot2Max,"Slot2Max");
+            OnPropertyChangedWithValue(Slot2Increment,"Slot2Increment");
+            OnPropertyChangedWithValue(Slot3Visible,"Slot3Visible");
+            OnPropertyChangedWithValue(Slot3Name,"Slot3Name");
+            OnPropertyChangedWithValue(Slot3Native,"Slot3Native");
+            OnPropertyChangedWithValue(Slot3Selected,"Slot3Selected");
+            OnPropertyChangedWithValue(Slot3Value,"Slot3Value");
+            OnPropertyChangedWithValue(Slot3Min,"Slot3Min");
+            OnPropertyChangedWithValue(Slot3Max,"Slot3Max");
+            OnPropertyChangedWithValue(Slot3Increment,"Slot3Increment");
+            OnPropertyChangedWithValue(Slot4Visible,"Slot4Visible");
+            OnPropertyChangedWithValue(Slot4Name,"Slot4Name");
+            OnPropertyChangedWithValue(Slot4Native,"Slot4Native");
+            OnPropertyChangedWithValue(Slot4Selected,"Slot4Selected");
+            OnPropertyChangedWithValue(Slot4Value,"Slot4Value");
+            OnPropertyChangedWithValue(Slot4Min,"Slot4Min");
+            OnPropertyChangedWithValue(Slot4Max,"Slot4Max");
+            OnPropertyChangedWithValue(Slot4Increment,"Slot4Increment");
+            OnPropertyChangedWithValue(Slot5Visible,"Slot5Visible");
+            OnPropertyChangedWithValue(Slot5Name,"Slot5Name");
+            OnPropertyChangedWithValue(Slot5Native,"Slot5Native");
+            OnPropertyChangedWithValue(Slot5Selected,"Slot5Selected");
+            OnPropertyChangedWithValue(Slot5Value,"Slot5Value");
+            OnPropertyChangedWithValue(Slot5Min,"Slot5Min");
+            OnPropertyChangedWithValue(Slot5Max,"Slot5Max");
+            OnPropertyChangedWithValue(Slot5Increment,"Slot5Increment");
+            OnPropertyChangedWithValue(Slot6Visible,"Slot6Visible");
+            OnPropertyChangedWithValue(Slot6Name,"Slot6Name");
+            OnPropertyChangedWithValue(Slot6Native,"Slot6Native");
+            OnPropertyChangedWithValue(Slot6Selected,"Slot6Selected");
+            OnPropertyChangedWithValue(Slot6Value,"Slot6Value");
+            OnPropertyChangedWithValue(Slot6Min,"Slot6Min");
+            OnPropertyChangedWithValue(Slot6Max,"Slot6Max");
+            OnPropertyChangedWithValue(Slot6Increment,"Slot6Increment");
+        }
+        [DataSourceProperty] public bool Slot1Visible {get{return VisibleSlot(0);}}
+        [DataSourceProperty] public string Slot1Name {get{return NameSlot(0);}}
+        [DataSourceProperty] public string Slot1Native {get{return BaseSlot(0);}}
+        [DataSourceProperty] public string Slot1Selected {get{return SelectedSlot(0);}}
+        [DataSourceProperty] public int Slot1Value
+        {
+            get{return ValueSlot(0);}
+            set{SetSlot(0,value);}
+        }
+        [DataSourceProperty] public int Slot1Min {get{return MinSlot(0);}}
+        [DataSourceProperty] public int Slot1Max {get{return MaxSlot(0);}}
+        [DataSourceProperty] public int Slot1Increment {get{return IncrementSlot(0);}}
+        public void ExecuteSlot1Increase(){ChangeSlot(0,1);}
+        public void ExecuteSlot1Decrease(){ChangeSlot(0,-1);}
+        public void ExecuteSlot1Exact(){ExactSlot(0);}
+        [DataSourceProperty] public bool Slot2Visible {get{return VisibleSlot(1);}}
+        [DataSourceProperty] public string Slot2Name {get{return NameSlot(1);}}
+        [DataSourceProperty] public string Slot2Native {get{return BaseSlot(1);}}
+        [DataSourceProperty] public string Slot2Selected {get{return SelectedSlot(1);}}
+        [DataSourceProperty] public int Slot2Value
+        {
+            get{return ValueSlot(1);}
+            set{SetSlot(1,value);}
+        }
+        [DataSourceProperty] public int Slot2Min {get{return MinSlot(1);}}
+        [DataSourceProperty] public int Slot2Max {get{return MaxSlot(1);}}
+        [DataSourceProperty] public int Slot2Increment {get{return IncrementSlot(1);}}
+        public void ExecuteSlot2Increase(){ChangeSlot(1,1);}
+        public void ExecuteSlot2Decrease(){ChangeSlot(1,-1);}
+        public void ExecuteSlot2Exact(){ExactSlot(1);}
+        [DataSourceProperty] public bool Slot3Visible {get{return VisibleSlot(2);}}
+        [DataSourceProperty] public string Slot3Name {get{return NameSlot(2);}}
+        [DataSourceProperty] public string Slot3Native {get{return BaseSlot(2);}}
+        [DataSourceProperty] public string Slot3Selected {get{return SelectedSlot(2);}}
+        [DataSourceProperty] public int Slot3Value
+        {
+            get{return ValueSlot(2);}
+            set{SetSlot(2,value);}
+        }
+        [DataSourceProperty] public int Slot3Min {get{return MinSlot(2);}}
+        [DataSourceProperty] public int Slot3Max {get{return MaxSlot(2);}}
+        [DataSourceProperty] public int Slot3Increment {get{return IncrementSlot(2);}}
+        public void ExecuteSlot3Increase(){ChangeSlot(2,1);}
+        public void ExecuteSlot3Decrease(){ChangeSlot(2,-1);}
+        public void ExecuteSlot3Exact(){ExactSlot(2);}
+        [DataSourceProperty] public bool Slot4Visible {get{return VisibleSlot(3);}}
+        [DataSourceProperty] public string Slot4Name {get{return NameSlot(3);}}
+        [DataSourceProperty] public string Slot4Native {get{return BaseSlot(3);}}
+        [DataSourceProperty] public string Slot4Selected {get{return SelectedSlot(3);}}
+        [DataSourceProperty] public int Slot4Value
+        {
+            get{return ValueSlot(3);}
+            set{SetSlot(3,value);}
+        }
+        [DataSourceProperty] public int Slot4Min {get{return MinSlot(3);}}
+        [DataSourceProperty] public int Slot4Max {get{return MaxSlot(3);}}
+        [DataSourceProperty] public int Slot4Increment {get{return IncrementSlot(3);}}
+        public void ExecuteSlot4Increase(){ChangeSlot(3,1);}
+        public void ExecuteSlot4Decrease(){ChangeSlot(3,-1);}
+        public void ExecuteSlot4Exact(){ExactSlot(3);}
+        [DataSourceProperty] public bool Slot5Visible {get{return VisibleSlot(4);}}
+        [DataSourceProperty] public string Slot5Name {get{return NameSlot(4);}}
+        [DataSourceProperty] public string Slot5Native {get{return BaseSlot(4);}}
+        [DataSourceProperty] public string Slot5Selected {get{return SelectedSlot(4);}}
+        [DataSourceProperty] public int Slot5Value
+        {
+            get{return ValueSlot(4);}
+            set{SetSlot(4,value);}
+        }
+        [DataSourceProperty] public int Slot5Min {get{return MinSlot(4);}}
+        [DataSourceProperty] public int Slot5Max {get{return MaxSlot(4);}}
+        [DataSourceProperty] public int Slot5Increment {get{return IncrementSlot(4);}}
+        public void ExecuteSlot5Increase(){ChangeSlot(4,1);}
+        public void ExecuteSlot5Decrease(){ChangeSlot(4,-1);}
+        public void ExecuteSlot5Exact(){ExactSlot(4);}
+        [DataSourceProperty] public bool Slot6Visible {get{return VisibleSlot(5);}}
+        [DataSourceProperty] public string Slot6Name {get{return NameSlot(5);}}
+        [DataSourceProperty] public string Slot6Native {get{return BaseSlot(5);}}
+        [DataSourceProperty] public string Slot6Selected {get{return SelectedSlot(5);}}
+        [DataSourceProperty] public int Slot6Value
+        {
+            get{return ValueSlot(5);}
+            set{SetSlot(5,value);}
+        }
+        [DataSourceProperty] public int Slot6Min {get{return MinSlot(5);}}
+        [DataSourceProperty] public int Slot6Max {get{return MaxSlot(5);}}
+        [DataSourceProperty] public int Slot6Increment {get{return IncrementSlot(5);}}
+        public void ExecuteSlot6Increase(){ChangeSlot(5,1);}
+        public void ExecuteSlot6Decrease(){ChangeSlot(5,-1);}
+        public void ExecuteSlot6Exact(){ExactSlot(5);}
+
         public void ExecuteEditPlayer()
         {
             editingSpouse=false;
@@ -855,7 +1072,7 @@ namespace CalradiaUnified
             int chosen;
             bool custom=ChangesForTarget.TryGetValue(key,out chosen);
             if(!custom)chosen=native;
-            Rows.Add(new CUNativeStatRowVM(key,native,chosen,help,
+            rows.Add(new CUNativeStatRowVM(key,native,chosen,help,
                 Change,ChangeExact,editingSpouse&&!custom,
                 editingSpouse));
         }
