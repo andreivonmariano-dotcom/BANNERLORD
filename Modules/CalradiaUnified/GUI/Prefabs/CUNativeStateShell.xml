@@ -9,6 +9,10 @@
             HeightSizePolicy="StretchToParent"
             DoNotPassEventsToChildren="false">
       <Children>
+        <Widget WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"
+                IsVisible="@IsNotFaceStage">
+          <Children>
         <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE8"
                 WidthSizePolicy="Fixed" SuggestedWidth="430"
                 HeightSizePolicy="Fixed" SuggestedHeight="182"
@@ -54,6 +58,27 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
                     HorizontalAlignment="Right" VerticalAlignment="Top"
                     PositionXOffset="-34" PositionYOffset="169"/>
+          </Children>
+        </Widget>
+        <!-- Keep native FaceGen's right-hand sliders and real 3D scene
+             unobscured. This verifies active engine-owned layers; it does
+             not claim the full-screen scene has been moved to a rectangle. -->
+        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FD8"
+                IsVisible="@IsFaceStage"
+                WidthSizePolicy="Fixed" SuggestedWidth="465"
+                HeightSizePolicy="Fixed" SuggestedHeight="90"
+                HorizontalAlignment="Left" VerticalAlignment="Top"
+                PositionXOffset="16" PositionYOffset="15"/>
+        <TextWidget Text="CALRADIA UNIFIED  |  REAL FACE EDITOR"
+                IsVisible="@IsFaceStage" Color="#F6D7A5FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="440"
+                HeightSizePolicy="Fixed" SuggestedHeight="30"
+                PositionXOffset="27" PositionYOffset="22"/>
+        <TextWidget Text="@FaceStatus"
+                IsVisible="@IsFaceStage" Color="#C4D7E8FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="440"
+                HeightSizePolicy="Fixed" SuggestedHeight="42"
+                PositionXOffset="27" PositionYOffset="51"/>
       </Children>
     </Widget>
   </Window>
