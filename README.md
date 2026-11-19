@@ -1,3 +1,15 @@
+# Calradia Unified v0.39 development: automatic native creator bridge
+
+**New Sandbox starts no longer require experimental toggles.** After accepting the CU starting conditions, the native-state CU shell, native-bound culture chooser and reversible original FaceGen right-dock attempt activate automatically. FaceGen's F9 recovery and native fallback remain available. The historical optional extra Face Workshop and Review stages are suppressed for this path.
+
+**Not final:** this remains the two-part pregame CU setup followed by the native character wizard. The full replacement, persistent live 3D viewport through all five chapters, and Begin Campaign directly to map have not been delivered. The module manifest stays `v0.38.0` in this development candidate. Do not confuse automatic activation with completed single-window creation.
+
+**CI evidence:** [Windows run 44454724380](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44454724380), SHA `0a6b0702b0825b62893cf9555f5a56591e4c80f6`, 656 policy checks passed, 0 compiler warnings and errors, compile/ZIP integrity and installer checks passed. DLL SHA-256 `f2ccb4422a300889411042b8dcc741435d591c68f930b68a141d79e739b7a5d5`. **Gate B: COMPILED_UNTESTED**, no in-game creator or saved campaign verification.
+
+[Exact remaining Q1/Q2/Q3 engineering and acceptance gates](docs/V039_AUTOMATIC_NATIVE_CREATOR_BRIDGE.md).
+
+---
+
 # Calradia Unified v0.38.0 | Responsive Native-Style Creator and Original FaceGen Right-Dock Trial
 
 **Target:** Bannerlord PC v1.5.7.125802. **Status:** experimental, compiled candidate only after pinned Windows CI succeeds. Gameplay and visual tests are required.

@@ -110,6 +110,9 @@ jobs:
       - name: Audit responsive full-screen CU and reversible original native FaceGen right dock
         shell: pwsh
         run: python scripts/test_responsive_native_face_trial.py
+      - name: Verify new Sandbox auto-attaches the native bridge without experimental toggles
+        shell: pwsh
+        run: python scripts/test_auto_native_creator_bridge.py
       - name: Check observed start contracts and read-only face-stage integration probe
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
