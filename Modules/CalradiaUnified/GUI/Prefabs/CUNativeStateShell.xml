@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <!-- Opt-in CU identity ribbon inside REAL CharacterCreationScreen.
+         No buttons, input restrictions or fake character tableau.
+         Its background is placed in the upper-right viewport region.
+         Native culture and FaceGen own every input and stage transition. -->
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent"
+            DoNotPassEventsToChildren="false">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE8"
+                WidthSizePolicy="Fixed" SuggestedWidth="430"
+                HeightSizePolicy="Fixed" SuggestedHeight="182"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                PositionXOffset="-20" PositionYOffset="18"/>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#C79B5EFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="430"
+                HeightSizePolicy="Fixed" SuggestedHeight="3"
+                HorizontalAlignment="Right" VerticalAlignment="Top"
+                PositionXOffset="-20" PositionYOffset="18"/>
+        <TextWidget Text="@Title" Color="#FFE2ABFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="25"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="29"/>
+        <TextWidget Text="@Chapter" Color="#FCEBD0FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="24"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="56"/>
+        <TextWidget Text="@NativeStep" Color="#E8C17DFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="24"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="79"/>
+        <TextWidget Text="@Culture" Color="#DDE4EDFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="23"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="103"/>
+        <TextWidget Text="@Role" Color="#DDE4EDFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="23"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="125"/>
+        <TextWidget Text="@Household" Color="#FCEBD0FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="23"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="147"/>
+        <TextWidget Text="@Notice" Color="#BAC8D9FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="402"
+                    HeightSizePolicy="Fixed" SuggestedHeight="32"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    PositionXOffset="-34" PositionYOffset="169"/>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>
