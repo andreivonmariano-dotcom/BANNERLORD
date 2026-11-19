@@ -34,7 +34,7 @@
           <Children>
             <!-- No modal frame: content is visually part of the
                  full-screen native-inspired canvas. -->
-            <Widget Sprite="BlankWhiteSquare_9" Color="#0C1723D9"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#09121DFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="1280"
                     HeightSizePolicy="Fixed" SuggestedHeight="700"
                     PositionXOffset="0" PositionYOffset="0" />
