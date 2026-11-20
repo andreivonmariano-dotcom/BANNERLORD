@@ -6,6 +6,7 @@ texture importing, mouse hit testing or the user's live gameplay.
 """
 from pathlib import Path
 from xml.etree import ElementTree as ET
+import re
 
 root=Path(__file__).resolve().parents[1]
 gui=root/"Modules/CalradiaUnified/GUI/Prefabs"
@@ -74,7 +75,7 @@ assert not [w for w in stats.iter("SliderWidget")
             if (w.get("Id") or "").startswith("CUFixedStatSlider")]
 assert 'next.LoadMovie("CUNativeStatsEditorV059",vm)' in source
 assert 'next.LoadMovie("CUNativeStatsEditor",vm)' in source
-assert 'next.LoadMovie(\n                            "CUNativeStatsEditorPlainFallback",vm)' in source
+assert re.search(r'next\.LoadMovie\(\s*"CUNativeStatsEditorPlainFallback",vm\)',source)
 assert 'cu_native_v059_layout_fallback' in source
 assert len(list(legacy.iter("SliderWidget")))==1
 assert any(w.get("IsVisible")=="@IsAgePage"
