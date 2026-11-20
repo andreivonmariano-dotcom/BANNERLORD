@@ -52,10 +52,9 @@ assert not any(x.get("Text")=="@CultureId"
 assert not any("The campaign engine owns all native"
                in x.get("Text","")
                for x in guided.iter("TextWidget"))
-# The compact center frame is measured separately from responsive
-# sidebars, with original native ButtonBrush command bindings inside.
-assert any(w.get("SuggestedWidth")=="610" and
-           w.get("SuggestedHeight")=="369"
+# The native-like guided creator has one right-aligned question rail.
+assert any(w.get("SuggestedWidth")=="604" and
+           w.get("HorizontalAlignment")=="Right"
            for w in guided.iter("Widget"))
 assert any(w.get("Sprite")==r"SPGeneral\EscapeMenu\escape_panel"
            for w in guided.iter("Widget"))
