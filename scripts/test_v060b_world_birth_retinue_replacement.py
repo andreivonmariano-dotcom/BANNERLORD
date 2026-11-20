@@ -28,7 +28,7 @@ assert 'Birth: "+DisplayChoice("NobleBirthPosition"' in vm
 assert 'Noble origin: "+DisplayChoice("NobleBirthPosition"' in vm
 assert 'Household officers: "+DisplayChoice("RetinueMode"' in vm
 
-assert 'choices:new[]{"Native","RoleBased"}' in house
+assert 'choices:new[]{"Native","RoleBased","FamilyOnly"}' in house
 assert '"RoleBased":' in vm
 assert 'Replace native companions with cultural household officers' in vm
 assert 'profile.RetinueMode=="RoleBased" ||' in retinue

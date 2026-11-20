@@ -87,6 +87,21 @@ internal static class Program
                 .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
                 .Length==0);
+        Check("native second and third sons identify a lord as father",
+            SandboxNobleStartPolicy.IsSonOrigin("SecondSonOfLord") &&
+            SandboxNobleStartPolicy.IsSonOrigin("ThirdSonOfKing") &&
+            !SandboxNobleStartPolicy.IsSonOrigin("YoungerBrotherOfLord") &&
+            SandboxNobleStartPolicy.RequiredOlderSons("SecondSonOfLord")==1 &&
+            SandboxNobleStartPolicy.RequiredOlderSons("ThirdSonOfLord")==2);
+        Check("soldier starts with family only and a native lord patron",
+            SandboxServicePolicy.NeedsPatron("Soldier") &&
+            SandboxServicePolicy.NeedsPatron("Knight") &&
+            !SandboxServicePolicy.NeedsPatron("Lord") &&
+            SandboxServicePolicy.DefaultRetinue("Soldier")=="FamilyOnly" &&
+            SandboxServicePolicy.DefaultRetinue("Knight")=="RoleBased" &&
+            SandboxServicePolicy.CanSelectPatron("Soldier","vlandia") &&
+            !SandboxServicePolicy.CanSelectPatron("Soldier","") &&
+            SandboxNobleStartPolicy.IsRetinueMode("FamilyOnly"));
         var nobleProfile=new SandboxOriginProfile();
         Check("noble line and role retinue survive profile roundtrip",
             nobleProfile.TrySet("Role","Lord") &&
@@ -95,6 +110,7 @@ internal static class Program
                 "YoungerBrotherOfKing") &&
             nobleProfile.TrySet("NobleElderHeroId","lord_1_1") &&
             nobleProfile.TrySet("RetinueMode","RoleBased") &&
+            nobleProfile.TrySet("ServicePatronHeroId","lord_1_1") &&
             nobleProfile.TrySet("SiblingCount","2") &&
             nobleProfile.TrySet("Sibling.1.Name","Andric") &&
             nobleProfile.TrySet("Sibling.2.Gender","Female") &&
@@ -105,15 +121,19 @@ internal static class Program
             SandboxOriginProfile.Parse(nobleProfile.Serialize())
                 .RetinueMode=="RoleBased" &&
             SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .ServicePatronHeroId=="lord_1_1" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
                 .Siblings[1].Gender=="Female");
         Check("unsafe invented royal identity rejected in profile",
             !nobleProfile.TrySet("NobleBirthPosition","FakeRoyal") &&
             !nobleProfile.TrySet("RetinueMode","RandomWanderers") &&
+            !nobleProfile.TrySet("ServicePatronHeroId","../../../file") &&
             !nobleProfile.TrySet("NobleElderHeroId","../../../file"));
         nobleProfile.ResetForNewCampaign();
         Check("fresh Sandbox forgets prior royal and retinue grants",
             nobleProfile.NobleBirthPosition=="Independent" &&
             nobleProfile.NobleElderHeroId=="" &&
+            nobleProfile.ServicePatronHeroId=="" &&
             nobleProfile.RetinueMode=="Native" &&
             nobleProfile.SiblingCount==0);
         var autoHouse=new SandboxOriginProfile();

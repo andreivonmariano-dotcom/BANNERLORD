@@ -43,6 +43,9 @@ jobs:
       - name: Regress v062 named noble relatives and culturally equipped officers
         shell: pwsh
         run: python scripts/test_v062_named_dynasty_and_officer_gear.py
+      - name: Regress v063 actual son lineage and Soldier Knight named patron starts
+        shell: pwsh
+        run: python scripts/test_v063_dynasty_and_service_starts.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
