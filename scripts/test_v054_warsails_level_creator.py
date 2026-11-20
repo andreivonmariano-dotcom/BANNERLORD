@@ -57,15 +57,23 @@ assert 'return level>=Minimum && level<=Maximum;' in levels
 for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
              "CUNativeStatsEditorSafe"):
     tree=ET.parse(gui/(name+".xml")).getroot()
-    widgets=list(tree.iter("SliderWidget"))
-    assert len(widgets)>=1,name
-    assert any(w.get("ValueInt")=="@Slot1Value" for w in widgets),name
-    assert all(any(w.get("ValueInt")==f"@Slot{i}Value"
-        for w in widgets) for i in range(1,7)),name
+    # v0.58 removes all native All Stats numeric bindings to
+    # isolate the observed hard exit. Naval values remain editable.
+    viewport=next(w for w in tree.iter("Widget")
+        if w.get("Id")=="CUStatsPageViewport")
+    assert not list(viewport.iter("SliderWidget")),name
+    for i in range(1,7):
+        row=next(w for w in viewport.iter("Widget")
+            if w.get("Id")==f"CUFixedStatRow{i}")
+        assert any(w.get("Text")==f"@Slot{i}Selected"
+            for w in row.iter("TextWidget"))
+        assert all(any(w.get("Command.Click")==f"ExecuteSlot{i}{cmd}"
+            for w in row.iter("ButtonWidget"))
+            for cmd in ("Increase","Decrease","Exact"))
     assert any(w.get("Text")=="@NavalStatus"
         for w in tree.iter("TextWidget")),name
     commands=[w.get("Command.Click") for w in tree.iter("ButtonWidget")]
     assert "ExecuteEditPlayer" in commands
     assert "ExecuteEditSpouse" in commands
 
-print("PASS: v054 naval native registry, all-stats sliders, level/XP, family inheritance and DLC-off guards (STATIC)")
+print("PASS: v054 naval native registry, all-stats exact/+/- editing, level/XP, family inheritance and DLC-off guards (STATIC)")
