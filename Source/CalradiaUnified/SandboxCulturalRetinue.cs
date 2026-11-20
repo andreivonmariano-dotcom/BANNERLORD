@@ -203,6 +203,46 @@ namespace CalradiaUnified
                 MobileParty.MainParty==null ||
                 player.Culture==null)
                 return "refused:clan_party_or_culture_missing";
+            if(profile.RetinueMode=="FamilyOnly")
+            {
+                // Zero additional officers. The player's explicitly
+                // selected brothers and sisters are clan family, never
+                // part of the native starting-wanderer dismissal list.
+                var native=Clan.PlayerClan.Companions.Where(
+                    h=>h!=null && h!=player).ToArray();
+                if(native.Any(h=>h.Clan!=Clan.PlayerClan ||
+                    h.CompanionOf!=Clan.PlayerClan))
+                    return "refused:native_companion_not_firable";
+                int fired=0;
+                try
+                {
+                    foreach(var old in native)
+                    {
+                        RemoveCompanionAction.ApplyByFire(
+                            Clan.PlayerClan,old);
+                        if(old.CompanionOf==Clan.PlayerClan ||
+                            Clan.PlayerClan.Companions.Contains(old))
+                            throw new InvalidOperationException(
+                                "Native companion was not dismissed");
+                        fired++;
+                    }
+                    DiagnosticJournal.Event("cu_cultural_retinue_replacement",
+                        "mode=FamilyOnly"+
+                        "|native_companions_before="+native.Length+
+                        "|native_companions_dismissed="+fired+
+                        "|cultural_officers_created=0"+
+                        "|requested_family_heroes_preserved=true");
+                    return "officers=0|native_companions_dismissed="+fired+
+                        "|family_only=true";
+                }
+                catch(Exception ex)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_family_only_retinue_failed",ex);
+                    return "partial:native_companions_dismissed="+fired+
+                        "|reason="+ex.GetType().Name;
+                }
+            }
             string[] offices=SandboxNobleStartPolicy.RetinueOffices(
                 profile.Role,HasBrother(player));
             if(offices.Length==0)
