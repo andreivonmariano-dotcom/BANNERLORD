@@ -214,11 +214,34 @@ namespace CalradiaUnified
                     // the actual Bannerlord character preview visible.
                     // It retains the original input-owning Age slider
                     // and the six verified button-only stat rows.
-                    nextMovie=next.LoadMovie("CUNativeStatsEditorV059",vm);
-                    DiagnosticJournal.Event("cu_native_creator_assets",
-                        "screen=stats|layout=v059b_right_panel"+
-                        "|source=installed_game|age_slider=retained"+
-                        "|stat_sliders=0");
+                    bool customLoaded=false;
+                    if(CUCreatorArtRegistry.IsAvailable())
+                    {
+                        try
+                        {
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorV059Art",vm);
+                            customLoaded=true;
+                            DiagnosticJournal.Event(
+                                "cu_native_creator_assets",
+                                "screen=stats|layout=v059b_right_panel"+
+                                "|source=cu_imported_atlas|stat_sliders=0");
+                        }
+                        catch(Exception customArtFailure)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_stats_v059_custom_art_fallback",
+                                customArtFailure);
+                        }
+                    }
+                    if(!customLoaded)
+                    {
+                        nextMovie=next.LoadMovie("CUNativeStatsEditorV059",vm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=stats|layout=v059b_right_panel"+
+                            "|source=installed_game|age_slider=retained"+
+                            "|stat_sliders=0");
+                    }
                 }
                 catch(Exception newLayoutFailure)
                 {
