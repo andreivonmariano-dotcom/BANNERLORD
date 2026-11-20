@@ -31,9 +31,11 @@ namespace CalradiaUnified
                         "reason=category_not_imported|fallback=native");
                     return false;
                 }
-                var category=categories[Category];
-                category.Load(UIResourceManager.ResourceContext,
-                    UIResourceManager.UIResourceDepot);
+                // The v1.5.7 pinned references do not expose the newer
+                // UIResourceManager.UIResourceDepot property used in the
+                // published Modding Kit sample. The category must already
+                // be loaded through the imported AlwaysLoad sprite config.
+                // If the atlas texture is missing, LoadMovie falls back.
                 loaded=true;
                 DiagnosticJournal.Event("cu_v059_art_ready",
                     "category="+Category+"|imported=true");
