@@ -14,7 +14,9 @@ namespace CalradiaUnified
     /// </summary>
     public static class DiagnosticSummaryPolicy
     {
-        private const int MaxFieldChars=2048;
+        // Preserve more of an exception ToString() before extracting
+        // the first reported stack frame. Each field remains bounded.
+        private const int MaxFieldChars=8192;
         private static void AddField(List<string> cells,StringBuilder field)
         {
             cells.Add(field.ToString());
@@ -118,6 +120,81 @@ namespace CalradiaUnified
                 if(context.StartsWith(prefix,StringComparison.Ordinal))
                     return "Campaign / family";
             return "Other / unknown";
+        }
+        // The exception journal stores Exception.ToString(), including
+        // nested exceptions. The first parseable "at Type.Method(...)"
+        // can be from an inner exception, not the outer handler.
+        // Never treat this method as a proven root cause.
+        private static string[] FirstManagedStackFrame(string stack)
+        {
+            if(String.IsNullOrWhiteSpace(stack))return null;
+            foreach(string raw in stack.Split('\n'))
+            {
+                string line=raw.Trim();
+                if(!line.StartsWith("at ",StringComparison.Ordinal))
+                    continue;
+                int open=line.IndexOf('(',3);
+                int close=open<0?-1:line.IndexOf(')',open+1);
+                if(open<=3 || close<0)continue;
+                string method=line.Substring(3,open-3).Trim();
+                if(method.Length==0 || method.IndexOf('.')<0)
+                    continue;
+                string file="";
+                // Debug symbols sometimes add an absolute source path.
+                // Show only the filename and line, never that path.
+                int atFile=line.IndexOf(" in ",close,
+                    StringComparison.Ordinal);
+                if(atFile>=0)
+                {
+                    string location=line.Substring(atFile+4).Trim();
+                    int lineNumber=location.LastIndexOf(":line ",
+                        StringComparison.Ordinal);
+                    string source=lineNumber>=0?
+                        location.Substring(0,lineNumber):location;
+                    source=source.Trim();
+                    int slash=Math.Max(source.LastIndexOf('\\'),
+                        source.LastIndexOf('/'));
+                    file=source.Substring(slash+1);
+                    if(lineNumber>=0)
+                    {
+                        string number=location.Substring(
+                            lineNumber+6).Trim();
+                        int ignored;
+                        if(Int32.TryParse(number,NumberStyles.None,
+                            CultureInfo.InvariantCulture,out ignored))
+                            file+=":line "+number;
+                    }
+                }
+                return new[]{method,file};
+            }
+            return null;
+        }
+        private static void AppendManagedFrame(StringBuilder b,string stack)
+        {
+            b.AppendLine();
+            b.AppendLine("FIRST REPORTED MANAGED STACK FRAME");
+            var frame=FirstManagedStackFrame(stack);
+            if(frame==null)
+            {
+                b.AppendLine("No parseable managed method in the saved "+
+                    "exception stack.");
+                b.AppendLine("This is not evidence of a native fault.");
+                return;
+            }
+            b.AppendLine("Method: "+Clean(frame[0],350));
+            if(frame[1].Length>0)
+                b.AppendLine("Source (filename only): "+
+                    Clean(frame[1],180));
+            if(frame[0].Contains("MoveNext") &&
+                frame[0].Contains("<"))
+                b.AppendLine("This appears to be a compiler-generated "+
+                    "async or iterator state-machine frame.");
+            if((stack??"").Contains("--->"))
+                b.AppendLine("The first frame may belong to an "+
+                    "inner exception.");
+            b.AppendLine("This frame appears in the recorded exception "+
+                "stack. It does not prove the method caused the "+
+                "session to end.");
         }
         private static string DetailValue(string details,string key)
         {
@@ -326,6 +403,7 @@ namespace CalradiaUnified
                 b.AppendLine("Message: "+Clean(Cell(last,4),450));
                 b.AppendLine("This is recorded evidence, not proof that "+
                     "this exception caused the session to end.");
+                AppendManagedFrame(b,Cell(last,5));
                 b.AppendLine("Full managed stack: exceptions.csv");
             }
             b.AppendLine();
