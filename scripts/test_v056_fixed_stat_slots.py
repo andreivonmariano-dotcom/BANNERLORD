@@ -57,8 +57,10 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         # native engine closed after all six numeric stat bindings were
         # refreshed, so keep the same six rows but use button-only edits.
         assert not list(row.iter("SliderWidget")),kind
-        assert any(w.get("Text")=="EDIT WITH - / + OR EXACT"
+        assert not any(w.get("Text")=="EDIT WITH - / + OR EXACT"
             for w in row.iter("TextWidget")),kind
+        assert any(w.get("Text")=="CURRENT VALUE"
+            for w in x.iter("TextWidget")),kind
         for bound in (f"Slot{i}Value",f"Slot{i}Min",
                       f"Slot{i}Max",f"Slot{i}Increment"):
             assert f"@{bound}" not in ET.tostring(row,encoding="unicode")
