@@ -53,24 +53,22 @@ namespace CalradiaUnified
                     throw new InvalidOperationException("Main menu screen not active");
                 creatorOpen = true;
                 cancelled = false;
-                ScreenManager.PushScreen(new SandboxCreatorScreen());
+                // Keep the original main-menu ScreenBase active. A new
+                // ScreenManager.PushScreen deactivates its animated scene.
+                SandboxCreatorMenuLayer.Open(
+                    ()=>Accept(),()=>Cancel());
                 DiagnosticJournal.Event("sandbox_creator_screen_requested",
-                    "entry=SandBoxNewGame|pre_game=true|native_selector_skipped=true");
+                    "entry=SandBoxNewGame|pre_game=true"+
+                    "|native_selector_skipped=true"+
+                    "|existing_main_menu_screen_reused=true");
             }
             catch (Exception error)
             {
                 creatorOpen = false;
                 DiagnosticJournal.Exception("sandbox_creator_screen_failed", error);
-                try
-                {
-                    if (ScreenManager.TopScreen is SandboxCreatorScreen)
-                        ScreenManager.PopScreen();
-                }
-                catch (Exception secondary)
-                {
-                    DiagnosticJournal.Exception("sandbox_creator_recovery_failed",
-                        secondary);
-                }
+                // Never pop the native main-menu screen on failure.
+                // This only owns its own Gauntlet layer.
+                SandboxCreatorMenuLayer.Detach();
                 // The only fallback is the preserved original menu action.
                 // Do not trap the player on a broken custom screen.
                 if (nativeStart != null) nativeStart();
@@ -79,8 +77,12 @@ namespace CalradiaUnified
 
         public static void Tick()
         {
-            if (!launchQueued || ScreenManager.TopScreen is SandboxCreatorScreen)
-                return;
+            // Teardown is deferred to a non-Gauntlet application tick.
+            // Keep the original menu active and rendering until removed.
+            bool wasAttached=SandboxCreatorMenuLayer.IsAttached;
+            SandboxCreatorMenuLayer.Tick();
+            if(wasAttached || SandboxCreatorMenuLayer.IsAttached ||
+                !launchQueued)return;
             launchQueued = false;
             try
             {
@@ -122,6 +124,7 @@ namespace CalradiaUnified
             acceptedCustomStart=true;
             if (creatorOpen) launchQueued = true;
             creatorOpen = false;
+            SandboxCreatorMenuLayer.RequestClose();
             DiagnosticJournal.Event("sandbox_creator_pre_game_accepted",
                 "queue_native_campaign_start=true");
         }
@@ -132,12 +135,14 @@ namespace CalradiaUnified
             acceptedCustomStart=false;
             creatorOpen = false;
             launchQueued = false;
+            SandboxCreatorMenuLayer.RequestClose();
             DiagnosticJournal.Event("sandbox_creator_exit",
                 "returned_to_main_menu=true|campaign_not_started=true");
         }
 
         public static void Clear()
         {
+            SandboxCreatorMenuLayer.RequestClose();
             acceptedCustomStart=false;
             creatorOpen = false;
             launchQueued = false;
