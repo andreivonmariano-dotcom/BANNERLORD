@@ -4,5 +4,5 @@
      generator and resource-browser import. The default playable build
      uses installed game textures until the atlas is present. -->
 <Config>
-  <SpriteCategory Name="ui_calradiaunified"/>
+  <SpriteCategory Name="ui_calradiaunified"><AlwaysLoad/></SpriteCategory>
 </Config>
