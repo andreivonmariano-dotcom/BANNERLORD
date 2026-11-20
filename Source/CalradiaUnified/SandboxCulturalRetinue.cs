@@ -62,11 +62,16 @@ namespace CalradiaUnified
 
         private static bool HasBrother(Hero player)
         {
-            return player.Father!=null &&
+            var party=MobileParty.MainParty;
+            return party!=null && player.Father!=null &&
                 player.Father.Children!=null &&
                 player.Father.Children.Any(h=>h!=null && h!=player &&
                     h.IsAlive && h.Age>=18 && !h.IsFemale &&
-                    h.Mother==player.Mother);
+                    h.Mother==player.Mother &&
+                    h.Clan==Clan.PlayerClan &&
+                    h.CharacterObject!=null &&
+                    party.MemberRoster.GetTroopCount(
+                        h.CharacterObject)>0);
         }
 
         public static string TryCreate(SandboxOriginProfile profile,
