@@ -43,6 +43,79 @@ internal static class Program
                 CUNativeHouseNavigationPolicy.BannerStage) &&
             !CUNativeHouseNavigationPolicy.CanReplayNativeNext(
                 CUNativeHouseNavigationPolicy.ReviewStage));
+        Check("younger brother of a king requires real old king lineage",
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,true,
+                true,true,true,true,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,false,
+                true,true,true,true,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,true,
+                true,true,true,false,0));
+        Check("second and third sons need older native sons",
+            SandboxNobleStartPolicy.RequiredOlderSons(
+                "SecondSonOfLord")==1 &&
+            SandboxNobleStartPolicy.RequiredOlderSons(
+                "ThirdSonOfKing")==2 &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "ThirdSonOfKing","Lord",false,true,true,
+                true,true,true,true,1) &&
+            SandboxNobleStartPolicy.CanBindElder(
+                "ThirdSonOfKing","Lord",false,true,true,
+                true,true,true,true,2));
+        Check("younger noble sister respects character sex",
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerSisterOfLord","Lord",true,true,true,
+                true,true,true,false,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerSisterOfLord","Lord",false,true,true,
+                true,true,true,false,0));
+        Check("lineage cannot fabricate a royal king rank",
+            !SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfKing","King") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfKing","Lord") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "Independent","Wanderer"));
+        Check("noble retinue uses office names instead of wanderer class",
+            SandboxNobleStartPolicy.RetinueOffices("Lord",false)
+                .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Lord",true)
+                .SequenceEqual(new[]{"Knight","HouseholdSteward"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Admiral",false)
+                .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
+                .Length==0);
+        var nobleProfile=new SandboxOriginProfile();
+        Check("noble line and role retinue survive profile roundtrip",
+            nobleProfile.TrySet("Role","Lord") &&
+            nobleProfile.TrySet("StartingKingdomId","vlandia") &&
+            nobleProfile.TrySet("NobleBirthPosition",
+                "YoungerBrotherOfKing") &&
+            nobleProfile.TrySet("NobleElderHeroId","lord_1_1") &&
+            nobleProfile.TrySet("RetinueMode","RoleBased") &&
+            nobleProfile.TrySet("SiblingCount","2") &&
+            nobleProfile.TrySet("Sibling.1.Name","Andric") &&
+            nobleProfile.TrySet("Sibling.2.Gender","Female") &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .NobleBirthPosition=="YoungerBrotherOfKing" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .NobleElderHeroId=="lord_1_1" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .RetinueMode=="RoleBased" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .Siblings[1].Gender=="Female");
+        Check("unsafe invented royal identity rejected in profile",
+            !nobleProfile.TrySet("NobleBirthPosition","FakeRoyal") &&
+            !nobleProfile.TrySet("RetinueMode","RandomWanderers") &&
+            !nobleProfile.TrySet("NobleElderHeroId","../../../file"));
+        nobleProfile.ResetForNewCampaign();
+        Check("fresh Sandbox forgets prior royal and retinue grants",
+            nobleProfile.NobleBirthPosition=="Independent" &&
+            nobleProfile.NobleElderHeroId=="" &&
+            nobleProfile.RetinueMode=="Native" &&
+            nobleProfile.SiblingCount==0);
         var family=new SandboxOriginProfile();
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&
