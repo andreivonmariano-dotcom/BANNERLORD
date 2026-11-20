@@ -33,7 +33,13 @@ for name in ("CUGuidedCreator","CUNativeStatsEditor"):
     node=ET.parse(gui/(name+".xml")).getroot()
     sprites=[w.get("Sprite") for w in node.iter("Widget")]
     assert r"SPGeneral\EscapeMenu\escape_panel" in sprites
-    assert r"General\CharacterCreation\character_creation_background_gradient" in sprites
+    # The native gradient remains available for the legacy Age editor.
+    # The World panel no longer paints it over the animated main menu.
+    native_gradient=r"General\CharacterCreation\character_creation_background_gradient"
+    if name=="CUNativeStatsEditor":
+        assert native_gradient in sprites
+    else:
+        assert native_gradient not in sprites
     assert sum(b.get("Brush")=="ButtonBrush" for b in node.iter("ButtonWidget"))>=5
 for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
              "CUNativeStatsEditorSafe"):
