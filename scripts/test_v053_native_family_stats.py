@@ -41,8 +41,10 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         row=next(w for w in viewport.iter("Widget")
             if w.get("Id")==f"CUFixedStatRow{i}")
         assert row.get("IsVisible")==f"@Slot{i}Visible"
-        assert any(w.get("Text")=="EDIT WITH - / + OR EXACT"
+        assert not any(w.get("Text")=="EDIT WITH - / + OR EXACT"
             for w in row.iter("TextWidget"))
+        assert any(w.get("Text")=="ADJUST"
+            for w in root.iter("TextWidget"))
     assert len(list(root.iter("SliderWidget")))==(
         0 if n=="CUNativeStatsEditorSafe" else 1)
     actions={b.get("Command.Click") for b in root.iter("ButtonWidget")}
