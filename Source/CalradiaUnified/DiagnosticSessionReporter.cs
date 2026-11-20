@@ -246,8 +246,31 @@ namespace CalradiaUnified
             string result=ReportPath(session,interrupted);
             string partial=result+".partial";
             if(File.Exists(partial))File.Delete(partial);
-            ZipFile.CreateFromDirectory(session,partial,
-                CompressionLevel.Fastest,false);
+            // Package an explicit set of diagnostic records only.
+            // Unknown files such as saves, dumps and images stay local.
+            using(var archive=ZipFile.Open(partial,ZipArchiveMode.Create))
+            {
+                foreach(string name in new[]{
+                    "events.csv","events.csv.previous",
+                    "exceptions.csv","exceptions.csv.previous",
+                    "finance.csv","finance.csv.previous",
+                    "runtime-info.txt","recovery-info.txt",
+                    "README.txt","native-log-status.txt"})
+                {
+                    string source=Path.Combine(session,name);
+                    if(File.Exists(source))
+                        archive.CreateEntryFromFile(source,name,
+                            CompressionLevel.Fastest);
+                }
+                for(int i=1;i<=4;i++)
+                {
+                    string name="native-rgl-tail-"+i+".log";
+                    string source=Path.Combine(session,name);
+                    if(File.Exists(source))
+                        archive.CreateEntryFromFile(source,name,
+                            CompressionLevel.Fastest);
+                }
+            }
             if(File.Exists(result))File.Delete(result);
             File.Move(partial,result);
             File.WriteAllText(Path.Combine(DiagnosticJournal.Root,
@@ -258,8 +281,13 @@ namespace CalradiaUnified
         {
             string dir=Path.Combine(DiagnosticJournal.Root,"Sessions");
             if(!Directory.Exists(dir))return;
+            // Select only recoverable sessions before the 24-report cap.
+            // Newer completed folders must not starve older crashes.
             foreach(string session in Directory.GetDirectories(dir)
                 .OrderByDescending(x=>x,StringComparer.Ordinal)
+                .Where(x=>File.Exists(Path.Combine(x,"active.marker")))
+                .Where(x=>!IsOtherProcessStillRunning(
+                    Path.Combine(x,"active.marker")))
                 .Take(24))
             {
                 if(String.Equals(session,SessionDirectory,
