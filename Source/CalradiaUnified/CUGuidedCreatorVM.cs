@@ -45,6 +45,9 @@ namespace CalradiaUnified
         private SandboxOriginProfile profile;
         // House selections survive native Back without becoming grants.
         private static SandboxOriginProfile houseDraft;
+        // Cache the read-only native Hero scan so Gauntlet getters do
+        // not enumerate the entire campaign every UI refresh.
+        private readonly string projectedElderName;
         private readonly List<Field> fields;
         private int cursor;
         private bool advanced;
@@ -83,6 +86,13 @@ namespace CalradiaUnified
                         "|names=culture_specific|advanced=available");
                 }
                 houseDraft=SandboxOriginProfile.Parse(profile.Serialize());
+                projectedElderName=SandboxDynasticStart.PreviewElderName(
+                    profile,Hero.MainHero);
+                if(profile.NobleBirthPosition!="Independent")
+                    DiagnosticJournal.Event("cu_dynastic_house_preview",
+                        "birth="+profile.NobleBirthPosition+
+                        "|name="+projectedElderName+
+                        "|provisional=true");
             }
             fields=BuildFields();
             Refresh();
@@ -728,8 +738,7 @@ namespace CalradiaUnified
                         ", age "+profile.SpouseAge+
                         ". Choose Yes to create a spouse. Edit details in Advanced."+
                         (profile.NobleBirthPosition=="Independent"?"":" "+
-                        SandboxDynasticStart.PreviewElderName(
-                            profile,Hero.MainHero));
+                        projectedElderName);
                 if(!preCampaign && Current.Key=="ChildCount")
                     return "Suggested children: "+
                         (profile.ChildCount==0?"none":String.Join(", ",
@@ -876,8 +885,7 @@ namespace CalradiaUnified
                         DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
                 var hero=Hero.MainHero;
-                string elderPreview=SandboxDynasticStart.PreviewElderName(
-                    profile,hero);
+                string elderPreview=projectedElderName;
                 return "Native character: "+
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
