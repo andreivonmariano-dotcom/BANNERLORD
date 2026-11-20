@@ -1684,6 +1684,10 @@ internal static class Program
                     Check("recovery summary does not infer native crash cause",
                         summaryText.Contains("A native crash cause is NOT") &&
                         summaryText.Contains("No managed exception recorded."));
+                    Check("legacy creator event is identified without claiming cause",
+                        summaryText.Contains("Page: All Stats") &&
+                        summaryText.Contains("RECORDED ERROR AREA") &&
+                        summaryText.Contains("Interruption is unclassified."));
                 }
             }
             DiagnosticJournal.Event("gameplay_test_event",
@@ -1745,6 +1749,65 @@ internal static class Program
                 System.IO.File.ReadAllText(System.IO.Path.Combine(
                     desktopReportFolder,"LATEST-REPORT-SUMMARY.txt"))
                     .Contains("creator_csv_quoted_test"));
+            // Explicit checkpoints are separate from the requested next
+            // page, and error categories derive from real CU contexts.
+            string classifier=System.IO.Path.Combine(
+                tempDiagnostic,"area-fixtures");
+            System.IO.Directory.CreateDirectory(classifier);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"events.csv"),
+                "utc,session_id,context,detail\n"+
+                "2026-11-20T01:00:00Z,fixture,cu_creator_page_checkpoint,"+
+                "\"page=Age|surface=stats_editor|phase=layer_attached\"\n"+
+                "2026-11-20T01:00:01Z,fixture,cu_stats_navigation,"+
+                "\"direction=next|from=-1|to=0\"\n"+
+                // We saw row construction, not that the next page rendered.
+                "2026-11-20T01:00:02Z,fixture,cu_stats_page_rows_built,"+
+                "\"page=1/9|visible=6\"\n");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "utc,session_id,context,exception_type,message,stack_trace\n"+
+                "2026-11-20T01:00:03Z,fixture,cu_native_stats_attach_failed,"+
+                "System.InvalidOperationException,UI error,stack\n");
+            string classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("reports confirmed Age and requested All Stats separately",
+                classified.Contains("Page: Age") &&
+                classified.Contains("Later requested transition: Age -> All Stats") &&
+                classified.Contains("destination not confirmed visible"));
+            Check("distinguishes UI exception evidence from crash causality",
+                classified.Contains("Creator / UI=1") &&
+                classified.Contains("Campaign / family=0") &&
+                classified.Contains("Most recent exception area: Creator / UI") &&
+                classified.Contains("NOT A CRASH CAUSE"));
+            System.IO.File.AppendAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "2026-11-20T01:00:04Z,fixture,campaign_registration,"+
+                "System.Exception,Campaign error,stack\n");
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "normal_shutdown:unit_test",false);
+            Check("mixed UI and campaign errors remain separately classified",
+                classified.Contains("Creator / UI=1") &&
+                classified.Contains("Campaign / family=1") &&
+                classified.Contains("Both UI and campaign exception contexts"));
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "utc,session_id,context,exception_type,message,stack_trace\n"+
+                "2026-11-20T01:00:05Z,fixture,unhandled_managed_exception,"+
+                "System.Exception,Unknown fault,stack\n");
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("unhandled exception without subsystem context stays unknown",
+                classified.Contains("Other / unknown=1") &&
+                classified.Contains("Most recent exception area: Other / unknown"));
+            System.IO.File.Delete(System.IO.Path.Combine(
+                classifier,"exceptions.csv"));
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("interrupted process without exception remains unclassified",
+                classified.Contains("Interruption is unclassified.") &&
+                classified.Contains("Page: Age") &&
+                classified.Contains("Later requested transition: Age -> All Stats"));
             DiagnosticSessionReporter.OverrideGameRootForTests=null;
             string autoConfig=System.IO.Path.Combine(tempDiagnostic,
                 "auto-report-test.ini");
