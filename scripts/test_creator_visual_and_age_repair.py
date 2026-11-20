@@ -42,9 +42,9 @@ for name,root_node in files.items():
     labels=list(root_node.iter("TextWidget"))
     assert labels and all("Brush.FontSize" in label.attrib
                           for label in labels),name
-    # v0.59 allows larger primary headings without giant chrome.
+    # The right-side creator rail needs legible 34-unit chapter headers.
     assert max(int(label.attrib["Brush.FontSize"])
-               for label in labels)<=32
+               for label in labels)<=36
 assert not any(x.get("Text")=="OPTIONAL CHOICES"
                for x in guided.iter("TextWidget"))
 assert not any(x.get("Text")=="@CultureId"
