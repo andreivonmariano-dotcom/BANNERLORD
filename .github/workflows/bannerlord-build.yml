@@ -34,6 +34,9 @@ jobs:
       - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
         shell: pwsh
         run: python scripts/test_v060_noble_start_and_retinue.py
+      - name: Regress v060b World noble-birth flow and native companion replacement
+        shell: pwsh
+        run: python scripts/test_v060b_world_birth_retinue_replacement.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |

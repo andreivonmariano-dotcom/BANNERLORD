@@ -111,7 +111,8 @@ namespace CalradiaUnified
         public string NobleBirthPosition = "Independent";
         // Blank chooses a deterministic verified elder in the native kingdom.
         public string NobleElderHeroId = "";
-        // "Native" does not change Bannerlord's starting companions.
+        // Native keeps original companions. RoleBased replaces them with
+        // same-culture officers. ReplaceNative remains a legacy saved alias.
         public string RetinueMode = "Native";
 
         // Explicit overrides only; absent entry means retain the game's value.

@@ -88,7 +88,10 @@ namespace CalradiaUnified
                 profile.Role,HasBrother(player));
             if(offices.Length==0)
                 return "refused:no_retinue_for_role";
-            bool replace=profile.RetinueMode=="ReplaceNative";
+            // RoleBased is an actual replacement, not an additive court.
+            // ReplaceNative is retained as a legacy saved-profile alias.
+            bool replace=profile.RetinueMode=="RoleBased" ||
+                profile.RetinueMode=="ReplaceNative";
             var existing=Clan.PlayerClan.Companions.Where(
                 h=>h!=null && h!=player).ToArray();
             var sources=new CharacterObject[offices.Length];
@@ -110,24 +113,12 @@ namespace CalradiaUnified
             }
             int created=0;
             int replaced=0;
+            var staged=new List<Hero>();
             try
             {
-                if(replace)
-                {
-                    // This is the user-selected full replacement mode.
-                    // Native dismissal action performs roster/faction/event
-                    // cleanup. No existing noble clan lord is dismissed.
-                    foreach(var old in existing)
-                    {
-                        if(old.Clan!=Clan.PlayerClan ||
-                            old.CompanionOf!=Clan.PlayerClan)
-                            continue;
-                        RemoveCompanionAction.ApplyByFire(
-                            Clan.PlayerClan,old);
-                        replaced++;
-                    }
-                }
-
+                // Create all replacement Heroes before firing any original
+                // companions. A failed source/factory allocation must not
+                // dismiss the player's native roster.
                 for(int i=0;i<offices.Length;i++)
                 {
                     string name=OfficerName(player.Culture.StringId,
@@ -137,16 +128,43 @@ namespace CalradiaUnified
                     if(officer==null)
                         throw new InvalidOperationException(
                             "Native HeroCreator refused retinue officer");
+                    staged.Add(officer);
                     officer.SetName(new TextObject(name),
                         new TextObject(name));
                     officer.Culture=player.Culture;
                     officer.SetBirthDay(CampaignTime.YearsFromNow(
                         -(27+i*3)));
-                    // A noble source and lord occupation give a court
-                    // officer, not an unrelated random tavern wanderer.
                     officer.SetNewOccupation(Occupation.Lord);
                     if(!officer.IsActive)
                         officer.ChangeState(Hero.CharacterStates.Active);
+                }
+                DiagnosticJournal.Event("cu_cultural_retinue_staged",
+                    "mode="+profile.RetinueMode+
+                    "|requested_officers="+offices.Length+
+                    "|staged="+staged.Count+
+                    "|native_companions_before="+existing.Length);
+                if(replace)
+                {
+                    // Only the explicitly selected custom retinue path
+                    // replaces native starting companions.
+                    foreach(var old in existing)
+                    {
+                        if(old.Clan!=Clan.PlayerClan ||
+                            old.CompanionOf!=Clan.PlayerClan)
+                            continue;
+                        RemoveCompanionAction.ApplyByFire(
+                            Clan.PlayerClan,old);
+                        if(old.CompanionOf!=Clan.PlayerClan)
+                            replaced++;
+                        else
+                            throw new InvalidOperationException(
+                                "Native companion dismissal was not confirmed");
+                    }
+                }
+
+                for(int i=0;i<staged.Count;i++)
+                {
+                    var officer=staged[i];
                     AddCompanionAction.Apply(Clan.PlayerClan,officer);
                     AddHeroToPartyAction.Apply(
                         officer,MobileParty.MainParty,true);
@@ -169,6 +187,11 @@ namespace CalradiaUnified
                         "|clan_companion=true"+
                         "|party_member=true");
                 }
+                DiagnosticJournal.Event("cu_cultural_retinue_replacement",
+                    "mode="+profile.RetinueMode+
+                    "|native_companions_before="+existing.Length+
+                    "|native_companions_dismissed="+replaced+
+                    "|cultural_officers_created="+created);
                 return "officers="+created+
                     "|native_companions_dismissed="+replaced+
                     "|same_culture=true";
@@ -177,6 +200,25 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_cultural_retinue_creation_failed",e);
+                // Reclaim staged Heroes that were never registered as
+                // companions, rather than leaving inactive court orphans.
+                foreach(var pending in staged)
+                {
+                    if(pending==null ||
+                        Clan.PlayerClan.Companions.Contains(pending))
+                        continue;
+                    try
+                    {
+                        DisableHeroAction.Apply(pending);
+                        pending.Clan=null;
+                    }
+                    catch(Exception cleanupError)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_cultural_retinue_stage_cleanup_failed",
+                            cleanupError);
+                    }
+                }
                 return "partial:officers="+created+
                     "|native_companions_dismissed="+replaced+
                     "|reason="+e.GetType().Name;

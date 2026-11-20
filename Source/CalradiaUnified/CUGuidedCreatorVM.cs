@@ -117,6 +117,14 @@ namespace CalradiaUnified
                     "Starting kingdom",
                     "The selected King, Lord, Knight, Soldier or Admiral start uses this native affiliation.",
                     choices:SandboxOriginProfile.KingdomIds));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "NobleBirthPosition","Your noble birth",
+                    "Choose independent origin or a younger brother, sister, second son or third son of a real lord or king. Family links are verified after native character creation.",
+                    choices:SandboxNobleStartPolicy.BirthPositions));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "NobleElderHeroId","Older noble's Hero ID (optional)",
+                    "Optional exact native Hero ID. Leave blank to find an eligible older leader. Native age, sex, culture, parentage and kingdom are checked later.",
+                    "text",advanced:true));
             }
             else
             {
@@ -190,17 +198,9 @@ namespace CalradiaUnified
                         choices:new[]{"Male","Female"}));
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
-                    "NobleBirthPosition","Your noble birth",
-                    "Optional: be a real younger brother or sister of an existing lord or king in the selected kingdom. Requires an older native noble with both parents.",
-                    choices:SandboxNobleStartPolicy.BirthPositions));
-                list.Add(new Field("CHAPTER III | YOUR HOUSE",
-                    "NobleElderHeroId","Older noble's Hero ID",
-                    "Optional exact native hero ID. Leave blank to select the first matching older clan leader with verified parents.",
-                    "text",advanced:true));
-                list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "RetinueMode","Your starting household officers",
-                    "Native: keep the game's roster. RoleBased: add culture-matched knights and officers. ReplaceNative: first recruit your court, then dismiss native starting wanderers.",
-                    choices:SandboxNobleStartPolicy.RetinueModes));
+                    "Native keeps Bannerlord's starting companions. Cultural Household replaces those native companions with new same-culture knights and officers.",
+                    choices:new[]{"Native","RoleBased"}));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
                     "Use -1 to keep Bannerlord's original start.",
@@ -264,9 +264,10 @@ namespace CalradiaUnified
                 return profile.SpouseEnabled &&
                     profile.SpouseBackground=="NobleChosen";
             if(key=="ChildCount") return profile.SpouseEnabled;
-            if(key=="NobleBirthPosition")return profile.Role=="Lord";
+            if(key=="NobleBirthPosition")
+                return preCampaign && profile.Role=="Lord";
             if(key=="NobleElderHeroId")
-                return profile.Role=="Lord" &&
+                return preCampaign && profile.Role=="Lord" &&
                     profile.NobleBirthPosition!="Independent";
             if(key.StartsWith("Sibling.",StringComparison.Ordinal))
             {
@@ -580,6 +581,12 @@ namespace CalradiaUnified
             // Keep the real native 3D camera/scene untouched by default.
             candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
+            if(!SandboxNobleStartPolicy.ValidForRole(
+                candidate.NobleBirthPosition,candidate.Role))
+            {
+                Report("Noble or royal younger-sibling origins require a Lord start.");
+                return;
+            }
             SandBox.AdvancedStartOptions.AdvancedStartOptions gameOptions;
             string error;
             if(!SandboxNativeStartOptions.TryPrepare(
@@ -722,7 +729,8 @@ namespace CalradiaUnified
                 switch(raw)
                 {
                     case "Native":return "Keep native companions";
-                    case "RoleBased":return "Recruit cultural household officers";
+                    case "RoleBased":
+                        return "Replace native companions with cultural household officers";
                     case "ReplaceNative":
                         return "Replace native companions with my court";
                 }
@@ -811,6 +819,8 @@ namespace CalradiaUnified
                         "Starting kingdom: "+
                         (profile.StartingKingdomId.Length==0?"None":
                             profile.StartingKingdomId)+"\n"+
+                        "Birth: "+DisplayChoice("NobleBirthPosition",
+                            profile.NobleBirthPosition)+"\n"+
                         "World: "+
                         DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
@@ -824,6 +834,11 @@ namespace CalradiaUnified
                     "Household: "+(profile.SpouseEnabled?
                         profile.FamilyScenario:"None")+"\n"+
                     "Children: "+profile.ChildCount+"\n"+
+                    "Siblings: "+profile.SiblingCount+"\n"+
+                    "Noble origin: "+DisplayChoice("NobleBirthPosition",
+                        profile.NobleBirthPosition)+"\n"+
+                    "Household officers: "+DisplayChoice("RetinueMode",
+                        profile.RetinueMode)+"\n"+
                     "Gold: "+(profile.Gold<0?"Native":
                         profile.Gold.ToString())+"\n"+
                     "Additional troops: "+profile.Troops+"\n"+
