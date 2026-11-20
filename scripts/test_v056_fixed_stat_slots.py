@@ -48,20 +48,15 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
             if w.get("Id")==f"CUFixedStatRow{i}")
         assert row.get("IsVisible")==f"@Slot{i}Visible"
         assert row.get("PositionYOffset")==str((i-1)*55)
-        slider=list(row.iter("SliderWidget"))
-        assert len(slider)==1
-        slider=slider[0]
-        assert slider.get("Id")==f"CUFixedStatSlider{i}"
-        assert slider.get("ValueInt")==f"@Slot{i}Value"
-        assert slider.get("MinValueInt")==f"@Slot{i}Min"
-        assert slider.get("MaxValueInt")==f"@Slot{i}Max"
-        assert slider.get("DiscreteIncrementInterval")==f"@Slot{i}Increment"
-        assert slider.get("SliderArea")==f"CUStatTrack{i}"
-        assert slider.get("Handle")==f"CUStatHandle{i}"
-        assert any(w.get("Id")==f"CUStatTrack{i}"
-            for w in slider.iter("Widget"))
-        assert any(w.get("Id")==f"CUStatHandle{i}"
-            for w in slider.iter("ButtonWidget"))
+        # v0.58 isolation: no numeric slider in the stats rows. The
+        # native engine closed after all six numeric stat bindings were
+        # refreshed, so keep the same six rows but use button-only edits.
+        assert not list(row.iter("SliderWidget")),kind
+        assert any(w.get("Text")=="EDIT WITH - / + OR EXACT"
+            for w in row.iter("TextWidget")),kind
+        for bound in (f"Slot{i}Value",f"Slot{i}Min",
+                      f"Slot{i}Max",f"Slot{i}Increment"):
+            assert f"@{bound}" not in ET.tostring(row,encoding="unicode")
         for command in (f"ExecuteSlot{i}Increase",
                         f"ExecuteSlot{i}Decrease",
                         f"ExecuteSlot{i}Exact"):
@@ -74,7 +69,7 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     age=[w for w in x.iter("SliderWidget")
         if w.get("Id")=="CUPlayerAgeSlider"]
     assert len(age)==(0 if kind.endswith("Safe") else 1)
-    assert len(list(x.iter("SliderWidget")))==len(age)+6
+    assert len(list(x.iter("SliderWidget")))==len(age)
     assert any(w.get("Command.Click")=="ExecuteContinue"
         for w in x.iter("ButtonWidget"))
-print("PASS: v056 fixed six-slot native stats, no runtime row cloning, retained age and independent stat input (STATIC ONLY)")
+print("PASS: six fixed stat rows use +/- and exact entry, Age slider retained, no stat-slider binding (STATIC ONLY)")
