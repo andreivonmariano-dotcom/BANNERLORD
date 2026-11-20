@@ -14,7 +14,7 @@ The real session was a 43-year-old Vlandian Lord with 4 generated siblings, 3 ge
 
 ## Retinue correction
 
-The visible modes are `Native` and `RoleBased`. `Native` retains the original game companions. `RoleBased` means **replace** the native starter companions with same-culture court officers appropriate to the selected role. Existing `ReplaceNative` saved plans continue to behave as a replacement alias, but the duplicate choice is no longer shown. The module stages new officer Heroes before dismissing old companions to prevent a failed Hero factory call from destroying the starting roster. It confirms native dismissal and logs original companion count, dismissals and created cultural officers. A native registration failure after dismissal can still leave a partial roster and is reported, not silently retried.
+The visible modes are `Native` and `RoleBased`. `Native` retains the original game companions. `RoleBased` means **replace** the native starter companions with same-culture court officers appropriate to the selected role. Existing `ReplaceNative` saved plans continue to behave as a replacement alias, but the duplicate choice is no longer shown. The module stages new officer Heroes before dismissing old companions to prevent a failed Hero factory call from destroying the starting roster. It preflights that each original native companion is eligible for the native Fire action, refuses the custom retinue without adding extra companions if that check fails, confirms native dismissal and logs original companion count, dismissals and created cultural officers. A native registration failure after dismissal can still leave a partial roster and is reported, not silently retried.
 
 ## Verification boundaries
 

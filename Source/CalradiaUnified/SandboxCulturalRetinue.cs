@@ -94,6 +94,12 @@ namespace CalradiaUnified
                 profile.RetinueMode=="ReplaceNative";
             var existing=Clan.PlayerClan.Companions.Where(
                 h=>h!=null && h!=player).ToArray();
+            // Do not silently add new officers on top of an original
+            // companion that native Fire cannot legally dismiss.
+            if(replace && existing.Any(old=>
+                old.Clan!=Clan.PlayerClan ||
+                old.CompanionOf!=Clan.PlayerClan))
+                return "refused:native_companion_not_firable";
             var sources=new CharacterObject[offices.Length];
             for(int i=0;i<offices.Length;i++)
             {
@@ -149,12 +155,10 @@ namespace CalradiaUnified
                     // replaces native starting companions.
                     foreach(var old in existing)
                     {
-                        if(old.Clan!=Clan.PlayerClan ||
-                            old.CompanionOf!=Clan.PlayerClan)
-                            continue;
                         RemoveCompanionAction.ApplyByFire(
                             Clan.PlayerClan,old);
-                        if(old.CompanionOf!=Clan.PlayerClan)
+                        if(old.CompanionOf!=Clan.PlayerClan &&
+                            !Clan.PlayerClan.Companions.Contains(old))
                             replaced++;
                         else
                             throw new InvalidOperationException(

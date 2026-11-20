@@ -34,6 +34,8 @@ assert 'Replace native companions with cultural household officers' in vm
 assert 'profile.RetinueMode=="RoleBased" ||' in retinue
 assert 'profile.RetinueMode=="ReplaceNative"' in retinue
 assert retinue.index('HeroCreator.CreateSpecialHero') < retinue.index('RemoveCompanionAction.ApplyByFire')
+assert 'refused:native_companion_not_firable' in retinue
+assert '!Clan.PlayerClan.Companions.Contains(old)' in retinue
 assert 'cu_cultural_retinue_replacement' in retinue
 assert 'native_companions_dismissed=' in retinue
 assert 'DisableHeroAction.Apply(pending)' in retinue
