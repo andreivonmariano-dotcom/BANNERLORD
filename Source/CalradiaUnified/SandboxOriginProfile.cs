@@ -113,6 +113,9 @@ namespace CalradiaUnified
         public string NobleBirthPosition = "Independent";
         // Blank chooses a deterministic verified elder in the native kingdom.
         public string NobleElderHeroId = "";
+        // Optional exact native commanding lord for Soldier/Knight.
+        // Blank automatically selects an eligible leader after the game starts.
+        public string ServicePatronHeroId = "";
         // Native keeps original companions. RoleBased replaces them with
         // same-culture officers. ReplaceNative remains a legacy saved alias.
         public string RetinueMode = "Native";
@@ -192,6 +195,7 @@ namespace CalradiaUnified
             AutoHouseNamesPrepared=false;
             NobleBirthPosition="Independent";
             NobleElderHeroId="";
+            ServicePatronHeroId="";
             RetinueMode="Native";
             FamilyScenario="Natural";
             foreach(var child in Children)
@@ -425,6 +429,9 @@ namespace CalradiaUnified
                 case "NobleElderHeroId":
                     if(!Identifier(value,80))return false;
                     NobleElderHeroId=value;return true;
+                case "ServicePatronHeroId":
+                    if(!Identifier(value,80))return false;
+                    ServicePatronHeroId=value;return true;
                 case "RetinueMode":
                     if(!SandboxNobleStartPolicy.IsRetinueMode(value))return false;
                     RetinueMode=value;return true;
@@ -595,6 +602,7 @@ namespace CalradiaUnified
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", noble_birth=" + NobleBirthPosition +
+                ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
@@ -672,6 +680,7 @@ namespace CalradiaUnified
                     AutoHouseNamesPrepared.ToString().ToLowerInvariant(),
                 "NobleBirthPosition=" + NobleBirthPosition,
                 "NobleElderHeroId=" + NobleElderHeroId,
+                "ServicePatronHeroId=" + ServicePatronHeroId,
                 "RetinueMode=" + RetinueMode
             };
             foreach (var pair in Overrides)
