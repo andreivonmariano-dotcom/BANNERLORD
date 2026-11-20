@@ -50,7 +50,9 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         row=next(w for w in viewport.iter("Widget")
             if w.get("Id")==f"CUFixedStatRow{i}")
         assert row.get("IsVisible")==f"@Slot{i}Visible"
-        assert row.get("PositionYOffset")==str((i-1)*55)
+        assert row.get("SuggestedWidth")=="905"
+        assert row.get("SuggestedHeight")=="66"
+        assert row.get("PositionYOffset")==str((i-1)*68)
         # v0.58 isolation: no numeric slider in the stats rows. The
         # native engine closed after all six numeric stat bindings were
         # refreshed, so keep the same six rows but use button-only edits.
