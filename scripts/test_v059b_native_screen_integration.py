@@ -16,8 +16,14 @@ def read(name):
 
 guided=read("CUGuidedCreator")
 guided_fallback=read("CUGuidedCreatorPlainFallback")
+guided_art=read("CUGuidedCreatorV059Art")
 stats=read("CUNativeStatsEditorV059")
+stats_art=read("CUNativeStatsEditorV059Art")
 legacy=read("CUNativeStatsEditor")
+art_registry=(root/"Source/CalradiaUnified/CUCreatorArtRegistry.cs").read_text(encoding="utf-8")
+guided_vm=(root/"Source/CalradiaUnified/CUGuidedCreatorVM.cs").read_text(encoding="utf-8")
+entry=(root/"Source/CalradiaUnified/SandboxCreatorOverlay.cs").read_text(encoding="utf-8")
+house=(root/"Source/CalradiaUnified/CUNativeHouseLayer.cs").read_text(encoding="utf-8")
 
 guided_commands={
     "ExecutePreviousChoice","ExecuteNextChoice","ExecuteToggle",
@@ -36,6 +42,27 @@ for name,movie in (("native",guided),("fallback",guided_fallback)):
                 "@Chapter","@Summary","@StepProgress","@ContinueLabel"):
         assert any(w.get("Text")==key
             for w in movie.iter("TextWidget")),(name,key)
+
+# Imported art variants remain opt-in until the official sprite atlas
+# exists, and must bind the exact same gameplay commands.
+assert {w.get("Command.Click") for w in guided_art.iter("ButtonWidget")}==guided_commands
+assert any(w.get("Sprite")=="cu_world_illustration" and
+    w.get("IsVisible")=="@IsWorldSetup"
+    for w in guided_art.iter("Widget"))
+assert any(w.get("Sprite")=="cu_right_stone_panel"
+    for w in guided_art.iter("Widget"))
+assert 'public bool IsWorldSetup' in guided_vm
+assert 'ui_calradiaunified' in art_registry
+assert 'CUCreatorArtRegistry.IsAvailable()' in entry
+assert 'CUCreatorArtRegistry.IsAvailable()' in house
+assert 'CUCreatorArtRegistry.IsAvailable()' in source
+assert 'CUGuidedCreatorV059Art' in entry and 'CUGuidedCreatorV059Art' in house
+assert 'CUNativeStatsEditorV059Art' in source
+assert {w.get("Command.Click") for w in stats_art.iter("ButtonWidget")}=={
+    w.get("Command.Click") for w in stats.iter("ButtonWidget")}
+assert any(w.get("Sprite")=="cu_right_stone_panel"
+    for w in stats_art.iter("Widget"))
+assert (root/"Modules/CalradiaUnified/GUI/SpriteParts/Config.xml").exists()
 
 stat_commands=[w.get("Command.Click") for w in stats.iter("ButtonWidget")]
 for i in range(1,7):
