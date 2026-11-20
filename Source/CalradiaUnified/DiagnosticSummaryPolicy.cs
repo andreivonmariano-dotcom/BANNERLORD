@@ -162,8 +162,15 @@ namespace CalradiaUnified
             b.AppendLine("LAST RECORDED CHARACTER-CREATOR PAGE");
             int lastIndex=-1;
             string lastPage="";
+            // Prefer the new explicit checkpoints over older, weaker
+            // signals such as starting to build the next stats page.
+            bool hasExplicit=events.Any(r=>
+                Cell(r,2)=="cu_creator_page_checkpoint");
             for(int i=0;i<events.Count;i++)
             {
+                if(hasExplicit &&
+                    Cell(events[i],2)!="cu_creator_page_checkpoint")
+                    continue;
                 string candidate=CreatorPage(Cell(events[i],2),
                     Cell(events[i],3));
                 if(!String.IsNullOrWhiteSpace(candidate))
