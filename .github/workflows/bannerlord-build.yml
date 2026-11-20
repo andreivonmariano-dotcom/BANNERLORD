@@ -218,6 +218,10 @@ jobs:
         run: python scripts/test_v057_automatic_session_reports.py
       - name: Verify v059b native-right-pane creator and age/stats fallback
         run: python scripts/test_v059b_native_screen_integration.py
+      - name: Audit v059c native 1650x927 UI geometry
+        run: python scripts/test_v059c_layout_1650.py
+      - name: Check v059c native Review Back to House restoration
+        run: python scripts/test_v059c_review_back_to_house.py
       - name: Restore .NET tests
         shell: pwsh
         run: |
