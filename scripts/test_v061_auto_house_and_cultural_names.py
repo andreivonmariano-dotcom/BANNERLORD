@@ -42,7 +42,8 @@ assert "EquipFromNativeDonor(officer,sources[i],offices[i])" in retinue
 assert "AssignNativeDuty(officer,offices[i])" in retinue
 assert "SetPartyQuartermaster" in retinue
 assert "SetPartyScout" in retinue
-assert "SandboxRetinueOfficePolicy.Skills" in retinue
+assert "SandboxRetinueCulturePolicy.Training" in retinue
+assert "SandboxRetinueOfficePolicy.Skills" in read("SandboxRetinueCulturePolicy.cs")
 assert 'case "Knight"' in office and 'case "HouseholdSteward"' in office
 assert '"RoleBased" ||' in retinue
 print("PASS: automated culture names, minimal House, advanced controls, officer specialization and native party duties (SOURCE ONLY)")
