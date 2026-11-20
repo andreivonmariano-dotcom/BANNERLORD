@@ -166,11 +166,32 @@ namespace CalradiaUnified
             layer.InputRestrictions.SetInputRestrictions();
             try
             {
-                // First try original Bannerlord textures/brushes referenced
-                // directly from its installed GUI atlases.
-                layer.LoadMovie("CUGuidedCreator", viewModel);
-                DiagnosticJournal.Event("cu_native_creator_assets",
-                    "screen=guided|source=installed_game|art=native");
+                // The generated PNG kit is optional. Bannerlord only
+                // exposes its sprites after the official atlas import.
+                bool customLoaded=false;
+                if(CUCreatorArtRegistry.IsAvailable())
+                {
+                    try
+                    {
+                        layer.LoadMovie("CUGuidedCreatorV059Art",viewModel);
+                        customLoaded=true;
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=guided|layout=v059b_right_panel"+
+                            "|source=cu_imported_atlas");
+                    }
+                    catch(Exception customArtFailure)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_guided_custom_art_fallback",customArtFailure);
+                    }
+                }
+                if(!customLoaded)
+                {
+                    layer.LoadMovie("CUGuidedCreator", viewModel);
+                    DiagnosticJournal.Event("cu_native_creator_assets",
+                        "screen=guided|layout=v059b_right_panel"+
+                        "|source=installed_game|art=native");
+                }
             }
             catch(Exception missingNativeArt)
             {
