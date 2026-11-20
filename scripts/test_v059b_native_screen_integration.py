@@ -46,8 +46,12 @@ for name,movie in (("native",guided),("fallback",guided_fallback)):
 # Imported art variants remain opt-in until the official sprite atlas
 # exists, and must bind the exact same gameplay commands.
 assert {w.get("Command.Click") for w in guided_art.iter("ButtonWidget")}==guided_commands
-assert any(w.get("Sprite")=="cu_world_illustration" and
-    w.get("IsVisible")=="@IsWorldSetup"
+# The v0.59e World screen must never replace the moving main-menu
+# background with the formerly packaged static illustration.
+assert not any(w.get("Sprite")=="cu_world_illustration"
+    for w in guided_art.iter("Widget"))
+assert any(w.get("IsVisible")=="@IsWorldSetup" and
+    w.get("SuggestedWidth")=="704"
     for w in guided_art.iter("Widget"))
 assert any(w.get("Sprite")=="cu_right_stone_panel"
     for w in guided_art.iter("Widget"))
