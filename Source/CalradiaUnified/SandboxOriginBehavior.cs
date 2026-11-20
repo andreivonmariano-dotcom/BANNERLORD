@@ -36,6 +36,11 @@ namespace CalradiaUnified
         // consulted for later noble allegiance or military obligations.
         private string dynasticElderHeroId = "";
         private string dynasticElderName = "";
+        private string dynasticFatherHeroId = "";
+        private string dynasticMotherHeroId = "";
+        private string dynasticOlderSons = "";
+        private string servicePatronHeroId = "";
+        private string servicePatronName = "";
 
         public override void RegisterEvents()
         {
@@ -294,6 +299,16 @@ namespace CalradiaUnified
                 ref dynasticElderHeroId);
             store.SyncData("CU_v062_dynastic_elder_name",
                 ref dynasticElderName);
+            store.SyncData("CU_v063_native_father",
+                ref dynasticFatherHeroId);
+            store.SyncData("CU_v063_native_mother",
+                ref dynasticMotherHeroId);
+            store.SyncData("CU_v063_older_brothers",
+                ref dynasticOlderSons);
+            store.SyncData("CU_v063_service_patron_id",
+                ref servicePatronHeroId);
+            store.SyncData("CU_v063_service_patron_name",
+                ref servicePatronName);
             // Keep only our generated children's personal upbringing
             // records in the actual campaign save. A different player's
             // profile.ini cannot rewrite this campaign after creation.
@@ -776,6 +791,30 @@ namespace CalradiaUnified
                         "none" : Clan.PlayerClan.Kingdom.StringId) +
                     "|status=" + affiliation);
 
+                // Soldier and Knight require a real commanding noble.
+                // The native vassal or mercenary kingdom allegiance remains.
+                Hero patron;
+                string patronStatus=SandboxServicePatron.TryAssign(
+                    profile,hero,out patron);
+                if(patron!=null)
+                {
+                    servicePatronHeroId=patron.StringId;
+                    servicePatronName=patron.Name.ToString();
+                    Notify(profile.Role+" service confirmed under "+
+                        servicePatronName+" of "+
+                        patron.Clan.Name.ToString()+
+                        ". The kingdom contract remains native.");
+                }
+                DiagnosticJournal.Event("cu_service_start_status",
+                    "role="+profile.Role+
+                    "|result="+patronStatus+
+                    "|patron_id="+servicePatronHeroId+
+                    "|patron_name="+servicePatronName);
+                if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
+                    patron==null)
+                    Notify(profile.Role+" start has no verified "+
+                        "commanding lord: "+patronStatus);
+
                 // Native ASO is the authority for king/vassal/mercenary
                 // affiliation. A role label must never forge king status.
                 if (profile.Role == "King" &&
@@ -846,24 +885,58 @@ namespace CalradiaUnified
                     profile,hero,out elder);
                 if(elder!=null)
                 {
-                    dynasticElderHeroId=elder.StringId;
-                    dynasticElderName=elder.Name.ToString();
-                    // Name and clan are resolved from the actual native Hero.
-                    // Do not call a projected preview an established family.
-                    Notify("Noble family confirmed: your older relative is "+
-                        dynasticElderName+" of "+
-                        elder.Clan.Name.ToString()+".");
-                    DiagnosticJournal.Event("cu_dynastic_named_elder_confirmed",
-                        "elder_id="+dynasticElderHeroId+
-                        "|elder_name="+dynasticElderName+
-                        "|clan="+elder.Clan.StringId+
-                        "|native_parentage=true");
+                    if(SandboxNobleStartPolicy.IsSonOrigin(
+                        profile.NobleBirthPosition))
+                    {
+                        var mother=hero.Mother;
+                        var father=hero.Father;
+                        var elderSons=father.Children.Where(h=>h!=null &&
+                            h!=hero && h.IsAlive && !h.IsFemale &&
+                            h.Mother==mother && h.Age>hero.Age)
+                            .OrderByDescending(h=>h.Age).ToArray();
+                        dynasticFatherHeroId=father.StringId;
+                        dynasticMotherHeroId=mother.StringId;
+                        dynasticOlderSons=String.Join(",",
+                            elderSons.Select(h=>h.StringId));
+                        if(elderSons.Length>0)
+                        {
+                            dynasticElderHeroId=elderSons[0].StringId;
+                            dynasticElderName=elderSons[0].Name.ToString();
+                        }
+                        Notify("Your native noble family: father "+
+                            father.Name.ToString()+", mother "+
+                            mother.Name.ToString()+", older brother"+
+                            (elderSons.Length==1?" ":"s ")+
+                            String.Join(", ",elderSons.Select(
+                                h=>h.Name.ToString()))+".");
+                        DiagnosticJournal.Event("cu_dynastic_son_verified",
+                            "father="+dynasticFatherHeroId+
+                            "|mother="+dynasticMotherHeroId+
+                            "|older_sons="+dynasticOlderSons+
+                            "|requested="+profile.NobleBirthPosition+
+                            "|native_parentage=true");
+                    }
+                    else
+                    {
+                        dynasticElderHeroId=elder.StringId;
+                        dynasticElderName=elder.Name.ToString();
+                        Notify("Noble family confirmed: your older relative is "+
+                            dynasticElderName+" of "+
+                            elder.Clan.Name.ToString()+".");
+                        DiagnosticJournal.Event("cu_dynastic_named_elder_confirmed",
+                            "elder_id="+dynasticElderHeroId+
+                            "|elder_name="+dynasticElderName+
+                            "|clan="+elder.Clan.StringId+
+                            "|native_parentage=true");
+                    }
                 }
                 DiagnosticJournal.Event("cu_dynastic_start_status",
                     "requested="+profile.NobleBirthPosition+
                     "|result="+dynasty+
                     "|saved_elder="+dynasticElderHeroId+
-                    "|saved_elder_name="+dynasticElderName);
+                    "|saved_elder_name="+dynasticElderName+
+                    "|saved_father="+dynasticFatherHeroId+
+                    "|saved_older_brothers="+dynasticOlderSons);
                 if(SandboxNobleStartPolicy.RequiresNobleElder(
                     profile.NobleBirthPosition) && elder==null)
                     Notify("The requested noble sibling background could "+
@@ -937,10 +1010,9 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
 
-                // Role-based officers must be same-culture, named new
-                // heroes created from native noble donors, never randomly
-                // recruited wanderers. The player opts into any dismissal
-                // of vanilla companions via ReplaceNative.
+                // Role-based officers use same-culture native noble donors.
+                // FamilyOnly removes native wanderers without adding
+                // unrelated officers. Native preserves the original roster.
                 string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
                 DiagnosticJournal.Event("cu_cultural_retinue_status",
                     "role="+profile.Role+
@@ -1006,6 +1078,21 @@ namespace CalradiaUnified
                     "|actual_children="+(hero.Children==null?
                         0:hero.Children.Count)+
                     "|child_identities_ages_match="+allChildAgesMatch);
+                // A resource-only PASS must not mask the user's selected
+                // lineage or lord-service start failing to materialize.
+                if(SandboxNobleStartPolicy.RequiresNobleElder(
+                    profile.NobleBirthPosition) &&
+                    !dynasty.StartsWith("bound:",StringComparison.Ordinal))
+                    failures=failures.Concat(new[]{
+                        "native_noble_lineage_not_bound"}).ToArray();
+                if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
+                    patron==null)
+                    failures=failures.Concat(new[]{
+                        "commanding_lord_not_bound"}).ToArray();
+                if(profile.RetinueMode=="FamilyOnly" &&
+                    Clan.PlayerClan.Companions.Count>0)
+                    failures=failures.Concat(new[]{
+                        "family_only_has_unrelated_companions"}).ToArray();
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
                     "|role=" + profile.Role +
