@@ -450,20 +450,31 @@ namespace CalradiaUnified
                 return "refused:father_native_template_missing";
             if(mother==null && motherTemplate==null)
                 return "refused:mother_native_template_missing";
+            // Reserve the complete planned household before inventing
+            // parent names. A generated mother must not share the name
+            // of her daughter or the founder's spouse.
+            var reservedNames=profile.Siblings.Take(profile.SiblingCount)
+                .Select(x=>x.Name)
+                .Concat(profile.Children.Take(profile.ChildCount)
+                    .Select(x=>x.Name))
+                .Concat(new[]{player.Name.ToString(),profile.SpouseName})
+                .ToList();
+            if(father!=null)reservedNames.Add(father.Name.ToString());
+            if(mother!=null)reservedNames.Add(mother.Name.ToString());
             try
             {
                 if(father==null)
                 {
                     father=Create(fatherTemplate,SandboxCulturalNames.Suggest(
                         player.Culture.StringId,false,7,
-                        new[]{player.Name.ToString()}),fatherAge);
+                        reservedNames),fatherAge);
                     father.Culture=player.Culture;
+                    reservedNames.Add(father.Name.ToString());
                 }
                 if(mother==null)
                 {
                     mother=Create(motherTemplate,SandboxCulturalNames.Suggest(
-                        player.Culture.StringId,true,7,
-                        new[]{player.Name.ToString(),father.Name.ToString()}),
+                        player.Culture.StringId,true,7,reservedNames),
                         motherAge);
                     mother.Culture=player.Culture;
                 }
