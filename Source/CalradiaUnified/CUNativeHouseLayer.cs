@@ -145,6 +145,8 @@ namespace CalradiaUnified
                 layer=next;
                 movie=nextMovie;
                 failedHost=null;
+                DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                    "page=House and Fortune|surface=native_creator|phase=layer_attached");
                 DiagnosticJournal.Event("cu_guided_house_attached",
                     "after_banner=true|after_clan=true" +
                     "|before_native_finalization=true" +
