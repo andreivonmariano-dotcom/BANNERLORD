@@ -21,6 +21,8 @@ namespace CalradiaUnified
         private static CharacterCreationScreen failedHost;
         private static GauntletLayer layer;
         private static GauntletMovieIdentifier movie;
+        private static readonly CUNativeCreatorUiIsolation nativeUi=
+            new CUNativeCreatorUiIsolation();
         private static bool bannerSeen, clanSeen, completed;
         private static bool closeRequested, backRequested;
         private static bool houseWasShown;
@@ -232,6 +234,19 @@ namespace CalradiaUnified
                         "screen=house|source=cu_plain_fallback"+
                         "|native_character_creation_preserved=true");
                 }
+                // Hide only the native Review Gauntlet controls.
+                // The character, horse and underlying scene are untouched.
+                // An unrecognized UIContext falls back to an older
+                // fully opaque editor instead of stacking two interfaces.
+                if(!nativeUi.Hide(screen,next))
+                {
+                    if(nextMovie!=null)next.ReleaseMovie(nextMovie);
+                    nextMovie=next.LoadMovie(
+                        "CUGuidedCreatorLegacyOpaque",vm);
+                    DiagnosticJournal.Event("cu_native_creator_safe_fallback",
+                        "screen=House|native_ui_isolation=false"+
+                        "|layout=opaque_legacy|family_choices=retained");
+                }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=screen;
@@ -248,6 +263,7 @@ namespace CalradiaUnified
             }
             catch(Exception e)
             {
+                nativeUi.Restore();
                 failedHost=screen;
                 completed=true;
                 DiagnosticJournal.Exception(
@@ -279,6 +295,7 @@ namespace CalradiaUnified
             host=null;
             layer=null;
             movie=null;
+            nativeUi.Restore();
             if(oldHost==null || oldLayer==null)return;
             try
             {
