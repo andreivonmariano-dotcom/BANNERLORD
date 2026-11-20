@@ -1878,6 +1878,29 @@ internal static class Program
                 frameSummary.Contains(
                     "No parseable managed method in the saved exception stack.") &&
                 !frameSummary.Contains("Method:"));
+            // A newer handled exception without a usable stack must not
+            // conceal the earlier exception that reported a method.
+            string firstWithFrame=String.Join(",",new[]{
+                "2026-11-20T01:01:04Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.InvalidOperationException","frame available",
+                normalTrace}.Select(DiagnosticJournal.CsvField));
+            string newerWithoutFrame=String.Join(",",new[]{
+                "2026-11-20T01:01:05Z","fixture",
+                "campaign_registration",
+                "System.Exception","no stack here",
+                "no stack available"}.Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+
+                firstWithFrame+"\n"+newerWithoutFrame+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("later stackless exception retains last parseable frame",
+                frameSummary.Contains(
+                    "Frame source context: cu_native_stats_attach_failed") &&
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CUNativeStatsVM.Refresh") &&
+                frameSummary.Contains("Context: campaign_registration"));
             System.IO.File.Delete(System.IO.Path.Combine(
                 classifier,"exceptions.csv"));
             classified=DiagnosticSummaryPolicy.Build(classifier,
