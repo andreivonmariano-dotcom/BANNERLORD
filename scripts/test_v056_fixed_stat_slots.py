@@ -24,7 +24,10 @@ for i in range(1,7):
                  f"Slot{i}Increment",f"Slot{i}Native",
                  f"Slot{i}Selected",f"Slot{i}Name",f"Slot{i}Visible"):
         assert f"public " in src and name in src,name
-        assert f'OnPropertyChangedWithValue({name},"{name}")' in src
+        if name.endswith(("Value","Min","Max","Increment")):
+            assert f'OnPropertyChangedWithValue({name},"{name}")' not in src
+        else:
+            assert f'OnPropertyChangedWithValue({name},"{name}")' in src
     for method in (f"ExecuteSlot{i}Increase",f"ExecuteSlot{i}Decrease",
                    f"ExecuteSlot{i}Exact"):
         assert f"public void {method}()" in src
