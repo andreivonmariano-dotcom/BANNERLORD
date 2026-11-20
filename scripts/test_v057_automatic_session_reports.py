@@ -20,7 +20,7 @@ for key in (
     "ProcessExit+=","DomainUnload+=","OnSubModuleUnloaded",
     "RecoverInterruptedSessions()", "active.marker",
     "recovered.marker","completed.marker",
-    "ZipFile.CreateFromDirectory(","CompressionLevel.Fastest",
+    "ZipFile.Open(partial,ZipArchiveMode.Create)","CompressionLevel.Fastest",
     '"CU-Session-"', "GetObjectTypeList<" if False else "WriteRuntimeInfo(",
     "native-rgl-tail-","MaxReports=20","MaxNativeLogBytes=512*1024",
     "latest-report.txt","D:\\\\Steam" if False else
@@ -39,6 +39,11 @@ assert 'AutoSessionReports = true;' in settings
 assert 'key == "AutoSessionReports"' in settings
 assert 'Reference Include="System.IO.Compression"' in project
 assert 'Reference Include="System.IO.Compression.FileSystem"' in project
+assert "ZipFile.CreateFromDirectory(session" not in reporter
+assert '.Where(x=>File.Exists(Path.Combine(x,"active.marker")))' in reporter
+assert 'recovery is not starved by 26 newer completed folders' in tests
+assert 'recovery excludes unexpected saves and dumps' in tests
+assert 'unexpected-screenshot.png' in tests
 assert 'DiagnosticSessionReporter.Start();' in tests
 assert 'DiagnosticSessionReporter.Complete("unit_test_normal_exit")' in tests
 assert '"CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip"' in tests
