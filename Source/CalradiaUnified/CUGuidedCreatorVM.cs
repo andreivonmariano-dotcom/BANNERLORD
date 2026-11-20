@@ -43,6 +43,8 @@ namespace CalradiaUnified
         private readonly Action complete;
         private readonly Action back;
         private SandboxOriginProfile profile;
+        // House selections survive native Back without becoming grants.
+        private static SandboxOriginProfile houseDraft;
         private readonly List<Field> fields;
         private int cursor;
         private bool advanced;
@@ -56,12 +58,31 @@ namespace CalradiaUnified
             profile=SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
             if(preCampaign)
             {
-                // Prior campaign data must never leak family, fief, traits
-                // or any post-origin grant into an unconfirmed new game.
+                houseDraft=null;
                 profile.ResetForNewCampaign();
                 string error;
                 if(!profile.Save(SandboxOriginProfile.UserPath,out error))
                     status="Could not reset previous starting settings: "+error;
+            }
+            else
+            {
+                if(houseDraft!=null)
+                    profile=SandboxOriginProfile.Parse(houseDraft.Serialize());
+                if(!profile.AutoHouseNamesPrepared)
+                {
+                    var hero=Hero.MainHero;
+                    SandboxAutoHousePlan.Prepare(profile,
+                        hero==null || hero.Culture==null ? "" :
+                            hero.Culture.StringId,
+                        hero==null ? 30 : (int)hero.Age,
+                        hero!=null && hero.IsFemale,
+                        hero==null ? "" : hero.Name.ToString());
+                    DiagnosticJournal.Event("cu_auto_house_preset",
+                        "culture="+(hero==null || hero.Culture==null ?
+                            "unknown" : hero.Culture.StringId)+
+                        "|names=culture_specific|advanced=available");
+                }
+                houseDraft=SandboxOriginProfile.Parse(profile.Serialize());
             }
             fields=BuildFields();
             Refresh();
@@ -135,21 +156,21 @@ namespace CalradiaUnified
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","FamilyScenario",
                     "Household story",
                     "Natural: varied traits. Honorable: honorable spouse and kinder children. Martial, Scholarly, Mercantile, Seafaring or Strained change family bonds and upbringing.",
-                    choices:SandboxFamilyDevelopmentPolicy.Scenarios));
+                    choices:SandboxFamilyDevelopmentPolicy.Scenarios,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseName",
-                    "Spouse name","Name your generated starting spouse.","text"));
+                    "Spouse name","Name your generated starting spouse.","text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseAge",
                     "Spouse age","Ages must permit the selected children.",
-                    "number",min:18,max:70));
+                    "number",min:18,max:70,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseGender",
                     "Spouse gender","Auto chooses the opposite of the player's sex.",
-                    choices:new[]{"Auto","Female","Male"}));
+                    choices:new[]{"Auto","Female","Male"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBackground",
                     "Spouse's origin","Choose a supported native family background.",
-                    choices:SandboxFamilyOriginPolicy.Backgrounds));
+                    choices:SandboxFamilyOriginPolicy.Backgrounds,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBirthClanId",
                     "Spouse's noble birth clan","Enter the exact eligible clan ID.",
-                    "text"));
+                    "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseCulture",
                     "Spouse's culture",
                     "Leave blank to inherit the player's actual culture.",
@@ -164,19 +185,19 @@ namespace CalradiaUnified
                     string prefix="Child."+i+".";
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Name","Child "+i+" | Name",
-                        "Give this child a real native Hero name.","text"));
+                        "Give this child a real native Hero name.","text",advanced:true));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Age","Child "+i+" | Age",
                         "Choose a permitted age. The limit adjusts to both parents.",
-                        "number",min:0,max:55));
+                        "number",min:0,max:55,advanced:true));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Gender","Child "+i+" | Gender",
                         "Set this child's native sex.",
-                        choices:new[]{"Female","Male"}));
+                        choices:new[]{"Female","Male"},advanced:true));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Upbringing","Child "+i+" | Upbringing",
                         "FamilyTradition follows the household story; choose Kind, Martial, Scholarly, Mercantile or Independent for this child.",
-                        choices:SandboxFamilyDevelopmentPolicy.Upbringings));
+                        choices:SandboxFamilyDevelopmentPolicy.Upbringings,advanced:true));
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SiblingCount",
                     "Brothers and sisters",
@@ -187,52 +208,52 @@ namespace CalradiaUnified
                     string prefix="Sibling."+i+".";
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Name","Sibling "+i+" | Name",
-                        "Give this brother or sister a name.","text"));
+                        "Give this brother or sister a name.","text",advanced:true));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Age","Sibling "+i+" | Age",
                         "An older or younger sibling. Must be an adult and fit native parental ages.",
-                        "number",min:18,max:80));
+                        "number",min:18,max:80,advanced:true));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Gender","Sibling "+i+" | Gender",
                         "Choose brother or sister. The same parents are shared.",
-                        choices:new[]{"Male","Female"}));
+                        choices:new[]{"Male","Female"},advanced:true));
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "RetinueMode","Your starting household officers",
                     "Native keeps Bannerlord's starting companions. Cultural Household replaces those native companions with new same-culture knights and officers.",
-                    choices:new[]{"Native","RoleBased"}));
+                    choices:new[]{"Native","RoleBased"},advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
                     "Use -1 to keep Bannerlord's original start.",
-                    "number",min:-1,max:2000000,step:1000));
+                    "number",min:-1,max:2000000,step:1000,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Influence",
                     "Starting influence",
                     "Use -1 to retain your native starting influence.",
-                    "number",min:-1,max:100000,step:100));
+                    "number",min:-1,max:100000,step:100,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Troops",
                     "Additional native recruits",
                     "Up to 50 extra troops from the character's actual culture.",
-                    "number",min:0,max:50));
+                    "number",min:0,max:50,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","StartingFiefMode",
                     "Starting holding",
                     "Native preserves Advanced Start holdings. Optional fief transfers require explicit permission.",
-                    choices:SandboxFiefPolicy.Modes));
+                    choices:SandboxFiefPolicy.Modes,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","StartingFiefId",
                     "Exact requested fief",
                     "Use a valid native settlement ID; ownership is checked when the game begins.",
-                    "text"));
+                    "text",advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","AllowStartingFiefTransfer",
                     "Authorize starting fief transfer",
                     "Required only when requesting an extra castle, town or exact fief.",
-                    "boolean"));
+                    "boolean",advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeMode",
                     "Household residence",
                     "Choose a valid clan-owned town or castle. A child is never placed in a party.",
-                    choices:SandboxFamilyHomePolicy.Modes));
+                    choices:SandboxFamilyHomePolicy.Modes,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeId",
                     "Exact family residence",
                     "Specify your owned town or castle's settlement ID.",
-                    "text"));
+                    "text",advanced:true));
                 // The next real Bannerlord Review/Options stage already
                 // displays the final character. Do not insert a duplicate
                 // CU review page before that genuine native step.
@@ -454,6 +475,8 @@ namespace CalradiaUnified
             // do not land on a different question after a choice changes.
             string currentKey=Current==null ? key : Current.Key;
             profile=copy;
+            if(!preCampaign)
+                houseDraft=SandboxOriginProfile.Parse(profile.Serialize());
             var afterWrite=Visible;
             int currentAt=Array.FindIndex(afterWrite,
                 f=>f.Key==currentKey);
@@ -544,8 +567,8 @@ namespace CalradiaUnified
                 field=>field.Key==selected);
             cursor=matched>=0 ? matched :
                 Math.Max(0,Math.Min(cursor,available.Length-1));
-            Report(advanced ? "Optional world and spouse settings shown.":
-                "Only the main choices are shown.");
+            Report(advanced ? "Advanced settings: names, ages, retainers, wealth and holdings.":
+                "Automatic household details are selected.");
             Refresh();
         }
         public void ExecuteBack()
@@ -581,6 +604,10 @@ namespace CalradiaUnified
             // Keep the real native 3D camera/scene untouched by default.
             candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
+            // Choose native cultural household officers by default for
+            // supported roles. House Advanced may choose Native instead.
+            candidate.RetinueMode=SandboxNobleStartPolicy.EligibleForRetinue(
+                "RoleBased",candidate.Role) ? "RoleBased" : "Native";
             if(!SandboxNobleStartPolicy.ValidForRole(
                 candidate.NobleBirthPosition,candidate.Role))
             {
@@ -604,6 +631,8 @@ namespace CalradiaUnified
                 "role="+candidate.Role+"|kingdom="+
                 candidate.StartingKingdomId+"|scenario="+
                 candidate.StartingScenario+
+                "|retinue_default="+candidate.RetinueMode+
+                "|noble_birth="+candidate.NobleBirthPosition+
                 "|family_requested=false|native_state_next=true");
             if(complete!=null)complete();
         }
@@ -648,6 +677,7 @@ namespace CalradiaUnified
                 Report("Household not saved: "+error);
                 return;
             }
+            houseDraft=null;
             HouseRevision++;
             DiagnosticJournal.Event("cu_guided_house_fortune_committed",
                 "age="+actualAge+"|spouse="+candidate.SpouseEnabled+
@@ -807,7 +837,7 @@ namespace CalradiaUnified
                     "Confirm & Continue") :
                 "Continue";}}
         [DataSourceProperty] public string AdvancedLabel
-            {get{return advanced?"Hide optional choices":"Show optional choices";}}
+            {get{return advanced?"Close advanced settings":"Advanced settings";}}
         [DataSourceProperty] public string Status
             {get{return status??"";}}
         [DataSourceProperty] public string Summary
