@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
@@ -342,6 +343,18 @@ namespace CalradiaUnified
                     if (sibling.Mother != null &&
                         !sibling.Mother.Children.Contains(sibling))
                         sibling.Mother.Children.Add(sibling);
+                    // A requested adult brother or sister must be
+                    // playable as an actual household party member,
+                    // not a stranded NotSpawned Hero in the clan.
+                    if(MobileParty.MainParty==null)
+                        throw new InvalidOperationException(
+                            "Player party missing for sibling");
+                    AddHeroToPartyAction.Apply(
+                        sibling,MobileParty.MainParty,true);
+                    if(MobileParty.MainParty.MemberRoster.GetTroopCount(
+                        sibling.CharacterObject)<1)
+                        throw new InvalidOperationException(
+                            "Sibling absent from native player party");
                     if(sibling.Father==null || sibling.Mother==null ||
                         sibling.Father!=player.Father ||
                         sibling.Mother!=player.Mother ||
@@ -355,6 +368,7 @@ namespace CalradiaUnified
                         "|father="+sibling.Father.StringId+
                         "|mother="+sibling.Mother.StringId+
                         "|culture="+sibling.Culture.StringId+
+                        "|party_member=true"+
                         "|clan="+(sibling.Clan==null?
                             "none":sibling.Clan.StringId));
                 }
