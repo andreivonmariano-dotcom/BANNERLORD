@@ -48,6 +48,7 @@ namespace CalradiaUnified
         // Cache the read-only native Hero scan so Gauntlet getters do
         // not enumerate the entire campaign every UI refresh.
         private readonly string projectedElderName;
+        private readonly string projectedPatronName;
         private readonly List<Field> fields;
         private int cursor;
         private bool advanced;
@@ -87,6 +88,8 @@ namespace CalradiaUnified
                 }
                 houseDraft=SandboxOriginProfile.Parse(profile.Serialize());
                 projectedElderName=SandboxDynasticStart.PreviewElderName(
+                    profile,Hero.MainHero);
+                projectedPatronName=SandboxServicePatron.Preview(
                     profile,Hero.MainHero);
                 if(profile.NobleBirthPosition!="Independent")
                     DiagnosticJournal.Event("cu_dynastic_house_preview",
@@ -149,12 +152,16 @@ namespace CalradiaUnified
                     "The selected King, Lord, Knight, Soldier or Admiral start uses this native affiliation.",
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "ServicePatronHeroId","Commanding lord Hero ID (optional)",
+                    "Soldier and Knight automatically join a real kingdom and receive a named superior. Advanced: enter a native lord's exact Hero ID; native rank-and-file enlistment is not claimed.",
+                    "text",advanced:true));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "NobleBirthPosition","Your noble birth",
                     "Choose independent origin or a younger brother, sister, second son or third son of a real lord or king. Family links are verified after native character creation.",
                     choices:SandboxNobleStartPolicy.BirthPositions));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
-                    "NobleElderHeroId","Older noble's Hero ID (optional)",
-                    "Optional exact native Hero ID. Leave blank to find an eligible older leader. Native age, sex, culture, parentage and kingdom are checked later.",
+                    "NobleElderHeroId","Native family leader ID (optional)",
+                    "Optional exact native Hero ID. Second/third son selects a real father. Younger brother/sister selects an older sibling. The game validates genealogy at start.",
                     "text",advanced:true));
             }
             else
@@ -231,7 +238,8 @@ namespace CalradiaUnified
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "RetinueMode","Your starting household officers",
                     "Native keeps Bannerlord's starting companions. Cultural Household replaces those native companions with new same-culture knights and officers.",
-                    choices:new[]{"Native","RoleBased"},advanced:true));
+                    choices:new[]{"Native","RoleBased","FamilyOnly"},
+                    advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
                     "Use -1 to keep Bannerlord's original start.",
@@ -295,6 +303,9 @@ namespace CalradiaUnified
                 return profile.SpouseEnabled &&
                     profile.SpouseBackground=="NobleChosen";
             if(key=="ChildCount") return profile.SpouseEnabled;
+            if(key=="ServicePatronHeroId")
+                return preCampaign &&
+                    SandboxServicePolicy.NeedsPatron(profile.Role);
             if(key=="NobleBirthPosition")
                 return preCampaign && profile.Role=="Lord";
             if(key=="NobleElderHeroId")
@@ -614,10 +625,12 @@ namespace CalradiaUnified
             // Keep the real native 3D camera/scene untouched by default.
             candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
-            // Choose native cultural household officers by default for
-            // supported roles. House Advanced may choose Native instead.
-            candidate.RetinueMode=SandboxNobleStartPolicy.EligibleForRetinue(
-                "RoleBased",candidate.Role) ? "RoleBased" : "Native";
+            // Soldier begins without unrelated companions. Advanced House
+            // can request a named Sergeant or retain the native roster.
+            candidate.RetinueMode=SandboxServicePolicy.DefaultRetinue(
+                candidate.Role);
+            if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
+                candidate.ServicePatronHeroId="";
             if(!SandboxNobleStartPolicy.ValidForRole(
                 candidate.NobleBirthPosition,candidate.Role))
             {
@@ -642,6 +655,7 @@ namespace CalradiaUnified
                 candidate.StartingKingdomId+"|scenario="+
                 candidate.StartingScenario+
                 "|retinue_default="+candidate.RetinueMode+
+                "|service_patron_request="+candidate.ServicePatronHeroId+
                 "|noble_birth="+candidate.NobleBirthPosition+
                 "|family_requested=false|native_state_next=true");
             if(complete!=null)complete();
@@ -793,6 +807,8 @@ namespace CalradiaUnified
                         return "Replace native companions with cultural household officers";
                     case "ReplaceNative":
                         return "Replace native companions with my court";
+                    case "FamilyOnly":
+                        return "No starting wanderers; keep chosen family only";
                 }
             }
             if(key=="StartingScenario" && raw=="none")
@@ -881,6 +897,8 @@ namespace CalradiaUnified
                             profile.StartingKingdomId)+"\n"+
                         "Birth: "+DisplayChoice("NobleBirthPosition",
                             profile.NobleBirthPosition)+"\n"+
+                        (SandboxServicePolicy.NeedsPatron(profile.Role)?
+                            "Service: named native lord appointed at start\n":"")+
                         "World: "+
                         DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
@@ -901,6 +919,8 @@ namespace CalradiaUnified
                     "Older relative: "+elderPreview+"\n"+
                     "Household officers: "+DisplayChoice("RetinueMode",
                         profile.RetinueMode)+"\n"+
+                    (SandboxServicePolicy.NeedsPatron(profile.Role)?
+                        "Commanding lord: "+projectedPatronName+"\n":"")+
                     "Gold: "+(profile.Gold<0?"Native":
                         profile.Gold.ToString())+"\n"+
                     "Additional troops: "+profile.Troops+"\n"+
