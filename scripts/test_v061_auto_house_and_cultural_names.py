@@ -19,7 +19,7 @@ world=fields.split("if(preCampaign)",1)[1].split("\n            else\n          
 house=fields.split("\n            else\n            {",1)[1].split("return list;",1)[0]
 assert '"NobleBirthPosition"' in world and '"NobleElderHeroId"' in world
 assert '"NobleBirthPosition"' not in house and '"SiblingCount"' in house
-assert 'candidate.RetinueMode=SandboxNobleStartPolicy.EligibleForRetinue' in vm
+assert 'candidate.RetinueMode=SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'SandboxAutoHousePlan.Prepare(profile' in vm
 assert 'if(!profile.AutoHouseNamesPrepared)' in vm
 assert 'houseDraft=SandboxOriginProfile.Parse(profile.Serialize())' in vm
