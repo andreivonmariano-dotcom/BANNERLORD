@@ -1800,6 +1800,84 @@ internal static class Program
             Check("unhandled exception without subsystem context stays unknown",
                 classified.Contains("Other / unknown=1") &&
                 classified.Contains("Most recent exception area: Other / unknown"));
+            // Exact frame extraction comes from the saved exception
+            // trace, not the last game event or a guessed UI method.
+            string stackFixture=System.IO.Path.Combine(
+                tempDiagnostic,"managed-stack-fixtures");
+            System.IO.Directory.CreateDirectory(stackFixture);
+            string stackFile=System.IO.Path.Combine(
+                stackFixture,"exceptions.csv");
+            string sourcePath=@"C:\Users\PrivatePlayer\Source\CUNativeStatsLayer.cs";
+            string normalTrace="System.InvalidOperationException: slider error\n"+
+                "   at CalradiaUnified.CUNativeStatsVM.Refresh() in "+
+                sourcePath+":line 749\n"+
+                "   at CalradiaUnified.CUNativeStatsVM.ExecuteContinue()";
+            string frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:00Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.InvalidOperationException","slider error",
+                normalTrace}.Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            string frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("managed exception summary reports the first method",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CUNativeStatsVM.Refresh") &&
+                frameSummary.Contains(
+                    "Source (filename only): CUNativeStatsLayer.cs:line 749") &&
+                !frameSummary.Contains("PrivatePlayer"));
+            Check("managed frame is not presented as proven root cause",
+                frameSummary.Contains(
+                    "It does not prove the method caused the session to end."));
+            string innerTrace="System.Exception: outer ---> "+
+                "System.ArgumentException: inner\n"+
+                "   at CalradiaUnified.SandboxFamilyCreator.BuildChild()\n"+
+                "   --- End of inner exception stack trace ---\n"+
+                "   at CalradiaUnified.SandboxFamilyCreator.CreateFamily()";
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:01Z","fixture",
+                "cu_family_partial_creation",
+                "System.Exception","nested",innerTrace}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("nested exception reports first inner frame with caveat",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.SandboxFamilyCreator.BuildChild") &&
+                frameSummary.Contains("inner exception"));
+            string asyncTrace="System.Exception: async exception\n"+
+                "   at CalradiaUnified.CreatorRuntime+"+
+                "<NextPageAsync>d__18.MoveNext()";
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:02Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.Exception","async",asyncTrace}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("async state machine receives compiler-frame caveat",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CreatorRuntime+") &&
+                frameSummary.Contains("async or iterator state-machine frame"));
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:03Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.Exception","no frames",
+                "not a parseable managed stack"}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("missing managed frame stays unknown",
+                frameSummary.Contains(
+                    "No parseable managed method in the saved exception stack.") &&
+                !frameSummary.Contains("Method:"));
             System.IO.File.Delete(System.IO.Path.Combine(
                 classifier,"exceptions.csv"));
             classified=DiagnosticSummaryPolicy.Build(classifier,
