@@ -363,6 +363,12 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(PhaseLabel,"PhaseLabel");
             OnPropertyChangedWithValue(IsChildAge,"IsChildAge");
             OnPropertyChangedWithValue(AgeLimitLabel,"AgeLimitLabel");
+            var field=Current;
+            DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                "page="+(preCampaign?"World Setup":"House and Fortune")+
+                "|surface=guided_creator|phase=bindings_refreshed"+
+                "|chapter="+Chapter+"|step="+StepProgress+
+                "|field="+(field==null?"none":field.Key));
         }
 
         private void Report(string message)
