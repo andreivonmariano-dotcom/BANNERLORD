@@ -85,7 +85,7 @@ def label(parent,text,x,y,w,h,brush="Stage.Description.Text",
     return fixed(parent,"TextWidget",x,y,w,h,**props)
 
 def action(parent,text,command,x,y,w,h,visible=None,
-           brush="ButtonBrush",font=18,selected=None):
+           brush="ButtonBrush",font=21,selected=None):
     props={"Brush":brush,"Command.Click":command,
            "DoNotPassEventsToChildren":"true",
            "UpdateChildrenStates":"true"}
@@ -122,22 +122,22 @@ def guided_content(parent):
     label(c,"@AgeLimitLabel",20,323,530,28,
           font=17,alignment="Center",visible="@IsChildAge")
     action(c,"Previous choice","ExecutePreviousChoice",
-           22,372,245,54,visible="@IsChoice")
+           16,367,262,66,visible="@IsChoice")
     action(c,"Next choice","ExecuteNextChoice",
-           303,372,245,54,visible="@IsChoice")
+           293,367,262,66,visible="@IsChoice")
     action(c,"Toggle Yes / No","ExecuteToggle",
-           110,372,350,54,visible="@IsBoolean")
-    action(c,"−","ExecuteDecrease",22,372,166,54,
-           visible="@IsNumber",font=23)
-    action(c,"+","ExecuteIncrease",198,372,166,54,
-           visible="@IsNumber",font=23)
-    action(c,"Exact value","ExecuteExact",374,372,174,54,
+           96,367,381,66,visible="@IsBoolean")
+    action(c,"−","ExecuteDecrease",16,367,172,66,
+           visible="@IsNumber",font=28)
+    action(c,"+","ExecuteIncrease",201,367,172,66,
+           visible="@IsNumber",font=28)
+    action(c,"Exact value","ExecuteExact",386,367,169,66,
            visible="@IsNumber")
-    action(c,"Enter text","ExecuteEditText",110,372,350,54,
+    action(c,"Enter text","ExecuteEditText",96,367,381,66,
            visible="@IsText")
     action(c,"Use native default","ExecuteNativeDefault",
-           115,437,350,48,visible="@IsNativeDefaultAvailable")
-    action(c,"@AdvancedLabel","ExecuteAdvanced",115,535,350,50)
+           96,448,381,56,visible="@IsNativeDefaultAvailable")
+    action(c,"@AdvancedLabel","ExecuteAdvanced",96,530,381,64)
     label(c,"@Status",25,610,520,48,
           brush="Stage.Description.Text",font=17)
     label(c,"@StepProgress",25,675,520,29,
@@ -153,17 +153,17 @@ def stat_row(parent,n):
     c=child(row,"Children")
     static_panel(c,0,0,548,66,"#322419FF" if n%2 else "#3A291BFF")
     label(c,f"@Slot{n}Name",10,3,193,27,
-          brush="Popup.Button.Text",font=19)
+          brush="Popup.Button.Text",font=21)
     label(c,f"@Slot{n}Native",10,34,180,25,
-          brush="Popup.Button.Text",font=15)
+          brush="Popup.Button.Text",font=17)
     label(c,f"@Slot{n}Selected",203,10,99,46,
-          brush="Popup.Button.Text",font=18)
+          brush="Popup.Button.Text",font=20)
     action(c,"−",f"ExecuteSlot{n}Decrease",
-           311,9,58,47,font=23)
+           301,6,66,55,font=28)
     action(c,"+",f"ExecuteSlot{n}Increase",
-           373,9,58,47,font=23)
+           372,6,66,55,font=28)
     action(c,"Exact",f"ExecuteSlot{n}Exact",
-           436,9,103,47,font=17)
+           443,6,101,55,font=20)
     return row
 
 def stats_content(parent):
@@ -187,22 +187,22 @@ def stats_content(parent):
     label(c,"80 YEARS",377,150,155,32,
           brush="Stage.Description.Text",font=17,alignment="Right")
     action(c,"− 1 year","ExecuteAgeDecrease",
-           24,281,164,50,font=18)
+           18,277,176,61,font=21)
     action(c,"Enter exact age","ExecuteEnterExactAge",
-           196,281,181,50,font=17)
+           195,277,185,61,font=20)
     action(c,"+ 1 year","ExecuteAgeIncrease",
-           384,281,165,50,font=18)
+           381,277,174,61,font=21)
     action(c,"Keep native age","ExecuteKeepNativeAge",
-           120,345,333,49,font=17)
+           115,347,343,59,font=20)
     label(c,"@Status",34,415,503,40,
           brush="Stage.Description.Text",font=17,alignment="Center")
     static_panel(c,24,487,525,2,"#99764EFF")
     label(c,"@BonusSummary",34,504,504,122,
           brush="Stage.Description.Text",font=17)
     action(c,"Previous bonuses","ExecutePreviousBonus",
-           30,650,237,43,font=16)
+           21,648,247,55,font=19)
     action(c,"Next bonuses","ExecuteNextBonus",
-           306,650,237,43,font=16)
+           304,648,247,55,font=19)
 
     all_stats=child(all_children,"Widget",IsVisible="@IsStatsPage",
               WidthSizePolicy="Fixed",SuggestedWidth="573",
@@ -211,17 +211,17 @@ def stats_content(parent):
               DoNotPassEventsToChildren="false")
     c=child(all_stats,"Children")
     action(c,"Player","ExecuteEditPlayer",8,0,168,45,
-           selected="@IsPlayerTarget",font=17)
+           selected="@IsPlayerTarget",font=20)
     action(c,"Spouse","ExecuteEditSpouse",187,0,168,45,
-           selected="@IsSpouseTarget",font=17)
+           selected="@IsSpouseTarget",font=20)
     label(c,"@BudgetStatus",365,0,198,44,
           brush="Popup.Button.Text",font=14)
     action(c,"Native","ExecuteNative",10,51,168,43,
-           selected="@IsNativeMode",font=16)
+           selected="@IsNativeMode",font=19)
     action(c,"Balanced","ExecuteBalanced",191,51,170,43,
-           selected="@IsBalancedMode",font=16)
+           selected="@IsBalancedMode",font=19)
     action(c,"Unrestricted","ExecuteUnrestricted",374,51,186,43,
-           selected="@IsUnrestrictedMode",font=16)
+           selected="@IsUnrestrictedMode",font=19)
     label(c,"@ModeDescription",18,98,525,38,
           brush="Stage.Description.Text",font=15)
     label(c,"@TargetHelp",18,135,525,38,
@@ -237,10 +237,10 @@ def stats_content(parent):
     content=child(viewport,"Children")
     for n in range(1,7):stat_row(content,n)
     action(c,"Previous stats","ExecutePreviousGroup",
-           8,660,168,48,font=16)
+           8,657,181,55,font=19)
     label(c,"@SkillGroup",187,661,194,45,font=17,alignment="Center")
     action(c,"Next stats","ExecuteNextGroup",
-           387,660,168,48,font=16)
+           374,657,181,55,font=19)
 
     # Age INPUT last, as in the verified working v0.58/v0.59e bridge.
     layer=child(all_children,"Widget",IsVisible="@IsAgePage",
