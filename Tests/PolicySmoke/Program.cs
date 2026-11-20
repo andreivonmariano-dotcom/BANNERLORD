@@ -142,6 +142,31 @@ internal static class Program
             SandboxRetinueOfficePolicy.PartyDuty("Navigator")=="Scout" &&
             SandboxRetinueOfficePolicy.PartyDuty("HouseholdSteward")=="Quartermaster" &&
             SandboxRetinueOfficePolicy.PartyDuty("Knight")=="None");
+        Check("retinue cultures have distinct native outfit goals",
+            SandboxRetinueCulturePolicy.GearStyle("vlandia","Knight")=="Lancer" &&
+            SandboxRetinueCulturePolicy.GearStyle("khuzait","Knight")=="HorseArcher" &&
+            SandboxRetinueCulturePolicy.GearStyle("battania","Knight")=="Longbow" &&
+            SandboxRetinueCulturePolicy.GearStyle("sturgia","Knight")=="Axeguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("empire","Knight")=="Shieldguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("aserai","Knight")=="Skirmisher");
+        Check("native equipment scorer rewards mounted archery, no fake item IDs",
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",
+                new[]{"Horse","Bow","Arrows","BodyArmor"}) >
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",
+                new[]{"Shield","OneHandedWeapon","BodyArmor"}) &&
+            SandboxRetinueCulturePolicy.EquipmentScore("Shieldguard",
+                new[]{"Shield","OneHandedWeapon","BodyArmor"}) >
+            SandboxRetinueCulturePolicy.EquipmentScore("Shieldguard",
+                new[]{"Horse","Bow","Arrows"}));
+        Check("culture modifies officers' skills and personality",
+            SandboxRetinueCulturePolicy.Training("khuzait","Knight")
+                .Contains("Bow") &&
+            SandboxRetinueCulturePolicy.Training("sturgia","Knight")
+                .Contains("TwoHanded") &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Knight")=="Honor" &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("aserai","Knight")=="Generosity" &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("khuzait","Knight")=="Calculating" &&
+            SandboxRetinueCulturePolicy.SecondaryTrait("aserai","Factor")=="Calculating");
         var family=new SandboxOriginProfile();
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&

@@ -33,6 +33,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxCulturalNames.cs" Link="SandboxCulturalNames.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxAutoHousePlan.cs" Link="SandboxAutoHousePlan.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRetinueOfficePolicy.cs" Link="SandboxRetinueOfficePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRetinueCulturePolicy.cs" Link="SandboxRetinueCulturePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStartContract.cs" Link="SandboxStartContract.cs" />
     <Compile Include="../../Source/CalradiaUnified/NativeCreatorParityPolicy.cs" Link="NativeCreatorParityPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/NativeStateShellPolicy.cs" Link="NativeStateShellPolicy.cs" />
