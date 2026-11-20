@@ -1129,13 +1129,10 @@ namespace CalradiaUnified
             {get{return SandboxNativeSkillCatalog.Status();}}
         [DataSourceProperty] public string TargetHelp
             {get{return editingSpouse ?
-                "SPOUSE | AUTO keeps native values. Drag a slider to set an"+
-                " exact requested starting value, including level and"+
-                " registered naval skills. Children inherit training"+
-                " from both parents after House creation." :
-                "PLAYER | All native attributes, skills, focus and traits"+
-                " and level in one scrollable page. Choose Balanced or"+
-                " Unrestricted to edit. Naval skills appear with War Sails.";}}
+                "SPOUSE | Edit with - / + / Exact. Native values stay"+
+                " unchanged until you choose an override." :
+                "PLAYER | Nine pages. Edit using - / + / Exact."+
+                " Naval skills appear with War Sails.";}}
 
         private void AddRow(string key,string help)
         {
