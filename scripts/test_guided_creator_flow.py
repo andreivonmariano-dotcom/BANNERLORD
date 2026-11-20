@@ -36,9 +36,11 @@ assert 'CUNativeStatsNavigationPolicy.NextLabel(pageIndex)' in stats
 
 # World and role are the ONLY front-campaign questions. Fief and family
 # are added by a separate VM after the live player, native clan and banner.
-front=flow.split('if(preCampaign)\n            {',1)[1].split('\n            else\n            {',1)[0]
-tail=flow.split('            else\n            {',1)[1].split('\n            return list;',1)[0]
+creator_fields=flow.split('private List<Field> BuildFields()',1)[1]
+front=creator_fields.split('if(preCampaign)\n            {',1)[1].split('\n            else\n            {',1)[0]
+tail=creator_fields.split('            else\n            {',1)[1].split('\n            return list;',1)[0]
 for key in ("StartingScenario","Role","StartingKingdomId",
+            "NobleBirthPosition","NobleElderHeroId",
             "ScenarioFaction1","ScenarioFaction2","ScenarioVariant",
             "WorldSeed"):
     assert '"'+key+'"' in front,key
