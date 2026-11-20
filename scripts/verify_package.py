@@ -41,6 +41,26 @@ def verify(filename, version):
         new_creator = prefix + "GUI/Prefabs/CUSandboxCreator.xml"
         assert new_creator in names, "New Sandbox creator movie missing"
         assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
+        # The v0.59f movies share the exact pinned Native Review
+        # stone panel, title brush and native green Next/Back footer.
+        # Do not ship a DLL that requests them without packaging both.
+        for name in ("CUGuidedCreatorNativeReview.xml",
+                     "CUNativeStatsEditorNativeReview.xml"):
+            path=prefix+"GUI/Prefabs/"+name
+            assert path in names, "Generated native Review shell missing: "+name
+            xml=ET.fromstring(archive.read(path))
+            assert xml.tag=="Prefab"
+            panel=[w for w in xml.iter("Widget")
+                   if w.get("Id")=="RightPanel"]
+            assert len(panel)==1
+            assert panel[0].get("SuggestedWidth")=="694"
+            assert panel[0].get("SuggestedHeight")=="1080"
+            assert panel[0].get("Sprite")==r"General\CharacterCreation\character_creation_panel"
+            buttons=list(xml.iter("ButtonWidget"))
+            assert any(b.get("Brush")=="Standard.BackButton" and
+                       b.get("Command.Click")=="ExecuteBack" for b in buttons)
+            assert any(b.get("Brush")=="Popup.Done.Button.NineGrid" and
+                       b.get("Command.Click")=="ExecuteContinue" for b in buttons)
         # The opt-in stage has a UNIQUE type; native FaceGen remains intact.
         for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml","CUNativeCultureChooser.xml"):
             path = prefix + "GUI/Prefabs/" + name
