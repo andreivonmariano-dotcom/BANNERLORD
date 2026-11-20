@@ -170,6 +170,37 @@ namespace CalradiaUnified
                         "FamilyTradition follows the household story; choose Kind, Martial, Scholarly, Mercantile or Independent for this child.",
                         choices:SandboxFamilyDevelopmentPolicy.Upbringings));
                 }
+                list.Add(new Field("CHAPTER III | YOUR HOUSE","SiblingCount",
+                    "Brothers and sisters",
+                    "Choose 0 to 4 actual clan siblings. Native parents are generated if missing; relatives share both parents.",
+                    "number",min:0,max:SandboxOriginProfile.MaxSiblings));
+                for(int i=1;i<=SandboxOriginProfile.MaxSiblings;i++)
+                {
+                    string prefix="Sibling."+i+".";
+                    list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                        prefix+"Name","Sibling "+i+" | Name",
+                        "Give this brother or sister a name.","text"));
+                    list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                        prefix+"Age","Sibling "+i+" | Age",
+                        "An older or younger sibling. Must be an adult and fit native parental ages.",
+                        "number",min:18,max:80));
+                    list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                        prefix+"Gender","Sibling "+i+" | Gender",
+                        "Choose brother or sister. The same parents are shared.",
+                        choices:new[]{"Male","Female"}));
+                }
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "NobleBirthPosition","Your noble birth",
+                    "Optional: be a real younger brother or sister of an existing lord or king in the selected kingdom. Requires an older native noble with both parents.",
+                    choices:SandboxNobleStartPolicy.BirthPositions));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "NobleElderHeroId","Older noble's Hero ID",
+                    "Optional exact native hero ID. Leave blank to select the first matching older clan leader with verified parents.",
+                    "text",advanced:true));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "RetinueMode","Your starting household officers",
+                    "Native: keep the game's roster. RoleBased: add culture-matched knights and officers. ReplaceNative: first recruit your court, then dismiss native starting wanderers.",
+                    choices:SandboxNobleStartPolicy.RetinueModes));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
                     "Use -1 to keep Bannerlord's original start.",
@@ -233,6 +264,17 @@ namespace CalradiaUnified
                 return profile.SpouseEnabled &&
                     profile.SpouseBackground=="NobleChosen";
             if(key=="ChildCount") return profile.SpouseEnabled;
+            if(key=="NobleBirthPosition")return profile.Role=="Lord";
+            if(key=="NobleElderHeroId")
+                return profile.Role=="Lord" &&
+                    profile.NobleBirthPosition!="Independent";
+            if(key.StartsWith("Sibling.",StringComparison.Ordinal))
+            {
+                string[] p=key.Split('.');
+                int number;
+                return p.Length==3 && Int32.TryParse(p[1],out number) &&
+                    number<=profile.SiblingCount;
+            }
             if(key.StartsWith("Child.",StringComparison.Ordinal))
             {
                 string[] p=key.Split('.');
@@ -321,17 +363,21 @@ namespace CalradiaUnified
             }
             string[] parts=key.Split('.');
             int index;
-            if(parts.Length==3 && parts[0]=="Child" &&
-                Int32.TryParse(parts[1],out index) && index>=1 &&
-                index<=profile.Children.Count)
+            if(parts.Length==3 &&
+                (parts[0]=="Child" || parts[0]=="Sibling") &&
+                Int32.TryParse(parts[1],out index) && index>=1)
             {
-                var child=profile.Children[index-1];
+                var relatives=parts[0]=="Child" ?
+                    profile.Children:profile.Siblings;
+                if(index>relatives.Count)return "";
+                var relative=relatives[index-1];
                 switch(parts[2])
                 {
-                    case "Name":return child.Name;
-                    case "Age":return child.Age.ToString(CultureInfo.InvariantCulture);
-                    case "Gender":return child.Gender;
-                    case "Upbringing":return child.Upbringing;
+                    case "Name":return relative.Name;
+                    case "Age":return relative.Age.ToString(
+                        CultureInfo.InvariantCulture);
+                    case "Gender":return relative.Gender;
+                    case "Upbringing":return relative.Upbringing;
                 }
             }
             return "";
@@ -559,7 +605,7 @@ namespace CalradiaUnified
         {
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
             candidate.RealFamilyEnabled=candidate.SpouseEnabled ||
-                candidate.ChildCount>0;
+                candidate.ChildCount>0 || candidate.SiblingCount>0;
             string error;
             if(candidate.ChildCount>0 && !candidate.SpouseEnabled)
             {
@@ -601,6 +647,9 @@ namespace CalradiaUnified
                 "|spouse_age="+candidate.SpouseAge+
                 "|family_scenario="+candidate.FamilyScenario+
                 "|children="+candidate.ChildCount+
+                "|siblings="+candidate.SiblingCount+
+                "|noble_birth="+candidate.NobleBirthPosition+
+                "|retinue="+candidate.RetinueMode+
                 "|child_upbringings="+String.Join(",",
                     candidate.Children.Take(candidate.ChildCount)
                         .Select(x=>x.Upbringing)) +
