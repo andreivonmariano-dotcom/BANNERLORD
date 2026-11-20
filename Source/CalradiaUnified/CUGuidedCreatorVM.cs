@@ -613,6 +613,12 @@ namespace CalradiaUnified
             if(complete!=null)complete();
         }
 
+        // Art-only flags. World has no native 3D scene before campaign
+        // construction. House retains the game-owned native review scene.
+        [DataSourceProperty] public bool IsWorldSetup
+            {get{return preCampaign;}}
+        [DataSourceProperty] public bool IsHouseSetup
+            {get{return !preCampaign;}}
         [DataSourceProperty] public string Title
             {get{return "CALRADIA UNIFIED";}}
         [DataSourceProperty] public string Chapter
