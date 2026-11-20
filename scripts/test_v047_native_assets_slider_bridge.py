@@ -43,7 +43,7 @@ assert '"CUNativeStatsEditorPlainFallback",vm' in stats
 assert '"CUNativeStatsEditorSafe",vm' in stats
 
 slider=list(s.iter("SliderWidget"))
-assert len(slider)==7  # unchanged native Age plus six fixed stats sliders
+assert len(slider)==1  # live native Age only, All Stats isolated to button editors
 sl=next(w for w in slider if w.get("Id")=="CUPlayerAgeSlider")
 assert sl.get("ValueInt")=="@PlayerAge"
 assert sl.get("MinValueInt")=="18"
