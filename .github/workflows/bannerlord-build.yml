@@ -31,6 +31,9 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
+        shell: pwsh
+        run: python scripts/test_v060_noble_start_and_retinue.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
