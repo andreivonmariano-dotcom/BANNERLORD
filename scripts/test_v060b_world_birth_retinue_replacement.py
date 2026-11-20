@@ -33,7 +33,8 @@ assert '"RoleBased":' in vm
 assert 'Replace native companions with cultural household officers' in vm
 assert 'profile.RetinueMode=="RoleBased" ||' in retinue
 assert 'profile.RetinueMode=="ReplaceNative"' in retinue
-assert retinue.index('HeroCreator.CreateSpecialHero') < retinue.index('RemoveCompanionAction.ApplyByFire')
+role_based=retinue[retinue.index('string[] offices=SandboxNobleStartPolicy.RetinueOffices('):]
+assert role_based.index('HeroCreator.CreateSpecialHero') < role_based.index('RemoveCompanionAction.ApplyByFire')
 assert 'refused:native_companion_not_firable' in retinue
 assert '!Clan.PlayerClan.Companions.Contains(old)' in retinue
 assert 'cu_cultural_retinue_replacement' in retinue
