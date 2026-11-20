@@ -37,7 +37,7 @@ assert 'existingOlderSons>=RequiredOlderSons(position)' in policy
 for check in (
     'elder.Father!=null && elder.Mother!=null',
     'elder.Culture==player.Culture',
-    'elder.Clan.Kingdom==Clan.PlayerClan.Kingdom',
+    'elder.Clan.Kingdom!=Clan.PlayerClan.Kingdom',
     'player.Father=elder.Father',
     'player.Mother=elder.Mother',
     'ChangeRelationAction.ApplyRelationChangeBetweenHeroes',
