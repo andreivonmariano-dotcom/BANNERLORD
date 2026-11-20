@@ -437,9 +437,15 @@ namespace CalradiaUnified
             try
             {
                 if(father==null)
+                {
                     father=Create(fatherTemplate,"Aldric",fatherAge);
+                    father.Culture=player.Culture;
+                }
                 if(mother==null)
+                {
                     mother=Create(motherTemplate,"Elena",motherAge);
+                    mother.Culture=player.Culture;
+                }
                 if(father==mother)
                     return "refused:identical_native_parents";
                 if(player.Father==null)player.Father=father;
