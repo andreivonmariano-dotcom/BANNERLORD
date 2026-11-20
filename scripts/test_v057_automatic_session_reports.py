@@ -54,6 +54,14 @@ assert 'A native crash cause is NOT' in summary
 assert 'interrupted report has readable summary in ZIP' in tests
 assert 'Desktop latest summary opens without extracting ZIP' in tests
 assert 'normal summary parses multiline quoted CSV and exception' in tests
+assert 'FIRST REPORTED MANAGED STACK FRAME' in summary
+assert 'FirstManagedStackFrame(string stack)' in summary
+assert 'Source (filename only):' in summary
+assert 'No parseable managed method in the saved' in summary
+assert 'managed exception summary reports the first method' in tests
+assert 'nested exception reports first inner frame with caveat' in tests
+assert 'async state machine receives compiler-frame caveat' in tests
+assert 'missing managed frame stays unknown' in tests
 assert 'LAST RECORDED CHARACTER-CREATOR PAGE' in summary
 assert 'RECORDED ERROR AREA (NOT A CRASH CAUSE)' in summary
 assert 'Interruption is unclassified.' in summary
