@@ -37,7 +37,8 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert viewport.get("ClipContents")=="true",name
     assert viewport.get("DoNotAcceptEvents")=="true",name
     assert viewport.get("DoNotPassEventsToChildren")=="false",name
-    assert viewport.get("SuggestedHeight")=="342"
+    assert viewport.get("SuggestedHeight")=="410"
+    assert viewport.get("SuggestedWidth")=="925"
     assert not list(viewport.iter("ListPanel"))
     assert not list(viewport.iter("ItemTemplate"))
     # Repeated native hard exit after six stat rows were prepared.
