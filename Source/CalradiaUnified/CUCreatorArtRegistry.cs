@@ -12,13 +12,14 @@ namespace CalradiaUnified
     internal static class CUCreatorArtRegistry
     {
         private const string Category="ui_calradiaunified";
-        private static bool attempted;
+        private static bool unavailableLogged;
         private static bool loaded;
 
         public static bool IsAvailable()
         {
-            if(attempted)return loaded;
-            attempted=true;
+            // A category checked before resource initialization must be
+            // discoverable on later frames. Cache only a successful load.
+            if(loaded)return true;
             try
             {
                 var data=UIResourceManager.SpriteData;
@@ -27,8 +28,12 @@ namespace CalradiaUnified
                 var categories=data.SpriteCategories;
                 if(!categories.ContainsKey(Category))
                 {
-                    DiagnosticJournal.Event("cu_v059_art_unavailable",
-                        "reason=category_not_imported|fallback=native");
+                    if(!unavailableLogged)
+                    {
+                        unavailableLogged=true;
+                        DiagnosticJournal.Event("cu_v059_art_unavailable",
+                            "reason=category_not_imported|fallback=native");
+                    }
                     return false;
                 }
                 // The v1.5.7 pinned references do not expose the newer
