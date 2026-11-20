@@ -24,14 +24,16 @@ namespace CalradiaUnified
         }
 
         private static bool Eligible(
-            SandboxOriginProfile profile,Hero player,Hero elder)
+            SandboxOriginProfile profile,Hero player,Hero elder,
+            bool requireNativeAffiliation)
         {
             if(elder==null || elder==player || !elder.IsAlive ||
                 !elder.IsActive || !elder.IsLord ||
                 elder.Clan==null || elder.Clan.Kingdom==null ||
-                Clan.PlayerClan==null ||
-                elder.Clan.Kingdom!=Clan.PlayerClan.Kingdom ||
-                elder.Clan.Kingdom.StringId!=profile.StartingKingdomId)
+                elder.Clan.Kingdom.StringId!=profile.StartingKingdomId ||
+                (requireNativeAffiliation &&
+                    (Clan.PlayerClan==null ||
+                     elder.Clan.Kingdom!=Clan.PlayerClan.Kingdom)))
                 return false;
             bool royal=elder.Clan.Kingdom.RulingClan==elder.Clan;
             bool leader=elder.Clan.Leader==elder;
@@ -50,6 +52,51 @@ namespace CalradiaUnified
                 leader,royal,OlderSons(elder,player));
         }
 
+        private static Hero FindElder(SandboxOriginProfile profile,
+            Hero player,bool requireNativeAffiliation)
+        {
+            if(profile==null || player==null ||
+                !SandboxNobleStartPolicy.RequiresNobleElder(
+                    profile.NobleBirthPosition) ||
+                !SandboxNobleStartPolicy.ValidForRole(
+                    profile.NobleBirthPosition,profile.Role))
+                return null;
+            if(requireNativeAffiliation &&
+                (Clan.PlayerClan==null ||
+                 Clan.PlayerClan.Kingdom==null ||
+                 Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan))
+                return null;
+            var candidates=Hero.AllAliveHeroes.Where(h=>
+                Eligible(profile,player,h,requireNativeAffiliation));
+            if(!String.IsNullOrEmpty(profile.NobleElderHeroId))
+                candidates=candidates.Where(h=>h.StringId==
+                    profile.NobleElderHeroId);
+            return candidates.OrderBy(h=>h.StringId,
+                StringComparer.Ordinal).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Pre-campaign House can name a projected native elder, but native
+        /// Advanced Start has not yet granted player kingdom allegiance.
+        /// This is a read-only preview, not a family mutation.
+        /// </summary>
+        public static string PreviewElderName(SandboxOriginProfile profile,
+            Hero player)
+        {
+            if(profile==null ||
+                profile.NobleBirthPosition=="Independent")
+                return "Independent origin; no elder selected";
+            if(player==null || player.Culture==null)
+                return "Native culture and age are not ready";
+            var elder=FindElder(profile,player,false);
+            if(elder==null)
+                return "No eligible native elder found for this background";
+            return elder.Name.ToString()+" of "+
+                elder.Clan.Name.ToString()+" ("+
+                elder.Clan.Kingdom.Name.ToString()+
+                "; provisional until native start)";
+        }
+
         public static string TryBind(SandboxOriginProfile profile,
             Hero player,out Hero chosen)
         {
@@ -64,13 +111,7 @@ namespace CalradiaUnified
             if(!SandboxNobleStartPolicy.ValidForRole(
                 profile.NobleBirthPosition,profile.Role))
                 return "refused:role_must_be_lord";
-            var eligible=Hero.AllAliveHeroes.Where(
-                    h=>Eligible(profile,player,h));
-            if(!String.IsNullOrEmpty(profile.NobleElderHeroId))
-                eligible=eligible.Where(h=>h.StringId==
-                    profile.NobleElderHeroId);
-            var elder=eligible.OrderBy(h=>h.StringId,
-                StringComparer.Ordinal).FirstOrDefault();
+            var elder=FindElder(profile,player,true);
             if(elder==null)
             {
                 DiagnosticJournal.Event("cu_dynastic_native_kin_refused",
@@ -100,6 +141,7 @@ namespace CalradiaUnified
                 chosen=elder;
                 DiagnosticJournal.Event("cu_dynastic_native_sibling_bound",
                     "elder="+elder.StringId+
+                    "|elder_name="+elder.Name.ToString()+
                     "|elder_clan="+elder.Clan.StringId+
                     "|birth_position="+profile.NobleBirthPosition+
                     "|father="+elder.Father.StringId+

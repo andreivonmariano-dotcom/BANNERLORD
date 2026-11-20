@@ -35,6 +35,7 @@ namespace CalradiaUnified
         // Saved with this campaign. The external pregame profile is never
         // consulted for later noble allegiance or military obligations.
         private string dynasticElderHeroId = "";
+        private string dynasticElderName = "";
 
         public override void RegisterEvents()
         {
@@ -291,6 +292,8 @@ namespace CalradiaUnified
             store.SyncData("CU_v016_origin_applied", ref applied);
             store.SyncData("CU_v060_dynastic_elder",
                 ref dynasticElderHeroId);
+            store.SyncData("CU_v062_dynastic_elder_name",
+                ref dynasticElderName);
             // Keep only our generated children's personal upbringing
             // records in the actual campaign save. A different player's
             // profile.ini cannot rewrite this campaign after creation.
@@ -842,11 +845,25 @@ namespace CalradiaUnified
                 string dynasty=SandboxDynasticStart.TryBind(
                     profile,hero,out elder);
                 if(elder!=null)
+                {
                     dynasticElderHeroId=elder.StringId;
+                    dynasticElderName=elder.Name.ToString();
+                    // Name and clan are resolved from the actual native Hero.
+                    // Do not call a projected preview an established family.
+                    Notify("Noble family confirmed: your older relative is "+
+                        dynasticElderName+" of "+
+                        elder.Clan.Name.ToString()+".");
+                    DiagnosticJournal.Event("cu_dynastic_named_elder_confirmed",
+                        "elder_id="+dynasticElderHeroId+
+                        "|elder_name="+dynasticElderName+
+                        "|clan="+elder.Clan.StringId+
+                        "|native_parentage=true");
+                }
                 DiagnosticJournal.Event("cu_dynastic_start_status",
                     "requested="+profile.NobleBirthPosition+
                     "|result="+dynasty+
-                    "|saved_elder="+dynasticElderHeroId);
+                    "|saved_elder="+dynasticElderHeroId+
+                    "|saved_elder_name="+dynasticElderName);
                 if(SandboxNobleStartPolicy.RequiresNobleElder(
                     profile.NobleBirthPosition) && elder==null)
                     Notify("The requested noble sibling background could "+

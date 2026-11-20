@@ -726,7 +726,10 @@ namespace CalradiaUnified
                 if(!preCampaign && Current.Key=="SpouseEnabled")
                     return "Proposed spouse: "+profile.SpouseName+
                         ", age "+profile.SpouseAge+
-                        ". Choose Yes to create a spouse. Edit details in Advanced.";
+                        ". Choose Yes to create a spouse. Edit details in Advanced."+
+                        (profile.NobleBirthPosition=="Independent"?"":" "+
+                        SandboxDynasticStart.PreviewElderName(
+                            profile,Hero.MainHero));
                 if(!preCampaign && Current.Key=="ChildCount")
                     return "Suggested children: "+
                         (profile.ChildCount==0?"none":String.Join(", ",
@@ -873,6 +876,8 @@ namespace CalradiaUnified
                         DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
                 var hero=Hero.MainHero;
+                string elderPreview=SandboxDynasticStart.PreviewElderName(
+                    profile,hero);
                 return "Native character: "+
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
@@ -885,6 +890,7 @@ namespace CalradiaUnified
                     "Siblings: "+profile.SiblingCount+"\n"+
                     "Noble origin: "+DisplayChoice("NobleBirthPosition",
                         profile.NobleBirthPosition)+"\n"+
+                    "Older relative: "+elderPreview+"\n"+
                     "Household officers: "+DisplayChoice("RetinueMode",
                         profile.RetinueMode)+"\n"+
                     "Gold: "+(profile.Gold<0?"Native":
