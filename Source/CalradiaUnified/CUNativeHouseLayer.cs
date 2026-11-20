@@ -124,9 +124,33 @@ namespace CalradiaUnified
                 next.InputRestrictions.SetInputRestrictions();
                 try
                 {
-                    nextMovie=next.LoadMovie("CUGuidedCreator",vm);
-                    DiagnosticJournal.Event("cu_native_creator_assets",
-                        "screen=house|source=installed_game|art=native");
+                    bool customLoaded=false;
+                    if(CUCreatorArtRegistry.IsAvailable())
+                    {
+                        try
+                        {
+                            nextMovie=next.LoadMovie(
+                                "CUGuidedCreatorV059Art",vm);
+                            customLoaded=true;
+                            DiagnosticJournal.Event(
+                                "cu_native_creator_assets",
+                                "screen=house|layout=v059b_right_panel"+
+                                "|source=cu_imported_atlas");
+                        }
+                        catch(Exception customArtFailure)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_guided_house_custom_art_fallback",
+                                customArtFailure);
+                        }
+                    }
+                    if(!customLoaded)
+                    {
+                        nextMovie=next.LoadMovie("CUGuidedCreator",vm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=house|layout=v059b_right_panel"+
+                            "|source=installed_game|art=native");
+                    }
                 }
                 catch(Exception nativeArtError)
                 {
