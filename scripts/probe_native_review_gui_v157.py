@@ -62,6 +62,9 @@ def main():
             details={}
             for name in candidates[:16]:
                 data=json.loads(z.read(name).decode("utf-8"))
+                print("NATIVE SHAPE",name,type(data).__name__,
+                      list(data)[:30] if isinstance(data,dict) else "",
+                      json.dumps(data,ensure_ascii=False)[:2400])
                 nodes=(data if isinstance(data,list) else [data])
                 rows=[]
                 for node in nodes:
