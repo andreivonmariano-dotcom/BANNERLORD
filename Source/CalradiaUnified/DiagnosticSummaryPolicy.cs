@@ -403,7 +403,18 @@ namespace CalradiaUnified
                 b.AppendLine("Message: "+Clean(Cell(last,4),450));
                 b.AppendLine("This is recorded evidence, not proof that "+
                     "this exception caused the session to end.");
-                AppendManagedFrame(b,Cell(last,5));
+                // A later exception without a stack must not hide
+                // an earlier exception that has an actual managed frame.
+                var withFrame=exceptions.LastOrDefault(r=>
+                    FirstManagedStackFrame(Cell(r,5))!=null);
+                if(withFrame!=null)
+                {
+                    b.AppendLine("Frame source exception at UTC: "+
+                        Clean(Cell(withFrame,0),80));
+                    b.AppendLine("Frame source context: "+
+                        Clean(Cell(withFrame,2),140));
+                }
+                AppendManagedFrame(b,Cell(withFrame??last,5));
                 b.AppendLine("Full managed stack: exceptions.csv");
             }
             b.AppendLine();
