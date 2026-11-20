@@ -23,7 +23,7 @@ namespace CalradiaUnified
             "ThirdSonOfKing"
         };
         public static readonly string[] RetinueModes = {
-            "Native", "RoleBased", "ReplaceNative"
+            "Native", "RoleBased", "ReplaceNative", "FamilyOnly"
         };
         public static bool IsPosition(string value)
         {
@@ -36,6 +36,12 @@ namespace CalradiaUnified
         public static bool RequiresNobleElder(string value)
         {
             return value!="Independent" && IsPosition(value);
+        }
+        public static bool IsSonOrigin(string value)
+        {
+            return value!=null && (value.StartsWith("SecondSon",
+                StringComparison.Ordinal) || value.StartsWith("ThirdSon",
+                StringComparison.Ordinal));
         }
         public static bool RoyalElder(string value)
         {
