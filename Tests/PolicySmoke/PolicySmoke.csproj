@@ -37,6 +37,7 @@
     <Compile Include="../../Source/CalradiaUnified/CUNativeWidgetSkinPolicy.cs" Link="CUNativeWidgetSkinPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeLayoutPolicy.cs" Link="CUNativeLayoutPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeStatsNavigationPolicy.cs" Link="CUNativeStatsNavigationPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CUNativeHouseNavigationPolicy.cs" Link="CUNativeHouseNavigationPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFiefPolicy.cs" Link="SandboxFiefPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="SandboxFamilyAgePolicy.cs" />
