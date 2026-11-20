@@ -217,7 +217,25 @@ namespace CalradiaUnified
                     // It retains the original input-owning Age slider
                     // and the six verified button-only stat rows.
                     bool customLoaded=false;
-                    if(CUCreatorArtRegistry.IsAvailable())
+                    try
+                    {
+                        nextMovie=next.LoadMovie(
+                            "CUNativeStatsEditorNativeReview",vm);
+                        customLoaded=true;
+                        DiagnosticJournal.Event(
+                            "cu_native_creator_assets",
+                            "screen=Age_and_Stats"+
+                            "|layout=review_shell_v059f"+
+                            "|art=installed_game"+
+                            "|native_age_slider=retained|stat_sliders=0");
+                    }
+                    catch(Exception reviewShellError)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_stats_review_shell_fallback",
+                            reviewShellError);
+                    }
+                    if(!customLoaded && CUCreatorArtRegistry.IsAvailable())
                     {
                         try
                         {
