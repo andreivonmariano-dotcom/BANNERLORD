@@ -939,8 +939,8 @@ namespace CalradiaUnified
                     "|saved_older_brothers="+dynasticOlderSons);
                 if(SandboxNobleStartPolicy.RequiresNobleElder(
                     profile.NobleBirthPosition) && elder==null)
-                    Notify("The requested noble sibling background could "+
-                        "not be linked to a real native elder: "+dynasty);
+                    Notify("The requested noble family could not be "+
+                        "established with native relatives: "+dynasty);
 
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.

@@ -39,9 +39,12 @@ namespace CalradiaUnified
             if(!String.IsNullOrEmpty(p.ServicePatronHeroId))
                 candidates=candidates.Where(h=>
                     h.StringId==p.ServicePatronHeroId);
-            // Ordinary local lords first, king as legitimate fallback.
+            // Prefer a genuine active field commander to a lord without
+            // a party, then an ordinary lord before the ruling king.
             return candidates.OrderBy(h=>
-                    h.Clan==kingdom.RulingClan?1:0)
+                    h.PartyBelongedTo==null?1:0)
+                .ThenBy(h=>h.Clan==kingdom.RulingClan?1:0)
+                .ThenBy(h=>h.Culture==player.Culture?0:1)
                 .ThenBy(h=>h.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
         }

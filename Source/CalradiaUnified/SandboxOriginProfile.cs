@@ -541,7 +541,7 @@ namespace CalradiaUnified
                 !SandboxNobleStartPolicy.ValidForRole(
                     NobleBirthPosition,Role))
             {
-                error="A younger royal or noble sibling must use Lord start.";
+                error="Royal and noble family origins require a Lord start.";
                 return false;
             }
             if (SpouseOverrides.Any(kv=>
