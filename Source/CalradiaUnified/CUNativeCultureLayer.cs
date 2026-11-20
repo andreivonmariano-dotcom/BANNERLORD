@@ -125,6 +125,8 @@ namespace CalradiaUnified
                 movie=nextMovie;
                 vm=nextVM;
                 abandonRequested=false;
+                DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                    "page=Culture|surface=native_creator|phase=layer_attached");
                 DiagnosticJournal.Event("cu_native_culture_composer_attached",
                     "native_culture_view_preserved=true" +
                     "|native_culture_vm_delegated=true" +
