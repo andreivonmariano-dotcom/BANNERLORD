@@ -5,7 +5,7 @@
      The character/scene at left is the game-owned layer on House.
      World has no native scene yet. A packaged illustration can fill
      its left stage after the CU sprite atlas has been imported. -->
-<Widget WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true" DoNotPassEventsToChildren="false">
+<Widget WidthSizePolicy="StretchToParent" MaxWidth="1820" HeightSizePolicy="StretchToParent" MaxHeight="960" DoNotAcceptEvents="true" DoNotPassEventsToChildren="false">
 <Children>
 <Widget Sprite="BlankWhiteSquare_9" Color="#0E0A0690" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true"/>
 <Widget Sprite="General\CharacterCreation\character_creation_background_gradient" Color="#FFFFFF3A" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent" DoNotAcceptEvents="true"/>
