@@ -216,6 +216,8 @@ jobs:
       - name: Audit automatic local diagnostics and crash-recovery contracts
         shell: pwsh
         run: python scripts/test_v057_automatic_session_reports.py
+      - name: Verify v059b native-right-pane creator and age/stats fallback
+        run: python scripts/test_v059b_native_screen_integration.py
       - name: Restore .NET tests
         shell: pwsh
         run: |
