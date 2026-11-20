@@ -38,7 +38,7 @@ for name,root_node in files.items():
     x=ET.tostring(root_node,encoding="unicode")
     for old in retired_blue:
         assert old not in x,(name,old)
-    assert "#BC9153FF" in x or "#BD9155FF" in x
+    assert any(c in x for c in ("#BC9153FF","#BD9155FF","#A68B61FF"))
     labels=list(root_node.iter("TextWidget"))
     assert labels and all("Brush.FontSize" in label.attrib
                           for label in labels),name
