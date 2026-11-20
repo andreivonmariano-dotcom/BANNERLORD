@@ -88,6 +88,9 @@ namespace CalradiaUnified
                 return "Independent origin; no elder selected";
             if(player==null || player.Culture==null)
                 return "Native culture and age are not ready";
+            if(SandboxDynasticSonStart.IsSonOrigin(
+                profile.NobleBirthPosition))
+                return SandboxDynasticSonStart.Preview(profile,player);
             var elder=FindElder(profile,player,false);
             if(elder==null)
                 return "No eligible native elder found for this background";
@@ -104,6 +107,12 @@ namespace CalradiaUnified
             if(profile==null || player==null ||
                 profile.NobleBirthPosition=="Independent")
                 return "independent";
+            // Second/third SON differs from younger BROTHER. The noble
+            // lord or king is the father, with real older male offspring.
+            if(SandboxDynasticSonStart.IsSonOrigin(
+                profile.NobleBirthPosition))
+                return SandboxDynasticSonStart.TryBind(
+                    profile,player,out chosen);
             if(Clan.PlayerClan==null ||
                 Clan.PlayerClan.Kingdom==null ||
                 Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan)
