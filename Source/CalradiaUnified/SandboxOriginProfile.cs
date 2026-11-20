@@ -106,6 +106,8 @@ namespace CalradiaUnified
         public string SpouseEquipmentKit = "Vanilla";
         public int ChildCount;
         public int SiblingCount;
+        // Seed new-family names after the actual native culture is known.
+        public bool AutoHouseNamesPrepared;
         // Opt-in noble-lineage start. A real, older game-owned lord/king
         // must share real mother and father links with the player.
         public string NobleBirthPosition = "Independent";
@@ -187,6 +189,7 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            AutoHouseNamesPrepared=false;
             NobleBirthPosition="Independent";
             NobleElderHeroId="";
             RetinueMode="Native";
@@ -413,6 +416,9 @@ namespace CalradiaUnified
                 case "SiblingCount":
                     if (!Number(value, 0, MaxSiblings, out n)) return false;
                     SiblingCount = n; return true;
+                case "AutoHouseNamesPrepared":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    AutoHouseNamesPrepared=b;return true;
                 case "NobleBirthPosition":
                     if(!SandboxNobleStartPolicy.IsPosition(value))return false;
                     NobleBirthPosition=value;return true;
@@ -662,6 +668,8 @@ namespace CalradiaUnified
                 "SpouseEquipmentKit=" + SpouseEquipmentKit,
                 "ChildCount=" + ChildCount,
                 "SiblingCount=" + SiblingCount,
+                "AutoHouseNamesPrepared=" +
+                    AutoHouseNamesPrepared.ToString().ToLowerInvariant(),
                 "NobleBirthPosition=" + NobleBirthPosition,
                 "NobleElderHeroId=" + NobleElderHeroId,
                 "RetinueMode=" + RetinueMode
