@@ -196,7 +196,23 @@ namespace CalradiaUnified
                 try
                 {
                     bool customLoaded=false;
-                    if(CUCreatorArtRegistry.IsAvailable())
+                    try
+                    {
+                        nextMovie=next.LoadMovie(
+                            "CUGuidedCreatorNativeReview",vm);
+                        customLoaded=true;
+                        DiagnosticJournal.Event(
+                            "cu_native_creator_assets",
+                            "screen=House|layout=review_shell_v059f"+
+                            "|art=installed_game|native_footer=true");
+                    }
+                    catch(Exception reviewShellError)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_house_review_shell_fallback",
+                            reviewShellError);
+                    }
+                    if(!customLoaded && CUCreatorArtRegistry.IsAvailable())
                     {
                         try
                         {
