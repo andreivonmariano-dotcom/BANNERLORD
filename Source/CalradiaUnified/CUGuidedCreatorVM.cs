@@ -694,6 +694,39 @@ namespace CalradiaUnified
         private static string DisplayChoice(string key,string raw)
         {
             if(String.IsNullOrEmpty(raw))return "Native default";
+            if(key=="NobleBirthPosition")
+            {
+                switch(raw)
+                {
+                    case "Independent":return "Independent noble house";
+                    case "YoungerBrotherOfLord":
+                        return "Younger brother of a lord";
+                    case "YoungerSisterOfLord":
+                        return "Younger sister of a lord";
+                    case "SecondSonOfLord":
+                        return "Second son in a lord's family";
+                    case "ThirdSonOfLord":
+                        return "Third son in a lord's family";
+                    case "YoungerBrotherOfKing":
+                        return "Younger brother of a king";
+                    case "YoungerSisterOfKing":
+                        return "Younger sister of a king";
+                    case "SecondSonOfKing":
+                        return "Second son of the royal house";
+                    case "ThirdSonOfKing":
+                        return "Third son of the royal house";
+                }
+            }
+            if(key=="RetinueMode")
+            {
+                switch(raw)
+                {
+                    case "Native":return "Keep native companions";
+                    case "RoleBased":return "Recruit cultural household officers";
+                    case "ReplaceNative":
+                        return "Replace native companions with my court";
+                }
+            }
             if(key=="StartingScenario" && raw=="none")
                 return "Native Sandbox";
             if(key=="StartingScenario" && raw=="alternativecalradia")
