@@ -12,29 +12,46 @@ namespace CalradiaUnified
     /// <summary>
     /// Starting officers are NEW, named heroes cloned from same-culture
     /// native LORD templates. No existing native noble is recruited or
-    /// taken from their faction. Only "ReplaceNative" dismisses the native
-    /// game's initial wanderers, after explicit creator selection.
+    /// taken from their faction. RoleBased replaces native starters.
+    /// ReplaceNative remains a legacy saved-profile alias.
     /// </summary>
     public static class SandboxCulturalRetinue
     {
-        private static CharacterObject FindNobleSource(
-            Hero player,bool female)
+        private static int SourceMatch(CharacterObject character,
+            string office)
         {
-            // A fixed ordering gives repeatable culture and source choice.
-            // There is no random tavern wanderer selection.
+            if(character==null)return 0;
+            var skills=SandboxRetinueOfficePolicy.Skills(office);
+            int score=0;
+            for(int i=0;i<skills.Length;i++)
+            {
+                var skill=SandboxNativeSkillCatalog.Find(skills[i]);
+                if(skill!=null)score+=
+                    character.GetSkillValue(skill)*(skills.Length-i);
+            }
+            return score;
+        }
+
+        private static CharacterObject FindNobleSource(
+            Hero player,bool female,string office)
+        {
+            // Prefer native same-culture, sex-matched donors with the
+            // strongest real training for this particular household post.
             var preferred=CharacterObject.All.Where(c=>c!=null &&
                 c.IsTemplate && !c.IsBasicTroop &&
                 c.Culture==player.Culture &&
                 c.Occupation==Occupation.Lord &&
                 c.IsFemale==female)
-                .OrderBy(c=>c.StringId,StringComparer.Ordinal)
+                .OrderByDescending(c=>SourceMatch(c,office))
+                .ThenBy(c=>c.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
             if(preferred!=null)return preferred;
             var donor=Hero.AllAliveHeroes.Where(h=>h!=null &&
                 h!=player && h.IsActive && h.IsLord &&
                 h.Culture==player.Culture &&
                 h.IsFemale==female && h.CharacterObject!=null)
-                .OrderBy(h=>h.StringId,StringComparer.Ordinal)
+                .OrderByDescending(h=>SourceMatch(h.CharacterObject,office))
+                .ThenBy(h=>h.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
             return donor==null?null:donor.CharacterObject;
         }
@@ -42,22 +59,62 @@ namespace CalradiaUnified
         private static string OfficerName(string culture,
             string office,int index)
         {
-            string[] vlandia={"Aldric","Gervais","Mathieu"};
-            string[] sturgia={"Mstislav","Vladimir","Vesna"};
-            string[] battania={"Caelan","Branoc","Nessa"};
-            string[] empire={"Cassian","Valerius","Livia"};
-            string[] khuzait={"Bortu","Temir","Altani"};
-            string[] aserai={"Faris","Yahya","Zahra"};
-            string[] common={"Aldren","Rowan","Elira"};
-            string[] roots= culture=="vlandia"?vlandia :
-                culture=="sturgia"?sturgia :
-                culture=="battania"?battania :
-                culture=="empire"?empire :
-                culture=="khuzait"?khuzait :
-                culture=="aserai"?aserai:common;
-            string stem=roots[index%roots.Length];
-            // No random "the Wanderer" suffix or tavern backstory.
-            return stem+" ("+office+")";
+            bool female=office=="Chamberlain" || office=="Navigator";
+            return SandboxCulturalNames.Suggest(culture,female,index+2,
+                new string[0])+" ("+office.Replace("Of"," of ")+")";
+        }
+
+        private static void EquipFromNativeDonor(Hero officer,
+            CharacterObject source,string office)
+        {
+            if(officer==null || officer.BattleEquipment==null ||
+                source==null || source.BattleEquipments==null)return;
+            var available=source.BattleEquipments.ToArray();
+            if(available.Length==0)return;
+            // Official game assets only. Prefer the first combat kit
+            // for field officers, later native outfit for court officers.
+            var selected=available[
+                SandboxRetinueOfficePolicy.IsFieldOfficer(office)?
+                    0:available.Length-1];
+            if(selected==null)return;
+            for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
+                officer.BattleEquipment[slot]=selected[slot];
+            DiagnosticJournal.Event("cu_retinue_native_gear",
+                "hero="+officer.StringId+"|office="+office+
+                "|source="+source.StringId+"|native_gear=true");
+        }
+
+        private static void TrainForOffice(Hero officer,string office)
+        {
+            if(officer==null || officer.HeroDeveloper==null)return;
+            var skills=SandboxRetinueOfficePolicy.Skills(office);
+            for(int i=0;i<skills.Length;i++)
+            {
+                var skill=SandboxNativeSkillCatalog.Find(skills[i]);
+                if(skill==null)continue;
+                int target=i==0?120:i==1?90:70;
+                if(officer.GetSkillValue(skill)<target)
+                    officer.HeroDeveloper.SetInitialSkillLevel(skill,target);
+            }
+            if(SandboxRetinueOfficePolicy.IsFieldOfficer(office))
+                officer.SetTraitLevel(
+                    TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor,1);
+            else
+                officer.SetTraitLevel(
+                    TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor,1);
+        }
+
+        private static string AssignNativeDuty(Hero officer,string office)
+        {
+            var party=MobileParty.MainParty;
+            if(party==null)return "party_missing";
+            string duty=SandboxRetinueOfficePolicy.PartyDuty(office);
+            if(duty=="Quartermaster")
+                party.SetPartyQuartermaster(officer);
+            else if(duty=="Scout")
+                party.SetPartyScout(officer);
+            return duty=="None"?"combat_or_household":
+                "native_"+duty.ToLowerInvariant();
         }
 
         private static bool HasBrother(Hero player)
@@ -105,7 +162,7 @@ namespace CalradiaUnified
             {
                 bool female=offices[i]=="Chamberlain" ||
                     offices[i]=="Navigator";
-                sources[i]=FindNobleSource(player,female);
+                sources[i]=FindNobleSource(player,female,offices[i]);
                 if(sources[i]==null)
                 {
                     DiagnosticJournal.Event(
@@ -143,6 +200,8 @@ namespace CalradiaUnified
                     officer.SetNewOccupation(Occupation.Lord);
                     if(!officer.IsActive)
                         officer.ChangeState(Hero.CharacterStates.Active);
+                    EquipFromNativeDonor(officer,sources[i],offices[i]);
+                    TrainForOffice(officer,offices[i]);
                 }
                 DiagnosticJournal.Event("cu_cultural_retinue_staged",
                     "mode="+profile.RetinueMode+
@@ -182,12 +241,25 @@ namespace CalradiaUnified
                         throw new InvalidOperationException(
                             "Retinue officer not registered as clan companion");
                     created++;
+                    string duty="unassigned";
+                    try
+                    {
+                        duty=AssignNativeDuty(officer,offices[i]);
+                    }
+                    catch(Exception roleError)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_cultural_retinue_duty_failed",roleError);
+                        duty="native_assignment_failed";
+                    }
                     DiagnosticJournal.Event("cu_cultural_retinue_officer",
                         "id="+officer.StringId+
                         "|office="+offices[i]+
                         "|culture="+officer.Culture.StringId+
                         "|occupation="+officer.Occupation+
                         "|source_native_lord=true"+
+                        "|source="+sources[i].StringId+
+                        "|duty="+duty+
                         "|clan_companion=true"+
                         "|party_member=true");
                 }
