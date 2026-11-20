@@ -435,8 +435,10 @@ namespace CalradiaUnified
             if((father!=null && father.Age<eldest+16) ||
                (mother!=null && mother.Age<eldest+16))
                 return "refused:native_parent_too_young";
-            int fatherAge=Math.Max(55,eldest+24);
-            int motherAge=Math.Max(51,eldest+21);
+            // Native parentage requires an age gap of at least sixteen.
+            // Allow older founders without generating an impossible age 104 parent.
+            int fatherAge=Math.Max(55,eldest+20);
+            int motherAge=Math.Max(51,eldest+18);
             if((father==null && fatherAge>100) ||
                (mother==null && motherAge>100))
                 return "refused:parent_age_over_100";
@@ -452,12 +454,17 @@ namespace CalradiaUnified
             {
                 if(father==null)
                 {
-                    father=Create(fatherTemplate,"Aldric",fatherAge);
+                    father=Create(fatherTemplate,SandboxCulturalNames.Suggest(
+                        player.Culture.StringId,false,7,
+                        new[]{player.Name.ToString()}),fatherAge);
                     father.Culture=player.Culture;
                 }
                 if(mother==null)
                 {
-                    mother=Create(motherTemplate,"Elena",motherAge);
+                    mother=Create(motherTemplate,SandboxCulturalNames.Suggest(
+                        player.Culture.StringId,true,7,
+                        new[]{player.Name.ToString(),father.Name.ToString()}),
+                        motherAge);
                     mother.Culture=player.Culture;
                 }
                 if(father==mother)
