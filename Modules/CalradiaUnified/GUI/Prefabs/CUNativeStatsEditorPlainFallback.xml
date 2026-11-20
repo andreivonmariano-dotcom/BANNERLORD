@@ -666,7 +666,7 @@
             <TextWidget Brush.FontSize="20" Text="@SkillGroup" Color="#E6BE80FF"
               IsVisible="@IsStatsPage" WidthSizePolicy="Fixed"
               SuggestedWidth="205" HeightSizePolicy="Fixed"
-              SuggestedHeight="34" PositionXOffset="586
+              SuggestedHeight="34" PositionXOffset="586"
               PositionYOffset="751"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="225"
