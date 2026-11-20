@@ -210,28 +210,43 @@ namespace CalradiaUnified
                 next.InputRestrictions.SetInputRestrictions();
                 try
                 {
-                    nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                    // Right-side native-style v0.59b composition leaves
+                    // the actual Bannerlord character preview visible.
+                    // It retains the original input-owning Age slider
+                    // and the six verified button-only stat rows.
+                    nextMovie=next.LoadMovie("CUNativeStatsEditorV059",vm);
                     DiagnosticJournal.Event("cu_native_creator_assets",
-                        "screen=stats|source=installed_game|art=native");
+                        "screen=stats|layout=v059b_right_panel"+
+                        "|source=installed_game|age_slider=retained"+
+                        "|stat_sliders=0");
                 }
-                catch(Exception nativeArtFailure)
+                catch(Exception newLayoutFailure)
                 {
                     DiagnosticJournal.Exception(
-                        "cu_native_stats_art_fallback",nativeArtFailure);
+                        "cu_native_v059_layout_fallback",newLayoutFailure);
                     try
                     {
-                        // Original flat assets retain the same working
-                        // one-year SliderWidget and all game-affecting
-                        // callbacks, no missing vanilla texture required.
-                        nextMovie=next.LoadMovie(
-                            "CUNativeStatsEditorPlainFallback",vm);
+                        nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=stats|layout=legacy_fallback"+
+                            "|age_slider=retained|stat_sliders=0");
                     }
-                    catch(Exception sliderFailure)
+                    catch(Exception nativeArtFailure)
                     {
                         DiagnosticJournal.Exception(
-                            "cu_native_age_slider_fallback",sliderFailure);
-                        nextMovie=next.LoadMovie(
-                            "CUNativeStatsEditorSafe",vm);
+                            "cu_native_stats_art_fallback",nativeArtFailure);
+                        try
+                        {
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorPlainFallback",vm);
+                        }
+                        catch(Exception sliderFailure)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_native_age_slider_fallback",sliderFailure);
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorSafe",vm);
+                        }
                     }
                 }
                 screen.AddLayer(next);
