@@ -19,8 +19,18 @@ def verify(filename, version):
         exporter = prefix + "ModuleData/Export-CU-Diagnostics.ps1"
         assert len(names) == len(set(names)), "Duplicate ZIP entries"
         assert all(n.startswith(prefix) and ".." not in n.split("/") for n in names), "Unexpected path"
-        assert all(n in (base, manifest) or n.startswith(prefix+"ModuleData/")
-                   or n.startswith(prefix+"GUI/Prefabs/") for n in names), "Non-runtime file"
+        sprite_config=prefix+"GUI/SpriteParts/Config.xml"
+        assert all(n in (base, manifest, sprite_config) or
+                   n.startswith(prefix+"ModuleData/") or
+                   n.startswith(prefix+"GUI/Prefabs/")
+                   for n in names), "Non-runtime file"
+        if sprite_config in names:
+            config=ET.fromstring(archive.read(sprite_config))
+            assert config.tag=="Config"
+            category=config.find("SpriteCategory")
+            assert category is not None
+            assert category.attrib.get("Name")=="ui_calradiaunified"
+            assert category.find("AlwaysLoad") is not None
         gauntlet_prefab = prefix + "GUI/Prefabs/CUSettingsPanel.xml"
         assert gauntlet_prefab in names, "Native UI prefab missing"
         assert ET.fromstring(archive.read(gauntlet_prefab)).tag == "Prefab", "Invalid prefab XML"
