@@ -48,9 +48,10 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
 
 # for all three simultaneously displayed age/numeric actions. No visible
 # debug config fields or redundant culture-controller instructions.
-assert any(x.get("SuggestedWidth")=="610" and
-           x.get("SuggestedHeight")=="369" for x in guided.iter("Widget"))
-assert any(x.get("SuggestedHeight")=="527" for x in guided.iter("Widget"))
+assert any(x.get("SuggestedWidth")=="604" and
+           x.get("HorizontalAlignment")=="Right"
+           for x in guided.iter("Widget"))
+assert any(x.get("Text")=="@StepTitle" for x in guided.iter("TextWidget"))
 assert not any("NATIVE RULES AND CHARACTER CHOICES"
                in x.get("Text","") for x in guided.iter("TextWidget"))
 assert 'Report("Selected: "+key+" = "+value)' not in guide
