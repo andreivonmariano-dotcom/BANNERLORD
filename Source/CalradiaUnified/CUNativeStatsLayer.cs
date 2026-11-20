@@ -672,10 +672,9 @@ namespace CalradiaUnified
         private readonly string[] bonusLines;
         private int bonusIndex;
 
-        // The user's 1.5.7 game exited directly after row generation
-        // in both v0.54 and v0.55. The dynamic ListPanel ItemTemplate
-        // is no longer attached to Gauntlet. Use six static slot widgets
-        // backed by ordinary ViewModel values and callbacks instead.
+        // The user's 1.5.7 game exited again after v0.56 generated
+        // all six static stat bindings. v0.58 keeps six rows with
+        // +/- and exact-entry commands but avoids stat SliderWidgets.
         private readonly List<CUNativeStatRowVM> rows =
             new List<CUNativeStatRowVM>();
 
@@ -809,6 +808,13 @@ namespace CalradiaUnified
                 "visible="+rows.Count+
                 "|template=false|static_widgets=6"+
                 "|row_page="+(statsRowPageIndex+1));
+            if(pageIndex>=0)
+                DiagnosticJournal.Event(
+                    "cu_stats_button_only_bindings_refreshed",
+                    "visible="+rows.Count+
+                    "|stat_sliders=0|input=plus_minus_exact"+
+                    "|age_slider_unchanged=true"+
+                    "|row_page="+(statsRowPageIndex+1));
             DiagnosticJournal.Event("cu_creator_page_checkpoint",
                 "page="+(pageIndex==CUNativeStatsNavigationPolicy.Age?
                     "Age":"All Stats")+
@@ -899,56 +905,58 @@ namespace CalradiaUnified
         }
         private void NotifyStaticSlots()
         {
-            // The static widget tree holds six permanently named slots.
-            // These events update the existing widgets, not ItemTemplates.
+            // All Stats uses six named rows and button-only editors.
+            // Native stat sliders are isolated after the user's repeated
+            // Age->All Stats process exit. Notify only visible text fields.
+            // The original Age slider remains unchanged.
             OnPropertyChangedWithValue(Slot1Visible,"Slot1Visible");
             OnPropertyChangedWithValue(Slot1Name,"Slot1Name");
             OnPropertyChangedWithValue(Slot1Native,"Slot1Native");
             OnPropertyChangedWithValue(Slot1Selected,"Slot1Selected");
-            OnPropertyChangedWithValue(Slot1Value,"Slot1Value");
-            OnPropertyChangedWithValue(Slot1Min,"Slot1Min");
-            OnPropertyChangedWithValue(Slot1Max,"Slot1Max");
-            OnPropertyChangedWithValue(Slot1Increment,"Slot1Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot2Visible,"Slot2Visible");
             OnPropertyChangedWithValue(Slot2Name,"Slot2Name");
             OnPropertyChangedWithValue(Slot2Native,"Slot2Native");
             OnPropertyChangedWithValue(Slot2Selected,"Slot2Selected");
-            OnPropertyChangedWithValue(Slot2Value,"Slot2Value");
-            OnPropertyChangedWithValue(Slot2Min,"Slot2Min");
-            OnPropertyChangedWithValue(Slot2Max,"Slot2Max");
-            OnPropertyChangedWithValue(Slot2Increment,"Slot2Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot3Visible,"Slot3Visible");
             OnPropertyChangedWithValue(Slot3Name,"Slot3Name");
             OnPropertyChangedWithValue(Slot3Native,"Slot3Native");
             OnPropertyChangedWithValue(Slot3Selected,"Slot3Selected");
-            OnPropertyChangedWithValue(Slot3Value,"Slot3Value");
-            OnPropertyChangedWithValue(Slot3Min,"Slot3Min");
-            OnPropertyChangedWithValue(Slot3Max,"Slot3Max");
-            OnPropertyChangedWithValue(Slot3Increment,"Slot3Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot4Visible,"Slot4Visible");
             OnPropertyChangedWithValue(Slot4Name,"Slot4Name");
             OnPropertyChangedWithValue(Slot4Native,"Slot4Native");
             OnPropertyChangedWithValue(Slot4Selected,"Slot4Selected");
-            OnPropertyChangedWithValue(Slot4Value,"Slot4Value");
-            OnPropertyChangedWithValue(Slot4Min,"Slot4Min");
-            OnPropertyChangedWithValue(Slot4Max,"Slot4Max");
-            OnPropertyChangedWithValue(Slot4Increment,"Slot4Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot5Visible,"Slot5Visible");
             OnPropertyChangedWithValue(Slot5Name,"Slot5Name");
             OnPropertyChangedWithValue(Slot5Native,"Slot5Native");
             OnPropertyChangedWithValue(Slot5Selected,"Slot5Selected");
-            OnPropertyChangedWithValue(Slot5Value,"Slot5Value");
-            OnPropertyChangedWithValue(Slot5Min,"Slot5Min");
-            OnPropertyChangedWithValue(Slot5Max,"Slot5Max");
-            OnPropertyChangedWithValue(Slot5Increment,"Slot5Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot6Visible,"Slot6Visible");
             OnPropertyChangedWithValue(Slot6Name,"Slot6Name");
             OnPropertyChangedWithValue(Slot6Native,"Slot6Native");
             OnPropertyChangedWithValue(Slot6Selected,"Slot6Selected");
-            OnPropertyChangedWithValue(Slot6Value,"Slot6Value");
-            OnPropertyChangedWithValue(Slot6Min,"Slot6Min");
-            OnPropertyChangedWithValue(Slot6Max,"Slot6Max");
-            OnPropertyChangedWithValue(Slot6Increment,"Slot6Increment");
+
+
+
+
         }
         [DataSourceProperty] public bool Slot1Visible {get{return VisibleSlot(0);}}
         [DataSourceProperty] public string Slot1Name {get{return NameSlot(0);}}
