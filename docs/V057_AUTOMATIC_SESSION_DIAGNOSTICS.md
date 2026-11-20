@@ -21,6 +21,8 @@ Paste `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Reports` into File Explorer to
 - Each session has an `active.marker`. On restart, a leftover marker identifies an interrupted session. The mod archives it as `-INTERRUPTED.zip`, preserving **the prior process's** DLL hash and metadata. It adds recovery time and up to four small RGL log tails captured during the following startup.
 - Reports include DLL SHA-256, detected game root, CLR/OS and loaded TaleWorlds/War Sails assemblies. They intentionally **exclude** game saves, native memory dumps, raw screenshots, and private system files.
 - Rolling CSV caps prevent unbounded disk use, and the report directory keeps the most recent 20 ZIPs.
+- ZIP creation uses a fixed allowlist of CU journals, runtime/recovery metadata, README, and up to four bounded RGL log tails. Unexpected files, including saves, screenshots and memory dumps, are not packaged.
+- Startup recovery filters for unfinished, non-running sessions before applying the 24-recovery-per-launch limit. More recent completed sessions cannot hide older interrupted evidence.
 
 ## Your installed path
 The game root is first located from the actually loaded Calradia Unified DLL or game executable. The user's current Steam location is a fallback:
