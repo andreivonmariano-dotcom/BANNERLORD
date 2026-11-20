@@ -222,6 +222,8 @@ jobs:
         run: python scripts/test_v059c_layout_1650.py
       - name: Check v059c native Review Back to House restoration
         run: python scripts/test_v059c_review_back_to_house.py
+      - name: Verify animated main menu continues under World creator
+        run: python scripts/test_v059d_animated_main_menu.py
       - name: Validate UI art installer PowerShell syntax
         shell: pwsh
         run: |
