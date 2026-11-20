@@ -89,7 +89,7 @@ assert 'SandboxStatBudgetPolicy.Step(key)' in text_stats
 # One-year slider is a real native Gauntlet SliderWidget bound to a
 # writeable VM property, not a cosmetic bar with a guessed percentage.
 sliders=list(stats.iter("SliderWidget"))
-assert len(sliders)==7
+assert len(sliders)==1
 sl=next(w for w in sliders if w.get("Id")=="CUPlayerAgeSlider")
 assert sl.get("ValueInt")=="@PlayerAge"
 assert sl.get("MinValueInt")=="18" and sl.get("MaxValueInt")=="80"
@@ -102,8 +102,8 @@ assert {"CUPlayerAgeHandle","CUPlayerAgeTrack"} <= ids
 assert any(w.get("IsVisible")=="@IsAgePage"
            for w in stats.iter("Widget"))
 assert not list(stats.iter("ListPanel"))
-assert len([w for w in stats.iter("SliderWidget")
-            if (w.get("Id") or "").startswith("CUFixedStatSlider")])==6
+assert not [w for w in stats.iter("SliderWidget")
+            if (w.get("Id") or "").startswith("CUFixedStatSlider")]
 # The v0.55 crash guard deliberately eliminates the old
 # ScrollablePanel and keeps the six-row native stats viewport visible.
 assert any(w.get("Id")=="CUStatsPageViewport" and
@@ -127,7 +127,7 @@ assert any(w.get("Id")=="CUPlayerAgeHandle"
            for w in sl.iter("ButtonWidget"))
 assert '"CUNativeStatsEditorSafe",vm' in text_stats
 assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
-assert len(list(safe_stats.iter("SliderWidget")))==6
+assert len(list(safe_stats.iter("SliderWidget")))==0
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))
 assert any(x.get("Command.Click")=="ExecuteAgeDecrease"
@@ -146,8 +146,8 @@ assert 'EffectiveMaximum(field)' in text_guided
 assert 'if(IsChildAge)return "Allowed age:' in text_guided
 assert "actualAge" in text_guided and "SaveForPlayer(" in text_guided
 
-# Six native stat sliders are fixed widgets, not an ItemTemplate.
-# The user's actual game exited after ListPanel generated its rows.
+# Six static native stat rows remain, but their numeric slider binding
+# is isolated after a further in-game hard exit at Age -> All Stats.
 assert not list(stats.iter("ItemTemplate"))
 for i in range(1,7):
     item=next(x for x in stats.iter("Widget")
@@ -160,7 +160,8 @@ for i in range(1,7):
         if x.get("Text")==f"@Slot{i}Selected")
     assert name.get("PositionYOffset")=="3"
     assert selected.get("PositionYOffset")=="10"
-    assert any(x.get("ValueInt")==f"@Slot{i}Value"
-        for x in item.iter("SliderWidget"))
+    assert not list(item.iter("SliderWidget"))
+    assert any(x.get("Text")=="EDIT WITH - / + OR EXACT"
+        for x in item.iter("TextWidget"))
 
 print("PASS: warm native-style custom creator, compact text, native original stages unobscured, age slider, child-age cap and skill-vs-focus labels (STATIC ONLY)")
