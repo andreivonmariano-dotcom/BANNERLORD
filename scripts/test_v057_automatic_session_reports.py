@@ -54,6 +54,18 @@ assert 'A native crash cause is NOT' in summary
 assert 'interrupted report has readable summary in ZIP' in tests
 assert 'Desktop latest summary opens without extracting ZIP' in tests
 assert 'normal summary parses multiline quoted CSV and exception' in tests
+assert 'LAST RECORDED CHARACTER-CREATOR PAGE' in summary
+assert 'RECORDED ERROR AREA (NOT A CRASH CAUSE)' in summary
+assert 'Interruption is unclassified.' in summary
+assert 'Later requested transition:' in summary
+assert 'reports confirmed Age and requested All Stats separately' in tests
+assert 'mixed UI and campaign errors remain separately classified' in tests
+assert 'unhandled exception without subsystem context stays unknown' in tests
+assert 'interrupted process without exception remains unclassified' in tests
+for creator_source in ("CUNativeStatsLayer.cs","CUGuidedCreatorVM.cs",
+                       "CUNativeCultureLayer.cs","CUNativeStateShell.cs",
+                       "CUNativeHouseLayer.cs"):
+    assert '"cu_creator_page_checkpoint"' in (src/creator_source).read_text(encoding="utf-8"),creator_source
 assert "ZipFile.CreateFromDirectory(session" not in reporter
 assert '.Where(x=>File.Exists(Path.Combine(x,"active.marker")))' in reporter
 assert 'recovery is not starved by 26 newer completed folders' in tests
