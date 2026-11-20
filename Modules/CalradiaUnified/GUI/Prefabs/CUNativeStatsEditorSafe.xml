@@ -229,7 +229,7 @@
               DoNotPassEventsToChildren="false">
               <Children>
                 <!-- Native framed, button-only All Stats editing region. -->
-                <Widget Sprite="SPGeneral\EscapeMenu\escape_panel"
+                <Widget Sprite="BlankWhiteSquare_9" Color="#201811A0"
                   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
                 <!-- Six fixed rows. No numeric SliderWidgets. -->
                 <Widget Id="CUFixedStatRow1" IsVisible="@Slot1Visible"
