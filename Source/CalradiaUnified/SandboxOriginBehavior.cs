@@ -32,6 +32,9 @@ namespace CalradiaUnified
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
+        // Saved with this campaign. The external pregame profile is never
+        // consulted for later noble allegiance or military obligations.
+        private string dynasticElderHeroId = "";
 
         public override void RegisterEvents()
         {
@@ -286,6 +289,8 @@ namespace CalradiaUnified
         public override void SyncData(IDataStore store)
         {
             store.SyncData("CU_v016_origin_applied", ref applied);
+            store.SyncData("CU_v060_dynastic_elder",
+                ref dynasticElderHeroId);
             // Keep only our generated children's personal upbringing
             // records in the actual campaign save. A different player's
             // profile.ini cannot rewrite this campaign after creation.
@@ -830,6 +835,23 @@ namespace CalradiaUnified
                     "player="+hero.StringId+
                     "|player_final_overrides="+profile.Overrides.Count+
                     "|before_family_creation=true");
+                // A genuine younger-brother/sister start must bind to a
+                // verified older native noble, with both original parents,
+                // before any additional generated siblings are created.
+                Hero elder;
+                string dynasty=SandboxDynasticStart.TryBind(
+                    profile,hero,out elder);
+                if(elder!=null)
+                    dynasticElderHeroId=elder.StringId;
+                DiagnosticJournal.Event("cu_dynastic_start_status",
+                    "requested="+profile.NobleBirthPosition+
+                    "|result="+dynasty+
+                    "|saved_elder="+dynasticElderHeroId);
+                if(SandboxNobleStartPolicy.RequiresNobleElder(
+                    profile.NobleBirthPosition) && elder==null)
+                    Notify("The requested noble sibling background could "+
+                        "not be linked to a real native elder: "+dynasty);
+
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
@@ -897,6 +919,19 @@ namespace CalradiaUnified
                 else if (profile.RoleAffiliationsEnabled)
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
+
+                // Role-based officers must be same-culture, named new
+                // heroes created from native noble donors, never randomly
+                // recruited wanderers. The player opts into any dismissal
+                // of vanilla companions via ReplaceNative.
+                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
+                DiagnosticJournal.Event("cu_cultural_retinue_status",
+                    "role="+profile.Role+
+                    "|mode="+profile.RetinueMode+
+                    "|result="+retinue);
+                if(retinue.StartsWith("refused:",StringComparison.Ordinal) ||
+                   retinue.StartsWith("partial:",StringComparison.Ordinal))
+                    Notify("Starting household officers: "+retinue);
 
                 ApplyExistingItems(profile);
 
