@@ -29,6 +29,8 @@ namespace CalradiaUnified
         private static CharacterCreationScreen failedHost;
         private static GauntletLayer layer;
         private static GauntletMovieIdentifier movie;
+        private static readonly CUNativeCreatorUiIsolation nativeUi=
+            new CUNativeCreatorUiIsolation();
         private static CUNativeStatsVM activeVM;
         private static bool sliderWarningLogged;
         private static bool sliderProbeUnavailable;
@@ -272,6 +274,19 @@ namespace CalradiaUnified
                         }
                     }
                 }
+                // Isolate only the game-owned Gauntlet widget roots.
+                // The native 3D character scene layer is never changed.
+                // If the pinned engine cannot expose those roots,
+                // preserve edit functionality through the fully opaque
+                // known-working editor rather than stacking two UIs.
+                if(!nativeUi.Hide(screen,next))
+                {
+                    if(nextMovie!=null)next.ReleaseMovie(nextMovie);
+                    nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                    DiagnosticJournal.Event("cu_native_creator_safe_fallback",
+                        "screen=Age_and_Stats|native_ui_isolation=false"+
+                        "|layout=opaque_legacy|gameplay_commands=retained");
+                }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=screen;
@@ -302,6 +317,7 @@ namespace CalradiaUnified
             }
             catch(Exception e)
             {
+                nativeUi.Restore();
                 failedHost=screen;
                 DiagnosticJournal.Exception("cu_native_stats_attach_failed",e);
                 try
@@ -339,6 +355,7 @@ namespace CalradiaUnified
             lastModelValue=-1;
             previousMouseDown=false;
             ageHitWarningLogged=false;
+            nativeUi.Restore();
             if(oldHost==null || oldLayer==null) return;
             try
             {
