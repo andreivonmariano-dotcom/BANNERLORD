@@ -268,6 +268,9 @@ namespace CalradiaUnified
             }
             else WriteRuntimeInfo(session,status);
             NativeLogTail(session);
+            File.WriteAllText(Path.Combine(session,"READ_ME_FIRST.txt"),
+                DiagnosticSummaryPolicy.Build(session,status,interrupted),
+                new UTF8Encoding(false));
             File.WriteAllText(Path.Combine(session,"README.txt"),
                 "CU automatic session diagnostics\r\n"+
                 "Status: "+status+"\r\n"+
@@ -290,7 +293,7 @@ namespace CalradiaUnified
                     "exceptions.csv","exceptions.csv.previous",
                     "finance.csv","finance.csv.previous",
                     "runtime-info.txt","recovery-info.txt",
-                    "README.txt","native-log-status.txt"})
+                    "READ_ME_FIRST.txt","README.txt","native-log-status.txt"})
                 {
                     string source=Path.Combine(session,name);
                     if(File.Exists(source))
@@ -310,6 +313,16 @@ namespace CalradiaUnified
             File.Move(partial,result);
             File.WriteAllText(Path.Combine(DiagnosticJournal.Root,
                 "latest-report.txt"),result);
+            // This sidecar opens without extracting a ZIP. A failed copy
+            // must never invalidate the completed diagnostic archive.
+            try
+            {
+                File.Copy(Path.Combine(session,"READ_ME_FIRST.txt"),
+                    Path.Combine(ReportsDirectory,
+                        "LATEST-REPORT-SUMMARY.txt"),true);
+            }
+            catch(IOException) { }
+            catch(UnauthorizedAccessException) { }
             return result;
         }
         private static void RecoverInterruptedSessions()

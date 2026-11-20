@@ -1637,6 +1637,12 @@ internal static class Program
                 previousSession,"unexpected-private.sav"),"DO NOT EXPORT");
             System.IO.File.WriteAllText(System.IO.Path.Combine(
                 previousSession,"unexpected-dump.dmp"),"DO NOT EXPORT");
+            // The report must distinguish a known last action from an
+            // unproven crash cause. A multiline CSV detail is valid.
+            System.IO.File.AppendAllText(System.IO.Path.Combine(
+                previousSession,"events.csv"),
+                "2026-11-18,prior,cu_stats_page_rows_built,"+
+                "\"page=1/9, visible=6\""+"\n");
             string fakeGame=System.IO.Path.Combine(
                 tempDiagnostic,"mock-game-root");
             DiagnosticSessionReporter.OverrideGameRootForTests=fakeGame;
@@ -1664,9 +1670,26 @@ internal static class Program
                 Check("recovery excludes unexpected saves and dumps",
                     !archive.Entries.Any(e=>e.FullName.EndsWith(".sav") ||
                         e.FullName.EndsWith(".dmp")));
+                var summaryEntry=archive.GetEntry("READ_ME_FIRST.txt");
+                Check("interrupted report has readable summary in ZIP",
+                    summaryEntry!=null);
+                using(var reader=new System.IO.StreamReader(
+                    summaryEntry.Open()))
+                {
+                    string summaryText=reader.ReadToEnd();
+                    Check("recovery summary identifies last observed stats event",
+                        summaryText.Contains("cu_stats_page_rows_built") &&
+                        summaryText.Contains("page=1/9, visible=6") &&
+                        summaryText.Contains("INTERRUPTED"));
+                    Check("recovery summary does not infer native crash cause",
+                        summaryText.Contains("A native crash cause is NOT") &&
+                        summaryText.Contains("No managed exception recorded."));
+                }
             }
             DiagnosticJournal.Event("gameplay_test_event",
                 "after_age_screen=stats_page");
+            DiagnosticJournal.Event("creator_csv_quoted_test",
+                "field=\"All Stats\", step=1\ncontinuation");
             DiagnosticSessionReporter.Heartbeat(
                 "campaign_active=true|test_heartbeat=true");
             System.IO.File.WriteAllText(System.IO.Path.Combine(
@@ -1693,7 +1716,18 @@ internal static class Program
                 Check("normal report includes session events and metadata",
                     archive.Entries.Any(e=>e.FullName=="events.csv") &&
                     archive.Entries.Any(e=>e.FullName=="runtime-info.txt") &&
-                    archive.Entries.Any(e=>e.FullName=="README.txt"));
+                    archive.Entries.Any(e=>e.FullName=="README.txt") &&
+                    archive.Entries.Any(e=>e.FullName=="READ_ME_FIRST.txt"));
+                using(var reader=new System.IO.StreamReader(
+                    archive.GetEntry("READ_ME_FIRST.txt").Open()))
+                {
+                    string summaryText=reader.ReadToEnd();
+                    Check("normal summary parses multiline quoted CSV and exception",
+                        summaryText.Contains("creator_csv_quoted_test") &&
+                        summaryText.Contains("field=\"All Stats\", step=1") &&
+                        summaryText.Contains("InvalidOperationException") &&
+                        summaryText.Contains("CLOSED"));
+                }
                 Check("normal report excludes raw memory and saves",
                     !archive.Entries.Any(e=>
                         e.FullName.EndsWith(".dmp",
@@ -1707,6 +1741,10 @@ internal static class Program
                 System.IO.File.ReadAllText(System.IO.Path.Combine(
                     tempDiagnostic,"latest-report.txt"))==current &&
                 System.IO.Path.GetDirectoryName(current)==desktopReportFolder);
+            Check("Desktop latest summary opens without extracting ZIP",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(
+                    desktopReportFolder,"LATEST-REPORT-SUMMARY.txt"))
+                    .Contains("creator_csv_quoted_test"));
             DiagnosticSessionReporter.OverrideGameRootForTests=null;
             string autoConfig=System.IO.Path.Combine(tempDiagnostic,
                 "auto-report-test.ini");

@@ -7,6 +7,7 @@ root=Path(__file__).resolve().parents[1]
 src=root/"Source/CalradiaUnified"
 journal=(src/"DiagnosticJournal.cs").read_text(encoding="utf-8")
 reporter=(src/"DiagnosticSessionReporter.cs").read_text(encoding="utf-8")
+summary=(src/"DiagnosticSummaryPolicy.cs").read_text(encoding="utf-8")
 module=(src/"SubModule.cs").read_text(encoding="utf-8")
 settings=(src/"Settings.cs").read_text(encoding="utf-8")
 project=(src/"CalradiaUnified.csproj").read_text(encoding="utf-8")
@@ -45,6 +46,14 @@ assert 'OverrideDesktopDirectoryForTests' in reporter
 assert 'missing Desktop falls back to local diagnostic folder' in tests
 assert 'automatic reports use a dedicated Desktop folder' in tests
 assert 'local latest report pointer refers to Desktop ZIP' in tests
+assert '"READ_ME_FIRST.txt"' in reporter
+assert '"LATEST-REPORT-SUMMARY.txt"' in reporter
+assert 'DiagnosticSummaryPolicy.Build(session,status,interrupted)' in reporter
+assert 'No managed exception recorded.' in summary
+assert 'A native crash cause is NOT' in summary
+assert 'interrupted report has readable summary in ZIP' in tests
+assert 'Desktop latest summary opens without extracting ZIP' in tests
+assert 'normal summary parses multiline quoted CSV and exception' in tests
 assert "ZipFile.CreateFromDirectory(session" not in reporter
 assert '.Where(x=>File.Exists(Path.Combine(x,"active.marker")))' in reporter
 assert 'recovery is not starved by 26 newer completed folders' in tests
