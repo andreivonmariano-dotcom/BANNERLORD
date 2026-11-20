@@ -19,6 +19,8 @@ namespace CalradiaUnified
         private static GauntletMovieIdentifier movie;
         private static CUGuidedCreatorVM vm;
         private static bool closeRequested;
+        private static readonly CUNativeCreatorUiIsolation nativeMenuUi=
+            new CUNativeCreatorUiIsolation();
 
         public static bool IsAttached
         {
@@ -45,14 +47,28 @@ namespace CalradiaUnified
                 next.InputRestrictions.SetInputRestrictions();
                 try
                 {
-                    if(CUCreatorArtRegistry.IsAvailable())
+                    // This movie is generated from the exact v1.5.7.125802
+                    // Native Review panel/footers in Windows CI. It owns
+                    // no scene so the main-menu animation stays active.
+                    try
+                    {
+                        nextMovie=next.LoadMovie(
+                            "CUGuidedCreatorNativeReview",nextVm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=World|layout=review_shell_v059f"+
+                            "|art=installed_game|menu_scene=preserved");
+                    }
+                    catch(Exception nativeShellError)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_world_review_shell_fallback",nativeShellError);
+                    }
+                    if(nextMovie==null && CUCreatorArtRegistry.IsAvailable())
                     {
                         try
                         {
                             nextMovie=next.LoadMovie(
                                 "CUGuidedCreatorV059Art",nextVm);
-                            DiagnosticJournal.Event("cu_native_creator_assets",
-                                "screen=World|art=imported_atlas");
                         }
                         catch(Exception artError)
                         {
@@ -71,6 +87,13 @@ namespace CalradiaUnified
                         "CUGuidedCreatorPlainFallback",nextVm);
                 }
 
+                // The logo and Sandbox/Options menu items belong to
+                // native Gauntlet. Hide only those widgets, never the
+                // animated main-menu SceneLayer or ScreenBase.
+                if(!nativeMenuUi.Hide(active,next))
+                    DiagnosticJournal.Event(
+                        "cu_world_native_menu_not_isolated",
+                        "menu_gui_may_remain|scene_preserved=true");
                 active.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
                 host=active;
@@ -84,6 +107,7 @@ namespace CalradiaUnified
             }
             catch
             {
+                nativeMenuUi.Restore();
                 try
                 {
                     if(next!=null)
@@ -138,6 +162,7 @@ namespace CalradiaUnified
             movie=null;
             vm=null;
             closeRequested=false;
+            nativeMenuUi.Restore();
             if(oldHost==null || oldLayer==null)return;
             try
             {
