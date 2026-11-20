@@ -1639,8 +1639,9 @@ internal static class Program
                 System.IO.File.Exists(recoveredZipPath) &&
                 !System.IO.File.Exists(System.IO.Path.Combine(
                     previousSession,"active.marker")) &&
-                System.IO.File.Exists(System.IO.Path.Combine(
-                    previousSession,"recovered.marker")));
+                (System.IO.File.Exists(System.IO.Path.Combine(
+                    previousSession,"recovered.marker")) ||
+                 !System.IO.Directory.Exists(previousSession)));
             using(var archive=System.IO.Compression.ZipFile.OpenRead(
                 recoveredZipPath))
             {
