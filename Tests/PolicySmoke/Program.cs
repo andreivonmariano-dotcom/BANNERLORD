@@ -1610,6 +1610,20 @@ internal static class Program
                 previousSession,"events.csv"),
                 "utc,session_id,context,detail\n"+
                 "2026-11-18,prior,creator_page,age_to_stats_crashed\n");
+            // More recent completed sessions must not conceal an old crash.
+            for(int n=0;n<26;n++)
+            {
+                string completed=System.IO.Path.Combine(
+                    tempDiagnostic,"Sessions",
+                    "20261118T1001"+n.ToString("D2")+"_completed");
+                System.IO.Directory.CreateDirectory(completed);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(
+                    completed,"completed.marker"),"normal_shutdown");
+            }
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"unexpected-private.sav"),"DO NOT EXPORT");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"unexpected-dump.dmp"),"DO NOT EXPORT");
             string fakeGame=System.IO.Path.Combine(
                 tempDiagnostic,"mock-game-root");
             DiagnosticSessionReporter.OverrideGameRootForTests=fakeGame;
@@ -1619,6 +1633,8 @@ internal static class Program
             string reports=DiagnosticSessionReporter.ReportsDirectory;
             string recoveredZipPath=System.IO.Path.Combine(reports,
                 "CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip");
+            Check("recovery is not starved by 26 newer completed folders",
+                System.IO.File.Exists(recoveredZipPath));
             Check("next launch creates ZIP for interrupted prior session",
                 System.IO.File.Exists(recoveredZipPath) &&
                 !System.IO.File.Exists(System.IO.Path.Combine(
@@ -1631,11 +1647,20 @@ internal static class Program
                 Check("recovery report contains the prior session journal",
                     archive.Entries.Any(e=>e.FullName=="events.csv") &&
                     archive.Entries.Any(e=>e.FullName=="recovery-info.txt"));
+                Check("recovery excludes unexpected saves and dumps",
+                    !archive.Entries.Any(e=>e.FullName.EndsWith(".sav") ||
+                        e.FullName.EndsWith(".dmp")));
             }
             DiagnosticJournal.Event("gameplay_test_event",
                 "after_age_screen=stats_page");
             DiagnosticSessionReporter.Heartbeat(
                 "campaign_active=true|test_heartbeat=true");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                DiagnosticSessionReporter.SessionDirectory,
+                "unexpected-private.sav"),"DO NOT EXPORT");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                DiagnosticSessionReporter.SessionDirectory,
+                "unexpected-screenshot.png"),"DO NOT EXPORT");
             DiagnosticSessionReporter.Complete("unit_test_normal_exit");
             string current=System.IO.Path.Combine(reports,
                 "CU-Session-"+DiagnosticJournal.CurrentSessionId+
@@ -1660,6 +1685,8 @@ internal static class Program
                         e.FullName.EndsWith(".dmp",
                             StringComparison.OrdinalIgnoreCase) ||
                         e.FullName.EndsWith(".sav",
+                            StringComparison.OrdinalIgnoreCase) ||
+                        e.FullName.EndsWith(".png",
                             StringComparison.OrdinalIgnoreCase)));
             }
             Check("local latest report pointer refers to successful ZIP",
