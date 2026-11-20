@@ -15,7 +15,7 @@ house_start = vm.index(house_marker)
 world = vm[world_start:house_start]
 house = vm[house_start:vm.index("return list;",house_start)]
 assert '"NobleBirthPosition","Your noble birth"' in world
-assert '"NobleElderHeroId","Older noble' in world
+assert '"NobleElderHeroId","Native family leader ID' in world
 assert world.index('"Role"') < world.index('"NobleBirthPosition"')
 assert world.index('"StartingKingdomId"') < world.index('"NobleBirthPosition"')
 assert '"NobleBirthPosition"' not in house
