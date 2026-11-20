@@ -36,12 +36,14 @@ for flavor in ("","Art"):
             w.get("SuggestedWidth")=="604","guided right panel")
     guided_left=W-12-num(panel,"SuggestedWidth")
     assert guided_left>=1020 and guided_left+604<=W
-    if flavor:
-        scene=one(guided.iter("Widget"),
-            lambda w:w.get("Sprite")=="cu_world_illustration",
-            "optional World illustration")
-        assert num(scene,"SuggestedWidth")==990
-        assert 990+24<guided_left,"World illustration overlays decision panel"
+    # The actual left backdrop is Bannerlord's animated main menu.
+    # No static illustration can cover it after 0.59e.
+    assert not any(w.get("Sprite")=="cu_world_illustration"
+        for w in guided.iter("Widget"))
+    summary_plate=one(guided.iter("Widget"),
+        lambda w:w.get("IsVisible")=="@IsWorldSetup" and
+            w.get("SuggestedWidth")=="704","World-only summary plate")
+    assert num(summary_plate,"SuggestedWidth")+31<guided_left
     for command in ("ExecutePreviousChoice","ExecuteNextChoice",
                     "ExecuteDecrease","ExecuteIncrease","ExecuteExact",
                     "ExecuteEditText","ExecuteToggle"):
@@ -51,7 +53,9 @@ for flavor in ("","Art"):
         assert x>=0 and x+w<604 and y+h<700,(flavor,command,box(btn))
     report["screen_layouts"]["World/House"+flavor]={
         "panel_left":guided_left,"panel_width":604,
-        "navigation":"inside right panel","scene_gap":guided_left-990}
+        "navigation":"inside right panel",
+        "animated_scene":"native main-menu background preserved",
+        "scene_gap":guided_left-735}
 
     stats=read("CUNativeStatsEditorV059"+flavor)
     pane=one(stats.iter("Widget"),
