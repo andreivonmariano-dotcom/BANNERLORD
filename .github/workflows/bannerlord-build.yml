@@ -222,6 +222,20 @@ jobs:
         run: python scripts/test_v059c_layout_1650.py
       - name: Check v059c native Review Back to House restoration
         run: python scripts/test_v059c_review_back_to_house.py
+      - name: Validate UI art installer PowerShell syntax
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $issues=$null
+          $ast=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path -LiteralPath scripts/Install-CU-UI-SpriteSources.ps1).Path,
+            [ref]$tokens,[ref]$issues)
+          if($issues.Count -gt 0) {
+            $issues | ForEach-Object { Write-Error $_.Message }
+            throw 'UI atlas installer PowerShell parser failed.'
+          }
+          Write-Output 'PASS: sprite import installer parses cleanly (no Modding Kit runtime in CI)'
+
       - name: Restore .NET tests
         shell: pwsh
         run: |
