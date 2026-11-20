@@ -13,7 +13,9 @@ Target: Bannerlord PC 1.5.7.125802. Built on v0.56 creator fixes (the Age→Stat
 - Latest saved report path: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\latest-report.txt`. It records the actual successful destination, Desktop or fallback.
 - Raw per-session journals: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Sessions\<ID>\`.
 - **LATEST-REPORT-SUMMARY.txt**: opens directly inside the Desktop reports folder without extracting a ZIP. The reporter replaces this file on every successfully packaged session.
-- **READ_ME_FIRST.txt**: included inside each CLOSED and INTERRUPTED ZIP. It explains the session outcome, last recorded gameplay event, most recent managed exception, and what the available evidence does not prove. The summary reads the escaped and multiline CSV records; it does not invent a native crash cause.
+- **READ_ME_FIRST.txt**: included inside each CLOSED and INTERRUPTED ZIP. It explains the session outcome, last recorded gameplay event, most recent managed exception, and what the available evidence does not prove. The summary reads escaped and multiline CSV records; it does not invent a native crash cause.
+- **Creator page evidence**: explicit page checkpoints cover guided World/House questions and native Culture, Face, Age, All Stats, and House attachment. The report names the latest recorded page, chapter, question, and stats row page where available. A later Age → All Stats navigation request is separate from proof that the next screen loaded.
+- **Recorded error areas**: managed exception contexts are categorized as **Creator / UI**, **Campaign / family**, or **Other / unknown**. Multiple categories can appear in one session. An interruption with no managed exception remains **unclassified**. A category never proves the process-exit cause.
 
 Open the **Calradia Unified Reports** folder on your Desktop to upload the latest ZIP. No manual folder creation is needed. Reports are **never transmitted automatically**. Older ZIPs already stored under LocalAppData are not moved.
 
