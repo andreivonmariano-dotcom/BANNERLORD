@@ -22,6 +22,10 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - name: Probe exact native Review prefab data for v1.5.7.125802
+        shell: pwsh
+        continue-on-error: true
+        run: python scripts/probe_native_review_gui_v157.py
       - name: Validate source and manifest
         shell: pwsh
         run: python verify_source.py
