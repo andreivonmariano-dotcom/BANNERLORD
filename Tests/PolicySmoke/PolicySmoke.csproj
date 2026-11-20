@@ -21,6 +21,7 @@
     <Compile Include="../../Source/CalradiaUnified/CastleManagementPolicy.cs" Link="CastleManagementPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/DiagnosticJournal.cs" Link="DiagnosticJournal.cs" />
     <Compile Include="../../Source/CalradiaUnified/DiagnosticSessionReporter.cs" Link="DiagnosticSessionReporter.cs" />
+    <Compile Include="../../Source/CalradiaUnified/DiagnosticSummaryPolicy.cs" Link="DiagnosticSummaryPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/Log.cs" Link="Log.cs" />
     <Compile Include="../../Source/CalradiaUnified/Settings.cs" Link="Settings.cs" />
     <Compile Include="../../Source/CalradiaUnified/SettingsMenuPolicy.cs" Link="SettingsMenuPolicy.cs" />
