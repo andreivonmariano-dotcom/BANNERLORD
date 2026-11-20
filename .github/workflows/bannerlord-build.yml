@@ -37,6 +37,9 @@ jobs:
       - name: Regress v060b World noble-birth flow and native companion replacement
         shell: pwsh
         run: python scripts/test_v060b_world_birth_retinue_replacement.py
+      - name: Regress v061 cultural names and simplified House advanced editing
+        shell: pwsh
+        run: python scripts/test_v061_auto_house_and_cultural_names.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
