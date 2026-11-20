@@ -26,6 +26,11 @@ jobs:
         shell: pwsh
         continue-on-error: true
         run: python scripts/probe_native_review_gui_v157.py
+      - name: Generate two creator movies from the exact native Review shell
+        shell: pwsh
+        run: |
+          python scripts/generate_v059f_native_review_shell.py
+          python scripts/test_v059f_shared_native_review_shell.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
