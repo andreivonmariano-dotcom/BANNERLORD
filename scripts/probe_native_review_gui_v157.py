@@ -34,8 +34,9 @@ def scan_node(n,path="",depth=0):
                          "HorizontalAlignment","VerticalAlignment",
                          "Text","Command.Click","PositionXOffset",
                          "PositionYOffset","IsVisible") }
-    if tag in ("Widget","TextWidget","ButtonWidget","ScrollablePanel","ListPanel","SliderWidget"):
-        if depth<=7:yield {"depth":depth,"tag":tag,"attrs":meaningful}
+    if tag in ("Widget","TextWidget","ButtonWidget","ScrollablePanel",
+               "ListPanel","SliderWidget","WidgetTexture"):
+        if depth<=12:yield {"depth":depth,"tag":tag,"attrs":meaningful}
     for k in kids:
         yield from scan_node(k,cur,depth+1)
 
@@ -64,8 +65,10 @@ def main():
                 data=json.loads(z.read(name).decode("utf-8"))
                 print("NATIVE SHAPE",name,type(data).__name__,
                       list(data)[:30] if isinstance(data,dict) else "",
-                      json.dumps(data,ensure_ascii=False)[:2400])
-                nodes=(data if isinstance(data,list) else [data])
+                      json.dumps(data,ensure_ascii=False)[:500])
+                nodes=([data["root"]] if isinstance(data,dict) and
+                       isinstance(data.get("root"),dict) else
+                       (data if isinstance(data,list) else [data]))
                 rows=[]
                 for node in nodes:
                     rows.extend(scan_node(node))
@@ -86,7 +89,7 @@ def main():
     print("NATIVE REVIEW CANDIDATES",report.get("candidate_paths",[]))
     for name,detail in report.get("prefab_structure",{}).items():
         print("NATIVE PREFAB",name)
-        for row in detail["rows"][:60]:
+        for row in detail["rows"][:90]:
             print("NATIVE NODE",json.dumps(row,ensure_ascii=False))
     if "error" in report:print("NATIVE PROBE ERROR",report["error"])
     print("REPORT",out)
