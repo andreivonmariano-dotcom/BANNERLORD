@@ -721,6 +721,24 @@ namespace CalradiaUnified
             get
             {
                 if(Current==null)return "";
+                // Show the names that the automatic plan will create,
+                // without making the player open Advanced for every child.
+                if(!preCampaign && Current.Key=="SpouseEnabled")
+                    return "Proposed spouse: "+profile.SpouseName+
+                        ", age "+profile.SpouseAge+
+                        ". Choose Yes to create a spouse. Edit details in Advanced.";
+                if(!preCampaign && Current.Key=="ChildCount")
+                    return "Suggested children: "+
+                        (profile.ChildCount==0?"none":String.Join(", ",
+                            profile.Children.Take(profile.ChildCount)
+                                .Select(x=>x.Name+" ("+x.Age+")"))) +
+                        ". Change names and ages in Advanced settings.";
+                if(!preCampaign && Current.Key=="SiblingCount")
+                    return "Suggested siblings: "+
+                        (profile.SiblingCount==0?"none":String.Join(", ",
+                            profile.Siblings.Take(profile.SiblingCount)
+                                .Select(x=>x.Name+" ("+x.Age+")"))) +
+                        ". They may be older than you. Edit in Advanced.";
                 if(IsChildAge)return "Allowed age: 0 to "+
                     EffectiveMaximum(Current)+" years. Your age: "+
                     ActualFounderAge+". Spouse age: "+profile.SpouseAge+
