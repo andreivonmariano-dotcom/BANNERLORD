@@ -58,9 +58,13 @@ assert any(w.get("SuggestedWidth")=="604" and
            for w in guided.iter("Widget"))
 assert any(w.get("Sprite")==r"SPGeneral\EscapeMenu\escape_panel"
            for w in guided.iter("Widget"))
-assert any(w.get("Sprite")==
+# The native animated main-menu scene must remain uncovered.
+assert not any(w.get("Sprite")==
     r"General\CharacterCreation\character_creation_background_gradient"
     for w in guided.iter("Widget"))
+assert any(w.get("SuggestedWidth")=="704" and
+           w.get("IsVisible")=="@IsWorldSetup"
+           for w in guided.iter("Widget"))
 assert any(w.get("Text")=="@SelectedValue" and
            w.get("Brush.TextHorizontalAlignment")=="Center"
            for w in guided.iter("TextWidget"))
