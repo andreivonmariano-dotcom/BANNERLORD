@@ -102,6 +102,157 @@ namespace CalradiaUnified
                 return value.Substring(0,limit)+" [truncated]";
             return value;
         }
+        // Areas follow known mod exception context prefixes.
+        // They identify source code context, not the cause of a shutdown.
+        private static string ErrorArea(string context)
+        {
+            context=context??"";
+            foreach(string prefix in new[]{
+                "cu_native_","cu_stats_","cu_guided_","cu_creator_",
+                "cu_all_stats_","cu_spouse_stat_","sandbox_creator_",
+                "sandbox_main_menu_","sandbox_overhaul_"})
+                if(context.StartsWith(prefix,StringComparison.Ordinal))
+                    return "Creator / UI";
+            foreach(string prefix in new[]{
+                "campaign_","cu_family_","sandbox_direct_game_start_"})
+                if(context.StartsWith(prefix,StringComparison.Ordinal))
+                    return "Campaign / family";
+            return "Other / unknown";
+        }
+        private static string DetailValue(string details,string key)
+        {
+            foreach(string part in (details??"").Split('|'))
+            {
+                int equal=part.IndexOf('=');
+                if(equal>0 && String.Equals(part.Substring(0,equal),
+                    key,StringComparison.Ordinal))
+                    return part.Substring(equal+1);
+            }
+            return "";
+        }
+        private static string StatsName(string raw)
+        {
+            return raw=="-1"?"Age":raw=="0"?"All Stats":"";
+        }
+        private static string CreatorPage(string context,string detail)
+        {
+            if(context=="cu_creator_page_checkpoint")
+                return DetailValue(detail,"page");
+            // Existing older reports lack explicit page checkpoints.
+            if(context=="cu_stats_page_refresh_enter")
+                return StatsName(DetailValue(detail,"creator_page"));
+            if(context=="cu_stats_page_rows_built")
+                return "All Stats";
+            if(context=="cu_native_stats_step_attached")
+            {
+                string entry=DetailValue(detail,"entry_page");
+                return entry=="Age"?"Age":entry=="Traits"?"All Stats":"";
+            }
+            if(context=="cu_native_face_layers_verified")return "Face";
+            if(context=="cu_native_culture_composer_attached")return "Culture";
+            if(context=="cu_guided_house_attached")return "House and Fortune";
+            if(context=="sandbox_creator_page_clicked")
+                return DetailValue(detail,"page");
+            return "";
+        }
+        private static void AppendCreatorPage(StringBuilder b,
+            List<string[]> events)
+        {
+            b.AppendLine();
+            b.AppendLine("LAST RECORDED CHARACTER-CREATOR PAGE");
+            int lastIndex=-1;
+            string lastPage="";
+            for(int i=0;i<events.Count;i++)
+            {
+                string candidate=CreatorPage(Cell(events[i],2),
+                    Cell(events[i],3));
+                if(!String.IsNullOrWhiteSpace(candidate))
+                {
+                    lastPage=candidate;
+                    lastIndex=i;
+                }
+            }
+            if(lastIndex<0)b.AppendLine("Not recorded in this session.");
+            else
+            {
+                var row=events[lastIndex];
+                b.AppendLine("Page: "+Clean(lastPage,120));
+                b.AppendLine("Last checkpoint (UTC): "+Clean(Cell(row,0),80));
+                foreach(var item in new[]{
+                    new[]{"phase","Checkpoint stage"},
+                    new[]{"chapter","Chapter"},
+                    new[]{"step","Step"},
+                    new[]{"field","Question"},
+                    new[]{"row_page","Stats row page"}})
+                {
+                    string value=DetailValue(Cell(row,3),item[0]);
+                    if(value.Length>0)
+                        b.AppendLine(item[1]+": "+Clean(value,160));
+                }
+            }
+            for(int i=events.Count-1;i>lastIndex;i--)
+            {
+                var row=events[i];
+                if(Cell(row,2)!="cu_stats_navigation")continue;
+                string from=StatsName(DetailValue(Cell(row,3),"from"));
+                string to=StatsName(DetailValue(Cell(row,3),"to"));
+                if(from.Length>0 && to.Length>0)
+                {
+                    b.AppendLine("Later requested transition: "+from+
+                        " -> "+to+" (destination not confirmed visible).");
+                    break;
+                }
+            }
+            b.AppendLine("A page checkpoint records mod activity, "+
+                "not proof that the game rendered the entire page.");
+        }
+        private static void AppendErrorArea(StringBuilder b,
+            List<string[]> exceptions,List<string[]> events,bool interrupted)
+        {
+            b.AppendLine();
+            b.AppendLine("RECORDED ERROR AREA (NOT A CRASH CAUSE)");
+            if(exceptions.Count==0)
+            {
+                b.AppendLine("No managed exception recorded.");
+                b.AppendLine(interrupted?
+                    "Interruption is unclassified. The last UI event "+
+                    "alone cannot distinguish a UI fault from a campaign "+
+                    "or native engine fault.":
+                    "No managed exception evidence to classify.");
+            }
+            else
+            {
+                int ui=exceptions.Count(r=>
+                    ErrorArea(Cell(r,2))=="Creator / UI");
+                int campaign=exceptions.Count(r=>
+                    ErrorArea(Cell(r,2))=="Campaign / family");
+                int other=exceptions.Count-ui-campaign;
+                b.AppendLine("Managed exception contexts: Creator / UI="+ui+
+                    ", Campaign / family="+campaign+
+                    ", Other / unknown="+other+".");
+                var last=exceptions[exceptions.Count-1];
+                b.AppendLine("Most recent exception area: "+
+                    ErrorArea(Cell(last,2))+
+                    " (context="+Clean(Cell(last,2),160)+").");
+                if(ui>0 && campaign>0)
+                    b.AppendLine("Both UI and campaign exception contexts "+
+                        "were logged in this session. Neither is a "+
+                        "confirmed cause of shutdown.");
+                else b.AppendLine("Area determined from CU exception "+
+                    "context, not an engine stack or verified root cause.");
+            }
+            var eventFailures=events.Where(r=>
+                Cell(r,2).EndsWith("_failed",StringComparison.Ordinal) &&
+                ErrorArea(Cell(r,2))!="Other / unknown").TakeLastCompat(4);
+            if(eventFailures.Count>0)
+            {
+                b.AppendLine("Failure-named event contexts (may have "+
+                    "been handled or recovered):");
+                foreach(var row in eventFailures)
+                    b.AppendLine("- "+ErrorArea(Cell(row,2))+": "+
+                        Clean(Cell(row,2),140));
+            }
+        }
         private static bool IsLifecycle(string context)
         {
             return context=="session_capture_started" ||
@@ -109,14 +260,15 @@ namespace CalradiaUnified
                 context=="session_heartbeat" ||
                 context=="module_loaded" ||
                 context=="game_start" ||
-                context=="campaign_closed";
+                context=="campaign_closed" ||
+                context=="exception_detected";
         }
         public static string Build(string directory,string status,
             bool interrupted)
         {
-            var events=RecentRows(directory,"events.csv",32)
+            var events=RecentRows(directory,"events.csv",256)
                 .Where(r=>r.Length>=4).ToList();
-            var exceptions=RecentRows(directory,"exceptions.csv",8)
+            var exceptions=RecentRows(directory,"exceptions.csv",32)
                 .Where(r=>r.Length>=5).ToList();
             var b=new StringBuilder();
             b.AppendLine("CALRADIA UNIFIED - READ ME FIRST");
@@ -149,6 +301,9 @@ namespace CalradiaUnified
                 b.AppendLine("Event: "+Clean(Cell(meaningful,2),140));
                 b.AppendLine("Details: "+Clean(Cell(meaningful,3),350));
             }
+            b.AppendLine();
+            AppendCreatorPage(b,events);
+            AppendErrorArea(b,exceptions,events,interrupted);
             b.AppendLine();
             b.AppendLine("MANAGED EXCEPTION EVIDENCE");
             if(exceptions.Count==0)
