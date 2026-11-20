@@ -39,6 +39,12 @@ assert 'AutoSessionReports = true;' in settings
 assert 'key == "AutoSessionReports"' in settings
 assert 'Reference Include="System.IO.Compression"' in project
 assert 'Reference Include="System.IO.Compression.FileSystem"' in project
+assert "Environment.SpecialFolder.DesktopDirectory" in reporter
+assert '"Calradia Unified Reports"' in reporter
+assert 'OverrideDesktopDirectoryForTests' in reporter
+assert 'missing Desktop falls back to local diagnostic folder' in tests
+assert 'automatic reports use a dedicated Desktop folder' in tests
+assert 'local latest report pointer refers to Desktop ZIP' in tests
 assert "ZipFile.CreateFromDirectory(session" not in reporter
 assert '.Where(x=>File.Exists(Path.Combine(x,"active.marker")))' in reporter
 assert 'recovery is not starved by 26 newer completed folders' in tests

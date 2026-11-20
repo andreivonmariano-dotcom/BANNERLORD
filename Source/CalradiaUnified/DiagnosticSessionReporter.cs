@@ -29,6 +29,9 @@ namespace CalradiaUnified
         public static string PreferredGameRoot =
             @"D:\Steam\steamapps\common\Mount & Blade II Bannerlord";
         public static string OverrideGameRootForTests;
+        // Test-only override. In Windows gameplay use the shell's actual
+        // Desktop folder, including OneDrive-redirection when configured.
+        public static string OverrideDesktopDirectoryForTests;
 
         public static string SessionDirectory
         {
@@ -37,7 +40,39 @@ namespace CalradiaUnified
         }
         public static string ReportsDirectory
         {
-            get{return Path.Combine(DiagnosticJournal.Root,"Reports");}
+            get
+            {
+                string fallback=Path.Combine(DiagnosticJournal.Root,"Reports");
+                string desktop=OverrideDesktopDirectoryForTests ??
+                    Environment.GetFolderPath(
+                        Environment.SpecialFolder.DesktopDirectory);
+                if(String.IsNullOrWhiteSpace(desktop) ||
+                    !Directory.Exists(desktop))
+                    return fallback;
+                string target=Path.Combine(desktop,"Calradia Unified Reports");
+                try
+                {
+                    Directory.CreateDirectory(target);
+                    // An existing Desktop can still be read-only or offline.
+                    // Probe before selecting it, so reports stay recoverable.
+                    string probe=Path.Combine(target,
+                        ".cu-probe-"+Guid.NewGuid().ToString("N")+".tmp");
+                    try
+                    {
+                        using(new FileStream(probe,FileMode.CreateNew,
+                            FileAccess.Write,FileShare.None)) { }
+                    }
+                    finally
+                    {
+                        if(File.Exists(probe))File.Delete(probe);
+                    }
+                    return target;
+                }
+                catch
+                {
+                    return fallback;
+                }
+            }
         }
         private static string Utc()
         {

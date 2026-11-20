@@ -1582,6 +1582,19 @@ internal static class Program
         {
             DiagnosticJournal.OverrideRootForTests = tempDiagnostic;
             DiagnosticJournal.Enabled = true;
+            string fakeDesktop=System.IO.Path.Combine(
+                tempDiagnostic,"MockDesktop");
+            DiagnosticSessionReporter.OverrideDesktopDirectoryForTests=fakeDesktop;
+            Check("missing Desktop falls back to local diagnostic folder",
+                DiagnosticSessionReporter.ReportsDirectory==
+                    System.IO.Path.Combine(tempDiagnostic,"Reports"));
+            System.IO.Directory.CreateDirectory(fakeDesktop);
+            string desktopReportFolder=System.IO.Path.Combine(
+                fakeDesktop,"Calradia Unified Reports");
+            Check("automatic reports use a dedicated Desktop folder",
+                DiagnosticSessionReporter.ReportsDirectory==
+                    desktopReportFolder &&
+                System.IO.Directory.Exists(desktopReportFolder));
             var cells = new string[19];
             for (int i = 0; i < cells.Length; i++) cells[i] = "0";
             cells[0] = "castle";
@@ -1690,9 +1703,10 @@ internal static class Program
                         e.FullName.EndsWith(".png",
                             StringComparison.OrdinalIgnoreCase)));
             }
-            Check("local latest report pointer refers to successful ZIP",
+            Check("local latest report pointer refers to Desktop ZIP",
                 System.IO.File.ReadAllText(System.IO.Path.Combine(
-                    tempDiagnostic,"latest-report.txt"))==current);
+                    tempDiagnostic,"latest-report.txt"))==current &&
+                System.IO.Path.GetDirectoryName(current)==desktopReportFolder);
             DiagnosticSessionReporter.OverrideGameRootForTests=null;
             string autoConfig=System.IO.Path.Combine(tempDiagnostic,
                 "auto-report-test.ini");
@@ -1718,6 +1732,7 @@ internal static class Program
         {
             DiagnosticJournal.Enabled = true;
             DiagnosticJournal.OverrideRootForTests = null;
+            DiagnosticSessionReporter.OverrideDesktopDirectoryForTests = null;
             if (System.IO.Directory.Exists(tempDiagnostic))
                 System.IO.Directory.Delete(tempDiagnostic, true);
         }

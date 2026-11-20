@@ -6,12 +6,14 @@ Target: Bannerlord PC 1.5.7.125802. Built on v0.56 creator fixes (the Age→Stat
 **Every time Bannerlord closes normally, Calradia Unified automatically writes a report ZIP** with its current session's events, errors and financial telemetry. No manual PowerShell collector should be needed for a normal game exit. When Bannerlord terminates hard, the mod cannot execute an exit handler, so it **writes the evidence continuously** and packages the interrupted session at the next successful startup.
 
 ## Where to find the report
-- ZIPs: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Reports\CU-Session-<ID>-CLOSED.zip`
-- Recoveries: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Reports\CU-Session-<ID>-INTERRUPTED.zip`
-- Latest saved report path: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\latest-report.txt`
-- Raw per-session journals: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Sessions\<ID>\`
+- Normal reports: **Desktop → Calradia Unified Reports →** `CU-Session-<ID>-CLOSED.zip`
+- Interrupted-session reports: **Desktop → Calradia Unified Reports →** `CU-Session-<ID>-INTERRUPTED.zip`
+- The reporter locates the real Windows Desktop through `Environment.SpecialFolder.DesktopDirectory`. This works with a redirected Desktop such as OneDrive.
+- If Desktop storage is absent or not writable, the safe fallback remains `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Reports`.
+- Latest saved report path: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\latest-report.txt`. It records the actual successful destination, Desktop or fallback.
+- Raw per-session journals: `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Sessions\<ID>\`.
 
-Paste `%LOCALAPPDATA%\CalradiaUnified\Diagnostics\Reports` into File Explorer to review and upload the relevant ZIP. Reports are **never transmitted automatically**.
+Open the **Calradia Unified Reports** folder on your Desktop to upload the latest ZIP. No manual folder creation is needed. Reports are **never transmitted automatically**. Older ZIPs already stored under LocalAppData are not moved.
 
 ## How the data is recorded
 - The existing finance, events and exceptions CSVs remain at their old paths for compatibility with manual collectors. Every log line is simultaneously flushed into an isolated `Sessions\<session-id>\` copy.
