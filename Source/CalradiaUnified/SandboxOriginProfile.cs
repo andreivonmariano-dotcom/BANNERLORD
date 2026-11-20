@@ -106,6 +106,13 @@ namespace CalradiaUnified
         public string SpouseEquipmentKit = "Vanilla";
         public int ChildCount;
         public int SiblingCount;
+        // Opt-in noble-lineage start. A real, older game-owned lord/king
+        // must share real mother and father links with the player.
+        public string NobleBirthPosition = "Independent";
+        // Blank chooses a deterministic verified elder in the native kingdom.
+        public string NobleElderHeroId = "";
+        // "Native" does not change Bannerlord's starting companions.
+        public string RetinueMode = "Native";
 
         // Explicit overrides only; absent entry means retain the game's value.
         // Native is the safe default. The dedicated post-origins editor
@@ -179,6 +186,9 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            NobleBirthPosition="Independent";
+            NobleElderHeroId="";
+            RetinueMode="Native";
             FamilyScenario="Natural";
             foreach(var child in Children)
                 child.Upbringing="FamilyTradition";
@@ -402,6 +412,15 @@ namespace CalradiaUnified
                 case "SiblingCount":
                     if (!Number(value, 0, MaxSiblings, out n)) return false;
                     SiblingCount = n; return true;
+                case "NobleBirthPosition":
+                    if(!SandboxNobleStartPolicy.IsPosition(value))return false;
+                    NobleBirthPosition=value;return true;
+                case "NobleElderHeroId":
+                    if(!Identifier(value,80))return false;
+                    NobleElderHeroId=value;return true;
+                case "RetinueMode":
+                    if(!SandboxNobleStartPolicy.IsRetinueMode(value))return false;
+                    RetinueMode=value;return true;
             }
             if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
             {
@@ -503,6 +522,14 @@ namespace CalradiaUnified
                 error = "Player must be an adult.";
                 return false;
             }
+            if(!SandboxNobleStartPolicy.IsPosition(NobleBirthPosition) ||
+                !SandboxNobleStartPolicy.IsRetinueMode(RetinueMode) ||
+                !SandboxNobleStartPolicy.ValidForRole(
+                    NobleBirthPosition,Role))
+            {
+                error="A younger royal or noble sibling must use Lord start.";
+                return false;
+            }
             if (SpouseOverrides.Any(kv=>
                     !SandboxStatBudgetPolicy.InRange(kv.Key,kv.Value)))
             {
@@ -560,6 +587,8 @@ namespace CalradiaUnified
                     SpouseBackground + " spouse " + SpouseName : "none") +
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
+                ", noble_birth=" + NobleBirthPosition +
+                ", retinue=" + RetinueMode +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
                 ", fief=" + (StartingFiefMode == "Native" ? "native" :
@@ -631,7 +660,10 @@ namespace CalradiaUnified
                 "SpouseFaceSeed=" + SpouseFaceSeed,
                 "SpouseEquipmentKit=" + SpouseEquipmentKit,
                 "ChildCount=" + ChildCount,
-                "SiblingCount=" + SiblingCount
+                "SiblingCount=" + SiblingCount,
+                "NobleBirthPosition=" + NobleBirthPosition,
+                "NobleElderHeroId=" + NobleElderHeroId,
+                "RetinueMode=" + RetinueMode
             };
             foreach (var pair in Overrides)
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
