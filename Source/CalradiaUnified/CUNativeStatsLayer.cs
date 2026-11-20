@@ -258,6 +258,9 @@ namespace CalradiaUnified
                     "|default_mode=Native|no_experimental_toggle=true"+
                     "|entry_page="+
                     (returningFromNativeBanner?"Traits":"Age"));
+                DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                    "page="+(returningFromNativeBanner?"All Stats":"Age")+
+                    "|surface=stats_editor|phase=layer_attached");
             }
             catch(Exception e)
             {
@@ -805,6 +808,12 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_stats_static_slots_notified",
                 "visible="+rows.Count+
                 "|template=false|static_widgets=6"+
+                "|row_page="+(statsRowPageIndex+1));
+            DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                "page="+(pageIndex==CUNativeStatsNavigationPolicy.Age?
+                    "Age":"All Stats")+
+                "|surface=stats_editor|phase=bindings_refreshed"+
+                "|target="+(editingSpouse?"spouse":"player")+
                 "|row_page="+(statsRowPageIndex+1));
         }
         private void RefreshRowValues()
