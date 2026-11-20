@@ -18,6 +18,31 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native Review Back to Clan Name restores House/Fortune",
+            CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,true,true));
+        Check("native Review Back directly to Banner restores House/Fortune",
+            CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.BannerStage,true,true));
+        Check("House overlay Back stays native without recursive reentry",
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,true,false) &&
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,false,true));
+        Check("native Review Next is not mistaken for Back",
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.OptionsStage,true,true) &&
+            CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.ClanStage) &&
+            CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.BannerStage) &&
+            !CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.ReviewStage));
         var family=new SandboxOriginProfile();
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&
