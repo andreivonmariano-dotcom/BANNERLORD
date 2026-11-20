@@ -40,9 +40,12 @@ namespace CalradiaUnified
                     reportHeartbeatSeconds=0f;
                     try
                     {
-                        var player=Hero.MainHero;
+                        var activeCampaign=Campaign.Current;
+                        // Hero.MainHero is not safe before a campaign has
+                        // been initialized. Do not probe it in the menu.
+                        var player=activeCampaign==null ? null : Hero.MainHero;
                         DiagnosticSessionReporter.Heartbeat(
-                            "campaign_active="+(Campaign.Current!=null)+
+                            "campaign_active="+(activeCampaign!=null)+
                             "|player_exists="+(player!=null)+
                             "|player_level="+(player==null?"unavailable":
                                 player.Level.ToString())+
