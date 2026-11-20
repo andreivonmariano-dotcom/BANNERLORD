@@ -152,14 +152,14 @@ assert not list(stats.iter("ItemTemplate"))
 for i in range(1,7):
     item=next(x for x in stats.iter("Widget")
         if x.get("Id")==f"CUFixedStatRow{i}")
-    assert item.get("SuggestedHeight")=="55"
+    assert item.get("SuggestedHeight")=="66"
     assert item.get("IsVisible")==f"@Slot{i}Visible"
     name=next(x for x in item.iter("TextWidget")
         if x.get("Text")==f"@Slot{i}Name")
     selected=next(x for x in item.iter("TextWidget")
         if x.get("Text")==f"@Slot{i}Selected")
-    assert name.get("PositionYOffset")=="3"
-    assert selected.get("PositionYOffset")=="10"
+    assert name.get("PositionYOffset")=="5"
+    assert selected.get("PositionYOffset")=="14"
     assert not list(item.iter("SliderWidget"))
     assert any(x.get("Text")=="EDIT WITH - / + OR EXACT"
         for x in item.iter("TextWidget"))
