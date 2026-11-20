@@ -41,7 +41,7 @@ The 19 custom PNG sources in `CalradiaUnified_v059b_Art_Import_Sources.zip` are 
 To finish the *actual engine import* on a Windows game/modding installation:
 
 1. Back up the working `Modules/CalradiaUnified` folder. Place the v0.59c code build into the same module. Use `scripts/Install-CU-UI-SpriteSources.ps1 -GameRoot '<Bannerlord folder>' -SourceZip '<asset ZIP>' -RunGenerator` on the machine with the **matching Bannerlord Modding Kit**. It SHA-checks the 19 images before copying them and starts the official sprite-sheet generator.
-2. In the Modding Kit, open the resource console (Alt+grave), run `resource.show_resource_browser`. Under **CalradiaUnified → GauntletUI**, select **Scan new asset files**, choose category `ui_calradiaunified), then **Import**. Close the editor.
+2. In the Modding Kit, open the resource console (Alt+grave), run `resource.show_resource_browser`. Under **CalradiaUnified → GauntletUI**, select **Scan new asset files**, choose category `ui_calradiaunified`, then **Import**. Close the editor.
 3. Use `scripts/Install-CU-UI-SpriteSources.ps1 -GameRoot '<Bannerlord folder>' -VerifyOnly` to check `GUI/CalradiaUnifiedSpriteData.xml` and `Assets/GauntletUI/ui_calradiaunified_*_tex.tpac`. The art prefab variants load only after `CUCreatorArtRegistry` finds the category.
 
 Official procedure: <https://moddocs.bannerlord.com/asset-management/generating_and_loading_ui_sprite_sheets/>.
