@@ -67,7 +67,7 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
                 for w in row.iter("ButtonWidget")),command
         assert any(w.get("Text")==f"@Slot{i}Name"
             for w in row.iter("TextWidget"))
-        ids.add(slider.get("Id"))
+        ids.add(row.get("Id"))
     assert len(ids)==6
     age=[w for w in x.iter("SliderWidget")
         if w.get("Id")=="CUPlayerAgeSlider"]
