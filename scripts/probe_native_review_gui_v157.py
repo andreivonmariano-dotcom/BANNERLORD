@@ -49,6 +49,7 @@ def main():
             "User-Agent":"CalradiaUnified-NativeParitySourceAudit/0.59f"})
         with urllib.request.urlopen(req,timeout=24) as response:
             blob=response.read()
+        (out.parent/"native_gui_v157.nupkg").write_bytes(blob)
         with zipfile.ZipFile(io.BytesIO(blob)) as z:
             names=z.namelist()
             candidates=[n for n in names
