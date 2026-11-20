@@ -116,6 +116,32 @@ internal static class Program
             nobleProfile.NobleElderHeroId=="" &&
             nobleProfile.RetinueMode=="Native" &&
             nobleProfile.SiblingCount==0);
+        var autoHouse=new SandboxOriginProfile();
+        autoHouse.Role="Lord";
+        SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");
+        Check("automatic House uses Vlandian names and valid child ages",
+            autoHouse.AutoHouseNamesPrepared &&
+            autoHouse.SpouseBackground=="NobleRandom" &&
+            autoHouse.FamilyScenario=="Martial" &&
+            autoHouse.SpouseName=="Aveline" &&
+            autoHouse.Children.All(ch=>ch.Age>=0 &&
+                ch.Age<=autoHouse.SpouseAge-16) &&
+            autoHouse.Siblings.All(s=>s.Age>=18 && s.Age<=80) &&
+            SandboxOriginProfile.Parse(autoHouse.Serialize())
+                .AutoHouseNamesPrepared);
+        Check("culture-specific names avoid duplicate household suggestions",
+            SandboxCulturalNames.Suggest("sturgia",false,0,
+                new string[0])=="Mstislav" &&
+            SandboxCulturalNames.Suggest("aserai",true,0,
+                new string[0])=="Zahra" &&
+            SandboxCulturalNames.Suggest("vlandia",true,0,
+                new[]{"Aveline"})=="Ysabel");
+        Check("court and military retinues have distinct native roles",
+            SandboxRetinueOfficePolicy.Skills("Knight")[0]=="Riding" &&
+            SandboxRetinueOfficePolicy.Skills("HouseholdSteward")[0]=="Steward" &&
+            SandboxRetinueOfficePolicy.PartyDuty("Navigator")=="Scout" &&
+            SandboxRetinueOfficePolicy.PartyDuty("HouseholdSteward")=="Quartermaster" &&
+            SandboxRetinueOfficePolicy.PartyDuty("Knight")=="None");
         var family=new SandboxOriginProfile();
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&
