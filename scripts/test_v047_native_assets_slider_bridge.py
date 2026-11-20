@@ -27,9 +27,12 @@ native_gradient=r"General\CharacterCreation\character_creation_background_gradie
 for ui in (g,s):
     sprites={w.get("Sprite") for w in ui.iter("Widget")}
     assert native_panel in sprites
-    assert native_gradient in sprites
     assert native_panel.replace("\\","\\\\") not in sprites
-    assert native_gradient.replace("\\","\\\\") not in sprites
+# v0.59e stops painting an extra gradient over the live animated menu.
+assert native_gradient not in {w.get("Sprite") for w in g.iter("Widget")}
+assert native_gradient in {w.get("Sprite") for w in s.iter("Widget")}
+assert native_gradient.replace("\\","\\\\") not in {
+    w.get("Sprite") for w in s.iter("Widget")}
 for ui in (gp,sp,safe):
     sprites={w.get("Sprite") for w in ui.iter("Widget")}
     assert native_panel not in sprites
