@@ -34,7 +34,7 @@ assert 'player.CurrentSettlement!=null' in arrival
 assert 'party.LeaderHero!=player' in arrival
 assert 'party.SetPositionAfterMapChange(host.Position)' in arrival
 assert 'party.GetPosition2D.Distance(' in arrival
-assert 'after<=0.5f' in arrival
+assert 'bool arrived=after <= (residence==null ? 0.5f : 6f);' in arrival
 assert 'member.IsKnownToPlayer=true;' in arrival
 assert 'h.Clan==patron.Clan && h.IsLord' in arrival
 assert 'no_relation_or_clan_transfer=true' in arrival
