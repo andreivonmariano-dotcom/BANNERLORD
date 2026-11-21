@@ -363,6 +363,11 @@ jobs:
           if ($parseErrors.Count -gt 0) { throw ("Native creator audit syntax: " + ($parseErrors -join ', ')) }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Creator-API.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Inspect pinned Knight clan membership action metadata
+        shell: pwsh
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Knight-Clan-API.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Audit exact v1.5.7 Gauntlet widget and brush APIs
         shell: pwsh
         run: |
@@ -591,6 +596,13 @@ jobs:
           path: |
             BuildResults/native-widget-api-v157.txt
             BuildResults/native-layout-metadata-v157.txt
+          if-no-files-found: ignore
+      - name: Upload Knight native clan API audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CU-v070i-knight-native-clan-api
+          path: BuildResults/knight-clan-api-v157.txt
           if-no-files-found: ignore
       - name: Upload native creator API metadata
         if: always()
