@@ -213,6 +213,10 @@ namespace CalradiaUnified
                 if(native.Any(h=>h.Clan!=Clan.PlayerClan ||
                     h.CompanionOf!=Clan.PlayerClan))
                     return "refused:native_companion_not_firable";
+                // Multi-companion dismissal is not an atomic native
+                // transaction. Never strand half the old roster.
+                if(native.Length>1)
+                    return "refused:multi_companion_dismissal_not_atomic";
                 int fired=0;
                 try
                 {
@@ -259,6 +263,8 @@ namespace CalradiaUnified
                 old.Clan!=Clan.PlayerClan ||
                 old.CompanionOf!=Clan.PlayerClan))
                 return "refused:native_companion_not_firable";
+            if(replace && existing.Length>1)
+                return "refused:multi_companion_dismissal_not_atomic";
             var sources=new CharacterObject[offices.Length];
             for(int i=0;i<offices.Length;i++)
             {
@@ -318,23 +324,6 @@ namespace CalradiaUnified
                     "|requested_officers="+offices.Length+
                     "|staged="+staged.Count+
                     "|native_companions_before="+existing.Length);
-                if(replace)
-                {
-                    // Only the explicitly selected custom retinue path
-                    // replaces native starting companions.
-                    foreach(var old in existing)
-                    {
-                        RemoveCompanionAction.ApplyByFire(
-                            Clan.PlayerClan,old);
-                        if(old.CompanionOf!=Clan.PlayerClan &&
-                            !Clan.PlayerClan.Companions.Contains(old))
-                            replaced++;
-                        else
-                            throw new InvalidOperationException(
-                                "Native companion dismissal was not confirmed");
-                    }
-                }
-
                 for(int i=0;i<staged.Count;i++)
                 {
                     var officer=staged[i];
@@ -376,6 +365,23 @@ namespace CalradiaUnified
                         "|clan_companion=true"+
                         "|party_member=true");
                 }
+                if(replace)
+                {
+                    // Verify the full new roster BEFORE the first
+                    // irreversible native dismissal. Failure to recruit
+                    // any officer leaves original companions in place.
+                    foreach(var old in existing)
+                    {
+                        RemoveCompanionAction.ApplyByFire(
+                            Clan.PlayerClan,old);
+                        if(old.CompanionOf!=Clan.PlayerClan &&
+                            !Clan.PlayerClan.Companions.Contains(old))
+                            replaced++;
+                        else
+                            throw new InvalidOperationException(
+                                "Native companion dismissal was not confirmed");
+                    }
+                }
                 DiagnosticJournal.Event("cu_cultural_retinue_replacement",
                     "mode="+profile.RetinueMode+
                     "|native_companions_before="+existing.Length+
@@ -389,25 +395,45 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_cultural_retinue_creation_failed",e);
-                // Reclaim staged Heroes that were never registered as
-                // companions, rather than leaving inactive court orphans.
+                // A native party or companion assignment is a real
+                // game relationship, not an unattached object to delete.
+                // Reclaim only new officers that never joined the party.
+                // Registered officers need manual native reconciliation.
+                int provisionalDisabled=0,registeredPreserved=0;
                 foreach(var pending in staged)
                 {
-                    if(pending==null ||
-                        Clan.PlayerClan.Companions.Contains(pending))
+                    if(pending==null)continue;
+                    if(Clan.PlayerClan.Companions.Contains(pending) ||
+                        pending.CompanionOf!=null ||
+                        pending.PartyBelongedTo!=null ||
+                        pending.StayingInSettlement!=null)
+                    {
+                        registeredPreserved++;
                         continue;
+                    }
                     try
                     {
                         DisableHeroAction.Apply(pending);
-                        pending.Clan=null;
+                        if(pending.IsDisabled)
+                        {
+                            pending.Clan=null;
+                            provisionalDisabled++;
+                        }
+                        else registeredPreserved++;
                     }
                     catch(Exception cleanupError)
                     {
+                        registeredPreserved++;
                         DiagnosticJournal.Exception(
                             "cu_cultural_retinue_stage_cleanup_failed",
                             cleanupError);
                     }
                 }
+                DiagnosticJournal.Event(
+                    "cu_cultural_retinue_failure_reconciliation",
+                    "staged_disabled="+provisionalDisabled+
+                    "|registered_preserved="+registeredPreserved+
+                    "|native_roster_not_fabricated=true");
                 return "partial:officers="+created+
                     "|native_companions_dismissed="+replaced+
                     "|reason="+e.GetType().Name;
