@@ -93,6 +93,8 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightEscortDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightServiceOrderDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKingSuccessionDaily);
@@ -417,6 +419,14 @@ namespace CalradiaUnified
             string chapters=careerChronicle.Serialize();
             store.SyncData("CU_v071c_career_chronicle",ref chapters);
             careerChronicle=SandboxCareerChronicleState.Parse(chapters);
+            string stories=petitionStories.Serialize();
+            store.SyncData("CU_v071e_personal_petition_stories",
+                ref stories);
+            petitionStories=SandboxPetitionStoryState.Parse(stories);
+            string orders=knightServiceOrders.Serialize();
+            store.SyncData("CU_v071e_native_knight_orders",ref orders);
+            knightServiceOrders=SandboxKnightServiceOrderState.Parse(
+                orders);
         }
 
         private static void Notify(string text)
@@ -442,7 +452,10 @@ namespace CalradiaUnified
             RegisterNobleOfficerConversations(starter);
             RegisterHouseholdConversations(starter);
             RegisterPrivatePetitionConversations(starter);
+            RegisterPetitionStoryConversations(starter);
             RegisterCareerChronicleMenus(starter);
+            RegisterKnightServiceOrders(starter);
+            RegisterHouseholdCampMenus(starter);
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
