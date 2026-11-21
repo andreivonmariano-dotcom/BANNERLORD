@@ -38,6 +38,8 @@ namespace CalradiaUnified
                 case "Knight":return "NativeVassalObligations";
                 case "Soldier":case "Mercenary":
                     return "NativeMercenaryService";
+                case "EnlistedSoldier":
+                    return "ServiceUnderActualNativeLord";
                 case "Admiral":return "NativeNavalCommand";
                 case "Trader":return "NativeCommerceAndClanUpkeep";
                 case "Outlaw":return "NativeBandSurvival";
