@@ -19,6 +19,8 @@ csproj=(source/"CalradiaUnified.csproj").read_text()
 assert 'Include="Bannerlord.UIExtenderEx" Version="3.0.3"' in csproj
 assert 'Include="Bannerlord.UIExtenderEx.Analyzers"' in csproj
 assert 'ExcludeAssets="runtime"' in csproj
+assert 'Include="Bannerlord.UIExtenderEx.Analyzers" Version="3.0.3.9"' in csproj
+assert 'Include="Bannerlord.MCM" Version="5.13.1"' in csproj
 core=(source/"SubModule.cs").read_text()
 assert 'UIExtender.Create("CalradiaUnified")' in core
 assert 'Extender.Register(typeof(SubModule).Assembly);' in core
@@ -43,6 +45,19 @@ assert 'Campaign.Current' in native
 assert 'GetCampaignBehavior<SandboxOriginBehavior>()' in native
 assert 'ShowStartingHouseholdStatus();' in native
 assert 'Hero.MainHero' in native and 'Clan.PlayerClan' in native
+# All seven starts have a saved role-backed, readable dossier.
+for part in ('roleEconomy.Started','roleEconomy.CareerStatus',
+             'roleEconomy.VerifiedExternalDailyWage',
+             'Wanderer','Outlaw','Mercenary','Soldier',
+             'knightOath.IsConfigured','lordInheritance.IsRecorded',
+             'kingSuccession.IsRecorded'):
+    assert part in native,part
+for title in ('Household and career dossier',
+              'Company and officers','Royal and kingdom affairs'):
+    assert title in native,title
+assert 'NativeBUTRStatus("Clan")' in adapter
+assert 'NativeBUTRStatus("Party")' in adapter
+assert 'NativeBUTRStatus("Kingdom")' in adapter
 assert 'ChangeKingdomAction' not in adapter
 assert 'HeroCreator.Create' not in adapter
 installer=(root/"scripts"/"Install-CU-From-Artifact.ps1").read_text()
