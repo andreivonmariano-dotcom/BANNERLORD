@@ -68,6 +68,18 @@ namespace CalradiaUnified
             return "";
         }
 
+        public static string ValidateObservedRoyalFamily(
+            bool nativeMarriedToSpouse,bool sameNativeClan,
+            int requestedChildren,int verifiedChildren)
+        {
+            if(!nativeMarriedToSpouse || !sameNativeClan)
+                return "native_royal_marriage_unverified";
+            if(requestedChildren<1 ||
+               verifiedChildren<requestedChildren)
+                return "native_royal_children_unverified";
+            return "";
+        }
+
         public static string ValidateNativeMinistry(bool ownNativeFief,
             bool unoccupiedGovernorSeat,bool nativeActionVerified,
             bool sameNativeClan)
