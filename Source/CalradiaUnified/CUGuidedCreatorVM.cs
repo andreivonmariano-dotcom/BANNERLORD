@@ -47,7 +47,7 @@ namespace CalradiaUnified
         private static SandboxOriginProfile houseDraft;
         // Cache the read-only native Hero scan so Gauntlet getters do
         // not enumerate the entire campaign every UI refresh.
-        private readonly string projectedElderName;
+        private string projectedElderName;
         private readonly string projectedPatronName;
         private readonly List<Field> fields;
         private int cursor;
@@ -174,6 +174,21 @@ namespace CalradiaUnified
             }
             else
             {
+                // The elder is unknowable before culture, age and native
+                // Hero data are available. Let the player correct the
+                // EXISTING noble-birth choice after those stages, without
+                // losing the spouse, children or sibling draft.
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "NobleBirthPosition","Confirm your noble birth",
+                    "An older game-owned lord must have valid native "+
+                    "parents and be older than you. No match? Choose "+
+                    "Independent rather than lose your requested family.",
+                    choices:SandboxNobleStartPolicy.BirthPositions));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "NobleElderHeroId","Native elder Hero ID (optional)",
+                    "Restrict the requested elder to an exact native "+
+                    "Hero ID. Leave blank to let the mod search.",
+                    "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseEnabled",
                     "Begin married?",
                     "Your character's native age and culture are now known. No spouse is created until the campaign begins.",
@@ -318,12 +333,11 @@ namespace CalradiaUnified
                 return preCampaign &&
                     SandboxServicePolicy.NeedsPatron(profile.Role);
             if(key=="NobleBirthPosition")
-                return preCampaign &&
-                    SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
-                        profile.Role);
+                return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
+                    profile.Role);
             if(key=="NobleElderHeroId")
-                return preCampaign &&
-                    SandboxCustomLifeRolePolicy.IsNobleFamilyRole(profile.Role) &&
+                return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
+                    profile.Role) &&
                     profile.NobleBirthPosition!="Independent";
             if(key.StartsWith("Sibling.",StringComparison.Ordinal))
             {
@@ -511,7 +525,13 @@ namespace CalradiaUnified
             string currentKey=Current==null ? key : Current.Key;
             profile=copy;
             if(!preCampaign)
+            {
                 houseDraft=SandboxOriginProfile.Parse(profile.Serialize());
+                if(key=="NobleBirthPosition" ||
+                    key=="NobleElderHeroId")
+                    projectedElderName=SandboxDynasticStart
+                        .PreviewElderName(profile,Hero.MainHero);
+            }
             var afterWrite=Visible;
             int currentAt=Array.FindIndex(afterWrite,
                 f=>f.Key==currentKey);
@@ -721,6 +741,39 @@ namespace CalradiaUnified
                 Report("Family and age: "+error);
                 return;
             }
+            // In the reported Vlandian YoungerBrotherOfLord session,
+            // House said "No eligible native elder found" but still
+            // continued through irreversible native finalization.
+            // Reject the impossible pedigree HERE, with the draft still
+            // editable. Phase-9 strict native checks remain mandatory.
+            if(SandboxNobleStartPolicy.RequiresNobleElder(
+                candidate.NobleBirthPosition))
+            {
+                bool nativeRelative=hero!=null &&
+                    (SandboxNobleStartPolicy.IsSonOrigin(
+                        candidate.NobleBirthPosition) ?
+                     SandboxDynasticSonStart.HasProjectedNativeFather(
+                        candidate,hero) :
+                     SandboxDynasticStart.HasProjectedNativeElder(
+                        candidate,hero));
+                if(!nativeRelative)
+                {
+                    DiagnosticJournal.Event(
+                        "cu_house_noble_preflight_blocked",
+                        "birth="+candidate.NobleBirthPosition+
+                        "|kingdom="+candidate.StartingKingdomId+
+                        "|elder_id="+candidate.NobleElderHeroId+
+                        "|draft_preserved=true"+
+                        "|native_finalization_not_invoked=true");
+                    Report("No eligible existing noble relative for "+
+                        candidate.NobleBirthPosition+" in "+
+                        candidate.StartingKingdomId+
+                        ". Select Independent under Confirm your noble "+
+                        "birth to keep your spouse and children, or "+
+                        "restart with another kingdom or origin.");
+                    return;
+                }
+            }
             if(!candidate.SaveForPlayer(
                 SandboxOriginProfile.UserPath,actualAge,out error))
             {
@@ -773,6 +826,13 @@ namespace CalradiaUnified
                 if(Current==null)return "";
                 // Show the names that the automatic plan will create,
                 // without making the player open Advanced for every child.
+                if(!preCampaign && Current.Key=="NobleBirthPosition")
+                    return profile.NobleBirthPosition=="Independent" ?
+                        "Native lord standing stays native. You can "+
+                        "keep your chosen spouse, children and siblings." :
+                        "Eligible native family: "+projectedElderName+
+                        ". If none is found, choose Independent here "+
+                        "rather than finalizing a failed family start.";
                 if(!preCampaign && Current.Key=="SpouseEnabled")
                     return "Proposed spouse: "+profile.SpouseName+
                         ", age "+profile.SpouseAge+
