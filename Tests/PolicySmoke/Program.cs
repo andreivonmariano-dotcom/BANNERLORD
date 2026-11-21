@@ -452,6 +452,15 @@ internal static class Program
             evolvingAgenda.ObserveHome("cadet","","Unverified")=="same" &&
             SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
                 .Get("cadet").HomeId=="");
+        Check("native context changes subsequent character requests",
+            SandboxAgencyDecisionPolicy.Choose(
+                evolvingAgenda.Get("cadet").Goal,true,true,20,0,1000)==
+                    "Recognition" &&
+            SandboxAgencyDecisionPolicy.Choose(
+                "ProtectSharedHousehold",true,true,20,0,1000)==
+                    "HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.Choose(
+                "ProtectSharedHousehold",true,false,20,0,1000)=="");
         Check("native departure changes inferred goal without erasing kin",
             evolvingAgenda.ObserveNativeGoal(
                 "cadet","PreserveFamilyPosition",
