@@ -64,7 +64,9 @@ assert "c.Occupation==Occupation.Lord" in retinue
 assert "h.IsLord" in retinue
 assert "c.Culture==player.Culture" in retinue
 assert "officer.Culture=player.Culture" in retinue
-assert "officer.SetNewOccupation(Occupation.Lord)" in retinue
+assert "officer.SetNewOccupation(nobleFieldOffice?" in retinue
+assert "Occupation.Lord:Occupation.Wanderer" in retinue
+assert "nobleFieldOffice=" in retinue
 assert "AddCompanionAction.Apply" in retinue
 assert "AddHeroToPartyAction.Apply" in retinue
 assert "RemoveCompanionAction.ApplyByFire" in retinue
