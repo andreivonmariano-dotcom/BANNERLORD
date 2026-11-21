@@ -452,13 +452,13 @@ internal static class Program
             evolvingAgenda.ObserveHome("cadet","","Unverified")=="same" &&
             SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
                 .Get("cadet").HomeId=="");
-        Check("native context changes subsequent character requests",
+        Check("native co-service opens household-support requests",
             SandboxAgencyDecisionPolicy.Choose(
                 evolvingAgenda.Get("cadet").Goal,true,true,20,0,1000)==
-                    "Recognition" &&
-            SandboxAgencyDecisionPolicy.Choose(
-                "ProtectSharedHousehold",true,true,20,0,1000)==
                     "HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.Choose(
+                "PreserveFamilyPosition",true,true,20,0,1000)==
+                    "Recognition" &&
             SandboxAgencyDecisionPolicy.Choose(
                 "ProtectSharedHousehold",true,false,20,0,1000)=="");
         Check("native departure changes inferred goal without erasing kin",
@@ -470,6 +470,10 @@ internal static class Program
             evolvingAgenda.Get("cadet").Goal=="PreserveFamilyPosition" &&
             SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
                 .Get("cadet").Goal=="PreserveFamilyPosition");
+        Check("observed departure switches the later request to recognition",
+            SandboxAgencyDecisionPolicy.Choose(
+                evolvingAgenda.Get("cadet").Goal,true,true,20,0,1000)==
+                "Recognition");
         var siblingAgenda=new SandboxCharacterAgendaState();
         siblingAgenda.Register("brother","ProtectSharedHousehold","",
             "Unverified","HouseholdSoldier","vlandia","clanA");
