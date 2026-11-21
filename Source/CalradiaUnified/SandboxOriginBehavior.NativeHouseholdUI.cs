@@ -118,8 +118,24 @@ namespace CalradiaUnified
                 "Present location not recorded":
                 "Known place: "+residence.Name;
             string duty=companion?
-                "Serving in the actual clan companion roster.":
-                "Family belonging verified from native Hero links.";
+                "Recorded in your actual clan companion roster.":
+                "Family ties are verified from native Hero records.";
+            if(companion && lordInheritance.IsRecorded &&
+                NativeCourtOfficer("Master of Arms")==person)
+                duty="Master of Arms: speak in person inside "+
+                    "your own castle to station five existing, "+
+                    "healthy local recruits in its garrison.";
+            else if(companion && kingSuccession.IsRecorded &&
+                NativeCourtOfficer("Marshal")==person)
+                duty="Marshal: meet in person at your royal seat "+
+                    "after today's council to authorize a guarded "+
+                    "transfer of five existing recruits.";
+            else if(companion && person.GovernorOf!=null)
+                duty="Native governor: currently serving at "+
+                    person.GovernorOf.Settlement.Name+".";
+            else if(companion && person.PartyBelongedTo!=null)
+                duty="Current field assignment: "+
+                    person.PartyBelongedTo.Name+".";
             ShowNativeDetail(person.Name+" | "+relationship,
                 "Age "+(int)person.Age+" | "+parentage+
                 "\n"+location+
