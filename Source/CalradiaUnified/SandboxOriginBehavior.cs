@@ -29,6 +29,8 @@ namespace CalradiaUnified
         private bool characterCreationComplete;
         private SandboxFamilyGrowthState familyGrowth =
             new SandboxFamilyGrowthState();
+        private SandboxFamilyRecoveryState familyRecovery=
+            new SandboxFamilyRecoveryState();
         private SandboxLifeHistoryState livingPersons=
             new SandboxLifeHistoryState();
         private SandboxSocialObservationState socialObservations=
@@ -330,6 +332,9 @@ namespace CalradiaUnified
             string packed=familyGrowth.Serialize();
             store.SyncData("CU_v052_family_growth",ref packed);
             familyGrowth=SandboxFamilyGrowthState.Parse(packed);
+            string recovery=familyRecovery.Serialize();
+            store.SyncData("CU_v069d_family_recovery",ref recovery);
+            familyRecovery=SandboxFamilyRecoveryState.Parse(recovery);
             string biographies=livingPersons.Serialize();
             store.SyncData("CU_v064_living_persons",ref biographies);
             livingPersons=SandboxLifeHistoryState.Parse(biographies);
@@ -724,6 +729,24 @@ namespace CalradiaUnified
 
         private void ObserveLivingWorld()
         {
+            // A failed phase-9 family never re-runs creation on load or
+            // daily tick. Recount native references for an honest, saved,
+            // read-only recovery dossier even if no biography was captured.
+            if(applied && IsStandaloneSandbox() &&
+                familyRecovery.NeedsReview && Hero.MainHero!=null)
+            {
+                var player=Hero.MainHero;
+                int siblingCount=CountNativeFullSiblings(player);
+                string change=familyRecovery.Observe(player.StringId,
+                    player.Spouse!=null,
+                    player.Children==null?0:player.Children.Count,
+                    siblingCount);
+                if(change=="native_family_counts_changed")
+                    DiagnosticJournal.Event("cu_family_recovery_observed",
+                        "player="+player.StringId+
+                        "|status="+familyRecovery.Status+
+                        "|no_native_actions_replayed=true");
+            }
             if(!applied || !IsStandaloneSandbox() ||
                 livingPersons==null || livingPersons.People.Count==0)
                 return;
@@ -923,6 +946,33 @@ namespace CalradiaUnified
                 "|registered="+familyGrowth.Count+
                 "|requested="+profile.ChildCount+
                 "|milestone_save_state=true");
+        }
+
+        private static int CountNativeFullSiblings(Hero player)
+        {
+            if(player==null || player.Father==null ||
+                player.Mother==null || player.Father.Children==null)
+                return 0;
+            return player.Father.Children.Count(h=>h!=null &&
+                h!=player && h.Father==player.Father &&
+                h.Mother==player.Mother);
+        }
+
+        private void RecordFailedNativeFamily(SandboxOriginProfile profile,
+            Hero player,string reason)
+        {
+            if(profile==null || player==null || !profile.RealFamilyEnabled)
+                return;
+            familyRecovery.RecordFailure(player.StringId,profile.Role,
+                reason,profile.SpouseEnabled,profile.ChildCount,
+                profile.SiblingCount,player.Spouse!=null,
+                player.Children==null?0:player.Children.Count,
+                CountNativeFullSiblings(player));
+            DiagnosticJournal.Event("cu_family_recovery_saved",
+                "role="+profile.Role+"|reason="+reason+
+                "|status="+familyRecovery.Status+
+                "|no_automatic_retry=true"+
+                "|native_relationships_preserved=true");
         }
 
         private void TryApplyOnce()
@@ -1149,6 +1199,7 @@ namespace CalradiaUnified
                         profile.NobleBirthPosition),dynasty);
                 if(postFamilyGate.Length>0)
                 {
+                    RecordFailedNativeFamily(profile,hero,postFamilyGate);
                     DiagnosticJournal.Event("cu_post_family_grants_refused",
                         "reason="+postFamilyGate+
                         "|family="+family+"|dynasty="+dynasty+
@@ -1447,8 +1498,12 @@ namespace CalradiaUnified
                         0 : hero.Children.Count) +
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
+                {
+                    RecordFailedNativeFamily(profile,hero,
+                        String.Join(",",failures));
                     Notify("Calradia Unified starting conditions failed: " +
                         String.Join(", ",failures));
+                }
                 else
                 {
                     // A successful, ACTUAL native campaign state is the
@@ -1536,6 +1591,8 @@ namespace CalradiaUnified
             }
             catch (Exception ex)
             {
+                RecordFailedNativeFamily(profile,hero,
+                    "unexpected_"+ex.GetType().Name);
                 DiagnosticJournal.Exception("sandbox_origin_new_game", ex);
             }
         }
