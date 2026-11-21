@@ -44,7 +44,7 @@ hint = vm[vm.index("[DataSourceProperty] public string Hint"):
           vm.index("private static string DisplayChoice")]
 assert 'Current.Key=="NobleBirthPosition"' in hint
 assert '"Eligible native family: "+projectedElderName+' in hint
-assert '"If none is found, choose Independent here "' in hint
+assert '". If none is found, choose Independent here "' in hint
 
 house = vm[vm.index("private void CommitHouse()"):
            vm.index("[DataSourceProperty] public bool IsWorldSetup")]
