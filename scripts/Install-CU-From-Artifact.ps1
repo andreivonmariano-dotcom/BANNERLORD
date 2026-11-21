@@ -1,14 +1,64 @@
 # Install Calradia Unified from a direct mod ZIP or GitHub's ZIP-wrapped ZIP.
 # Does not run the game, change game settings, or touch saves.
+# -ShowLatest displays the latest pinned, CI-verified DEVELOPMENT candidate.
+# -LatestVerified checks the exact pinned DLL before any existing mod moves.
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$true)][string]$GameRoot,
-    [Parameter(Mandatory=$true)][string]$ArtifactZip,
+    [string]$GameRoot = "",
+    [string]$ArtifactZip = "",
     [string]$ExpectedVersion = "v0.38.0",
     [string]$ExpectedDllSha256 = "",
-    [switch]$ReplaceExisting
+    [switch]$ReplaceExisting,
+    [switch]$ShowLatest,
+    [switch]$LatestVerified
 )
 $ErrorActionPreference = "Stop"
+
+# This pinned candidate was verified by the Windows pipeline. It was NOT
+# play-tested in Bannerlord. Keep the historic module manifest version
+# separate from this source-development version for save compatibility.
+$latestLabel = "v0.69f"
+$latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
+$latestRun = "44864139228"
+$latestCommit = "eec666c252f468cd92475e8abc86731d16da3a4f"
+$latestManifest = "v0.38.0"
+$latestDllSha256 = "3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491"
+
+function Write-LatestBuild {
+    Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
+    Write-Output ("Development version: " + $latestLabel)
+    Write-Output ("Verification: " + $latestStatus)
+    Write-Output ("Windows CI run: " + $latestRun)
+    Write-Output ("Compiled source commit: " + $latestCommit)
+    Write-Output ("Download artifact page: " + $latestArtifactPage)
+    Write-Output ("Expected DLL SHA256: " + $latestDllSha256)
+    Write-Output ("Internal Bannerlord manifest version: " + $latestManifest + " (historical)")
+    Write-Output "Download the ZIP from the Actions artifact page, then run this installer:"
+    Write-Output '  .\Install-CU-From-Artifact.ps1 -GameRoot "C:\Path\To\Bannerlord" -ArtifactZip "C:\Path\To\Downloaded.zip" -LatestVerified -ReplaceExisting'
+    Write-Output "The latest candidate is not a released or game-tested build."
+}
+
+# Listing works even on a machine where Bannerlord is not installed.
+if ($ShowLatest -or ($PSBoundParameters.Count -eq 0)) {
+    Write-LatestBuild
+    return
+}
+if ($LatestVerified) {
+    if ($ExpectedVersion -ne $latestManifest -or
+        ($ExpectedDllSha256 -and
+         $ExpectedDllSha256.Trim().ToLowerInvariant() -ne $latestDllSha256)) {
+        throw "The selected version/hash conflicts with the latest pinned CI candidate."
+    }
+    $ExpectedVersion = $latestManifest
+    $ExpectedDllSha256 = $latestDllSha256
+    Write-Output ("Selected pinned development build " + $latestLabel +
+        " (CI " + $latestRun + "; game-untested).")
+}
+if ([string]::IsNullOrWhiteSpace($GameRoot) -or
+    [string]::IsNullOrWhiteSpace($ArtifactZip)) {
+    throw "Supply both -GameRoot and -ArtifactZip. Use -ShowLatest to view the pinned build and download URL."
+}
 $game = [IO.Path]::GetFullPath($GameRoot)
 $download = [IO.Path]::GetFullPath($ArtifactZip)
 $trustedHash = $ExpectedDllSha256.Trim().ToLowerInvariant()
@@ -91,6 +141,11 @@ try {
         throw "Installed DLL does not match the selected CI SHA-256."
     }
     Write-Output ("INSTALL PASS: " + $destination)
+    if ($LatestVerified) {
+        Write-Output ("Installed selected development candidate: " + $latestLabel)
+        Write-Output ("Verified Windows CI run: " + $latestRun)
+        Write-Output "Game runtime acceptance: NOT TESTED"
+    }
     Write-Output ("Manifest version: " + $manifest.Module.Version.value)
     Write-Output ("Installed DLL SHA256: " + $actual)
     if ($trustedHash) {
