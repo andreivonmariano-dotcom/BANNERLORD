@@ -497,6 +497,32 @@ internal static class Program
             newPetition.Status=="ClanHeadConsents" &&
             newPetition.Complete(true)=="native_grant_confirmed" &&
             newPetition.Status=="NativeGrantCompleted");
+        var mediationState=new SandboxInheritanceNegotiationState();
+        mediationState.Petition("ClaimContested",
+            "castle_s","head","clan","KindredCouncil",100);
+        Check("real cultural family mediation needs native money and court",
+            SandboxInheritanceNegotiationPolicy
+                .FamilySettlementContribution("empire")==700 &&
+            SandboxInheritanceNegotiationPolicy
+                .FamilySettlementContribution("battania")==250 &&
+            SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",0,true,true,true,500,"battania") &&
+            !SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",0,false,true,true,500,"battania") &&
+            !SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",2,true,true,true,500,"battania") &&
+            mediationState.RecordMediation() &&
+            mediationState.Mediations==1 &&
+            SandboxInheritanceNegotiationState.Parse(
+                mediationState.Serialize()).Mediations==1);
+        Check("withdrawal closes a disputed family grant permanently",
+            mediationState.Withdraw()=="ClaimWithdrawn" &&
+            !mediationState.Authorized &&
+            mediationState.Petition("ClanHeadConsents",
+                "castle_s","head","clan","KindredCouncil",110)==
+                "PetitionLimitReached" &&
+            SandboxInheritanceNegotiationState.Parse(
+                mediationState.Serialize()).Status=="ClaimWithdrawn");
         var affairsStress=SandboxLivingAffairsSimulation.Run(120,730);
         Console.WriteLine("LIVING AFFAIRS SIMULATION "+
             (affairsStress.Failures==0?"PASS":"FAIL")+

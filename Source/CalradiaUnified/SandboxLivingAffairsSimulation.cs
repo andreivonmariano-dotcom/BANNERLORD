@@ -107,6 +107,33 @@ namespace CalradiaUnified
                         if(status=="ClanHeadConsents")r.AuthorizedClaims++;
                         else if(status=="ClaimContested")r.ContestedClaims++;
                         else r.RefusedClaims++;
+                        if(status=="ClaimContested")
+                        {
+                            int fee=SandboxInheritanceNegotiationPolicy
+                                .FamilySettlementContribution(culture);
+                            bool eligible=SandboxInheritanceNegotiationPolicy
+                                .MediationGate(status,claim.Mediations,true,
+                                    true,true,gold,culture);
+                            Check(r,fee>0 && eligible,
+                                "cultural mediation not available");
+                            if(eligible)
+                            {
+                                gold-=fee;aidTotal+=fee;
+                                Check(r,claim.RecordMediation() &&
+                                    claim.Mediations==1,
+                                    "mediation payment not recorded");
+                            }
+                            if(seed%4==0)
+                            {
+                                Check(r,claim.Withdraw()=="ClaimWithdrawn" &&
+                                    !claim.Authorized &&
+                                    claim.Petition("ClanHeadConsents",
+                                        "castle_secondary","clan_head",
+                                        "birth_house",model,
+                                        requests.Day)=="PetitionLimitReached",
+                                    "withdrawn dispute reopens");
+                            }
+                        }
                         Check(r,status=="ClanHeadConsents" ==
                             (fatherDeceased && relation>=needed),
                             "regional consent threshold mismatch");

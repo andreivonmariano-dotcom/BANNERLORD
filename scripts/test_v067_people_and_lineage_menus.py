@@ -34,6 +34,16 @@ assert '"cu_people_decline"' in menu
 assert '"cu_family_claim_review"' in menu
 assert '"cu_family_petition"' in menu
 assert '"cu_family_grant"' in menu
+assert '"cu_family_mediation"' in menu
+assert '"cu_family_withdraw"' in menu
+assert 'OfferFamilyMediation()' in menu
+assert 'WithdrawFamilyClaim()' in menu
+assert 'SandboxInheritanceNegotiationPolicy.MediationGate(' in menu
+assert 'SandboxInheritanceNegotiationPolicy.MayWithdraw(' in menu
+assert 'GiveGoldAction.ApplyBetweenCharacters(' in menu
+assert 'inheritanceNegotiation.RecordMediation()' in menu
+assert 'CU_NEGOTIATION_2' in state
+assert 'CU_NEGOTIATION_1' in state
 assert 'GameMenu.SwitchToMenu(affairsReturnMenu)' in menu
 assert 'ScreenManager.PushScreen' not in menu
 assert 'Gauntlet' not in menu
