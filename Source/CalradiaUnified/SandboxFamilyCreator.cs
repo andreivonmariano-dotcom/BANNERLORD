@@ -305,9 +305,10 @@ namespace CalradiaUnified
                     // Never activate an underage native Hero.
                     if (!child.IsChild)
                     {
-                        child.SetNewOccupation(
-                            profile.MercenaryGuidedStart?
-                            Occupation.Wanderer:Occupation.Lord);
+                        if(profile.MercenaryGuidedStart)
+                            child.SetNewOccupation(Occupation.Wanderer);
+                        else
+                            child.SetNewOccupation(Occupation.Lord);
                         if (child.IsNotSpawned)
                             child.ChangeState(Hero.CharacterStates.Active);
                         if (!child.IsActive)
