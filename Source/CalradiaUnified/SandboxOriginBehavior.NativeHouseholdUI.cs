@@ -263,6 +263,14 @@ namespace CalradiaUnified
                     "\nStanding with lord: "+(patron==null?
                         "unknown":player.GetRelation(patron).ToString())+
                     " | Escort: "+knightEscort.Status+
+                    "\nPersonal standing: "+
+                    knightServiceOrders.PersonalStanding()+
+                    " | Service orders completed: "+
+                    knightServiceOrders.CompletedOrders+
+                    "\nCurrent order: "+knightServiceOrders.Status+
+                    (knightServiceOrders.Active?
+                        " ("+knightServiceOrders.Order+
+                        ", deadline day "+knightServiceOrders.DueDay+")":"")+
                     "\nYour household remains independent.";
             }
             else if(lordInheritance.IsRecorded)
