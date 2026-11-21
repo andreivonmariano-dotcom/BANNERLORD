@@ -61,12 +61,12 @@ internal static class Program
                 .Serialize()==losses.Serialize() &&
             SandboxBattleHistoryState.Parse(losses.Serialize())
                 .Entries[0].WoundedHeroIds=="hero_companion_a,hero_companion_b");
-        string oldBattle="CU_BATTLE_HISTORY_1\\n"+woundKey+
+        string oldBattle="CU_BATTLE_HISTORY_1\n"+woundKey+
             "|21|Field|Victory|PlayerParty|||";
         var migrated=SandboxBattleHistoryState.Parse(oldBattle);
         Check("v072 battle saves migrate with unknown casualty counts",
             migrated.Entries.Count==0 || migrated.Entries[0].PartyDead==-1);
-        string validOld="CU_BATTLE_HISTORY_1\\n"+woundKey+
+        string validOld="CU_BATTLE_HISTORY_1\n"+woundKey+
             "|21|Field|Victory|PlayerParty||";
         migrated=SandboxBattleHistoryState.Parse(validOld);
         Check("valid legacy saved battle migrates without false casualties",
