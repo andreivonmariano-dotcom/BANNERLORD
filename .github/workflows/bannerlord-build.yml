@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress native Mercenary company identity, kingdom oath and family safety
+        shell: pwsh
+        run: python scripts/test_v070d_native_mercenary_company_contract.py
       - name: Regress new Outlaw paid native band, real fourteen-day wages and food
         shell: pwsh
         run: python scripts/test_v070c_outlaw_paid_band_and_payroll.py
