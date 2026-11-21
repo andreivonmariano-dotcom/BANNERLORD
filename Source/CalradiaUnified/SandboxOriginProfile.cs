@@ -15,10 +15,12 @@ namespace CalradiaUnified
     {
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
+        // The first three are reviewed new-game life paths. Legacy
+        // entries remain selectable until each later path is rebuilt.
         public static readonly string[] Roles =
-            { "Wanderer", "Recruit", "Soldier", "Mercenary", "HouseholdKnight",
-              "Knight", "NobleCadet", "Lord", "King", "Admiral",
-              "Trader", "Outlaw", "Beggar" };
+            { "Wanderer", "Outlaw", "Mercenary", "Recruit", "Soldier",
+              "HouseholdKnight", "Knight", "NobleCadet", "Lord",
+              "King", "Admiral", "Trader", "Beggar" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
