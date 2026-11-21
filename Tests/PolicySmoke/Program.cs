@@ -48,6 +48,143 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
+        Check("guided King requires exact native crown and player clan",
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,false,true,false,1)=="" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "vassal","vlandia","vlandia",
+                true,true,true,false,true,false,1)==
+                    "not_native_king_start" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","battania",
+                true,true,true,false,true,false,1)==
+                    "royal_kingdom_mismatch" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,false,false,true,false,1)==
+                    "not_real_kingdom_ruling_clan");
+        Check("guided King refuses shadow ruler and fabricated royal estate",
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                false,true,true,false,true,false,1)==
+                    "not_native_ruling_clan_head" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,false,true,false,true,false,1)==
+                    "royal_main_party_not_commanded" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,true,true,false,1)==
+                    "royal_clan_marked_mercenary" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,false,true,false,0)==
+                    "royal_native_fief_missing");
+        Check("guided King court requires actual Marshal and Chamberlain",
+            SandboxKingStartPolicy.CourtOffices.SequenceEqual(
+                new[]{"Marshal","Chamberlain"}) &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,true,true,true,true,true,true)=="" &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=1|native_companions_dismissed=1|same_culture=true",
+                2,true,true,true,true,true,true)==
+                    "native_royal_court_receipt_missing" &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,true,true,true,true,true,false)==
+                    "native_royal_court_unverified");
+        var king=new SandboxOriginProfile();
+        king.Role="King";
+        king.KingGuidedStart=true;
+        king.StartingKingdomId="vlandia";
+        king.RetinueMode="RoleBased";
+        Check("guided King allows unmarried childless ruler",
+            king.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(king.Serialize())
+                .KingGuidedStart &&
+            SandboxNativeTypeForPolicy("King")=="king");
+        king.StartingFiefMode="Castle";
+        king.AllowStartingFiefTransfer=true;
+        Check("guided King refuses arbitrary donor castle",
+            !king.IsValid(30,out _));
+        king.StartingFiefMode="Native";
+        king.AllowStartingFiefTransfer=false;
+        king.Gold=500000;
+        Check("guided King refuses invented royal treasury",
+            !king.IsValid(30,out _));
+        king.Gold=-1;
+        king.NobleBirthPosition="YoungerBrotherOfKing";
+        Check("guided King refuses decorative royal elder lineage",
+            !king.IsValid(30,out _));
+        king.NobleBirthPosition="Independent";
+        king.SiblingCount=1;
+        king.Siblings[0].Age=36;
+        king.Siblings[0].Gender="Male";
+        Check("guided King rejects older founding brother",
+            !king.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                king,30)=="founding_king_older_brother");
+        king.Siblings[0].Gender="Female";
+        Check("guided King permits older sister with actual family",
+            king.IsValid(30,out _));
+        Check("guided King supports two safe child priority customs",
+            king.TrySet("KingSuccessionRule","MalePreference") &&
+            king.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(king.Serialize())
+                .KingSuccessionRule=="MalePreference" &&
+            !SandboxKingStartPolicy.CanAppointNativeRuler() &&
+            !SandboxKingStartPolicy.CanGrantNativeFief() &&
+            !SandboxKingStartPolicy.CanInstallRegent());
+        var kingClaims=new SandboxKingSuccessionState();
+        Check("King save-backed claims allow no spouse and no children",
+            kingClaims.Begin("founder","house","vlandia",
+                "EldestChild",
+                new SandboxLordSuccessionPolicy.Candidate[0],100)==
+                    "native_royal_household_recorded" &&
+            kingClaims.IsRecorded &&
+            kingClaims.PreferredHeirId=="" &&
+            kingClaims.Status=="NativeReignNoChildClaim" &&
+            SandboxKingSuccessionState.Parse(
+                kingClaims.Serialize()).Serialize()==
+                kingClaims.Serialize());
+        var daughter=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter",22,true,0,true,true,true);
+        var son=new SandboxLordSuccessionPolicy.Candidate(
+            "son",17,false,1,true,true,true);
+        Check("King native claims record observed daughter heir",
+            kingClaims.Observe(101,true,"house","founder",
+                new[]{daughter,son})==
+                    "native_crown_observation_changed" &&
+            kingClaims.PreferredHeirId=="daughter" &&
+            kingClaims.Status=="NativeReignHouseholdClaimOnly");
+        Check("King cannot invent automatic regency on death",
+            kingClaims.Observe(102,false,"other_house","other_ruler",
+                new[]{son})=="native_crown_observation_changed" &&
+            kingClaims.Status=="MinorRoyalClaimNativeDecisionPending" &&
+            kingClaims.PreferredHeirId=="son");
+        Check("King records genuine native heir only if crown actually changes",
+            kingClaims.Observe(103,false,"house","daughter",
+                new[]{daughter,son})==
+                    "native_crown_observation_changed" &&
+            kingClaims.Status=="NativeRoyalHeirObserved" &&
+            kingClaims.ActualRulerId=="daughter");
+        Check("King succession refuses corrupt save and backward time",
+            !SandboxKingSuccessionState.Parse(
+                "CU_KING_CLAIMS_1\ninvalid").IsRecorded &&
+            kingClaims.Observe(1,false,"house","daughter",
+                new[]{son})=="invalid_observation_day");
+        king.ResetForNewCampaign();
+        Check("new King profile clears new crown and succession settings",
+            !king.KingGuidedStart &&
+            king.KingSuccessionRule=="EldestChild" &&
+            king.Role=="King");
+        Check("historical King save keeps legacy no-crown-validation profile",
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=King\n"+
+                "StartingFiefMode=Castle\nGold=150000\n")
+                .KingGuidedStart);
         Check("guided Lord true native vassal contract only",
             SandboxLordStartPolicy.ValidateNativeHouse(
                 "vassal","vlandia","vlandia",
