@@ -429,6 +429,7 @@ namespace CalradiaUnified
             RegisterPeopleAndLineageMenus(starter);
             RegisterKnightOathMenus(starter);
             RegisterKnightPatronConversations(starter);
+            RegisterNobleOfficerConversations(starter);
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
