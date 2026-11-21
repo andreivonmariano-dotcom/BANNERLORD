@@ -241,7 +241,7 @@ namespace CalradiaUnified
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SiblingCount",
                     "Brothers and sisters",
-                    "Choose 0 to 4 family members. An older brother created here does not become an existing lord, receive a fief, or lead a separate clan.",
+                    "Choose 0 to 4 family members. An older brother created here does not become an existing lord, receive a fief, or lead a separate clan. Independent Lord starts cannot include an older brother.",
                     "number",min:0,max:SandboxOriginProfile.MaxSiblings));
                 for(int i=1;i<=SandboxOriginProfile.MaxSiblings;i++)
                 {
@@ -518,6 +518,26 @@ namespace CalradiaUnified
                     return false;
                 }
             }
+            // An Independent Lord cannot add an older brother. Reject the
+            // edit before it enters the saved House draft, but allow an
+            // older sister or a younger brother. The native clan leader
+            // does not change merely because a sibling is created.
+            if(!preCampaign &&
+                (key=="NobleBirthPosition" || key=="SiblingCount" ||
+                 key.StartsWith("Sibling.",StringComparison.Ordinal)))
+            {
+                int olderBrother=SandboxHouseholdLineagePolicy
+                    .FirstOlderBrotherInIndependentLordHouse(
+                        copy,ActualFounderAge);
+                if(olderBrother>0)
+                {
+                    Report("Independent Lord: sibling "+olderBrother+
+                        " cannot be an older brother. Set his age to "+
+                        ActualFounderAge+" or younger, choose Female, or "+
+                        "choose a different noble birth.");
+                    return false;
+                }
+            }
             // Conditional children, kingdom and fief fields can enter
             // or leave the list after this selection. Preserve this
             // field's KEY, not its old numeric cursor, so Back/Continue
@@ -736,6 +756,25 @@ namespace CalradiaUnified
             }
             var hero=Hero.MainHero;
             int actualAge=hero==null?30:(int)hero.Age;
+            // Old profiles can contain sibling choices that predate the
+            // editor guard. Refuse them here, without losing the draft,
+            // and open the exact advanced sibling-age field for repair.
+            int olderBrother=SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    candidate,actualAge);
+            if(olderBrother>0)
+            {
+                advanced=true;
+                int siblingStep=Array.FindIndex(Visible,
+                    field=>field.Key=="Sibling."+olderBrother+".Age");
+                if(siblingStep>=0)cursor=siblingStep;
+                Report("Independent Lord: sibling "+olderBrother+
+                    " is an older brother. Change his age to "+
+                    actualAge+" or younger, or choose Female. "+
+                    "The rest of your household stays unchanged.");
+                Refresh();
+                return;
+            }
             if(!candidate.IsValid(actualAge,out error))
             {
                 Report("Family and age: "+error);
@@ -858,9 +897,27 @@ namespace CalradiaUnified
                         (profile.SiblingCount==0?"none":String.Join(", ",
                             profile.Siblings.Take(profile.SiblingCount)
                                 .Select(x=>x.Name+" ("+x.Age+")"))) +
-                        ". They may be older than you, but none is "+
-                        "automatically your lord or a clan leader. "+
+                        ". None automatically becomes your clan leader. "+
+                        (profile.Role=="Lord" &&
+                         profile.NobleBirthPosition=="Independent" ?
+                         "Independent Lord requires you to be the eldest "+
+                         "brother. Older sisters and younger brothers "+
+                         "are allowed. " :
+                         "Older siblings are allowed for this origin. ")+
                         "Edit names and ages in Advanced.";
+                if(!preCampaign && profile.Role=="Lord" &&
+                    profile.NobleBirthPosition=="Independent" &&
+                    Current.Key.StartsWith("Sibling.",
+                        StringComparison.Ordinal) &&
+                    (Current.Key.EndsWith(".Age",
+                        StringComparison.Ordinal) ||
+                     Current.Key.EndsWith(".Gender",
+                        StringComparison.Ordinal)))
+                    return "Independent Lord: you are the eldest "+
+                        "brother. An older sister is allowed, but a "+
+                        "brother cannot be older than your age ("+
+                        ActualFounderAge+"). This does not change "+
+                        "native clan leadership.";
                 if(IsChildAge)return "Allowed age: 0 to "+
                     EffectiveMaximum(Current)+" years. Your age: "+
                     ActualFounderAge+". Spouse age: "+profile.SpouseAge+
