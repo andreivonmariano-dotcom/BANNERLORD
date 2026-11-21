@@ -78,6 +78,12 @@ namespace CalradiaUnified
                 oldest=Math.Max(oldest,(int)existing[0].Age);
             if(missing>0)
                 oldest=Math.Max(oldest,(int)player.Age+missing*2);
+            bool needsBirthResidence=missing>0 ||
+                p.Siblings.Take(p.SiblingCount).Any(x=>
+                    x.Age>player.Age);
+            if(needsBirthResidence &&
+                !SandboxBirthHouseholdPlacement.CanPlace(father))
+                return false;
             return father.Age>=oldest+16 && mother.Age>=oldest+16;
         }
 
