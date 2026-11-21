@@ -282,6 +282,147 @@ internal static class Program
         guidedOutlaw.ResetForNewCampaign();
         Check("Outlaw starter grants do not bleed into next campaign",
             !guidedOutlaw.OutlawGuidedStart);
+        var newSoldier=new SandboxOriginProfile();
+        Check("fourth guided start is real soldier, not mercenary",
+            SandboxOriginProfile.Roles[3]=="Soldier" &&
+            newSoldier.TrySet("Role","Soldier") &&
+            newSoldier.TrySet("SoldierGuidedStart","true") &&
+            newSoldier.TrySet("StartingKingdomId","vlandia") &&
+            newSoldier.TrySet("RetinueMode","FamilyOnly") &&
+            newSoldier.TrySet("FamilyHomeMode","None") &&
+            newSoldier.TrySet("SoldierEntryRank","Sergeant") &&
+            newSoldier.IsValid(32,out _) &&
+            !newSoldier.TrySet("SoldierEntryRank","General") &&
+            SandboxRoleConsistencyPolicy.NativeType("Soldier")==
+                "mercenary" &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Sergeant")=="sergeant");
+        Check("guided Soldier has exactly three starting grade choices",
+            SandboxSoldierEnlistmentPolicy.EntryChoices.SequenceEqual(
+                new[]{"Recruit","Sergeant","Captain"}) &&
+            SandboxSoldierEnlistmentPolicy.NativeRankIds.Length==7 &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Recruit")=="private" &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Captain")=="captain" &&
+            SandboxSoldierEnlistmentPolicy.NativeRankNumber("private")==1 &&
+            SandboxSoldierEnlistmentPolicy
+                .NativeRankNumber("sergeant")==4 &&
+            SandboxSoldierEnlistmentPolicy
+                .NativeRankNumber("captain")==6 &&
+            SandboxSoldierEnlistmentPolicy.NativeRankNumber("fake")==0);
+        Check("native soldier ranks only progress through SaS observations",
+            SandboxSoldierEnlistmentPolicy.CareerStage("private")==
+                "Recruit" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("corporal")==
+                "Recruit" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("sergeant")==
+                "Sergeant" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("veteran")==
+                "Sergeant" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("captain")==
+                "Captain" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("champion")==
+                "Captain" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("fake")==
+                "Unverified");
+        Check("soldier must begin as independent non-mercenary commoner",
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "",false,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "mercenary",false,false,false)==
+                    "not_independent_native_start" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",true,false,false)==
+                    "native_clan_not_independent" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,true,false)==
+                    "native_clan_not_independent" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,false,true)==
+                    "native_clan_not_independent");
+        Check("real soldier needs live SaS service and an actual lord party",
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "private",true,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                false,true,"vlandia","","lord01","vlandia",
+                "private",true,false,false)==
+                    "service_provider_unavailable" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,false,"vlandia","","lord01","vlandia",
+                "private",true,false,false)==
+                    "native_enlistment_not_observed" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","","vlandia",
+                "private",true,false,false)==
+                    "native_commanding_lord_or_party_missing" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "private",false,false,false)==
+                    "native_commanding_lord_or_party_missing");
+        Check("soldier must match real lord, kingdom and grade",
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","lord01","lord01","vlandia",
+                "sergeant",true,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","sturgia",
+                "sergeant",true,false,false)==
+                    "native_commander_kingdom_mismatch" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","lord02","lord01","vlandia",
+                "sergeant",true,false,false)==
+                    "different_native_commanding_lord" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "fictitious",true,false,false)==
+                    "native_rank_not_recognized" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "captain",true,true,false)==
+                    "enlisted_person_misclassified_as_landed_company" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank(
+                "Sergeant","sergeant")=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank(
+                "Sergeant","private")==
+                    "actual_rank_differs_from_selected_entry");
+        Check("service promotions are observed, never granted by role",
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","sergeant")=="native_promotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "sergeant","captain")=="native_promotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "captain","sergeant")=="native_demotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","private")=="native_rank_unchanged" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "","private")=="initial_native_rank_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","fake")=="rank_not_verified");
+        Check("guided soldier cannot invent a fief stipend or rank",
+            newSoldier.TrySet("Troops","8") &&
+            !newSoldier.IsValid(30,out _) &&
+            newSoldier.TrySet("Troops","0") &&
+            newSoldier.TrySet("Gold","1000") &&
+            !newSoldier.IsValid(30,out _) &&
+            newSoldier.TrySet("Gold","-1") &&
+            newSoldier.IsValid(30,out _) &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("EnlistedSoldier")==
+                "ExternalEnlistedSoldierWage" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("EnlistedSoldier",
+                true,false,false,false,false)==
+                    "ExternalEnlistmentVerified");
+        Check("Soldier startup profile flags roundtrip and reset",
+            SandboxOriginProfile.Parse(newSoldier.Serialize())
+                .SoldierGuidedStart &&
+            SandboxOriginProfile.Parse(newSoldier.Serialize())
+                .SoldierEntryRank=="Sergeant");
+        newSoldier.ResetForNewCampaign();
+        Check("Soldier old save semantics remain opt-in only",
+            !newSoldier.SoldierGuidedStart &&
+            newSoldier.SoldierEntryRank=="Recruit");
         var guidedMercenary=new SandboxOriginProfile();
         Check("Mercenary is distinct from the legacy Soldier start",
             guidedMercenary.TrySet("Role","Mercenary") &&
