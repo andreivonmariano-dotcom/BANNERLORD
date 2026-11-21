@@ -112,7 +112,7 @@ namespace CalradiaUnified
                     choices:SandboxOriginProfile.Scenarios));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","ScenarioFaction1",
                     "First scenario faction",
-                    "Select the native unifier or invasion faction.",
+                    "Select the first kingdom for United Empire, Last Stand, Invasion or Two-Faction War.",
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","ScenarioFaction2",
                     "Second scenario faction",
@@ -294,7 +294,8 @@ namespace CalradiaUnified
             if(key=="ScenarioFaction1")
                 return profile.StartingScenario=="LastStand" ||
                     profile.StartingScenario=="InvasionId" ||
-                    profile.StartingScenario=="unitedempire";
+                    profile.StartingScenario=="unitedempire" ||
+                    profile.StartingScenario=="twofactionwar";
             if(key=="ScenarioFaction2")
                 return profile.StartingScenario=="twofactionwar";
             if(key=="ScenarioVariant")

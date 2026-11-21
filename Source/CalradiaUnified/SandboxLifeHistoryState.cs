@@ -70,7 +70,9 @@ namespace CalradiaUnified
         {
             if(String.IsNullOrWhiteSpace(kind) ||
                 String.IsNullOrWhiteSpace(actor))return false;
-            if(Events.Count>=MaxEvents)return false;
+            // Keep the MOST RECENT observed campaign events, not only
+            // the first ninety-six events after a long campaign begins.
+            if(Events.Count>=MaxEvents)Events.RemoveAt(0);
             Events.Add(new Event{Kind=kind,Actor=actor,
                 Target=target??"",Detail=detail??""});
             return true;

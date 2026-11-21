@@ -299,7 +299,15 @@ namespace CalradiaUnified
                     officer.Culture=player.Culture;
                     officer.SetBirthDay(CampaignTime.YearsFromNow(
                         -(27+i*3)));
-                    officer.SetNewOccupation(Occupation.Lord);
+                    // A trade factor, sergeant or navigator does not
+                    // become a landed LORD merely by joining a party.
+                    // Preserve native lord occupation for a noble
+                    // household's appointed mounted combat officer.
+                    bool nobleFieldOffice=(profile.Role=="King" ||
+                        profile.Role=="Lord" || profile.Role=="Knight") &&
+                        SandboxRetinueOfficePolicy.IsFieldOfficer(offices[i]);
+                    officer.SetNewOccupation(nobleFieldOffice?
+                        Occupation.Lord:Occupation.Wanderer);
                     if(!officer.IsActive)
                         officer.ChangeState(Hero.CharacterStates.Active);
                     EquipFromNativeDonor(officer,sources[i],offices[i]);
@@ -364,6 +372,7 @@ namespace CalradiaUnified
                         "|style="+SandboxRetinueCulturePolicy.GearStyle(
                             player.Culture.StringId,offices[i])+
                         "|duty="+duty+
+                        "|native_occupation="+officer.Occupation+
                         "|clan_companion=true"+
                         "|party_member=true");
                 }

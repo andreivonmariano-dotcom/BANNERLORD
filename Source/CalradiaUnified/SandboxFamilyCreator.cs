@@ -349,6 +349,14 @@ namespace CalradiaUnified
                         throw new InvalidOperationException(
                             "Sibling culture not found");
                     sibling.Culture=siblingCulture;
+                    // Merchant, soldier and wandering families do not
+                    // automatically become titled lords. Native spouse
+                    // marriage setup separately retains game requirements.
+                    if(!birthHouseholdHeir &&
+                        profile.Role!="King" &&
+                        profile.Role!="Lord" &&
+                        profile.Role!="Knight")
+                        sibling.SetNewOccupation(Occupation.Wanderer);
                     if (sibling.Father != null &&
                         !sibling.Father.Children.Contains(sibling))
                         sibling.Father.Children.Add(sibling);
