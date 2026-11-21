@@ -659,10 +659,15 @@ namespace CalradiaUnified
                             copy,ActualFounderAge);
                 if(olderBrother>0)
                 {
-                    Report("Founding house: sibling "+olderBrother+
-                        " cannot be an older brother. Set his age to "+
-                        ActualFounderAge+" or younger, choose Female, or "+
-                        "choose a different noble birth.");
+                    if(copy.KnightGuidedStart)
+                        Report("Sworn Knight: sibling "+olderBrother+
+                            " cannot be an older brother. Set age to "+
+                            ActualFounderAge+" or younger, or Female.");
+                    else
+                        Report("Independent Lord: sibling "+olderBrother+
+                            " cannot be an older brother. Set his age to "+
+                            ActualFounderAge+" or younger, choose Female, or "+
+                            "choose a different noble birth.");
                     return false;
                 }
             }
