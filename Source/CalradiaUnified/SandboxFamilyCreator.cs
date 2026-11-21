@@ -113,6 +113,10 @@ namespace CalradiaUnified
             Hero spouseHero = null;
             int madeChildren=0;
             int madeSiblings=0;
+            // Track even a newly allocated child whose post-create setup
+            // fails before the successful child counter increments.
+            var allocatedChildren=new List<Hero>();
+            var provisionalSiblings=new List<Hero>();
             try
             {
                 if (profile.SpouseEnabled)
@@ -237,6 +241,7 @@ namespace CalradiaUnified
                     if (child == null)
                         throw new InvalidOperationException(
                             "Native CreateChild returned null");
+                    allocatedChildren.Add(child);
                     child.SetName(new TextObject(childProfile.Name),
                         new TextObject(childProfile.Name));
                     // Native CreateChild can use the template birthday.
@@ -342,6 +347,7 @@ namespace CalradiaUnified
                     Hero sibling=Create(siblingTemplates[i],siblingProfile.Name,
                         siblingProfile.Age,birthHouseholdResident?
                         player.Father.Clan:null);
+                    provisionalSiblings.Add(sibling);
                     sibling.Father=player.Father;
                     sibling.Mother=player.Mother;
                     var siblingCulture=ResolveCulture(player,
@@ -410,6 +416,7 @@ namespace CalradiaUnified
                         throw new InvalidOperationException(
                             "Sibling missing shared native parent references");
                     madeSiblings++;
+                    provisionalSiblings.Remove(sibling);
                     DiagnosticJournal.Event("cu_family_sibling_created",
                         "id="+sibling.StringId+
                         "|father="+sibling.Father.StringId+
@@ -448,12 +455,27 @@ namespace CalradiaUnified
                 // a castle, leaving the user with no spouse and no children.
                 // Compensate ONLY while both spouse references are absent and
                 // no child has been created. Do not undo a real marriage.
-                string cleanup = "not_required";
-                if (spouseHero != null && madeChildren == 0 &&
-                    player.Spouse != spouseHero && spouseHero.Spouse != player)
-                    cleanup = CleanupUnmarriedGeneratedSpouse(spouseHero);
+                string cleanup = "native_relationship_preserved";
+                if (spouseHero != null &&
+                    SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(
+                        player.Spouse == spouseHero ||
+                        spouseHero.Spouse == player,
+                        allocatedChildren.Count,
+                        spouseHero.Children!=null &&
+                        spouseHero.Children.Count>0))
+                    cleanup = CleanupProvisionalHero(spouseHero,player);
+                int cleanedUnlinkedSiblings=0;
+                foreach(var incompleteSibling in provisionalSiblings)
+                {
+                    if(CleanupProvisionalHero(incompleteSibling,player)
+                        =="disabled_uncommitted_hero")
+                        cleanedUnlinkedSiblings++;
+                }
                 DiagnosticJournal.Event("cu_family_partial_result",
                     "cleanup=" + cleanup +
+                    "|allocated_children=" + allocatedChildren.Count +
+                    "|provisional_siblings_cleaned=" +
+                        cleanedUnlinkedSiblings +
                     "|spouse_hero_created=" + (spouseHero != null) +
                     "|married=" + (player.Spouse == spouseHero && spouseHero != null) +
                     "|created_children=" + madeChildren +
@@ -527,6 +549,8 @@ namespace CalradiaUnified
                 .ToList();
             if(father!=null)reservedNames.Add(father.Name.ToString());
             if(mother!=null)reservedNames.Add(mother.Name.ToString());
+            Hero newFather=null;
+            Hero newMother=null;
             try
             {
                 if(father==null)
@@ -534,6 +558,7 @@ namespace CalradiaUnified
                     father=Create(fatherTemplate,SandboxCulturalNames.Suggest(
                         player.Culture.StringId,false,7,
                         reservedNames),fatherAge);
+                    newFather=father;
                     father.Culture=player.Culture;
                     reservedNames.Add(father.Name.ToString());
                 }
@@ -542,10 +567,12 @@ namespace CalradiaUnified
                     mother=Create(motherTemplate,SandboxCulturalNames.Suggest(
                         player.Culture.StringId,true,7,reservedNames),
                         motherAge);
+                    newMother=mother;
                     mother.Culture=player.Culture;
                 }
                 if(father==mother)
-                    return "refused:identical_native_parents";
+                    throw new InvalidOperationException(
+                        "Native parents must be different Heroes");
                 if(player.Father==null)player.Father=father;
                 if(player.Mother==null)player.Mother=mother;
                 if(!father.Children.Contains(player))
@@ -555,7 +582,8 @@ namespace CalradiaUnified
                 if(player.Father!=father || player.Mother!=mother ||
                    !father.Children.Contains(player) ||
                    !mother.Children.Contains(player))
-                    return "failed:player_parent_links_incomplete";
+                    throw new InvalidOperationException(
+                        "Native player parent links are incomplete");
                 DiagnosticJournal.Event("cu_sibling_parents_created",
                     "father="+father.StringId+
                     "|mother="+mother.StringId+
@@ -568,8 +596,19 @@ namespace CalradiaUnified
             }
             catch(Exception e)
             {
+                // A native player parent is protected as soon as the real
+                // parentage exists. Only fresh, unattached staging Heroes
+                // can be disabled. Never rewrite an existing parent.
+                string fatherCleanup=CleanupProvisionalHero(
+                    newFather,player);
+                string motherCleanup=CleanupProvisionalHero(
+                    newMother,player);
                 DiagnosticJournal.Exception(
                     "cu_sibling_native_parents_failed",e);
+                DiagnosticJournal.Event(
+                    "cu_sibling_parent_partial_cleanup",
+                    "father="+fatherCleanup+"|mother="+motherCleanup+
+                    "|native_parentage_preserved=true");
                 return "failed:parent_creation_"+e.GetType().Name;
             }
         }
@@ -577,10 +616,13 @@ namespace CalradiaUnified
         private static Hero Create(CharacterObject source,string name,int age,
             Clan originClan=null)
         {
-            var result=HeroCreator.CreateSpecialHero(source,null,
-                originClan ?? Clan.PlayerClan,null,age);
-            if (result == null)
-                throw new InvalidOperationException("HeroCreator returned null");
+            Hero result=null;
+            try
+            {
+                result=HeroCreator.CreateSpecialHero(source,null,
+                    originClan ?? Clan.PlayerClan,null,age);
+                if(result==null)
+                    throw new InvalidOperationException("HeroCreator returned null");
             result.SetName(new TextObject(name),new TextObject(name));
             // The native factory can override an explicitly passed age
             // for a wanderer-derived donor template. Setting the NEW
@@ -614,39 +656,66 @@ namespace CalradiaUnified
                     "|clan=" + (result.Clan == null ?
                         "none" : result.Clan.StringId));
             }
-            return result;
+                return result;
+            }
+            catch(Exception error)
+            {
+                // Native factory allocation can succeed before a birthday,
+                // occupation or activation setter fails. Reclaim only an
+                // unlinked fresh Hero, never a related native person.
+                string cleanup=CleanupProvisionalHero(result,Hero.MainHero);
+                DiagnosticJournal.Event("cu_family_factory_failure",
+                    "stage=post_native_create"+
+                    "|cleanup="+cleanup+"|error="+error.GetType().Name);
+                throw;
+            }
         }
 
-        private static string CleanupUnmarriedGeneratedSpouse(Hero spouse)
+        private static string CleanupProvisionalHero(Hero person,Hero player)
         {
+            if(person==null)return "not_allocated";
+            bool linkedToPlayer=player!=null &&
+                (person==player || player.Father==person ||
+                 player.Mother==person || player.Spouse==person ||
+                 (player.Children!=null &&
+                  player.Children.Contains(person)));
+            bool inParty=person.PartyBelongedTo!=null ||
+                person.PartyBelongedToAsPrisoner!=null;
+            bool inSettlement=person.StayingInSettlement!=null ||
+                person.CurrentSettlement!=null;
+            if(!SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,person.Spouse!=null,
+                person.Children!=null && person.Children.Count>0,
+                inParty,person.CompanionOf!=null,inSettlement,
+                linkedToPlayer))
+                return "preserved_native_references";
             try
             {
-                if (spouse.Spouse != null)
-                    return "refused:hero_has_spouse";
-                if (spouse.Father != null)
+                if(person.Father!=null)
                 {
-                    spouse.Father.Children.Remove(spouse);
-                    spouse.Father = null;
+                    person.Father.Children.Remove(person);
+                    person.Father=null;
                 }
-                if (spouse.Mother != null)
+                if(person.Mother!=null)
                 {
-                    spouse.Mother.Children.Remove(spouse);
-                    spouse.Mother = null;
+                    person.Mother.Children.Remove(person);
+                    person.Mother=null;
                 }
-                DisableHeroAction.Apply(spouse);
-                spouse.Clan = null;
-                DiagnosticJournal.Event("cu_family_orphan_cleanup",
-                    "hero=" + spouse.StringId +
-                    "|state=" + spouse.HeroState +
-                    "|clan=" + (spouse.Clan == null ?
-                        "none" : spouse.Clan.StringId));
-                return "disabled_unmarried_hero";
+                DisableHeroAction.Apply(person);
+                if(!person.IsDisabled)
+                    return "failed:native_disable_unconfirmed";
+                person.Clan=null;
+                DiagnosticJournal.Event("cu_family_provisional_cleanup",
+                    "hero="+person.StringId+
+                    "|disabled_native=true"+
+                    "|no_family_or_party_references=true");
+                return "disabled_uncommitted_hero";
             }
-            catch (Exception cleanupError)
+            catch(Exception cleanupError)
             {
-                DiagnosticJournal.Exception("cu_family_orphan_cleanup_failed",
-                    cleanupError);
-                return "failed:" + cleanupError.GetType().Name;
+                DiagnosticJournal.Exception(
+                    "cu_family_provisional_cleanup_failed",cleanupError);
+                return "failed:"+cleanupError.GetType().Name;
             }
         }
 
