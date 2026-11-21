@@ -23,6 +23,90 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.71e: grounded petition story arcs and sworn-lord orders.
+        var petitionStory=new SandboxPetitionStoryState();
+        Check("petition stories require actual supported actor/kind",
+            !petitionStory.Begin("","Recognition",1) &&
+            !petitionStory.Begin("actor_1","Invention",1) &&
+            petitionStory.Begin("actor_1","HouseholdAid",1) &&
+            !petitionStory.Begin("actor_1","HouseholdAid",1));
+        Check("petition story refuses unverified monetary support",
+            !petitionStory.Resolve("actor_1",true,2,false,1) &&
+            petitionStory.Resolve("actor_1",true,3,true,2) &&
+            !petitionStory.Resolve("actor_1",true,3,true,2));
+        Check("petitioner returns only after seven native days",
+            !petitionStory.CanFollowUp("actor_1",9) &&
+            petitionStory.CanFollowUp("actor_1",10) &&
+            petitionStory.RecordFollowUp("actor_1",10)==
+                "face_to_face_story_followup_recorded" &&
+            !petitionStory.CanFollowUp("actor_1",11));
+        Check("petition story preserves outcome and one-shot follow-up",
+            SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()).Serialize()==
+                petitionStory.Serialize() &&
+            !SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()).CanFollowUp("actor_1",15) &&
+            !SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()+"|forged")
+                .Stories.Any());
+        var declinedStory=new SandboxPetitionStoryState();
+        Check("declined petition gives a later conversation, not money",
+            declinedStory.Begin("actor_2","Recognition",5) &&
+            declinedStory.Resolve("actor_2",false,6,false,0) &&
+            declinedStory.CanFollowUp("actor_2",13) &&
+            declinedStory.For("actor_2").Outcome=="Declined");
+        var scoutOrder=new SandboxKnightServiceOrderState();
+        Check("scout order is issued by a specific native patron",
+            !scoutOrder.Begin("","Scout",10).Equals(
+                "native_patron_order_accepted") &&
+            scoutOrder.Begin("lord_1","Scout",10)==
+                "native_patron_order_accepted" &&
+            !scoutOrder.CanBegin("lord_1",10));
+        Check("scouting needs two distinct native kingdom towns",
+            scoutOrder.Observe(11,true,"town_a",true)==
+                "native_first_town_scouted" &&
+            scoutOrder.Observe(11,true,"town_b",true)==
+                "not_new_native_day" &&
+            scoutOrder.Observe(12,true,"town_a",true)==
+                "native_scout_evidence_missing" &&
+            scoutOrder.Observe(13,true,"town_b",false)==
+                "native_scout_evidence_missing" &&
+            scoutOrder.Observe(14,true,"town_b",true)==
+                "native_second_town_scouted");
+        Check("scout report requires original in-person patron identity",
+            !scoutOrder.CanReport("lord_2",14,true) &&
+            scoutOrder.Report("lord_1",14,true)==
+                "native_patron_service_report_completed" &&
+            scoutOrder.CompletedOrders==1 &&
+            scoutOrder.PersonalStanding()=="Proven sworn sword" &&
+            scoutOrder.Report("lord_1",14,true)==
+                "unverified_native_service_report");
+        Check("scout service report and rank survive campaign reload",
+            SandboxKnightServiceOrderState.Parse(
+                scoutOrder.Serialize()).Serialize()==
+                scoutOrder.Serialize() &&
+            SandboxKnightServiceOrderState.Parse(
+                scoutOrder.Serialize()).CompletedOrders==1);
+        var musterOrder=new SandboxKnightServiceOrderState();
+        musterOrder.Begin("lord_2","Muster",20);
+        Check("muster requires verified party strength after three days",
+            !musterOrder.CanReport("lord_2",22,true) &&
+            !musterOrder.CanReport("lord_2",23,false) &&
+            musterOrder.CanReport("lord_2",23,true) &&
+            musterOrder.Report("lord_2",23,true)==
+                "native_patron_service_report_completed");
+        var lateOrder=new SandboxKnightServiceOrderState();
+        lateOrder.Begin("lord_3","Scout",5);
+        Check("unreported service order expires exactly once",
+            lateOrder.Expire(19)=="order_not_expired" &&
+            lateOrder.Expire(20)=="native_order_expired" &&
+            lateOrder.Expire(21)=="order_not_expired" &&
+            lateOrder.MissedOrders==1 &&
+            !lateOrder.Active);
+        Check("invalid service orders do not restore as native proof",
+            SandboxKnightServiceOrderState.Parse(
+                lateOrder.Serialize()+"|forged").Status=="Available");
+
         // v0.71c: pure-state tests, independent of a running campaign.
         var offices=new SandboxHouseholdDutyState();
         Check("household offices require a real bounded Hero ID",
