@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Responsive Native UI and 3D Face Dock Trial" />
+  <Name value="Calradia Unified" />
   <Id value="CalradiaUnified" />
   <Version value="v0.38.0" />
   <SingleplayerModule value="true" />
