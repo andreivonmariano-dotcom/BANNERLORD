@@ -46,3 +46,18 @@ The ordinary House screen can create family for Mercenary, but estate and resour
 7. Verify the unchanged existing Soldier legacy profile, Wanderer no-House/optional companion, and Outlaw six-bandit opening reserve.
 
 **Evidence policy:** only native gameplay session logs/screenshots and save/reload can certify actual wages, diplomacy, AI, term and stability. A compiled reference build is necessary but not a gameplay PASS.
+
+
+## Verified automated build for this candidate
+
+**Successful Windows GitHub Actions run:** [44875474209](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44875474209) on source commit `6701bfedbf22fcebdfdfb219b48d559e1390cfc2`.
+
+- New v0.70d Mercenary source regression **PASS**; existing v0.70b Wanderer and v0.70c Outlaw regressions **PASS**.
+- **970 C# independent gameplay policy tests PASS**.
+- **1,441,129** modeled campaign checks and **1,159,206** simulated audit assertions PASS.
+- Actual pinned Bannerlord **v1.5.7.125802** reference compilation: **0 warnings, 0 errors**.
+- [Compiled but untested runtime artifact ID 14695533837](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44875474209/artifacts/14695533837).
+- DLL **627,712 bytes**, SHA-256 `d42108e885b5ac22c2f57d97ac93515b7ede596ad63be1544e32d3f287fb5ab0`.
+- Inner module runtime ZIP **279,213 bytes**, SHA-256 `d100c8c4886e3d6856ec81285081d349d32c8a9b60fbce385e63292f942c928a`.
+
+**Native gameplay untested:** the compiled code's `Clan.IsUnderMercenaryService`, native contract duration/payment, independent party command, spousal state, real profile generation and save/reload still require an observed live game session. No default installer pin change; PR #93 remains a draft.
