@@ -73,3 +73,19 @@ The guided court is now three **distinct native Hero companions**: a culturally 
 - **Gate remains B:** No live Bannerlord new-game start, real governor settlement placement, native army role, royal biological family, real crown succession, capture/death or save/quit/reload has been verified. The Marshal and Kingsguard are native party Hero companions, not automatically assigned independent army command or a permanent bodyguard unit. Royal Minister's governor link compiles and is source checked but must be observed in game. No vassal, fief, sovereign or regency rewrite is claimed.
 
 PR #93 remains draft and unmerged. The installed candidate pin is unchanged, and no new live-tested release is declared.
+
+## v0.70n correction | Kingsguard is one Hero, not troops
+
+The Kingsguard remains **one named, culturally trained, equipped native Hero companion** who accompanies the King. It is one of the three royal court Heroes, alongside the Marshal and Royal Minister. It is not a new troop tree, formation, unit type, recruitable guard squad or garrison transfer. No Kingsguard troop counts, payroll, casualty ledger or guardsmen recruitment menu exist. The experimental troop detachment model was **deleted** before acceptance. The mod does not claim the Kingsguard Hero has battle-engine bodyguard AI or guaranteed protection from lethal attacks.
+
+The royal council can convene only at a genuine player-owned town or castle that the Royal Minister governs natively. The court-seat selector prefers a verified native kingdom homeland when exposed by the pinned API, then chooses an actual player-owned town/castle by a stable order. If the preferred seat is already governed, the guided King preflight refuses the minister appointment rather than firing the incumbent or moving the court to a different property. This is a **CU royal court seat** designation, not a rewrite of Bannerlord's kingdom capital.
+
+A council meeting requires the King physically at that seat, the Marshal and the single Kingsguard Hero present in the King's party, and the real Royal Minister holding the corresponding native governor office. The meeting count and the four genuine Hero IDs are saved through `CU_v070n_single_hero_royal_council`. The council can review those verified officeholders. It does not replace Bannerlord's native kingdom policies, voting, army command or legal crown succession.
+
+## v0.70o | Seven-path pre-release native acceptance
+
+The read-only `scripts/audit_v070_seven_live_start_evidence.py` audits **Wanderer, Outlaw, Mercenary, Soldier, Knight, Lord and King** separately. It requires a same-session successful native starting contract plus role-specific native event records, a post-quit/reload identity observation, and a separate live native UI screenshot. It deliberately returns **BLOCKED** when evidence is absent, when Soldier never actually enlisted with its supported provider, or when Knight younger-sibling native clan joining remains unimplemented.
+
+The CI regression `scripts/test_v070o_seven_game_acceptance_failclosed.py` confirms that even seven simulated `PASS` labels remain blocked without real runtime actions and reload evidence. A successful compile, model simulation, scripted session fixture, or cosmetic role name does not promote the release to live-game acceptance.
+
+This project execution context has **no running Bannerlord client, native save/reload, or seven verified playthrough evidence bundles**. As a result the complete seven-path **live gameplay acceptance remains BLOCKED**. Do not merge PR #93, change the installed release pin or claim real-game acceptance without those observations.
