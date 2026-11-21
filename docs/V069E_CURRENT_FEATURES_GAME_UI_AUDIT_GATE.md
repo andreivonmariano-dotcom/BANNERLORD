@@ -1,14 +1,14 @@
 # v0.69e | Audit-first freeze, existing gameplay and visual acceptance
 
-**Decision: 21 November 2026.** Stop adding features, economic rules, autonomous NPC actions and new creator pages until the CURRENT compiled candidate is reviewed in an installed game. Stabilization priority is **actual operation, readable UI, safe navigation, truthful data and persistence**. This audit-only branch does not add gameplay code. Its parent is v0.69d draft PR #92, stacked on #91, #90 and earlier open PRs. Do not review outdated `main` as though it were the newest module.
+**Decision: 21 November 2026.** Stop adding features, economic rules, autonomous NPC actions and new creator pages until the CURRENT compiled candidate is reviewed in an installed game. Stabilization priority is **actual operation, readable UI, safe navigation, truthful data and persistence**. This stabilization branch permits only proven repairs to existing gameplay and creator validation, not new feature development. Its parent is v0.69d draft PR #92, stacked on #91, #90 and earlier open PRs. Do not review outdated `main` as though it were the newest module.
 
 ## Evidence classification and current baseline
 
-**Latest compiled stabilization candidate:** [Windows Actions 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228), compiled code SHA `eec666c252f468cd92475e8abc86731d16da3a4f`, **907 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
+**Latest compiled stabilization candidate (v0.69g):** [Windows Actions 44866582823](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823), compiled code SHA `63a82b14bde2ccc07eea9a15a9745aa6ae3693fb`, **910 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
 
-[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **588,288 bytes**, SHA-256 `3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684`. Inner runtime ZIP: **267,191 bytes**, SHA-256 `6b5726284ef730fe90ab3cdd61ba130c7fd0a3e55a74f6a186a23b46b14841a1`.
+[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **590,848 bytes**, SHA-256 `2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0`. Inner runtime ZIP: **267,668 bytes**, SHA-256 `0d6c1ed8882dc89457b85d2e9e17ecc2949b8691cd96b6498c93e1397a2c7368`.
 
-**Gate status:** A/B compiled and policy-tested. For THIS exact DLL, **C (installed startup), D (live feature interaction), E (game save/reload), F (extended game session) and G (release)** are not verified. Keep drafts unmerged. Older v0.18–v0.48 screenshots and game logs document historical regressions but cannot certify the new build.
+**Gate status:** A/B compiled and policy-tested for the new v0.69g DLL. The prior actually installed DLL showed a **Gate D failure** in YoungerBrotherOfLord's missing-family start. For the repaired v0.69g DLL, **C (installed startup), D (live feature interaction), E (save/reload), F (extended game session) and G (release)** are not verified. Keep drafts unmerged. Older v0.18–v0.48 screenshots and game logs document historical regressions but cannot certify the new build.
 
 **Registry snapshot, not a completion claim:** `Data/Feature_Registry.csv` currently contains **55 CU feature rows**: 44 COMPILED, 4 BLOCKED, 3 GAME_TESTED, 3 IMPLEMENTED_SOURCE and 1 SCOPED. The three GAME_TESTED rows reference [issue #55](https://github.com/andreivonmariano-dotcom/BANNERLORD/issues/55), which describes a **v0.26** game session and still-open v0.27 regression. Those prior observations remain historically true but are not recent validation. It contains **78 HIST reference rows**, all IDENTIFIED, not rebuilt from original mods. Nothing in this audit upgrades a feature's gameplay gate.
 
@@ -48,13 +48,13 @@ Suggested evidence filenames: `A01_main_menu.png`, `A02_world.png`, `A03_culture
 
 ## Player-side pinned validation, PowerShell 5.1
 
-From [exact artifact 14690729491](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
+From [exact artifact 14692466071](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
 
 ```powershell
 $GameRoot = 'D:\Steam\steamapps\common\Mount & Blade II Bannerlord'
-$SourceCommit = 'eec666c252f468cd92475e8abc86731d16da3a4f'
+$SourceCommit = 'ace58f7e19d15ee1db8698a0e0b1de660dd4199a'
 $ExpectedVersion = 'v0.38.0'
-$ExpectedHash = '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684'
+$ExpectedHash = '2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0'
 $Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.38.0-compiled-untested.zip'
 if (-not (Test-Path -LiteralPath $Zip -PathType Leaf)) {
     throw "First download the pinned Actions artifact and set the actual ZIP path."
@@ -105,3 +105,10 @@ The latest [run 44863495218](https://github.com/andreivonmariano-dotcom/BANNERLO
 ## Verified v0.69f creator and save-integrity refinement
 
 The latest [run 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228) contains bounded repairs to the existing campaign NPC saved-request loader and family recovery evidence, plus new creator-state preservation and adverse-serialization tests. **907 executed C# policy checks passed** and the expanded audit simulator passed **1,159,203 assertions** across the 12-role 210,240 modeled-day baseline and 10,000 damaged-state fixtures. It retains the 24-case creator layout model and 1,441,129-check campaign model. Game reference compilation: **0 warnings, 0 errors**. **The PowerShell install example above is pinned to this exact compiled run and DLL SHA.** The detailed [v0.69f review](V069F_EXISTING_CREATOR_AGENCY_RECOVERY_REFINEMENT.md) distinguishes static tests from real Bannerlord gameplay. Do not upgrade the current game acceptance beyond **Gate B**.
+
+
+## Current confirmed native-play failure and v0.69g retest priority
+
+The user's real 21 November 2026 session showed a Vlandian `Lord` / `YoungerBrotherOfLord` request with spouse age 38, two children age 9 and 7, and two siblings. House saved the plan, but the projected older native lord was already `No eligible native elder found`. The mod previously advanced through native Review and after phase 8 rejected the entire plan with `noble_sibling:no_eligible_native_elder`, so no spouse, child or sibling creation was attempted. The in-game session ended normally without a managed exception. [Sanitized session diagnosis and scoped repair](V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md).
+
+**The v0.69g repair** tests real native older relative availability *before* finishing House. On no matching native lord, it stays in House, shows the reason, focuses the existing noble-birth choice and preserves the complete uncommitted household. Choosing Independent for a Lord remains available to keep the spouse/children/siblings without inventing a non-existent elder. The later strict native preflight remains mandatory. [v0.69g executable regression and compiled module](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823) passed **910 C# checks** and 0 compiler warnings/errors. [New exact game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071) must be installed with **the matching v0.69g hash**. Real rerun and save/reload remain outstanding, and the old failed save cannot be automatically reconstructed.
