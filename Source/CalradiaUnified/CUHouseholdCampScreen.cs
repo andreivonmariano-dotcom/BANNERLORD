@@ -117,9 +117,11 @@ namespace CalradiaUnified
                     continue;
                 Attendees.Add(new CUFamilyPortraitVM(person,
                     "TRAVELING WITH YOU",inspect));
-                if(Attendees.Count>=8)break;
+                if(Attendees.Count>=6)break;
             }
-            Attendance=Attendees.Count+" present household Heroes";
+            Attendance=people.Count>Attendees.Count?
+                people.Count+" present (first six pictured)":
+                Attendees.Count+" present household Heroes";
             SetSection("People","The company at your side",roll,
                 "Select a portrait to inspect a real companion.");
         }
