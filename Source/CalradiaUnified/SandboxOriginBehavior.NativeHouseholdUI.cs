@@ -99,48 +99,40 @@ namespace CalradiaUnified
                     .OrderBy(h=>h.StringId,StringComparer.Ordinal)
                     .Take(8).ToArray();
             string family="Spouse: "+NativePersonName(player.Spouse)+
-                ". Living children ("+children.Length+"): "+
+                "\nChildren ("+children.Length+"): "+
                 (children.Length==0?"none":
                     String.Join(", ",children.Select(NativePersonName)))+
-                ". Native clan: "+clan.Name+".";
-            string assignment="Officers in native companion roster ("+
-                officers.Length+"): "+(officers.Length==0?"none":
-                    String.Join(", ",officers.Select(NativePersonName)))+".";
+                "\nHouse: "+clan.Name+".";
+            string assignment="Officers and companions ("+
+                officers.Length+"):\n"+(officers.Length==0?
+                    "None appointed":
+                    String.Join("\n",officers.Select(NativePersonName)))+".";
             string role="Unverified starting role.";
             string type="none";
             if(knightOath.IsConfigured)
             {
                 var patron=KnightOathPatron();
                 type="Knight";
-                role="Sworn Knight, separate clan. Named patron: "+
-                    (patron==null?"not currently resolved":
-                        NativePersonName(patron))+
-                    ". Current objective: "+
+                role="Sworn to "+NativePersonName(patron)+". "+
                     (knightOath.LastMusterDay<0?
-                        "Find your lord and complete a first audience":
-                        "Report to your lord before the next muster")+
-                    ". Whereabouts: "+KnightPatronWhereabouts(patron)+
-                    ". Personal oath: "+knightOath.Status+
-                    ". Native relation: "+(patron==null?"unavailable":
-                        player.GetRelation(patron).ToString())+
-                    ". Next muster day: "+knightOath.NextMusterDay+
-                    ". Field escort: "+knightEscort.Status+
-                    " ("+knightEscort.ConsecutiveDays+"/"+ 
-                    SandboxKnightEscortState.RequiredDays+" days)."+
-                    " No native kingdom vassalage or clan transfer.";
+                        "First duty: meet your lord in person.":
+                        "Next audience: day "+knightOath.NextMusterDay+".")+
+                    "\nStanding with lord: "+(patron==null?
+                        "unknown":player.GetRelation(patron).ToString())+
+                    " | Escort: "+knightEscort.Status+
+                    "\nYour household remains independent.";
             }
             else if(lordInheritance.IsRecorded)
             {
                 type="Lord";
-                role="Native vassal house. Clan leader: "+
-                    NativePersonName(clan.Leader)+
-                    ". Native holdings: "+(clan.Settlements==null?0:
+                role="Lord of "+clan.Name+". "+
+                    "Household head: "+NativePersonName(clan.Leader)+
+                    "\nEstates held: "+(clan.Settlements==null?0:
                         clan.Settlements.Count)+
-                    ". Preferred living child: "+
+                    " | Named heir: "+
                     NativeHeroDisplayName(lordInheritance.PrimaryHeirId)+
-                    ". Recorded inheritance custom: "+
-                    lordInheritance.Rule+
-                    ". This does not transfer clan leadership or land.";
+                    "\nInheritance custom: "+lordInheritance.Rule+
+                    ". Claims do not automatically grant land.";
             }
             else if(kingSuccession.IsRecorded)
             {
