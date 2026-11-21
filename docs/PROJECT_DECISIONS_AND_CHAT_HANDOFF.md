@@ -36,6 +36,19 @@ Do not advance the feature scope ahead of Q1 integrity gates.
 
 **Verified Windows CI:** [run 44857872281](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44857872281), exact code SHA `fdba449c8d5e2e36c91be304edf8b48e7c8398d5`. **872 executed gameplay policy checks passed**. Medieval-life simulation: 96 × 3,650 modeled days, 1,062,792 checks. Living-affairs simulation: 120 × 730 modeled days, 180,425 checks. Existing campaign simulation: 40 × 365 modeled days, 303,098 checks. Compiled using pinned 1.5.7.125802 assemblies with 0 warnings and 0 errors; package and PowerShell test gates passed. DLL SHA-256: `698200f99e474faf6eb1f6d132c1384be943a386b3ff116ec5ab6f7ccb22f861` (563,712 bytes). Runtime inner ZIP SHA-256: `30917e819dd18fb12b229c65750763ddb770275f5793ebb696c241ad9a02feaf` (260,441 bytes). [Compiled, not game-tested candidate](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44857872281/artifacts/14688462229). The internal v0.38.0 package version is historical. **Highest completed gate: B, compilation.** Subsequent documentation commits do not affect this compiled runtime source.
 
+## v0.69 step 2: native phase-9 fail-closed grant sequence
+
+**Decision:** Before assigning the personal patron, transferring a starting fief, placing family, or granting gold, troops, influence, renown, inventory and retinue, verify that native Advanced Start and the selected family and lineage have actually materialized. The one-shot barrier prevents repeat grants; it does **not** undo phase 8 or rollback already-created family Heroes.
+
+**Source changes:**
+- `SandboxStartingLifePreflight.Check` compares the actual game `AdvancedStartData.GetStartType()`, kingdom, ruler status and fief count with `SandboxStartContract.Validate` before any custom grant.
+- `SandboxStartContract.PostFamilyGrantGate` fails on incomplete native family, incorrect final older-son rank or missing native noble binding.
+- `SandboxOriginBehavior.TryApplyOnce` now creates and checks family/lineage before assigning the service patron or changing fief ownership. It refuses all later CU resource/officer grants when those checks fail.
+- Patron refusal likewise stops later CU gifts instead of allowing an unrelated fief or retinue.
+- C# PolicySmoke covers successful and rejected readiness. `scripts/test_v069b_family_fief_commit_order.py` is wired into Windows CI to catch accidental reordering.
+
+**Status:** Source committed and CI started. Read the latest run for code commit `84dd5a652f7f754a3ccb5092141e8b10e60268dd` and replace this with actual executable evidence before claiming compilation. Live game remains untested. Further work is required for compensating already-created relatives, rollback of partial post-marriage families, and pre-phase-8 candidate validation.
+
 ## Unresolved Q1 blocker queue
 
 1. Fully transactional or carefully compensating phase-9 initialization. Native Advanced Start phase 8 cannot be undone by current preflight. Prevent impossible choices before handoff, then abort without partial custom resources.
