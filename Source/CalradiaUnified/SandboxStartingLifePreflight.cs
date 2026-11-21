@@ -67,6 +67,32 @@ namespace CalradiaUnified
                     clan.Settlements==null?0:clan.Settlements.Count);
             if(stationError.Length>0)
                 return "native_station:"+stationError;
+            if(p.KingGuidedStart)
+            {
+                string crown=SandboxKingStartPolicy.ValidateNativeCrown(
+                    actualType,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    !clan.IsMinorFaction && !clan.IsBanditFaction &&
+                        !clan.IsRebelClan && player.IsLord,
+                    clan.IsEliminated,fiefs);
+                DiagnosticJournal.Event("cu_king_native_preflight",
+                    "result="+(crown.Length==0?"PASS":"FAIL")+
+                    "|reason="+crown+
+                    "|native_type="+actualType+
+                    "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|actual_native_ruling_clan="+ruling+
+                    "|actual_native_fiefs="+fiefs+
+                    "|no_fief_or_crown_mutation=true");
+                if(crown.Length>0)return "king:"+crown;
+            }
             if(p.LordGuidedStart)
             {
                 string lord=SandboxLordStartPolicy.ValidateNativeHouse(
