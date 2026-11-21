@@ -16,13 +16,17 @@ The new creator fixes `NobleBirthPosition=Independent`, no fictional elder king,
 
 ## Founding royal family
 
-The **King** path permits an optional spouse, 0 to 6 actual native children, and optional siblings. It does not inherit the Lord path's mandatory marriage and child rule. Older sisters and younger brothers are permitted. A generated **older brother** contradicts the selected uncontested royal founder and is rejected before applying family or court changes. The separate future disputed-claim model requires verified native political action, and is not simulated by an older sibling's name.
+The **King** path now **requires a genuine native spouse and at least one genuine native child**. It permits 1 to 6 actual native children and optional siblings. The royal family requirement matches the new guided Lord's minimum, but the King retains a distinct native crown contract. Older sisters and younger brothers are permitted. A generated **older brother** contradicts the selected uncontested royal founder and is rejected before applying family or court changes. The separate future disputed-claim model requires verified native political action, and is not simulated by an older sibling's name.
 
-Native spouse and children, if selected, use the existing marriage, child factory and reciprocal parentage checks. There is no invented royal family member. The user's spouse may have an eligible native noble clan when choosing a noble background, but `Role=King` does not force Lord's separate two-married-in-laws requirement.
+Native spouse and every requested child use the existing marriage, child factory and reciprocal parentage checks. The guided King explicitly blocks any failed reciprocal marriage or missing native child before creating a court officer or appointing a governor. There is no invented royal family member. The user's spouse may have an eligible native noble clan when choosing a noble background, but `Role=King` does not force Lord's separate two-married-in-laws requirement.
 
-## Exactly two real same-culture court Heroes
+## Exactly three real same-culture royal court Heroes
 
-The guided King commissions **Marshal** and **Chamberlain**, both as new, named, culturally trained and equipped native Hero companions. The Marshal has genuine `Occupation.Lord` for field-officer identity, and the Chamberlain has `Occupation.Wanderer` with an actual native companion and party appointment. The existing source chooses native same-culture lord donors, and the native factory creates and registers these new Heroes. Every officer is checked for real clan membership, companion identity, native party roster inclusion, culture, occupation and named office. Remaining unrelated starting native wanderers are removed using the existing verified sequential native Fire method.
+The guided King commissions a **Marshal**, **Royal Minister (native governor)**, and **Kingsguard**, all named, culture-trained and equipped native Hero companions. The Marshal and Kingsguard serve in the real main party and have field-officer identity (`Occupation.Lord`). The Royal Minister uses native stewardship training and `Occupation.Wanderer`, joins the actual player clan as a companion, then receives a genuine governorship through `ChangeGovernorAction.Apply(Town, Hero)`.
+
+The governor position must be on an **already owned**, unbesieged town or castle with no incumbent. A deterministic lookup prefers the first vacant player-owned town, then castle. The start refuses a missing or occupied native governor seat before creating the new royal household. It does not remove an existing governor, seize a settlement, add a false capital, or grant the minister political power beyond native governorship. A successful appointment must be visible on both the minister's `Hero.GovernorOf` and the actual `Town.Governor`. The minister resides in the governed estate, not the King's traveling troop roster.
+
+The native factory stages all three same-culture Hero companions from real noble donor templates and registers them through native companion and party/governor actions. Native starter wanderers are dismissed only through the existing verified Fire path. Final acceptance checks all three identities, distinct occupations, real clan registration, Marshal and Kingsguard in the main party, and the Royal Minister's actual governorship. Any missing office blocks other CU grants.
 
 No fictional standing as regent, clan leader, diplomacy delegate, hereditary fief holder or sovereign replaces the native game authority.
 
@@ -33,7 +37,7 @@ No fictional standing as regent, clan leader, diplomacy delegate, hereditary fie
 - `EldestChild`: oldest living verified child first, regardless of sex.
 - `MalePreference`: verified sons by descending age first, then verified daughters by descending age.
 
-A descendant enters the family ranking only if both parents, reciprocal native `Children` memberships, alive state and actual founding-clan membership are verifiable. Childless Kings have no preferred heir, not an invented distant relative. On death or family change the saved preference can change. Minor heirs are recorded **only as claimants**. No caretaker becomes a regent.
+A descendant enters the family ranking only if both parents, reciprocal native `Children` memberships, alive state and actual founding-clan membership are verifiable. The guided King cannot begin without at least one verified native child, and its saved royal household record refuses an empty child roster. On death or family change the saved preference can change. Minor heirs are recorded **only as claimants**. No caretaker becomes a regent.
 
 The read-only `SandboxKingSuccessionState` persists native founder Hero ID, initial ruling clan and kingdom, selected rule, preferred claimant, ranked verified children, observed native ruling clan and ruler and last observed campaign day through save key `CU_v070l_native_royal_household`. It recognizes native rulership that actually passed to the child, continued native rulership by someone else, and minor claimant reviews. The town/castle menu reports the saved custom and currently observed native authority.
 
@@ -43,8 +47,9 @@ The read-only `SandboxKingSuccessionState` persists native founder Hero ID, init
 
 - Verify the native world and review creator, the `king` Advanced Start ID, exact kingdom selection, and genuine native ruling-clan ownership in a running game.
 - Verify native fiefs and household status, clan/army authority and kingdom politics, and no accidental mercenary, extra treasury or additional fief transfers.
-- Verify exactly two true same-culture court Heroes in the party, and no duplicate unrelated starter companions.
-- Run married and unmarried start cases, childless and multi-child royal households, older sister and forbidden older brother, optional noble spouse ancestry, and real parent links.
+- Verify all three real same-culture court Heroes. Marshal and Kingsguard must appear once in the native main-party roster. Royal Minister must appear as the true native governor of an existing player-owned, unoccupied fief and not as a traveling party member.
+- Check a royal start with all native fiefs governed. It must refuse before CU family or royal-court mutations, rather than dispossess a governor.
+- Reject unmarried and childless guided King profiles. Test a married King with one child, larger multi-child households, an older sister, forbidden older brother, noble spouse ancestry when chosen, and complete native parent references.
 - Save, quit and reload, then verify the same real IDs, royal ownership and court membership.
 - Observe a native ruler death, an older daughter and younger son, male preference, child death, actual native monarch change, and an underage claimant without an invented regent.
 - If a verified native API does not support direct succession, keep the no-transfer boundary and report it accurately.
