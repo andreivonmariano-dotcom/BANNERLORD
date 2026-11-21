@@ -377,7 +377,7 @@ internal static class Program
                 culturalClaim.Serialize()).CustomaryModel==
                     "ClanCoalition" &&
             SandboxSuccessionInterestState.Parse(
-                "CU_SUCCESSION_1\\ncadet|father|mother|clan|1|True|PotentialFamilyInterest")
+                "CU_SUCCESSION_1\ncadet|father|mother|clan|1|True|PotentialFamilyInterest")
                 .IsRecorded);
         var medievalStress=SandboxMedievalLifeSimulation.Run(96,3650);
         Console.WriteLine("MEDIEVAL LIFE SIMULATION "+
