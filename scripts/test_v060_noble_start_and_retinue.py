@@ -31,7 +31,8 @@ assert 'prefix+"Age","Sibling "+i+" | Age"' in vm
 assert 'prefix+"Gender","Sibling "+i+" | Gender"' in vm
 assert '"NobleBirthPosition","Your noble birth"' in vm
 assert '"RetinueMode","Your starting household officers"' in vm
-assert 'position=="Independent" || role=="Lord"' in policy
+assert 'SandboxCustomLifeRolePolicy.IsNobleFamilyRole(role)' in policy
+assert 'role!="NobleCadet"' in policy
 assert 'existingOlderSons>=RequiredOlderSons(position)' in policy
 
 for check in (
