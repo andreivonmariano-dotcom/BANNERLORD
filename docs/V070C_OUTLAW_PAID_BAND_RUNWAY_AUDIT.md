@@ -36,3 +36,18 @@ The Outlaw / Bandit starts with a small genuine bandit band and an actual non-no
 7. Run the clean Wanderer start again to rule out Outlaw branch leakage. Keep older twelve-role campaign saves loading without reinterpretation.
 
 **Release gate:** compiled reference build plus native campaign and save/reload screenshots/logs. Draft PR remains unmerged, no installer pin changes.
+
+
+## Compiled candidate and test evidence
+
+[Windows CI run 44874304977](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44874304977) completed **SUCCESS** at source commit `5e309f86a219a1fd93f163317a119b7973761001`. The compiler uses **Bannerlord v1.5.7.125802 pinned reference assemblies**, including the version-specific `PartyWageModel.GetTotalWage(MobileParty, TroopRoster, bool)` signature. Code from newer Bannerlord versions does not define this contract.
+
+- **962** independent C# policy checks passed.
+- **1,441,129** model campaign checks passed across 96 simulated 730-day starts.
+- **1,159,206** audit simulator assertions passed across 210,240 modeled days.
+- Native reference build: **zero errors and zero warnings**.
+- Outlaw source gate, old Wanderer regression, legacy family/retinue and packaging checks passed.
+
+**Exact new compiled-untested candidate:** [artifact 14695830076](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44874304977/artifacts/14695830076). Compiled DLL size **622,592 bytes**, SHA-256 `74b89c203a5db3010fa276b1503904201c920a2bf6b88a4eb40e5cb262b9ffe4`. Inner runtime module ZIP SHA-256 `7c47865482dd2124ff89d2cb7296b1b216dca2a119adefee300d1ac292a61456`.
+
+These are automated **source, policy, model and compiler** results. There has been **no observed native Outlaw playthrough**, no measured 14-day game-party wage timeline, no live deserter check and no in-game save/reload with this DLL. A build PASS must not be reported as a gameplay PASS. The historic default `-LatestVerified` installer pin was not changed. Draft PR #93 stays unmerged.
