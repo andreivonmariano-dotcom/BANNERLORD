@@ -44,7 +44,9 @@ assert 'no_matching_partial_start' in recovery
 
 assert 'CU_v069d_role_economy' in behavior
 assert 'SandboxRoleEconomyState.Parse(economy)' in behavior
-assert 'roleEconomy.Start(profile.Role,hero.Gold' in behavior
+assert 'roleEconomy.Start(' in behavior
+assert '"EnlistedSoldier":profile.Role' in behavior
+assert 'hero.Gold,agencyDecisions.Day' in behavior
 assert 'roleEconomy.Observe(' in behavior
 assert 'verifiedExternalDailyWage' not in economy
 assert 'VerifiedExternalDailyWage' in economy
