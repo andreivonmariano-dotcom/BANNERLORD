@@ -493,6 +493,46 @@ jobs:
           } catch { $nativeMismatchRejected = $true }
           if (-not $nativeMismatchRejected) { throw 'Missing opt-in native 3D stage must fail.' }
           Write-Output 'PASS: pinned CI hash, latest-session one child, exact three Hero portraits, required native stage and negative audit fixtures'
+      - name: Regress guided creator session evidence and phase-9 failure detection
+        shell: pwsh
+        run: |
+          $fake = Join-Path (Get-Location) 'BuildResults/FakeBannerlord'
+          $events = Join-Path (Get-Location) 'BuildResults/sample-guided-start-failure.csv'
+          @(
+            'utc,context,detail',
+            '2026-11-21T04:23:00Z,sandbox_overhaul_accepted,role=Lord|child_count=1',
+            '2026-11-21T04:23:10Z,sandbox_start_contract,result=PASS|requested_children=1|children=1',
+            '2026-11-21T04:54:42Z,cu_guided_world_start_committed,role=HouseholdKnight|kingdom=vlandia|scenario=none',
+            '2026-11-21T04:55:21Z,cu_guided_house_fortune_committed,age=25|spouse=False|children=0|siblings=0|noble_birth=Independent',
+            '2026-11-21T04:55:24Z,cu_native_start_preflight_snapshot,role=HouseholdKnight|expected_type=default|actual_type=unknown|kingdom=none|fiefs=0|ruling=False',
+            '2026-11-21T04:55:25Z,cu_starting_life_preflight,result=FAIL|reason=native_start:native_start_type_mismatch|role=HouseholdKnight',
+            '2026-11-21T04:55:26Z,sandbox_start_contract,result=FAIL|reason=preflight_native_start:native_start_type_mismatch|no_custom_grants_applied=true'
+          ) | Set-Content -LiteralPath $events -Encoding UTF8
+          $report = Join-Path (Get-Location) 'BuildResults/sample-guided-failure-report.json'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $events -ReportJson $report
+          $r = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
+          if ($r.status -ne 'FAIL' -or $r.creator_source -ne 'guided_world' -or
+              $r.contract_result -ne 'FAIL' -or $r.expected_children -ne 0 -or
+              -not $r.guided_house_committed) {
+            throw 'Latest guided failed campaign was masked by earlier legacy PASS.'
+          }
+          $blocked = $false
+          try {
+            ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $events -Assert
+          } catch { $blocked = $true }
+          if (-not $blocked) { throw 'Guided contract failure must fail assertion.' }
+          $eventsIncomplete = Join-Path (Get-Location) 'BuildResults/sample-guided-no-contract.csv'
+          @(
+            'utc,context,detail',
+            '2026-11-21T05:00:00Z,cu_guided_world_start_committed,role=HouseholdKnight|kingdom=vlandia',
+            '2026-11-21T05:00:01Z,cu_guided_house_fortune_committed,age=25|children=0|siblings=0'
+          ) | Set-Content -LiteralPath $eventsIncomplete -Encoding UTF8
+          $reportIncomplete = Join-Path (Get-Location) 'BuildResults/sample-guided-incomplete.json'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $eventsIncomplete -ReportJson $reportIncomplete
+          if ((Get-Content $reportIncomplete -Raw | ConvertFrom-Json).status -ne 'INCOMPLETE') {
+            throw 'Missing guided phase-9 contract must not pass.'
+          }
+          Write-Output 'PASS: latest guided World/House failure and missing-contract sessions are not marked successful'
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
