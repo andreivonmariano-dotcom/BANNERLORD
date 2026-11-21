@@ -82,3 +82,12 @@ Contract board:
 7. 30-day out-of-contract simulation under no loot; 60-day contract with receipts; 21-day search after completion; deliberate low offer, bankrupt client, late payroll, larger company, native dismissal, company casualties, reload, and employer switching. **Only in-game traces certify real implementation**.
 
 **Do not mark v0.70e as usable negotiation gameplay based on these policy rules or documentation.** No deployment, pin change or release without live native checks.
+
+
+## Automated policy evidence (not native gameplay)
+
+CI [run 44876260349](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44876260349) on `08a0b6423047e57520bf4cc7f733dd728fdaff63` completed **SUCCESS**. Pinned Bannerlord v1.5.7.125802 reference compilation: **0 compiler warnings, 0 errors**. **976** independent C# policy checks passed. The usual **1,441,129** modeled campaign checks and **1,159,206** modeled audit assertions passed. The new v0.70e source regression explicitly records **GAMEPLAY NOT IMPLEMENTED**.
+
+[Compiled but native-untested artifact 14696380619](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44876260349/artifacts/14696380619): DLL 629,248 bytes, SHA-256 `d6a398a3e33928bc44065cb1baf7feadb96e6b3e24d6f211ffda22b99ca73532`. Inner runtime module ZIP SHA-256 `42b0d3d9c4da53fc118225ca159550c0fc29ef065f1cdb4c38a8a0eed4ee0e11`.
+
+Only the **pure financial calculation rules** have been implemented and compiled at v0.70e. The **current native new-game Mercenary role still starts already contracted** under v0.70d. Uncontracted starting cash/food, offer UI, rejection, employer deposits, daily guaranteed settlement, escrow, contract termination and cash-on-exit remain **not implemented**, subject to native v1.5.7 API research and live gameplay acceptance. No default installer pin moved, and PR #93 remains a draft.
