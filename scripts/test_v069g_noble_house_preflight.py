@@ -91,4 +91,32 @@ assert "no_custom_grants_applied=true" in apply
 assert "SandboxFamilyCreator.TryCreate(profile,hero)" in apply
 assert "HeroCreator.CreateChild(" in family
 
+# Independent Lord starts define the player as eldest brother.
+# This must be checked in both House edits and final acceptance, not
+# conflated with automatic native Clan.Leader succession.
+lineage = read("SandboxHouseholdLineagePolicy.cs")
+profile = read("SandboxOriginProfile.cs")
+assert "FirstOlderBrotherInIndependentLordHouse(" in lineage
+assert 'p.Role!="Lord"' in lineage
+assert 'p.NobleBirthPosition!="Independent"' in lineage
+assert 'sibling.Gender=="Male"' in lineage
+assert "sibling.Age>founderAge" in lineage
+assert 'return "independent_lord_older_brother";' in lineage
+assert "SandboxHouseholdLineagePolicy.ValidateHousePlan(" in profile
+
+write = vm[vm.index("private bool TryWrite("):
+           vm.index("public void ExecutePreviousChoice()")]
+assert '"SiblingCount" ||' in write
+assert 'key.StartsWith("Sibling.",StringComparison.Ordinal)' in write
+assert "FirstOlderBrotherInIndependentLordHouse(" in write
+assert '"Independent Lord: sibling "+olderBrother+' in write
+
+assert "FirstOlderBrotherInIndependentLordHouse(" in house
+assert 'field.Key=="Sibling."+olderBrother+".Age"' in house
+assert 'if(siblingStep>=0)cursor=siblingStep;' in house
+assert 'advanced=true;' in house
+assert 'An older sister is allowed, but a ' in vm
+assert 'Independent Lord starts cannot include an older brother.' in vm
+assert 'Independent Lord requires you to be the eldest ' in vm
+
 print("PASS v0.69g: unresolvable native nobility blocked at House with editable family draft; strict phase-9 gate intact (source only)")
