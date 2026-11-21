@@ -87,6 +87,88 @@ internal static class Program
                 .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
                 .Length==0);
+        Check("native family cleanup only disables a new unattached Hero",
+            SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,false,false,false,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                false,false,false,false,false,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,true,false,false,false,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,true,false,false,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,false,true,false,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,false,false,true,false,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,false,false,false,true,false) &&
+            !SandboxFamilyCreationSafetyPolicy.CanDisableProvisional(
+                true,false,false,false,false,false,true));
+        Check("allocated native child prevents cleanup of parent spouse",
+            SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(
+                false,0,false) &&
+            !SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(
+                false,1,false) &&
+            !SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(
+                true,0,false) &&
+            !SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(
+                false,0,true));
+
+        // One game-backed social contract matrix covers every selectable role.
+        var auditRoles=new[]{"Wanderer","Recruit","Soldier",
+            "HouseholdKnight","Knight","NobleCadet","Lord","King",
+            "Admiral","Trader","Outlaw","Beggar"};
+        var auditStarts=new[]{"default","default","mercenary",
+            "default","vassal","default","vassal","king",
+            "fleetadmiral","trader","outlaw","beggar"};
+        Check("all 12 medieval roles map to one exact native start",
+            SandboxOriginProfile.Roles.Length==auditRoles.Length &&
+            !auditRoles.Except(SandboxOriginProfile.Roles).Any() &&
+            !SandboxOriginProfile.Roles.Except(auditRoles).Any() &&
+            auditRoles.Distinct().Count()==12 &&
+            auditRoles.Select((role,index)=>
+                SandboxRoleConsistencyPolicy.NativeType(role)==
+                    auditStarts[index]).All(x=>x) &&
+            SandboxRoleConsistencyPolicy.NativeType("InventedTitle")=="");
+        Check("all 12 starting stations have factual native requirements",
+            auditRoles.Select((role,index)=>{
+                bool kingdom=role=="King" || role=="Lord" ||
+                    role=="Knight" || role=="Soldier" || role=="Admiral";
+                bool royal=role=="King";
+                int actualFiefs=royal || role=="Lord" ||
+                    role=="Knight"?1:0;
+                return SandboxRoleConsistencyPolicy.CheckNativeStation(
+                    role,auditStarts[index],kingdom,royal,
+                    actualFiefs)=="" &&
+                    SandboxStartingLifePolicy.Station(
+                        role,"Independent")!="" &&
+                    SandboxStartingLifePolicy.Occupation(role)!="" &&
+                    SandboxStartingLifePolicy.Obligation(
+                        role,"Independent")!="";
+            }).All(x=>x));
+        Check("native rank matrix rejects fictional land and authority",
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "NobleCadet","default",false,false,1)==
+                    "independent_start_has_kingdom_or_fief" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "HouseholdKnight","vassal",true,false,1)==
+                    "native_start_type_mismatch" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Recruit","default",true,false,0)==
+                    "independent_start_has_kingdom_or_fief" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "King","king",true,false,2)==
+                    "ruler_status_or_fief_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Knight","vassal",true,false,0)==
+                    "vassal_status_or_fief_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Soldier","mercenary",false,false,0)==
+                    "native_military_kingdom_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Trader","trader",false,false,2)==
+                    "independent_start_has_kingdom_or_fief");
+
         Check("native second and third sons identify a lord as father",
             SandboxNobleStartPolicy.IsSonOrigin("SecondSonOfLord") &&
             SandboxNobleStartPolicy.IsSonOrigin("ThirdSonOfKing") &&
@@ -339,6 +421,59 @@ internal static class Program
             !afterEnlist.VerifiedExternalEnlistment);
         var firstKinGoal=SandboxGeneratedCharacterGoalPolicy.Goal(
             "vlandia","RecordedSibling","HouseholdSoldier",true,true);
+        Check("sibling outside the real party pursues family standing",
+            SandboxGeneratedCharacterGoalPolicy.Goal(
+                "vlandia","RecordedSibling","FamilyMember",true,
+                false)=="PreserveFamilyPosition" &&
+            SandboxGeneratedCharacterGoalPolicy.Goal(
+                "vlandia","RecordedSibling","FamilyMember",true,
+                true)=="ProtectSharedHousehold");
+        var evolvingAgenda=new SandboxCharacterAgendaState();
+        evolvingAgenda.Register("cadet","PreserveFamilyPosition",
+            "castle_v1","NativeHomeSettlement",
+            "FamilyMember","vlandia","birth_house");
+        Check("observed native co-service changes inferred NPC ambition",
+            evolvingAgenda.ObserveNativeGoal(
+                "cadet","ProtectSharedHousehold",
+                "FamilyMember","player_clan")==
+                    "goal_reassessed_from_native_context" &&
+            evolvingAgenda.Get("cadet").Goal=="ProtectSharedHousehold" &&
+            evolvingAgenda.Get("cadet").ClanId=="player_clan" &&
+            evolvingAgenda.ObserveNativeGoal(
+                "cadet","ProtectSharedHousehold",
+                "FamilyMember","player_clan")=="same" &&
+            SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
+                .Get("cadet").Goal=="ProtectSharedHousehold");
+        Check("loss of native residence clears stale location evidence",
+            evolvingAgenda.ObserveHome("cadet","","Unverified")==
+                "residence_no_longer_verified" &&
+            evolvingAgenda.Get("cadet").HomeId=="" &&
+            evolvingAgenda.Get("cadet").HomeEvidence=="Unverified" &&
+            evolvingAgenda.ObserveHome("cadet","","Unverified")=="same" &&
+            SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
+                .Get("cadet").HomeId=="");
+        Check("native co-service opens household-support requests",
+            SandboxAgencyDecisionPolicy.Choose(
+                evolvingAgenda.Get("cadet").Goal,true,true,20,0,1000)==
+                    "HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.Choose(
+                "PreserveFamilyPosition",true,true,20,0,1000)==
+                    "Recognition" &&
+            SandboxAgencyDecisionPolicy.Choose(
+                "ProtectSharedHousehold",true,false,20,0,1000)=="");
+        Check("native departure changes inferred goal without erasing kin",
+            evolvingAgenda.ObserveNativeGoal(
+                "cadet","PreserveFamilyPosition",
+                "FamilyMember","birth_house")==
+                    "goal_reassessed_from_native_context" &&
+            evolvingAgenda.Get("cadet").ConsecutiveDaysTogether==0 &&
+            evolvingAgenda.Get("cadet").Goal=="PreserveFamilyPosition" &&
+            SandboxCharacterAgendaState.Parse(evolvingAgenda.Serialize())
+                .Get("cadet").Goal=="PreserveFamilyPosition");
+        Check("observed departure switches the later request to recognition",
+            SandboxAgencyDecisionPolicy.Choose(
+                evolvingAgenda.Get("cadet").Goal,true,true,20,0,1000)==
+                "Recognition");
         var siblingAgenda=new SandboxCharacterAgendaState();
         siblingAgenda.Register("brother","ProtectSharedHousehold","",
             "Unverified","HouseholdSoldier","vlandia","clanA");

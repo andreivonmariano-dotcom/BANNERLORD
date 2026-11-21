@@ -13,22 +13,8 @@ namespace CalradiaUnified
     {
         public static string StartTypeForRole(string role)
         {
-            switch (role)
-            {
-                case "Wanderer":
-                case "Recruit":
-                case "HouseholdKnight":
-                case "NobleCadet": return "default";
-                case "Soldier": return "mercenary";
-                case "Knight":
-                case "Lord": return "vassal";
-                case "King": return "king";
-                case "Admiral": return "fleetadmiral";
-                case "Trader": return "trader";
-                case "Outlaw": return "outlaw";
-                case "Beggar": return "beggar";
-                default: return null;
-            }
+            string type=SandboxRoleConsistencyPolicy.NativeType(role);
+            return type.Length==0?null:type;
         }
 
         public static bool RequiresKingdom(string type)

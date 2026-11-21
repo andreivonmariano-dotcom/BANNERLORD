@@ -246,10 +246,16 @@ namespace CalradiaUnified
                 if(!alive.TryGetValue(entry.Id,out person))continue;
                 string evidence;
                 string home=RealHome(person,out evidence);
-                if(agenda.ObserveHome(entry.Id,home,evidence)==
-                    "native_home_changed")
+                string homeChange=agenda.ObserveHome(
+                    entry.Id,home,evidence);
+                if(homeChange=="native_home_changed")
                     life.Remember("NativeResidenceChangedObserved",
                         person.StringId,home,"evidence="+evidence);
+                else if(homeChange=="residence_no_longer_verified")
+                    life.Remember("NativeResidenceEvidenceLost",
+                        person.StringId,"",
+                        "no_presently_verified_home"+
+                        "|movement_cause_not_assumed=true");
                 if(person==player)continue;
                 bool siblings=player.Father!=null &&
                     player.Mother!=null &&
@@ -257,6 +263,40 @@ namespace CalradiaUnified
                     person.Mother==player.Mother;
                 bool actualParty=player.PartyBelongedTo!=null &&
                     person.PartyBelongedTo==player.PartyBelongedTo;
+                // Reassess a modeled goal only from current native facts.
+                // The changed motive is a hypothesis, not a self-reported
+                // NPC decision or a fabricated earlier memory.
+                var known=life.People.FirstOrDefault(
+                    p=>p.Id==person.StringId);
+                if(known!=null)
+                {
+                    string office=Office(person);
+                    string currentOccupation=office.Length>0?
+                        office:person.Occupation.ToString();
+                    string currentClan=person.Clan==null?"":
+                        person.Clan.StringId;
+                    string inferredGoal=
+                        SandboxGeneratedCharacterGoalPolicy.Goal(
+                            person.Culture==null?"":person.Culture.StringId,
+                            known.Station,currentOccupation,
+                            siblings,actualParty);
+                    string previousGoal=entry.Goal;
+                    if(agenda.ObserveNativeGoal(entry.Id,inferredGoal,
+                        currentOccupation,currentClan)==
+                        "goal_reassessed_from_native_context")
+                    {
+                        life.Remember("ObservedGoalReassessment",
+                            person.StringId,player.StringId,
+                            "prior="+previousGoal+
+                            "|current="+inferredGoal+
+                            "|evidence=native_party_kinship_occupation"+
+                            "|goal_is_inferred_not_self_reported");
+                        DiagnosticJournal.Event(
+                            "cu_native_character_goal_reassessed",
+                            "hero="+entry.Id+"|prior="+previousGoal+
+                            "|current="+inferredGoal);
+                    }
+                }
                 int before=player.GetRelation(person);
                 int awarded=agenda.ObserveComradeship(entry.Id,actualParty,
                     person.Age>=18f && player.Age>=18f,siblings,before);

@@ -5,6 +5,7 @@ src=Path(__file__).resolve().parents[1]/"Source"/"CalradiaUnified"
 def read(name):return (src/name).read_text(encoding="utf-8")
 profile=read("SandboxOriginProfile.cs")
 native=read("SandboxNativeStartOptions.cs")
+role_matrix=read("SandboxRoleConsistencyPolicy.cs")
 life=read("SandboxStartingLifePolicy.cs")
 world=read("CUGuidedCreatorVM.cs")
 policy=read("SandboxCustomLifeRolePolicy.cs")
@@ -26,7 +27,8 @@ behavior=read("SandboxOriginBehavior.cs")
 simulation=read("SandboxMedievalLifeSimulation.cs")
 assert ' "Recruit", "Soldier", "HouseholdKnight"' in profile
 assert '"Knight", "NobleCadet", "Lord"' in profile
-assert 'case "NobleCadet": return "default";' in native
+assert 'case "NobleCadet":return "default";' in role_matrix
+assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
 assert 'SandboxSaSBridge.HasSupportedProvider()' in native
 assert 'SandboxCustomLifeRolePolicy.NativeLandlessContract(' in guard
 assert 'SandboxCustomLifeRolePolicy.ValidBirth(' in profile

@@ -27,6 +27,8 @@
     <Compile Include="../../Source/CalradiaUnified/SettingsMenuPolicy.cs" Link="SettingsMenuPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SettingsCatalog.cs" Link="SettingsCatalog.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxOriginProfile.cs" Link="SandboxOriginProfile.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyCreationSafetyPolicy.cs" Link="SandboxFamilyCreationSafetyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleConsistencyPolicy.cs" Link="SandboxRoleConsistencyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStartingLifePolicy.cs" Link="SandboxStartingLifePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxHouseholdLineagePolicy.cs" Link="SandboxHouseholdLineagePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxLifeHistoryState.cs" Link="SandboxLifeHistoryState.cs" />

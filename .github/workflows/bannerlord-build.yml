@@ -61,6 +61,9 @@ jobs:
       - name: Regress v069 native phase-9 family, fief and award ordering
         shell: pwsh
         run: python scripts/test_v069b_family_fief_commit_order.py
+      - name: Regress v069c provisional family cleanup, twelve roles and living goals
+        shell: pwsh
+        run: python scripts/test_v069c_family_role_persona_contracts.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |

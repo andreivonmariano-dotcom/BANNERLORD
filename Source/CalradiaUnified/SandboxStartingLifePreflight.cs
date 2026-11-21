@@ -31,6 +31,13 @@ namespace CalradiaUnified
                 false,false,0,0);
             if(nativeErrors.Length>0)
                 return "native_start:"+nativeErrors[0];
+            string stationError=SandboxRoleConsistencyPolicy.CheckNativeStation(
+                p.Role,campaign.AdvancedStartData.GetStartType(),
+                kingdom!=null,kingdom!=null &&
+                kingdom.RulingClan==clan,
+                clan.Settlements==null?0:clan.Settlements.Count);
+            if(stationError.Length>0)
+                return "native_station:"+stationError;
             if(SandboxCustomLifeRolePolicy.IsLandless(p.Role) &&
                 (Clan.PlayerClan==null ||
                  !SandboxCustomLifeRolePolicy.NativeLandlessContract(

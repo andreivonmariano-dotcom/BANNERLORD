@@ -7,6 +7,7 @@ root = Path(__file__).resolve().parent.parent
 source = root / "Source/CalradiaUnified"
 overlay = (source / "SandboxCreatorOverlay.cs").read_text()
 roles = (source / "SandboxNativeStartOptions.cs").read_text()
+role_matrix = (source / "SandboxRoleConsistencyPolicy.cs").read_text()
 profile = (source / "SandboxOriginProfile.cs").read_text()
 behavior = (source / "SandboxOriginBehavior.cs").read_text()
 family = (source / "SandboxFamilyCreator.cs").read_text()
@@ -15,15 +16,16 @@ family = (source / "SandboxFamilyCreator.cs").read_text()
 assert 'SandboxNativeStartOptions.TryPrepare(profile,out options,out reason)' in overlay
 assert 'options.GetChangedOptions()' in overlay
 assert 'MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(' in overlay
-assert 'case "Knight":' in roles and 'case "Lord": return "vassal";' in roles
-assert 'case "King": return "king";' in roles
-assert 'case "Soldier": return "mercenary";' in roles
+assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in roles
+assert 'case "Knight":' in role_matrix and 'case "Lord":return "vassal";' in role_matrix
+assert 'case "King":return "king";' in role_matrix
+assert 'case "Soldier":return "mercenary";' in role_matrix
 assert 'StartingKingdomId' in profile
 assert 'StartingKingdomId' in overlay
 assert 'KingdomId' in roles and 'StartType' in roles
 assert 'if (RequiresKingdom(type))' in roles
 assert 'Select a starting kingdom' in roles
-assert 'Admiral' in roles and 'fleetadmiral' in roles
+assert 'Admiral' in role_matrix and 'fleetadmiral' in role_matrix
 
 # Advanced start settings are part of the CU editor, not a hidden vanilla picker.
 for key in ('StartingScenario', 'ScenarioFaction1', 'ScenarioFaction2',
