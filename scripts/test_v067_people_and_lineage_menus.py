@@ -25,7 +25,7 @@ assert '"cu_people_requests"' in menu
 assert '"cu_people_claim"' in menu
 assert 'new[]{"town","castle"}' in menu
 assert '"Household and personal affairs"' in menu
-assert '"Return to vanilla settlement menu"' in menu
+assert '"Return to settlement"' in menu
 assert '"cu_household_view"' in menu
 assert '"cu_household_next"' in menu
 assert '"cu_people_request"' in menu
