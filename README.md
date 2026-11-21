@@ -1,18 +1,18 @@
 # Calradia Unified | Latest compiled development candidate: v0.69g
 
-**Current development test build: v0.69g.** An actual Bannerlord play session exposed a missing-family failure for **Younger Brother of a Lord**. The corrected House screen now checks for an eligible existing native older noble **before** native finalization, preserves the selected spouse and children, and lets the player change an unsupported birth to Independent without losing their family setup. It does **not** invent a lord.
+**Current development test build: v0.69g.** An actual Bannerlord play session exposed a missing-family failure for **Younger Brother of a Lord**. The corrected House screen now checks for an eligible existing native older noble **before** native finalization, preserves the selected spouse and children, and lets the player change an unsupported birth to Independent without losing their family setup. It does **not** invent a lord. The House/Siblings wording now clarifies that creating an older brother does **not** make him the existing native lord or head of another clan. 
 
-The new [Windows run 44866582823](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823) passed **910 executable C# policy checks** with zero compilation warnings/errors. **[Download the exact v0.69g compiled, game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071)**.
+The new [Windows run 44867186334](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334) passed **910 executable C# policy checks** with zero compilation warnings/errors. **[Download the exact v0.69g compiled, game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274)**.
 
 **PowerShell 5.1, display the v0.69g pinned candidate:**
 
 ```powershell
 $Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
-Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/ace58f7e19d15ee1db8698a0e0b1de660dd4199a/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
+Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
 & $Installer -ShowLatest
 ```
 
-After downloading that exact ZIP, install with `-LatestVerified -GameRoot "YOUR_BANNERLORD_FOLDER" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting`. This pins DLL SHA-256 **`2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0`** and backs up the prior installation. [Complete current installation guide](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/audit/v069e-current-gameplay-and-visual-acceptance/docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md).
+After downloading that exact ZIP, install with `-LatestVerified -GameRoot "YOUR_BANNERLORD_FOLDER" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting`. This pins DLL SHA-256 **`d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10`** and backs up the prior installation. [Complete current installation guide](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/audit/v069e-current-gameplay-and-visual-acceptance/docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md).
 
 **Version distinction:** The packaged mod manifest still reads historical **v0.38.0**. The code on the GitHub `main` branch remains **v0.12.0**. This page links to the new **v0.69g draft candidate**, not a published or in-game-accepted release. [Sanitized real-session failure report](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/audit/v069e-current-gameplay-and-visual-acceptance/docs/V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md). [Unmerged draft PR #93](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/93).
 
