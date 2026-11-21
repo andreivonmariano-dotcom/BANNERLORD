@@ -87,7 +87,7 @@ assert 'cu_soldier_real_career_started' in origin
 assert '"EnlistedSoldier":profile.Role' in origin
 assert 'profile.SoldierGuidedStart' in family
 assert 'ExternalEnlistedSoldierWage' in economy
-assert 'ExternalEnlistmentVerified' in career
+assert 'external_enlistment_verified' in career
 assert 'SandboxSoldierEnlistmentPolicy.cs' in csproj
 assert 'fourth guided start is real soldier' in tests
 assert 'real soldier needs live SaS service' in tests
