@@ -34,7 +34,8 @@ assert 'candidate.ChildCount=0;' in vm
 assert 'candidate.SiblingCount=0;' in vm
 assert 'candidate.RetinueMode=candidate.WandererNoHouseStart?' in vm
 assert '"FamilyOnly":candidate.OutlawGuidedStart?' in vm
-assert '"RoleBased":SandboxServicePolicy.DefaultRetinue(' in vm
+assert '"RoleBased":candidate.MercenaryGuidedStart?' in vm
+assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'key=="WandererCompanionEnabled"' in vm
 assert 'profile.WandererCompanionEnabled' in vm
 assert '"WandererCompanionSkill","Primary specialty skill"' in vm
