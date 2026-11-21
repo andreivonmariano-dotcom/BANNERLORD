@@ -684,6 +684,17 @@ namespace CalradiaUnified
                 args=>ShowNativeDetail(
                     "Starting Role | Verified livelihood record",
                     roleEconomy.Describe()),false);
+            // This is a real, read-only native inquiry. Its spouse,
+            // child, companion and service status comes from live Heroes
+            // and saved campaign records, not an old creator .ini file.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_starting_household_native_status",
+                "My starting household and service",
+                args=>Hero.MainHero!=null &&
+                    (knightOath.IsConfigured ||
+                     lordInheritance.IsRecorded ||
+                     kingSuccession.IsRecorded),
+                args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "Household register and character ambitions",

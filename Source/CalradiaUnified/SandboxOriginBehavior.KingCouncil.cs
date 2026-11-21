@@ -113,12 +113,43 @@ namespace CalradiaUnified
             {
                 starter.AddGameMenuOption(menu,
                     "cu_native_royal_council_entry_"+menu,
-                    "CU: Convene the royal council",
-                    args=>NativeRoyalCouncilPresent(true),
+                    "CU: Royal court and council",
+                    args=>royalCouncil.IsRecorded &&
+                        Hero.MainHero!=null &&
+                        Hero.MainHero.StringId==royalCouncil.KingId &&
+                        Clan.PlayerClan!=null &&
+                        Clan.PlayerClan.Kingdom!=null &&
+                        Clan.PlayerClan.Kingdom.RulingClan==
+                            Clan.PlayerClan,
                     args=>
                     {
-                        int day=CurrentLordInheritanceDay();
                         bool present=NativeRoyalCouncilPresent(true);
+                        if(!present)
+                        {
+                            var seat=RecordedRoyalSeat();
+                            DiagnosticJournal.Event(
+                                "cu_royal_council_ui_location",
+                                "result=NOT_AT_VERIFIED_COUNCIL"+
+                                "|court_seat="+royalCouncil.SeatId+
+                                "|seat_still_owned="+(seat!=null)+
+                                "|requires_marshal_and_one_kingsguard=true"+
+                                "|requires_native_minister_governor=true");
+                            ShowNativeDetail(
+                                "Royal council | Where to convene",
+                                seat==null?
+                                    "The recorded royal court seat is no "+
+                                    "longer a valid player-owned holding. "+
+                                    "The native council cannot meet here.":
+                                    "The royal court meets at "+
+                                    seat.Name+". Enter this holding with "+
+                                    "your Marshal and ONE Kingsguard Hero "+
+                                    "in the main party. Your Royal "+
+                                    "Minister must still govern this "+
+                                    "holding. The kingdom screen remains "+
+                                    "the authority for political votes.");
+                            return;
+                        }
+                        int day=CurrentLordInheritanceDay();
                         string result=royalCouncil.Convene(day,
                             present,present,present,present,present);
                         DiagnosticJournal.Event(
@@ -148,10 +179,12 @@ namespace CalradiaUnified
                     var seat=RecordedRoyalSeat();
                     Notify("Verified royal court seat: "+seat.Name+
                         ". Native Minister governor: "+
-                        royalCouncil.MinisterId+
-                        ". Marshal: "+royalCouncil.MarshalId+
+                        NativeHeroDisplayName(royalCouncil.MinisterId)+
+                        ". Marshal: "+
+                        NativeHeroDisplayName(royalCouncil.MarshalId)+
                         ". Kingsguard Hero: "+
-                        royalCouncil.KingsguardHeroId+
+                        NativeHeroDisplayName(
+                            royalCouncil.KingsguardHeroId)+
                         ". Verified in-person council meetings: "+
                         royalCouncil.Meetings+
                         ". No Kingsguard troops, recruitment or special "+

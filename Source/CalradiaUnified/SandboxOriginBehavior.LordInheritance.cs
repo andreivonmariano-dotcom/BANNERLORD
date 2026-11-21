@@ -135,13 +135,15 @@ namespace CalradiaUnified
                     Notify("Lord household custom: "+
                         lordInheritance.Rule+
                         ". First living verified child: "+
-                        (lordInheritance.PrimaryHeirId.Length==0?
-                            "none":lordInheritance.PrimaryHeirId)+
+                        NativeHeroDisplayName(
+                            lordInheritance.PrimaryHeirId)+
                         ". Current clan leader: "+
-                        lordInheritance.NativeLeaderId+
+                        NativeHeroDisplayName(
+                            lordInheritance.NativeLeaderId)+
                         ". Native status: "+lordInheritance.Status+
-                        ". All living ranked child IDs: "+
-                        lordInheritance.RankedHeirIds+
+                        ". Ranked living children: "+
+                        NativeHeroDisplayNames(
+                            lordInheritance.RankedHeirIds)+
                         ". A minor has no automatic regent. "+
                         "This records claims only, not automatic land "+
                         "or clan leadership.");

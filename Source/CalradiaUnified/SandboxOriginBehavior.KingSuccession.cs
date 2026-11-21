@@ -106,12 +106,14 @@ namespace CalradiaUnified
                     ObserveKingSuccessionDaily();
                     Notify("Royal household rule: "+kingSuccession.Rule+
                         ". Preferred verified native child: "+
-                        (kingSuccession.PreferredHeirId.Length==0?
-                            "none":kingSuccession.PreferredHeirId)+
+                        NativeHeroDisplayName(
+                            kingSuccession.PreferredHeirId)+
                         ". Child claim order: "+
-                        kingSuccession.RankedHeirIds+
+                        NativeHeroDisplayNames(
+                            kingSuccession.RankedHeirIds)+
                         ". Actual native ruler: "+
-                        kingSuccession.ActualRulerId+
+                        NativeHeroDisplayName(
+                            kingSuccession.ActualRulerId)+
                         ". Kingdom: "+kingSuccession.KingdomId+
                         ". Native status: "+kingSuccession.Status+
                         ". The native kingdom alone decides succession. "+
