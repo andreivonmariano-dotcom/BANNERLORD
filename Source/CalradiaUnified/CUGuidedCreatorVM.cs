@@ -185,8 +185,8 @@ namespace CalradiaUnified
                     "Swift travel","Optional native world modifier.",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
-                    "Your occupation and native start",
-                    "Recruit seeks real enlistment; HouseholdKnight and NobleCadet start landless. Soldier remains a mercenary captain.",
+                    "Your starting life",
+                    "Wanderer is the native default. Outlaw / Bandit begins independent and landless. Other legacy starts remain available until their own redesign.",
                     choices:SandboxOriginProfile.Roles));
                 // New Wanderer collects its sole companion here, before
                 // the native player stats and appearance sequence. There
@@ -379,6 +379,13 @@ namespace CalradiaUnified
             string key=field.Key;
             if(key=="EarlyHousehold" && preCampaign &&
                 profile.Role=="Wanderer")return false;
+            // New Outlaw household keeps spouses and siblings, but never
+            // displays controls for fiefs, influence, noble ancestry or
+            // named estate officers it cannot legitimately own.
+            if(!preCampaign && profile.OutlawGuidedStart &&
+                (key=="RetinueMode" || key=="Influence" ||
+                 key=="FamilyHomeMode" || key=="FamilyHomeId"))
+                return false;
             if(key=="WandererCompanionEnabled")
                 return preCampaign && profile.Role=="Wanderer";
             if(key.StartsWith("WandererCompanion",
@@ -778,6 +785,21 @@ namespace CalradiaUnified
             candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
             candidate.WandererNoHouseStart=candidate.Role=="Wanderer";
+            candidate.OutlawGuidedStart=candidate.Role=="Outlaw";
+            if(candidate.OutlawGuidedStart)
+            {
+                candidate.StartingKingdomId="";
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.ServicePatronHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.FamilyHomeMode="None";
+                candidate.FamilyHomeId="";
+                candidate.Influence=-1;
+                candidate.RetinueMode="RoleBased";
+            }
             if(candidate.WandererNoHouseStart)
             {
                 // A new Wanderer never inherits a hidden old House.
@@ -803,7 +825,8 @@ namespace CalradiaUnified
             // Soldier begins without unrelated companions. Advanced House
             // can request a named Sergeant or retain the native roster.
             candidate.RetinueMode=candidate.WandererNoHouseStart?
-                "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
+                "FamilyOnly":candidate.OutlawGuidedStart?
+                "RoleBased":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
                 candidate.ServicePatronHeroId="";
@@ -839,7 +862,9 @@ namespace CalradiaUnified
                 "|noble_birth="+candidate.NobleBirthPosition+
                 "|family_requested=false|native_state_next=true"+
                 "|wanderer_no_house="+candidate.WandererNoHouseStart+
-                "|wanderer_companion="+candidate.WandererCompanionEnabled);
+                "|wanderer_companion="+candidate.WandererCompanionEnabled+
+                "|outlaw_guided="+candidate.OutlawGuidedStart+
+                "|outlaw_lieutenant_required="+candidate.OutlawGuidedStart);
             if(complete!=null)complete();
         }
 
@@ -1047,6 +1072,7 @@ namespace CalradiaUnified
         private static string DisplayChoice(string key,string raw)
         {
             if(String.IsNullOrEmpty(raw))return "Native default";
+            if(key=="Role" && raw=="Outlaw")return "Outlaw / Bandit";
             if(key=="NobleBirthPosition")
             {
                 switch(raw)
@@ -1162,6 +1188,14 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Outlaw")
+                    return "Outlaw / Bandit | native outlaw start\n"+
+                        "No kingdom, estate or noble title\n"+
+                        "Retinue: one culturally trained band lieutenant "+
+                        "(subject to native game verification)\n"+
+                        "Family: optional spouse, children and siblings; "+
+                        "no owned residence\n"+
+                        "Player appearance and stats remain editable.";
                 if(preCampaign && profile.Role=="Wanderer")
                     return "Wanderer | independent native start\n"+
                         "House screen: removed\n"+
