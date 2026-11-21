@@ -26,7 +26,10 @@ namespace CalradiaUnified
             if(kingdom==null)return null;
             if(requireExistingKingdom &&
                 (Clan.PlayerClan==null ||
-                 Clan.PlayerClan.Kingdom!=kingdom))
+                 (SandboxCustomLifeRolePolicy.IsLandless(p.Role)?
+                    (Clan.PlayerClan.Kingdom!=null ||
+                     Clan.PlayerClan.Settlements.Count>0):
+                    Clan.PlayerClan.Kingdom!=kingdom)))
                 return null;
             var candidates=Hero.AllAliveHeroes.Where(h=>
                 h!=null && h!=player && h.IsAlive &&

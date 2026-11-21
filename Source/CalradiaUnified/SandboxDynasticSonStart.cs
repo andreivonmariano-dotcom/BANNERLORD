@@ -44,8 +44,13 @@ namespace CalradiaUnified
                 (father.Clan.Kingdom.RulingClan==father.Clan)!=
                     SandboxNobleStartPolicy.RoyalElder(p.NobleBirthPosition))
                 return false;
-            if(strictKingdom && (Clan.PlayerClan==null ||
-                father.Clan.Kingdom!=Clan.PlayerClan.Kingdom))
+            if(strictKingdom &&
+                (Clan.PlayerClan==null ||
+                 (p.Role=="Lord" &&
+                    father.Clan.Kingdom!=Clan.PlayerClan.Kingdom) ||
+                 (p.Role=="NobleCadet" &&
+                    (Clan.PlayerClan.Kingdom!=null ||
+                     Clan.PlayerClan.Settlements.Count>0))))
                 return false;
             var mother=father.Spouse;
             if(mother==null || !mother.IsAlive || !mother.IsFemale ||
@@ -80,10 +85,16 @@ namespace CalradiaUnified
             bool strictKingdom)
         {
             if(p==null || player==null || !IsSonOrigin(p.NobleBirthPosition) ||
-                p.Role!="Lord")return null;
+                (p.Role!="Lord" && p.Role!="NobleCadet"))
+                return null;
             if(strictKingdom &&
-                (Clan.PlayerClan==null || Clan.PlayerClan.Kingdom==null ||
-                 Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan))
+                (Clan.PlayerClan==null ||
+                 (p.Role=="Lord" &&
+                    (Clan.PlayerClan.Kingdom==null ||
+                     Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan)) ||
+                 (p.Role=="NobleCadet" &&
+                    (Clan.PlayerClan.Kingdom!=null ||
+                     Clan.PlayerClan.Settlements.Count>0))))
                 return null;
             var q=Hero.AllAliveHeroes.Where(h=>
                 Eligible(p,player,h,strictKingdom));

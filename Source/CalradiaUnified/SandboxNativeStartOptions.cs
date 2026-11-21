@@ -47,6 +47,17 @@ namespace CalradiaUnified
                 error = "Starting profile missing.";
                 return false;
             }
+            // Real NPC-party enlistment belongs to a verified service
+            // provider. The public Serve as Soldier API is read-only.
+            // A Recruit begins independently and enlists through that
+            // mod's own lord dialogue, never through a forged action.
+            if(profile.Role=="Recruit" &&
+                !SandboxSaSBridge.HasSupportedProvider())
+            {
+                error="Recruit needs Serve as Soldier public API v1 installed. "+
+                    "Without it, choose Soldier (native mercenary captain).";
+                return false;
+            }
             try
             {
                 var candidate = AdvancedStartOptionsManager.CreateCampaignStartOptions();

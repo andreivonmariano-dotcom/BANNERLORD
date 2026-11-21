@@ -33,7 +33,11 @@ namespace CalradiaUnified
                 elder.Clan.Kingdom.StringId!=profile.StartingKingdomId ||
                 (requireNativeAffiliation &&
                     (Clan.PlayerClan==null ||
-                     elder.Clan.Kingdom!=Clan.PlayerClan.Kingdom)))
+                     (profile.Role=="Lord" &&
+                        elder.Clan.Kingdom!=Clan.PlayerClan.Kingdom) ||
+                     (profile.Role=="NobleCadet" &&
+                        (Clan.PlayerClan.Kingdom!=null ||
+                         Clan.PlayerClan.Settlements.Count>0)))))
                 return false;
             bool royal=elder.Clan.Kingdom.RulingClan==elder.Clan;
             bool leader=elder.Clan.Leader==elder;
@@ -63,8 +67,12 @@ namespace CalradiaUnified
                 return null;
             if(requireNativeAffiliation &&
                 (Clan.PlayerClan==null ||
-                 Clan.PlayerClan.Kingdom==null ||
-                 Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan))
+                 (profile.Role=="Lord" &&
+                    (Clan.PlayerClan.Kingdom==null ||
+                     Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan)) ||
+                 (profile.Role=="NobleCadet" &&
+                    (Clan.PlayerClan.Kingdom!=null ||
+                     Clan.PlayerClan.Settlements.Count>0))))
                 return null;
             var candidates=Hero.AllAliveHeroes.Where(h=>
                 Eligible(profile,player,h,requireNativeAffiliation));
@@ -121,9 +129,13 @@ namespace CalradiaUnified
                 return SandboxDynasticSonStart.TryBind(
                     profile,player,out chosen);
             if(Clan.PlayerClan==null ||
-                Clan.PlayerClan.Kingdom==null ||
-                Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan)
-                return "refused:must_start_as_native_vassal";
+                (profile.Role=="Lord" &&
+                    (Clan.PlayerClan.Kingdom==null ||
+                     Clan.PlayerClan.Kingdom.RulingClan==Clan.PlayerClan)) ||
+                (profile.Role=="NobleCadet" &&
+                    (Clan.PlayerClan.Kingdom!=null ||
+                     Clan.PlayerClan.Settlements.Count>0)))
+                return "refused:wrong_native_noble_station";
             if(!SandboxNobleStartPolicy.ValidForRole(
                 profile.NobleBirthPosition,profile.Role))
                 return "refused:role_must_be_lord";

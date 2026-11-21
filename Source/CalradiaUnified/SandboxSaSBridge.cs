@@ -43,9 +43,9 @@ namespace CalradiaUnified
         private static object Field(object obj,string name)
         {
             if(obj==null)return null;
-            return obj.GetType().GetField(name,
-                BindingFlags.Instance|BindingFlags.Public)?
-                    .GetValue(obj);
+            var field=obj.GetType().GetField(name,
+                BindingFlags.Instance|BindingFlags.Public);
+            return field==null?null:field.GetValue(obj);
         }
         private static int Num(object value)
         {

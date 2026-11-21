@@ -12,6 +12,12 @@ namespace CalradiaUnified
         internal static string Check(SandboxOriginProfile p,Hero player)
         {
             if(p==null || player==null)return "missing_start_context";
+            if(SandboxCustomLifeRolePolicy.IsLandless(p.Role) &&
+                (Clan.PlayerClan==null ||
+                 !SandboxCustomLifeRolePolicy.NativeLandlessContract(
+                    Clan.PlayerClan.Kingdom!=null,
+                    Clan.PlayerClan.Settlements.Count)))
+                return "landless:unexpected_fief_or_kingdom_contract";
             var ages=SandboxHouseholdLineagePolicy.ValidateHousePlan(
                 p,(int)player.Age);
             if(ages.Length>0)return "invalid_house_birth_order:"+ages;
