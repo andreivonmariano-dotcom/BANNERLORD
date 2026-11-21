@@ -11,7 +11,8 @@ ui=root/"Modules"/"CalradiaUnified"/"GUI"/"Prefabs"
 files=sorted(ui.glob("*.xml"))
 assert len(files)>=18
 results=[]
-active={"CUFamilyPortraits.xml","CUNobleDossier.xml"}
+active={"CUFamilyPortraits.xml","CUNobleDossier.xml",
+        "CUHouseholdCamp.xml"}
 for path in files:
     x=ET.parse(path).getroot()
     assert x.tag=="Prefab",path
