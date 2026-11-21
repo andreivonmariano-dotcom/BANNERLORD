@@ -73,7 +73,10 @@ try{
     $out=[IO.Path]::GetFullPath((Join-Path (Get-Location) $OutputPath))
     [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($out))|Out-Null
     [IO.File]::WriteAllLines($out,$lines.ToArray(),[Text.Encoding]::UTF8)
-    $lines | Where-Object {$_ -match '^ACTION|^TYPE|  PROPERTY .*Clan|  PROPERTY .*CurrentSettlement'} |
+    $lines | Where-Object {
+        $_ -match '^ACTION|^TYPE|  PROPERTY .*Clan|  PROPERTY .*CurrentSettlement' -or
+        $_ -match 'ApplyByJoinToKingdom|ApplyByJoinFactionAsMercenary'
+    } |
         Select-Object -First 60
     Write-Output ('KNIGHT_API_AUDIT_PASS lines='+$lines.Count)
 }finally{

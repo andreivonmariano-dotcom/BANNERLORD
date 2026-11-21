@@ -98,7 +98,10 @@ def proof_for(role):
         ui_native_screen_visible_after_reload=True,
         ui_no_overlap_or_clipping=True,
         ui_native_back_navigation=True,
-        ui_matches_real_game_state=True)
+        ui_matches_real_game_state=True,
+        ui_no_duplicate_settlement_actions=True,
+        ui_actions_match_native_context=True,
+        ui_legacy_new_game_editor_hidden=True)
     if role=="King":
         proof.update(
             royal_seat_id_after_reload="royal_fief",

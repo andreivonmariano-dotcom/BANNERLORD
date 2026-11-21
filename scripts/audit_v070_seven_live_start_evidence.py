@@ -22,6 +22,9 @@ NATIVE_UI_FIELDS=(
  "ui_no_overlap_or_clipping",
  "ui_native_back_navigation",
  "ui_matches_real_game_state",
+ "ui_no_duplicate_settlement_actions",
+ "ui_actions_match_native_context",
+ "ui_legacy_new_game_editor_hidden",
 )
 ROLE_UI_SCREENSHOTS={
  "Knight":("knight_oath_ui.png","knight_household_ui.png",
