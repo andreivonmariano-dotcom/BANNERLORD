@@ -58,8 +58,9 @@ house = vm[vm.index("private void CommitHouse()"):
            vm.index("[DataSourceProperty] public bool IsWorldSetup")]
 assert "candidate.RealFamilyEnabled=candidate.SpouseEnabled ||" in house
 assert "SandboxNobleStartPolicy.RequiresNobleElder(" in house
-assert "SandboxDynasticSonStart.HasProjectedNativeFather(" in house
-assert "SandboxDynasticStart.HasProjectedNativeElder(" in house
+assert "HasEligibleProjectedNoble(candidate)" in house
+assert "SandboxDynasticSonStart.HasProjectedNativeFather(" in vm
+assert "SandboxDynasticStart.HasProjectedNativeElder(" in vm
 assert '"cu_house_noble_preflight_blocked"' in house
 assert "|draft_preserved=true" in house
 assert "|native_finalization_not_invoked=true" in house
