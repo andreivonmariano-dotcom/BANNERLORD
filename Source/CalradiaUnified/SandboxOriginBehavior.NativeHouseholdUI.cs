@@ -175,6 +175,91 @@ namespace CalradiaUnified
                 ()=>DeclineDossierPetition()),true);
         }
 
+        // Role briefings point to real native authorities. They do not
+        // issue distant NPC orders, fabricate salaries, or grant lands.
+        private void ReviewDossierCalling()
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            if(player==null || clan==null)return;
+            if(knightOath.IsConfigured)
+            {
+                var patron=KnightOathPatron();
+                ShowNativeDetail("Your oath and commanding lord",
+                    "Your sworn lord is "+NativePersonName(patron)+
+                    ". "+KnightPatronWhereabouts(patron)+
+                    "\nYour next muster: "+knightOath.NextMusterDay+
+                    ". First audience completed: "+
+                    (knightOath.LastMusterDay>=0?"yes":"not yet")+
+                    ". Seek this real Hero and speak in person.");
+                return;
+            }
+            if(kingSuccession.IsRecorded)
+            {
+                ShowNativeDetail("The royal council",
+                    "Realm: "+(clan.Kingdom==null?"unverified":
+                        clan.Kingdom.Name.ToString())+
+                    "\nRoyal council: "+(royalCouncil.IsRecorded?
+                        "commissioned":"not recorded")+
+                    "\nYour native Kingdom screen governs "+
+                    "policies, diplomacy and rulership. "+
+                    "Use your royal court at a suitable settlement.");
+                return;
+            }
+            if(lordInheritance.IsRecorded)
+            {
+                ShowNativeDetail("The obligations of your house",
+                    "Your clan holds "+clan.Settlements.Count+
+                    " actual settlements."+
+                    "\nRecorded heir: "+
+                    NativeHeroDisplayName(lordInheritance.PrimaryHeirId)+
+                    " | Custom: "+lordInheritance.Rule+
+                    "\nMeet your kin and hear legal estate "+
+                    "petitions at the family council.");
+                return;
+            }
+            string career=roleEconomy.Role=="EnlistedSoldier"?
+                "Soldier":roleEconomy.Role;
+            if(career=="Soldier")
+            {
+                ShowNativeDetail("Your place in the ranks",
+                    "Actual enlistment: "+(serviceCareer
+                        .VerifiedExternalEnlistment?
+                        "verified":"not yet verified")+
+                    "\nCommanding lord: "+
+                    NativeHeroDisplayName(serviceCareer.PatronId)+
+                    "\nPay, rank and daily orders belong to "+
+                    "the game-backed enlistment system.");
+            }
+            else if(career=="Mercenary")
+            {
+                ShowNativeDetail("Your company's contract",
+                    "Native mercenary service: "+
+                    (clan.IsUnderMercenaryService?"active":"not verified")+
+                    "\nEmployer: "+(clan.Kingdom==null?
+                        "none":clan.Kingdom.Name.ToString())+
+                    "\nYour actual native contract, clan "+
+                    "and kingdom affiliation govern pay.");
+            }
+            else if(career=="Outlaw")
+            {
+                ShowNativeDetail("Your outlaw company",
+                    "Your band belongs to your actual party. "+
+                    "No royal title or safe passage is assumed."+
+                    "\nCurrent purse: "+player.Gold+" denars."+
+                    "\nUse the native Party view to see and "+
+                    "command the troops you truly have.");
+            }
+            else
+            {
+                ShowNativeDetail("Your road through Calradia",
+                    "You choose where to travel and whom to meet."+
+                    "\nCurrent purse: "+player.Gold+" denars."+
+                    "\nYour native Clan and Party screens "+
+                    "record your actual people and company.");
+            }
+        }
+
         private void ShowStartingHouseholdStatus()
         {
             var player=Hero.MainHero;
@@ -315,7 +400,8 @@ namespace CalradiaUnified
                     "Live native household records. No fabricated titles.",
                     InspectDossierHero,
                     OpenDossierFamilyPortraits,
-                    HearDossierPetition));
+                    HearDossierPetition,
+                    ReviewDossierCalling));
             }
             catch(Exception error)
             {
