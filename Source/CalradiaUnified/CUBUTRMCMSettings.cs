@@ -15,7 +15,7 @@ namespace CalradiaUnified
         public override string Id => "CalradiaUnified";
         public override string DisplayName => "Calradia Unified";
         public override string FolderName => "CalradiaUnified";
-        public override string FormatType => "json";
+        public override string FormatType => "none";
 
         private static bool Read(string key)
         {
