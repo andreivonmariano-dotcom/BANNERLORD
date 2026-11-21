@@ -99,8 +99,31 @@ namespace CalradiaUnified
             if(seat.OwnerClan!=Clan.PlayerClan ||
                seat.Town==null || seat.Town.Governor!=null)
                 return "native_governorship_no_longer_vacant";
-            // This is the engine action, never a Town.Governor setter.
-            // The minister is not a MemberRoster troop.
+            // The native governor action can defer the appointment for
+            // a Hero who has not reached the target town. This newly
+            // created officer has no party or prison commitments. Move
+            // the real Hero to the real royal holding through native
+            // settlement travel before assigning the native governor.
+            if(minister.IsPrisoner || minister.PartyBelongedTo!=null ||
+               minister.PartyBelongedToAsPrisoner!=null)
+                return "native_minister_not_free_to_move";
+            if(minister.CurrentSettlement!=seat)
+                TeleportHeroAction.ApplyImmediateTeleportToSettlement(
+                    minister,seat);
+            bool arrived=minister.CurrentSettlement==seat &&
+                !minister.IsPrisoner;
+            DiagnosticJournal.Event(
+                "cu_king_royal_minister_native_arrival",
+                "result="+(arrived?"PASS":"FAIL")+
+                "|minister="+minister.StringId+
+                "|settlement="+seat.StringId+
+                "|actual_settlement="+(minister.CurrentSettlement==null?
+                    "none":minister.CurrentSettlement.StringId)+
+                "|native_immediate_teleport_action=true");
+            if(!arrived)
+                return "native_minister_not_at_royal_seat";
+            // The native governor action now has an officer at its
+            // actual seat and can perform immediate assignment.
             ChangeGovernorAction.Apply(seat.Town,minister);
             bool accepted=seat.Town.Governor==minister &&
                 minister.GovernorOf==seat.Town &&
@@ -116,6 +139,7 @@ namespace CalradiaUnified
                 "|hero_governor_of="+(minister.GovernorOf==null?
                     "none":minister.GovernorOf.StringId)+
                 "|native_change_governor_action=true"+
+                "|minister_present_at_seat="+arrived+
                 "|previous_governor=none"+
                 "|no_estate_owner_change=true"+
                 "|court_seat_designation_only=true"+

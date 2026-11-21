@@ -176,9 +176,16 @@ namespace CalradiaUnified
                 args=>knightOath.IsConfigured,
                 args=>
                 {
+                    var patron=KnightOathPatron();
                     Notify("Oath: "+knightOath.Status+
-                        ". Patron: "+knightOath.PatronId+
-                        " of "+knightOath.PatronClanId+
+                        ". Patron: "+(patron==null?
+                            knightOath.PatronId:patron.Name.ToString())+
+                        " of "+(patron==null || patron.Clan==null?
+                            knightOath.PatronClanId:
+                            patron.Clan.Name.ToString())+
+                        ". Native relation: "+(patron==null ||
+                            Hero.MainHero==null?"unavailable":
+                            Hero.MainHero.GetRelation(patron).ToString())+
                         ". Musters: "+knightOath.CompletedMusters+
                         ". Missed: "+knightOath.MissedMusters+
                         ". Next muster on day "+knightOath.NextMusterDay+

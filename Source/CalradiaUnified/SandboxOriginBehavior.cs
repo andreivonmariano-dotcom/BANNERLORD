@@ -2201,8 +2201,18 @@ namespace CalradiaUnified
                                 "|patron="+patron.StringId+
                                 "|patron_clan="+patron.Clan.StringId+
                                 "|player_clan="+Clan.PlayerClan.StringId+
+                                "|native_relation="+hero.GetRelation(patron)+
                                 "|independent_house=true"+
                                 "|native_vassalage=false");
+                            if(oathStatus=="oath_recorded")
+                                Notify("Sworn Knight: your personal oath "+
+                                    "to Lord "+patron.Name+" of "+
+                                    patron.Clan.Name+" is now active. "+
+                                    "Native relation "+
+                                    hero.GetRelation(patron)+
+                                    ". You command an independent clan. "+
+                                    "View the oath from any town or "+
+                                    "castle menu.");
                         }
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)

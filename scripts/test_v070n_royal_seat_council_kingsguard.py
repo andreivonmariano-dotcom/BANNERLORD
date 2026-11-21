@@ -17,6 +17,9 @@ assert '"InitialHomeSettlement","InitialHomeLand"' in ministry
 assert 'nativeHome!=null && owned.Contains(nativeHome)' in ministry
 assert 's.OwnerClan==clan' in ministry
 assert 'ChangeGovernorAction.Apply(seat.Town,minister);' in ministry
+assert 'TeleportHeroAction.ApplyImmediateTeleportToSettlement(' in ministry
+assert 'minister.CurrentSettlement==seat' in ministry
+assert '"cu_king_royal_minister_native_arrival"' in ministry
 assert 'minister.GovernorOf==seat.Town' in ministry
 assert 'seat.Town.Governor==minister' in ministry
 assert 'VacantOwnedFief()' in preflight

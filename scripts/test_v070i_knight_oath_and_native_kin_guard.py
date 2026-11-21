@@ -37,6 +37,9 @@ assert 'patron.IsPrisoner' in native
 assert 'patron_captivity_pause' in state
 assert 'patron_returned_muster_reset' in state
 assert '"cu_knight_oath_confirm_break"' in native
+assert 'your personal oath' in origin
+assert 'Native relation:' in native
+assert 'patron.Clan.Name.ToString()' in native
 assert 'KnightOrigin","Your knightly origin"' in vm
 assert '30-day muster' in vm
 assert 'public const string Version="CU_KNIGHT_OATH_1";' in state
