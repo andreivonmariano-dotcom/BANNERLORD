@@ -143,6 +143,10 @@ namespace CalradiaUnified
         // A saved family claim rule, not an action that changes the
         // kingdom's native election, clan leader or settlement owners.
         public string LordSuccessionRule="EldestChild";
+        // The new King must be the ACTUAL native ruler; court and heirs
+        // never fabricate sovereignty in legacy King profiles.
+        public bool KingGuidedStart;
+        public string KingSuccessionRule="EldestChild";
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -242,6 +246,8 @@ namespace CalradiaUnified
             KnightOrigin="SwornHouse";
             LordGuidedStart=false;
             LordSuccessionRule="EldestChild";
+            KingGuidedStart=false;
+            KingSuccessionRule="EldestChild";
             if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)
                 Role="Wanderer";
             WandererCompanionEnabled=false;
@@ -522,6 +528,13 @@ namespace CalradiaUnified
                     if(!SandboxLordSuccessionPolicy.IsRule(value))
                         return false;
                     LordSuccessionRule=value;return true;
+                case "KingGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    KingGuidedStart=b;return true;
+                case "KingSuccessionRule":
+                    if(!SandboxLordSuccessionPolicy.IsRule(value))
+                        return false;
+                    KingSuccessionRule=value;return true;
                 case "SoldierEntryRank":
                     if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
                         return false;
@@ -658,6 +671,24 @@ namespace CalradiaUnified
             {
                 error="Choose a supported early household and ambition.";
                 return false;
+            }
+            if(KingGuidedStart)
+            {
+                string king=SandboxKingStartPolicy.ValidateRequest(
+                    Role,StartingKingdomId,NobleBirthPosition,
+                    NobleElderHeroId,ServicePatronHeroId,
+                    RoleAffiliationsEnabled,RetinueMode,StartingFiefMode,
+                    StartingFiefId,AllowStartingFiefTransfer,Gold,
+                    Influence,Troops,KingSuccessionRule);
+                if(king.Length!=0 || LordGuidedStart ||
+                   KnightGuidedStart || SoldierGuidedStart ||
+                   MercenaryGuidedStart || OutlawGuidedStart ||
+                   WandererNoHouseStart)
+                {
+                    error="Guided King: "+(king.Length==0?
+                        "cannot combine incompatible life starts":king);
+                    return false;
+                }
             }
             if(LordGuidedStart)
             {
@@ -888,6 +919,8 @@ namespace CalradiaUnified
                 ", knight_origin=" + (KnightGuidedStart?KnightOrigin:"legacy") +
                 ", guided_lord=" + LordGuidedStart +
                 ", lord_succession_rule=" + LordSuccessionRule +
+                ", guided_king=" + KingGuidedStart +
+                ", king_succession_rule=" + KingSuccessionRule +
                 ", noble_birth=" + NobleBirthPosition +
                 ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
@@ -986,6 +1019,9 @@ namespace CalradiaUnified
                 "LordGuidedStart=" +
                     LordGuidedStart.ToString().ToLowerInvariant(),
                 "LordSuccessionRule=" + LordSuccessionRule,
+                "KingGuidedStart=" +
+                    KingGuidedStart.ToString().ToLowerInvariant(),
+                "KingSuccessionRule=" + KingSuccessionRule,
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
