@@ -1375,6 +1375,10 @@ namespace CalradiaUnified
                             patron.Clan.Name.ToString()+
                             ". Rank and wage are controlled by "+
                             "Serve as Soldier.":
+                        profile.KnightGuidedStart?
+                        "Personal patron recorded: "+servicePatronName+
+                            " of "+patron.Clan.Name.ToString()+
+                            ". No formal native vassalage or binding oath.":
                         profile.Role+" service confirmed under "+
                             servicePatronName+" of "+
                             patron.Clan.Name.ToString()+
@@ -1643,7 +1647,8 @@ namespace CalradiaUnified
                 string[] failures = SandboxStartContract.Validate(
                     SandboxNativeStartOptions.StartTypeForProfile(profile),
                     actualStart,
-                    profile.SoldierGuidedStart?"":
+                    (profile.SoldierGuidedStart ||
+                        profile.KnightGuidedStart)?"":
                         profile.StartingKingdomId,
                     observedKingdom == null ? "" : observedKingdom.StringId,
                     observedKingdom != null &&
@@ -1849,7 +1854,8 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Companions.Count>0))
                     failures=failures.Concat(new[]{
                         "family_only_has_unrelated_companions"}).ToArray();
-                if(SandboxCustomLifeRolePolicy.IsLandless(profile.Role) &&
+                if((profile.KnightGuidedStart ||
+                    SandboxCustomLifeRolePolicy.IsLandless(profile.Role)) &&
                     !SandboxCustomLifeRolePolicy.NativeLandlessContract(
                         Clan.PlayerClan.Kingdom!=null,
                         Clan.PlayerClan.Settlements.Count))
@@ -1894,7 +1900,8 @@ namespace CalradiaUnified
                             profile,livingPersons,characterAgendas,hero);
                         roleEconomy.Start(
                             profile.SoldierGuidedStart?
-                                "EnlistedSoldier":profile.Role,
+                                "EnlistedSoldier":profile.KnightGuidedStart?
+                                "HouseholdKnight":profile.Role,
                             hero.Gold,agencyDecisions.Day);
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
@@ -1902,7 +1909,8 @@ namespace CalradiaUnified
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)
                         {
-                            serviceCareer.Start(profile.Role,
+                            serviceCareer.Start(profile.KnightGuidedStart?
+                                "HouseholdKnight":profile.Role,
                                 patron.StringId,
                                 profile.StartingKingdomId);
                             if(profile.SoldierGuidedStart)
