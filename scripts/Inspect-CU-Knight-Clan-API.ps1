@@ -25,6 +25,15 @@ $resolve=[ResolveEventHandler]{
 }
 [AppDomain]::CurrentDomain.add_ReflectionOnlyAssemblyResolve($resolve)
 try{
+    # Explicitly pre-load direct bases used by Hero and Clan metadata.
+    foreach($dependency in @('TaleWorlds.Library','TaleWorlds.ObjectSystem',
+        'TaleWorlds.Core','TaleWorlds.CampaignSystem')){
+        if(!$script:map.ContainsKey($dependency)){
+            throw ('Missing pinned assembly: '+$dependency)
+        }
+        $null=[Reflection.Assembly]::ReflectionOnlyLoadFrom(
+            $script:map[$dependency])
+    }
     $assembly=[Reflection.Assembly]::ReflectionOnlyLoadFrom($script:map['TaleWorlds.CampaignSystem'])
     $flags=[Reflection.BindingFlags]'Public,NonPublic,Instance,Static,DeclaredOnly'
     $lines=New-Object 'System.Collections.Generic.List[string]'
