@@ -14,6 +14,26 @@ namespace CalradiaUnified
     /// </summary>
     internal static class SandboxGeneratedSpouseOrigin
     {
+        internal static string PreflightGuidedLord(
+            SandboxOriginProfile profile,Hero player)
+        {
+            if(profile==null || !profile.LordGuidedStart)return "";
+            var request=SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                profile.SpouseBackground,profile.SpouseBirthClanId);
+            if(request.Length>0)return request;
+            Clan birthClan;
+            Hero father,mother;
+            string refused;
+            // Only scans the already existing kingdom/clans. The
+            // temporary random choice does not create or edit a native
+            // Hero, marriage, clan or estate.
+            if(!TryResolve(profile,player,out birthClan,
+                out father,out mother,out refused))
+                return refused.Length==0?
+                    "native_noble_parents_unavailable":refused;
+            return father!=null && mother!=null &&
+                birthClan!=null?"":"native_noble_parentage_unavailable";
+        }
         internal static bool TryResolve(SandboxOriginProfile profile, Hero player,
             out Clan birthClan, out Hero father, out Hero mother,
             out string refusal)
@@ -86,6 +106,14 @@ namespace CalradiaUnified
                 .ToArray();
             if (families.Length == 0)
             {
+                // The guided Lord has an explicit living noble in-law
+                // contract. A named noble clan without both real native
+                // married parents is not enough to establish that lineage.
+                if(profile.LordGuidedStart)
+                {
+                    refusal="guided_lord_requires_native_married_noble_parents";
+                    return false;
+                }
                 // No invented parents. NobleRandom still permits an actual
                 // native noble birth clan when no married couple is old
                 // enough to parent the requested adult spouse (e.g. age 48).
