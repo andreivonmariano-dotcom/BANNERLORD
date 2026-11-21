@@ -27,7 +27,7 @@ namespace CalradiaUnified
         {
             get { return IsConfigured &&
                 (Status=="Active" || Status=="MusterDue" ||
-                 Status=="Overdue"); }
+                 Status=="Overdue" || Status=="PatronCaptive"); }
         }
         private static bool Id(string value)
         {
@@ -55,7 +55,8 @@ namespace CalradiaUnified
             return "oath_recorded";
         }
         public string Observe(int day,bool patronResolved,
-            bool patronAlive,bool sameClan,bool sameKingdom)
+            bool patronAlive,bool sameClan,bool sameKingdom,
+            bool patronCaptive=false)
         {
             if(!IsConfigured)return "not_configured";
             if(!HasCurrentOath)return Status.ToLowerInvariant();
@@ -70,6 +71,19 @@ namespace CalradiaUnified
             {
                 Status="Interrupted";
                 return "native_patron_allegiance_changed";
+            }
+            if(patronCaptive)
+            {
+                if(Status=="PatronCaptive")
+                    return "patron_still_captive";
+                Status="PatronCaptive";
+                return "patron_captivity_pause";
+            }
+            if(Status=="PatronCaptive")
+            {
+                Status="Active";
+                NextMusterDay=day+MusterDays;
+                return "patron_returned_muster_reset";
             }
             if(day>NextMusterDay && Status!="Overdue")
             {
@@ -87,8 +101,8 @@ namespace CalradiaUnified
         }
         public bool CanMuster(int day,bool inPerson)
         {
-            return HasCurrentOath && inPerson &&
-                day>=PledgedDay &&
+            return HasCurrentOath && Status!="PatronCaptive" &&
+                inPerson && day>=PledgedDay &&
                 day>=NextMusterDay-MusterWindowDays &&
                 (LastMusterDay<0 || day>LastMusterDay) &&
                 day<=Int32.MaxValue-MusterDays;
@@ -157,6 +171,7 @@ namespace CalradiaUnified
                 return empty;
             if(f[4]!="Active" && f[4]!="MusterDue" &&
                f[4]!="Overdue" && f[4]!="SuccessionPending" &&
+               f[4]!="PatronCaptive" &&
                f[4]!="Interrupted" && f[4]!="Released" &&
                f[4]!="Broken")return empty;
             int pledged,last,next,completed,missed,successions;
