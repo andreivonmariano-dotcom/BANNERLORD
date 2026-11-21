@@ -36,7 +36,7 @@ assert 'CU_v069d_family_recovery' in behavior
 assert 'familyRecovery=SandboxFamilyRecoveryState.Parse(recovery)' in behavior
 assert 'RecordFailedNativeFamily(profile,hero,postFamilyGate)' in behavior
 assert 'RecordFailedNativeFamily(profile,hero,' in behavior
-assert 'familyRecovery.Observe(player.StringId' in behavior
+assert 'familyRecovery.Observe(recoveryPlayer.StringId' in behavior
 assert 'cu_partial_family_review_' in menu
 assert 'No new Heroes or starting gifts' in recovery
 assert 'NativeCountsMatchReviewStillRequired' in recovery
