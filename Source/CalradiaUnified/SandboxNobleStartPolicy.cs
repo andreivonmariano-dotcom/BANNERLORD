@@ -90,9 +90,10 @@ namespace CalradiaUnified
                 case "King":return brotherAvailable ?
                     new[]{"Knight","Chamberlain"} :
                     new[]{"Marshal","MasterOfArms"};
-                case "Lord":return brotherAvailable ?
-                    new[]{"Knight","HouseholdSteward"} :
-                    new[]{"MasterOfArms","Knight"};
+                // A brother is kin, not an automatic replacement for
+                // professional household officers. Every Lord begins
+                // with a martial master and a sworn household knight.
+                case "Lord":return new[]{"MasterOfArms","Knight"};
                 case "Knight":return new[]{"Squire"};
                 case "Admiral":return new[]{"FirstMate","Navigator"};
                 case "Soldier":return new[]{"Sergeant"};
