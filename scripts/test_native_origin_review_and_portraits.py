@@ -99,7 +99,7 @@ for name in nativeBindings:
 assert len(nativeBindings)>=7
 assert not list(nativeXml.iter("ButtonWidget")), "read-only native review overlay must not steal controls"
 assert any(n.get("Command.Click")=="ExecuteClose" for n in galleryXml.iter("ButtonWidget"))
-assert any(n.get("Text")=="Return to settlement" for n in galleryXml.iter("TextWidget"))
+assert any(n.get("Text")=="Close gallery" for n in galleryXml.iter("TextWidget"))
 assert any(n.tag=="ImageIdentifierWidget" and n.get("DataSource")=="{Portrait}"
            and n.get("ImageId")=="@Id" for n in galleryXml.iter())
 assert any(n.tag=="ListPanel" and n.get("DataSource")=="{Members}"
