@@ -60,6 +60,11 @@ namespace CalradiaUnified
         private string dynasticOlderSons = "";
         private string servicePatronHeroId = "";
         private string servicePatronName = "";
+        // A Soldier cannot receive a false "start passed" merely when
+        // an external enlistment screen has not yet completed. This
+        // pending state is save-backed, including across game reloads.
+        private bool soldierPendingStartSaved;
+        private bool soldierPendingNoticeShown;
         // These belong to this campaign save, not an external profile.
         private string wandererCompanionId = "";
         private int wandererWageCreditDay = -1;
@@ -333,6 +338,8 @@ namespace CalradiaUnified
                 ref servicePatronHeroId);
             store.SyncData("CU_v063_service_patron_name",
                 ref servicePatronName);
+            store.SyncData("CU_v070g_soldier_native_enlistment_pending",
+                ref soldierPendingStartSaved);
             store.SyncData("CU_v070b_wanderer_companion",
                 ref wandererCompanionId);
             store.SyncData("CU_v070b_wanderer_wage_credit_day",
@@ -736,7 +743,8 @@ namespace CalradiaUnified
 
         private void TryApplyOnDailyTick()
         {
-            if (characterCreationComplete && startedNewGame && !applied)
+            if(((characterCreationComplete && startedNewGame) ||
+                soldierPendingStartSaved) && !applied)
                 TryApplyOnce();
             ObserveLivingWorld();
         }
@@ -1072,23 +1080,55 @@ namespace CalradiaUnified
 
         private void TryApplyOnce()
         {
-            if (!characterCreationComplete || !startedNewGame ||
-                applied || !IsStandaloneSandbox()) return;
-            var hero = Hero.MainHero;
-            if (hero == null || Clan.PlayerClan == null) return;
+            if(!((characterCreationComplete && startedNewGame) ||
+                soldierPendingStartSaved) || applied ||
+                !IsStandaloneSandbox())return;
+            var hero=Hero.MainHero;
+            if(hero==null || Clan.PlayerClan==null)return;
+            SandboxOriginProfile profile=SandboxOriginProfile.Load(
+                SandboxOriginProfile.UserPath);
+            if(!SandboxCreatorOverlay.BlockNewGameProfile &&
+                profile.Enabled && profile.SoldierGuidedStart)
+            {
+                // SaS may open its start-enlisted menu AFTER our own
+                // character-creation-complete callback. Never commit a
+                // failed one-shot grant while that UI is unresolved.
+                // The native lord, wages and rank must be visible through
+                // the public API before any custom family/grant action.
+                var waiting=SandboxSaSBridge.Read();
+                if(!waiting.Available || !waiting.Enlisted)
+                {
+                    soldierPendingStartSaved=true;
+                    if(!soldierPendingNoticeShown)
+                    {
+                        soldierPendingNoticeShown=true;
+                        DiagnosticJournal.Event(
+                            "cu_soldier_native_enlistment_pending",
+                            "result=PENDING|provider="+waiting.Available+
+                            "|enlisted="+waiting.Enlisted+
+                            "|requested_rank="+profile.SoldierEntryRank+
+                            "|no_native_rank_or_grant_fabricated=true");
+                        Notify("Soldier enlistment awaits the real "+
+                            "Serve as Soldier enlistment action. "+
+                            "Choose the requested troop grade and "+
+                            "commanding kingdom; no Soldier start "+
+                            "will be marked successful beforehand.");
+                    }
+                    return;
+                }
+            }
 
             // Commit the one-shot barrier before any resources are changed.
             // Save/load or partial action failure must not duplicate grants.
-            applied = true;
-            startedNewGame = false;
+            applied=true;
+            startedNewGame=false;
+            soldierPendingStartSaved=false;
             if (SandboxCreatorOverlay.BlockNewGameProfile)
             {
                 DiagnosticJournal.Event("sandbox_creator_cancelled_no_grants",
                     "native_start_only=true");
                 return;
             }
-            SandboxOriginProfile profile = SandboxOriginProfile.Load(
-                SandboxOriginProfile.UserPath);
             if (!profile.Enabled)
             {
                 DiagnosticJournal.Event("sandbox_origin_disabled_for_new_game",
@@ -1586,9 +1626,10 @@ namespace CalradiaUnified
                 var observedClan = Clan.PlayerClan;
                 var observedKingdom = observedClan.Kingdom;
                 string[] failures = SandboxStartContract.Validate(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role),
+                    SandboxNativeStartOptions.StartTypeForProfile(profile),
                     actualStart,
-                    profile.StartingKingdomId,
+                    profile.SoldierGuidedStart?"":
+                        profile.StartingKingdomId,
                     observedKingdom == null ? "" : observedKingdom.StringId,
                     observedKingdom != null &&
                         observedKingdom.RulingClan == observedClan,
@@ -1707,6 +1748,42 @@ namespace CalradiaUnified
                     patron==null)
                     failures=failures.Concat(new[]{
                         "commanding_lord_not_bound"}).ToArray();
+                string soldierReceipt="not_requested";
+                if(profile.SoldierGuidedStart)
+                {
+                    var soldier=SandboxSaSBridge.Read();
+                    soldierReceipt=SandboxSoldierEnlistmentPolicy
+                        .ValidateEnlisted(soldier.Available,
+                            soldier.Enlisted,profile.StartingKingdomId,
+                            profile.ServicePatronHeroId,soldier.LordId,
+                            soldier.LordKingdomId,soldier.RankId,
+                            soldier.NativeHostPartyLedByLord,
+                            observedClan.IsUnderMercenaryService,
+                            observedClan.Settlements!=null &&
+                                observedClan.Settlements.Count>0);
+                    if(soldierReceipt.Length==0)
+                        soldierReceipt=SandboxSoldierEnlistmentPolicy
+                            .ValidateRequestedEntryRank(
+                                profile.SoldierEntryRank,soldier.RankId);
+                    if(soldierReceipt.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_enlisted_soldier_unverified:"+
+                                soldierReceipt}).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_soldier_native_start_verification",
+                        "result="+(soldierReceipt.Length==0?"PASS":"FAIL")+
+                        "|reason="+soldierReceipt+
+                        "|lord="+soldier.LordId+
+                        "|actual_kingdom="+soldier.LordKingdomId+
+                        "|requested_rank="+profile.SoldierEntryRank+
+                        "|actual_rank="+soldier.RankId+
+                        "|native_rank_num="+soldier.RankNumber+
+                        "|career_stage="+
+                            SandboxSoldierEnlistmentPolicy.CareerStage(
+                                soldier.RankId)+
+                        "|actual_native_daily_wage="+soldier.Wage+
+                        "|enlisted_troop_not_mercenary_clan=true");
+                }
                 // Re-check native paid-company status after the marriage,
                 // companion dismissal and resource stages. The contract is
                 // not the same as a personal NPC-party enlisted rank.
@@ -1778,6 +1855,7 @@ namespace CalradiaUnified
                     "|wanderer_companion_id="+wandererCompanionId+
                     "|outlaw_band="+outlawBand+
                     "|mercenary_receipt="+mercenaryReceipt+
+                    "|soldier_receipt="+soldierReceipt+
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
                 {
@@ -1807,13 +1885,34 @@ namespace CalradiaUnified
                             serviceCareer.Start(profile.Role,
                                 patron.StringId,
                                 profile.StartingKingdomId);
-                            DiagnosticJournal.Event(
-                                "cu_personal_service_career_started",
-                                "role="+profile.Role+
-                                "|patron="+patron.StringId+
-                                "|native_wages_authoritative=true"+
-                                "|enlisted_in_npc_party=false"+
-                                "|automatic_promotion=false");
+                            if(profile.SoldierGuidedStart)
+                            {
+                                var native=SandboxSaSBridge.Read();
+                                serviceCareer.ObserveExternal(
+                                    native.LordId,native.RankId,
+                                    native.DutyId,native.Wage,
+                                    native.Days,native.TermDaysLeft,
+                                    native.InsideHostParty);
+                                DiagnosticJournal.Event(
+                                    "cu_soldier_real_career_started",
+                                    "result=PASS|lord="+native.LordId+
+                                    "|native_rank="+native.RankId+
+                                    "|career_stage="+
+                                        SandboxSoldierEnlistmentPolicy
+                                            .CareerStage(native.RankId)+
+                                    "|native_wage="+native.Wage+
+                                    "|host_party_verified="+
+                                        native.NativeHostPartyLedByLord+
+                                    "|native_sas_promotion_authority=true");
+                            }
+                            else
+                                DiagnosticJournal.Event(
+                                    "cu_personal_service_career_started",
+                                    "role="+profile.Role+
+                                    "|patron="+patron.StringId+
+                                    "|native_wages_authoritative=true"+
+                                    "|enlisted_in_npc_party=false"+
+                                    "|automatic_promotion=false");
                         }
                         if(SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
                             profile.Role) &&
