@@ -16,6 +16,9 @@ namespace CalradiaUnified
             public string Id="",Goal="",HomeId="",HomeEvidence="Unverified",
                 CurrentOccupation="",Culture="",ClanId="";
             public int ConsecutiveDaysTogether,ComradeshipAwards;
+            // One transient proposal per daily observation. A proposal
+            // is never serialized as a confirmed native relationship.
+            public bool AwardProposed;
         }
         public const int MaxEntries=64;
         public readonly List<Entry> Entries=new List<Entry>();
@@ -59,6 +62,7 @@ namespace CalradiaUnified
         {
             var e=Get(id);
             if(e==null)return 0;
+            e.AwardProposed=false;
             if(e.Goal!="ProtectSharedHousehold" ||
                 !SandboxGeneratedCharacterGoalPolicy.CanShareMilitaryService(
                     adult,verifiedSharedParents,sameRealParty))
@@ -75,13 +79,16 @@ namespace CalradiaUnified
             // The native relation change can fail or be rejected.
             // Propose a point here, but do not consume the lifetime
             // award until the campaign confirms a real relation increase.
+            e.AwardProposed=increment>0;
             return increment;
         }
         public bool ConfirmComradeshipAward(string id,
             int nativeRelationBefore,int nativeRelationAfter)
         {
             var e=Get(id);
-            if(e==null || e.Goal!="ProtectSharedHousehold" ||
+            if(e==null || !e.AwardProposed)return false;
+            e.AwardProposed=false;
+            if(e.Goal!="ProtectSharedHousehold" ||
                 nativeRelationBefore< -100 || nativeRelationBefore>100 ||
                 nativeRelationAfter< -100 || nativeRelationAfter>100 ||
                 nativeRelationAfter<=nativeRelationBefore ||
