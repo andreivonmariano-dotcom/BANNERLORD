@@ -129,11 +129,11 @@
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="372"
-                    HeightSizePolicy="Fixed" SuggestedHeight="50">
+                    HeightSizePolicy="Fixed" SuggestedHeight="42">
                   <Children>
                     <ImageIdentifierWidget DataSource="{Portrait}"
-                        WidthSizePolicy="Fixed" SuggestedWidth="45"
-                        HeightSizePolicy="Fixed" SuggestedHeight="45"
+                        WidthSizePolicy="Fixed" SuggestedWidth="39"
+                        HeightSizePolicy="Fixed" SuggestedHeight="39"
                         PositionXOffset="4" PositionYOffset="2"
                         AdditionalArgs="@AdditionalArgs"
                         ImageId="@Id"
@@ -142,12 +142,12 @@
                         Color="#F9E3C0FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="309"
                         HeightSizePolicy="Fixed" SuggestedHeight="27"
-                        PositionXOffset="58" PositionYOffset="2"/>
+                        PositionXOffset="52" PositionYOffset="1"/>
                     <TextWidget Text="@Relationship" Brush.FontSize="12"
                         Color="#D5B389FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="309"
                         HeightSizePolicy="Fixed" SuggestedHeight="18"
-                        PositionXOffset="58" PositionYOffset="29"/>
+                        PositionXOffset="52" PositionYOffset="24"/>
                   </Children>
                 </ButtonWidget>
               </ItemTemplate>
