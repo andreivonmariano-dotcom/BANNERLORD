@@ -1538,7 +1538,7 @@ namespace CalradiaUnified
                             "(Marshal)",StringComparison.Ordinal));
                     var minister=royalOfficers.FirstOrDefault(o=>
                         o!=null && o.Name.ToString().EndsWith(
-                            "(RoyalMinister)",StringComparison.Ordinal));
+                            "(Royal Minister)",StringComparison.Ordinal));
                     var kingsguard=royalOfficers.FirstOrDefault(o=>
                         o!=null && o.Name.ToString().EndsWith(
                             "(Kingsguard)",StringComparison.Ordinal));
