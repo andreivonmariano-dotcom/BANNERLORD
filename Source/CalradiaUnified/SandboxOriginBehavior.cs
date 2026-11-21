@@ -88,6 +88,8 @@ namespace CalradiaUnified
                 this, ObserveKnightOathDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKingSuccessionDaily);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -377,6 +379,9 @@ namespace CalradiaUnified
             string heirs=lordInheritance.Serialize();
             store.SyncData("CU_v070k_lord_native_heir_claims",ref heirs);
             lordInheritance=SandboxLordInheritanceState.Parse(heirs);
+            string royal=kingSuccession.Serialize();
+            store.SyncData("CU_v070l_native_royal_household",ref royal);
+            kingSuccession=SandboxKingSuccessionState.Parse(royal);
             string economy=roleEconomy.Serialize();
             store.SyncData("CU_v069d_role_economy",ref economy);
             roleEconomy=SandboxRoleEconomyState.Parse(economy);
@@ -415,6 +420,7 @@ namespace CalradiaUnified
             RegisterPeopleAndLineageMenus(starter);
             RegisterKnightOathMenus(starter);
             RegisterLordInheritanceMenus(starter);
+            RegisterKingSuccessionMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -1516,6 +1522,62 @@ namespace CalradiaUnified
                     return;
                 }
 
+                // New King: two actual clan companions, not invented
+                // council offices. The Marshal is a trained field
+                // officer, the Chamberlain a real party quartermaster.
+                // Native sovereign authority remains in the kingdom.
+                if(profile.KingGuidedStart)
+                {
+                    var royalOfficers=Clan.PlayerClan.Companions.ToArray();
+                    bool marshal=royalOfficers.Count(o=>o!=null &&
+                        o.Name.ToString().EndsWith(
+                            "(Marshal)",StringComparison.Ordinal) &&
+                        o.Occupation==Occupation.Lord)==1;
+                    bool chamberlain=royalOfficers.Count(o=>o!=null &&
+                        o.Name.ToString().EndsWith(
+                            "(Chamberlain)",StringComparison.Ordinal) &&
+                        o.Occupation==Occupation.Wanderer)==1;
+                    bool registered=royalOfficers.All(o=>
+                        o!=null && o.Clan==Clan.PlayerClan &&
+                        o.CompanionOf==Clan.PlayerClan);
+                    bool real=royalOfficers.All(o=>
+                        o!=null && o.IsAlive && o.IsActive &&
+                        o.CharacterObject!=null);
+                    bool culture=royalOfficers.All(o=>
+                        o!=null && o.Culture==hero.Culture);
+                    bool party=MobileParty.MainParty!=null &&
+                        royalOfficers.All(o=>o!=null &&
+                            o.CharacterObject!=null &&
+                            MobileParty.MainParty.MemberRoster
+                                .GetTroopCount(o.CharacterObject)==1);
+                    string court=SandboxKingStartPolicy.ValidateCourt(
+                        retinue,royalOfficers.Length,culture,
+                        registered,real,party,marshal,chamberlain);
+                    DiagnosticJournal.Event(
+                        "cu_king_native_court_verification",
+                        "result="+(court.Length==0?"PASS":"FAIL")+
+                        "|reason="+court+
+                        "|marshal="+marshal+
+                        "|chamberlain="+chamberlain+
+                        "|native_party="+party+
+                        "|native_heroes="+real+
+                        "|native_clan="+registered+
+                        "|same_culture="+culture+
+                        "|no_royal_power_grant=true");
+                    if(court.Length>0)
+                    {
+                        RecordFailedNativeFamily(profile,hero,
+                            "royal_court:"+court);
+                        DiagnosticJournal.Event(
+                            "sandbox_start_contract",
+                            "result=FAIL|reason=royal_court:"+court+
+                            "|no_discretionary_grants=true");
+                        Notify("Native royal court could not be "+
+                            "verified: "+court);
+                        return;
+                    }
+                }
+
                 // A guided Lord receives two named, culturally-equipped
                 // genuine Hero companions, never a fictional court list.
                 // Both must exist in the actual native clan and main party.
@@ -1915,6 +1977,43 @@ namespace CalradiaUnified
                         "|salary_and_term_owned_by_native=true"+
                         "|not_enlisted_in_foreign_party=true");
                 }
+                if(profile.KingGuidedStart)
+                {
+                    string crownFinal=SandboxKingStartPolicy
+                        .ValidateNativeCrown(actualStart,
+                            profile.StartingKingdomId,
+                            observedKingdom==null?"":observedKingdom.StringId,
+                            observedClan.Leader==hero,
+                            MobileParty.MainParty!=null &&
+                                MobileParty.MainParty.LeaderHero==hero,
+                            observedKingdom!=null &&
+                                observedKingdom.RulingClan==observedClan,
+                            observedClan.IsUnderMercenaryService,
+                            !observedClan.IsMinorFaction &&
+                                !observedClan.IsBanditFaction &&
+                                !observedClan.IsRebelClan && hero.IsLord,
+                            observedClan.IsEliminated,
+                            observedClan.Settlements==null?0:
+                                observedClan.Settlements.Count);
+                    if(crownFinal.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_crown_contract_unverified:"+crownFinal
+                        }).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_king_native_final_verification",
+                        "result="+(crownFinal.Length==0?"PASS":"FAIL")+
+                        "|reason="+crownFinal+
+                        "|player_ruling_clan_head="+
+                            (observedClan.Leader==hero)+
+                        "|native_ruler="+(observedKingdom==null ||
+                            observedKingdom.RulingClan==null ||
+                            observedKingdom.RulingClan.Leader==null?
+                            "none":
+                            observedKingdom.RulingClan.Leader.StringId)+
+                        "|native_fiefs="+observedClan.Settlements.Count+
+                        "|native_crown_not_invented=true"+
+                        "|royal_treasury_unchanged=true");
+                }
                 if(profile.LordGuidedStart)
                 {
                     string lordFinal=SandboxLordStartPolicy
@@ -2000,6 +2099,17 @@ namespace CalradiaUnified
                             profile,hero,patron,livingPersons);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
+                        if(profile.KingGuidedStart)
+                        {
+                            string royalRecorded=BeginGuidedKingSuccession(
+                                profile,hero);
+                            if(royalRecorded!="native_royal_household_recorded")
+                                DiagnosticJournal.Event(
+                                    "cu_royal_claim_record_refused",
+                                    "result="+royalRecorded+
+                                    "|native_kingdom_unchanged=true"+
+                                    "|native_ownership_unchanged=true");
+                        }
                         if(profile.LordGuidedStart)
                         {
                             string heirRecorded=BeginGuidedLordInheritance(
