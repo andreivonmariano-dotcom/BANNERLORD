@@ -35,6 +35,10 @@ assert 'person.IsAlive' in gallery
 assert 'public void ExecuteInspect()' in gallery
 assert 'CharacterCode.CreateFrom(hero.CharacterObject)' in gallery
 assert 'InspectDossierHero' in house
+assert 'NativeCourtOfficer("Master of Arms")==person' in house
+assert 'NativeCourtOfficer("Marshal")==person' in house
+assert 'person.GovernorOf!=null' in house
+assert 'five existing' in house
 assert 'person.CompanionOf==clan' in house
 assert 'player.Children.Contains(person)' in house
 assert 'OpenDossierFamilyPortraits' in house
