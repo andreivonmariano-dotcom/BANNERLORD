@@ -47,7 +47,8 @@ namespace CalradiaUnified
         }
         public static string CareerEvidence(string role,
             bool verifiedEnlisted,bool nativeVassal,
-            bool nativeMercenary,bool nativeKingdom)
+            bool nativeMercenary,bool nativeKingdom,
+            bool nativeRulingClan)
         {
             switch(role)
             {
