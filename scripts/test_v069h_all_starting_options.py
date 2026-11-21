@@ -24,8 +24,9 @@ house = read("SandboxHouseholdLineagePolicy.cs")
 patron = read("SandboxServicePatron.cs")
 family = read("SandboxFamilyCreator.cs")
 
-roles = ("Wanderer", "Recruit", "Soldier", "HouseholdKnight", "Knight",
-         "NobleCadet", "Lord", "King", "Admiral", "Trader", "Outlaw", "Beggar")
+roles = ("Wanderer", "Outlaw", "Mercenary", "Recruit", "Soldier",
+         "HouseholdKnight", "Knight", "NobleCadet", "Lord", "King",
+         "Admiral", "Trader", "Beggar")
 scenarios = ("none", "unitedempire", "LastStand", "twofactionwar",
              "InvasionId", "alternativecalradia")
 births = ("Independent", "YoungerBrotherOfLord", "YoungerSisterOfLord",
@@ -112,5 +113,5 @@ assert "creator_source =" in reporter
 assert "$null -eq $contract" in reporter
 
 print("PASS v0.69h starting options source audit: "
-      "12 roles, 6 scenarios, 9 noble births, 4 fief modes, "
+      "13 compatible roles, 6 scenarios, 9 noble births, 4 fief modes, "
       "native grants and guarded defaults. GAME STATUS UNTESTED.")
