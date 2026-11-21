@@ -59,7 +59,7 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 ### Lord
 
 - Start as the actual `Clan.PlayerClan.Leader` of one verified noble house. A Lord is not automatically a king. Native vassal or other supported political affiliation must match.
-- Spouse and children optional. Generated siblings allowed. An older **male** sibling is refused for the selected founding-house seniority contract, but older sisters and younger siblings are permitted. Native leadership still requires a real leader assignment, not just an age comparison.
+- **Spouse and at least one child are mandatory** for the new guided Lord path. Every requested family member must exist as an actual native Hero with real reciprocal marriage or parent references. Additional children are allowed within native age limits. Generated siblings remain optional. An older **male** sibling is refused for the selected founding-house seniority contract, but older sisters and younger siblings are permitted. Native leadership still requires a real leader assignment, not just an age comparison.
 - Historical parents exist only as preserved genealogy anchors where required. Newly generated parents must not become active court officials or replace the lord.
 - Residence and estate are distinct. A clan can be noble and landless if the native political model supports it. Never seize an unrelated fief to satisfy a character origin.
 - Starting court personnel are named, trained and culturally equipped Master of Arms and Knight. Their native Hero/party enrollment and removal of original wanderers must be verified.
@@ -77,7 +77,7 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 - **Soldier:** spouse and children only, no generated siblings.
 - **Knight, Lord's younger sibling:** spouse and children only. Native existing siblings belong to the selected real clan and cannot be removed or regenerated.
 - **Other Knight:** spouse, children and optional generated siblings. Default separate-house founding rule rejects older male siblings where the player is head.
-- **Lord:** spouse, children, optional siblings, default reject older male siblings.
+- **Lord:** requires a spouse and at least one child, optional siblings, default reject older male siblings.
 - **King:** spouse, children, optional siblings, default founding-royal restriction against older male siblings. More flexible succession requires explicit cultural rule and disputed-claim system.
 - **Wanderer, Outlaw, Mercenary:** spouse, children, optional siblings, with no unjustified noble rank or inheritance.
 - Distinguish **parentage**, **birth order**, **eligibility to inherit property**, **title ownership**, **clan leader office** and **military command**. The same person can be first in a succession line without presently controlling the clan. Do not infer exact birth order from rounded integer ages.
