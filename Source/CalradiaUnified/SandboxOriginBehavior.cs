@@ -37,6 +37,8 @@ namespace CalradiaUnified
             new SandboxSocialObservationState();
         private SandboxServiceCareerState serviceCareer=
             new SandboxServiceCareerState();
+        private SandboxRoleEconomyState roleEconomy=
+            new SandboxRoleEconomyState();
         private SandboxSuccessionInterestState successionInterest=
             new SandboxSuccessionInterestState();
         private SandboxCharacterAgendaState characterAgendas=
@@ -344,6 +346,9 @@ namespace CalradiaUnified
             string service=serviceCareer.Serialize();
             store.SyncData("CU_v065_service_career",ref service);
             serviceCareer=SandboxServiceCareerState.Parse(service);
+            string economy=roleEconomy.Serialize();
+            store.SyncData("CU_v069d_role_economy",ref economy);
+            roleEconomy=SandboxRoleEconomyState.Parse(economy);
             string claim=successionInterest.Serialize();
             store.SyncData("CU_v065_succession_interest",ref claim);
             successionInterest=SandboxSuccessionInterestState.Parse(claim);
@@ -854,6 +859,42 @@ namespace CalradiaUnified
                                 "|days="+serviceCareer.DaysInService+
                                 "|patron="+patron.StringId);
                         }
+                    }
+                }
+                if(roleEconomy.Started)
+                {
+                    var clan=Clan.PlayerClan;
+                    bool inKingdom=clan!=null && clan.Kingdom!=null;
+                    bool nativeVassal=inKingdom &&
+                        clan.Kingdom.RulingClan!=clan &&
+                        clan.Settlements!=null &&
+                        clan.Settlements.Count>0;
+                    string nativeStart=Campaign.Current==null ||
+                        Campaign.Current.AdvancedStartData==null?"":
+                        Campaign.Current.AdvancedStartData.GetStartType();
+                    string career=SandboxRoleEconomyPolicy.CareerEvidence(
+                        roleEconomy.Role,
+                        serviceCareer.VerifiedExternalEnlistment,
+                        nativeVassal,nativeStart=="mercenary",
+                        inKingdom);
+                    string economicChange=roleEconomy.Observe(
+                        agencyDecisions.Day,player.Gold,
+                        serviceCareer.VerifiedExternalEnlistment?
+                            serviceCareer.ExternalDailyWage:-1,career);
+                    if(economicChange=="native_balance_change_observed")
+                    {
+                        livingPersons.Remember(
+                            "NativePersonalGoldBalanceObserved",
+                            player.StringId,"",
+                            "net_change="+roleEconomy.LastDelta+
+                            "|balance="+roleEconomy.LastGold+
+                            "|cause_not_assumed=true"+
+                            "|not_a_wage_claim=true");
+                        DiagnosticJournal.Event(
+                            "cu_role_economy_native_observed",
+                            "role="+roleEconomy.Role+
+                            "|native_gold_delta="+roleEconomy.LastDelta+
+                            "|career_evidence="+career);
                     }
                 }
                 if(successionInterest.IsRecorded &&
@@ -1514,6 +1555,8 @@ namespace CalradiaUnified
                             profile,hero,patron,livingPersons);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
+                        roleEconomy.Start(profile.Role,hero.Gold,
+                            agencyDecisions.Day);
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
                             socialObservations,hero);
