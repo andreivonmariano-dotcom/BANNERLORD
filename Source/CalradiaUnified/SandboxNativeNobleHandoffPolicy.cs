@@ -23,3 +23,4 @@ namespace CalradiaUnified
             return nativeType=="king"?rulingClan:!rulingClan;
         }
     }
+}
