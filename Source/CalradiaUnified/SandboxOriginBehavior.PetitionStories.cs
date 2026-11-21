@@ -84,6 +84,15 @@ namespace CalradiaUnified
                 "|native_relation_observed="+(after-before)+
                 "|repeated_reward_blocked=true");
         }
+        private bool PetitionStoryKind(string kind)
+        {
+            var speaker=Hero.OneToOneConversationHero;
+            if(speaker==null)return false;
+            var story=petitionStories.For(speaker.StringId);
+            return story!=null && story.Kind==kind &&
+                story.FollowUpDay>=0;
+        }
+
         private void RegisterPetitionStoryConversations(
             CampaignGameStarter starter)
         {
@@ -96,13 +105,28 @@ namespace CalradiaUnified
                 ()=>IsPetitionStoryFollowUp(true),
                 ()=>CompletePetitionStoryFollowUp(),115);
             starter.AddDialogLine(
-                "cu_petition_story_supported_reply",
+                "cu_petition_story_recognition_reply",
                 "cu_petition_story_supported_reply",
                 "hero_main_options",
-                "Your help gave me room to act. The work is "+
-                "still mine to finish, but I shall remember "+
-                "that you stood beside me.",
-                null,null,110);
+                "You recognized the work I had done. "+
+                "That mattered to me, and I have continued "+
+                "to carry out my duties.",
+                ()=>PetitionStoryKind("Recognition"),null,115);
+            starter.AddDialogLine(
+                "cu_petition_story_household_reply",
+                "cu_petition_story_supported_reply",
+                "hero_main_options",
+                "I remember the help you gave my household. "+
+                "Our affairs remain our own to manage, "+
+                "but I value your trust.",
+                ()=>PetitionStoryKind("HouseholdAid"),null,115);
+            starter.AddDialogLine(
+                "cu_petition_story_livelihood_reply",
+                "cu_petition_story_supported_reply",
+                "hero_main_options",
+                "Your support gave me a chance to keep working "+
+                "toward my livelihood. I have not forgotten it.",
+                ()=>PetitionStoryKind("LivelihoodAid"),null,115);
             starter.AddPlayerLine(
                 "cu_petition_story_return_refused",
                 "hero_main_options",
@@ -111,12 +135,19 @@ namespace CalradiaUnified
                 ()=>IsPetitionStoryFollowUp(false),
                 ()=>CompletePetitionStoryFollowUp(),115);
             starter.AddDialogLine(
+                "cu_petition_story_refused_guarded",
+                "cu_petition_story_refused_reply",
+                "hero_main_options",
+                "Your answer was plain enough. I have kept "+
+                "my own counsel and made what plans I can.",
+                ()=>PetitionerStyle()=="Guarded",null,110);
+            starter.AddDialogLine(
                 "cu_petition_story_refused_reply",
                 "cu_petition_story_refused_reply",
                 "hero_main_options",
-                "I have made what plans I can. Your answer "+
-                "was plain, and I have not forgotten it.",
-                null,null,110);
+                "I have made what plans I can. "+
+                "We may still speak, even after a refusal.",
+                ()=>PetitionerStyle()!="Guarded",null,110);
         }
     }
 }
