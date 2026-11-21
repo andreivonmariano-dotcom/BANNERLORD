@@ -125,7 +125,7 @@ namespace CalradiaUnified.AuditSimulator
                 string receipt="officers="+count+
                     "|native_companions_dismissed="+dismissed+
                     "|same_culture=true";
-                bool shouldPass=count>0 && count<=16 && dismissed<=1;
+                bool shouldPass=count>0 && count<=16 && dismissed<=16;
                 Require(SandboxStartContract.RetinueReadyForOtherGrants(
                     "RoleBased",receipt)==shouldPass,
                     "complete native officer receipt rule "+n);
@@ -140,6 +140,18 @@ namespace CalradiaUnified.AuditSimulator
                     "FamilyOnly",receipt),
                     "non-family retinue cannot pose as family-only "+n);
             }
+            Require(!SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=17|same_culture=true"),
+                "oversized dismissal count cannot authorize gifts");
+            Require(SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=2|same_culture=true"),
+                "two native companions can be replaced after verification");
+            Require(SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=2|family_only=true"),
+                "family-only receipt supports verified two-companion dismissal");
             Require(SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly",
                 "officers=0|native_companions_dismissed=1|family_only=true"),
