@@ -47,24 +47,33 @@ for path in files:
 source=(root/"Source"/"CalradiaUnified"/"CUBUTRNativeScreens.cs").read_text()
 fragments=re.findall(
     r'public string Content\s*=>\s*("(?:[^"\\]|\\.)*");',source)
-assert len(fragments)==3,len(fragments)
-for movie,fragment in zip(("Clan","Party","Kingdom"),fragments):
+assert len(fragments)==4,len(fragments)
+for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
     widget=ET.fromstring(ast.literal_eval(fragment))
     assert widget.tag=="ButtonWidget"
-    assert widget.get("Command.Click")=="ExecuteCUDossier"
     label=widget.find("./Children/TextWidget")
-    assert label is not None and label.get("Text")=="@CU"+movie+"Summary"
+    assert label is not None
+    if movie=="PartyCamp":
+        assert widget.get("Command.Click")=="ExecuteCUCamp"
+        assert label.get("Text")=="Visit traveling household camp"
+        bindings=[]
+        commands=["ExecuteCUCamp"]
+    else:
+        assert widget.get("Command.Click")=="ExecuteCUDossier"
+        assert label.get("Text")=="@CU"+movie+"Summary"
+        bindings=["CU"+movie+"Summary"]
+        commands=["ExecuteCUDossier"]
     results.append(dict(movie=movie+"_BUTR",category="native_patch_live_unverified",
       max_fixed_width=int(widget.get("SuggestedWidth")),
       max_fixed_height=int(widget.get("SuggestedHeight")),
-      bindings=["CU"+movie+"Summary"],commands=["ExecuteCUDossier"],
+      bindings=bindings,commands=commands,
       duplicate_widget_ids=[],flags=[]))
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",
-    prefab_count=len(files),butr_patches=3,game_rendered=False,
+    prefab_count=len(files),butr_patches=4,game_rendered=False,
     acceptance="BLOCKED_PENDING_GAME",findings=results),indent=2)+"\n")
-print("PASS v0.70y PREFABS: {} custom XML movies and 3 BUTR patches parsed. "
+print("PASS v0.70y PREFABS: {} custom XML movies and 4 BUTR patches parsed. "
       "Legacy layout problems recorded, live visual acceptance BLOCKED."
       .format(len(files)))
 print("Source flags: "+", ".join(x["movie"] for x in results if x["flags"]))
