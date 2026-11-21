@@ -691,6 +691,12 @@ namespace CalradiaUnified
                 return "preserved_native_references";
             try
             {
+                // Never sever a recorded family relationship before the
+                // native disable action has confirmed it succeeded.
+                // On failure the person's genealogy stays intact.
+                DisableHeroAction.Apply(person);
+                if(!person.IsDisabled)
+                    return "failed:native_disable_unconfirmed";
                 if(person.Father!=null)
                 {
                     person.Father.Children.Remove(person);
@@ -701,9 +707,6 @@ namespace CalradiaUnified
                     person.Mother.Children.Remove(person);
                     person.Mother=null;
                 }
-                DisableHeroAction.Apply(person);
-                if(!person.IsDisabled)
-                    return "failed:native_disable_unconfirmed";
                 person.Clan=null;
                 DiagnosticJournal.Event("cu_family_provisional_cleanup",
                     "hero="+person.StringId+
