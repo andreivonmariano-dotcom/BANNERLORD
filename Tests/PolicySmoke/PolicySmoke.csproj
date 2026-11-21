@@ -31,6 +31,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyRecoveryState.cs" Link="SandboxFamilyRecoveryState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxNativeEffectProof.cs" Link="SandboxNativeEffectProof.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxOutlawBandPolicy.cs" Link="SandboxOutlawBandPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxSoldierEnlistmentPolicy.cs" Link="SandboxSoldierEnlistmentPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenaryStartPolicy.cs" Link="SandboxMercenaryStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenarySolvencyPolicy.cs" Link="SandboxMercenarySolvencyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyPolicy.cs" Link="SandboxRoleEconomyPolicy.cs" />
