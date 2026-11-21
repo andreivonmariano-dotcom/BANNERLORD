@@ -18,7 +18,9 @@ succession=text("SandboxSuccessionInterestState.cs")
 start=text("SandboxStartingLifePolicy.cs")
 assert 'profile.StartingScenario=="twofactionwar"' in vm
 assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
-assert 'case "Soldier":return "mercenary";' in role_matrix
+assert 'case "Soldier":' in role_matrix
+assert 'case "Mercenary":return "mercenary";' in role_matrix
+assert 'case "Outlaw":return "outlaw";' in role_matrix
 assert 'case "Knight":' in role_matrix and 'case "Lord":return "vassal";' in role_matrix
 assert '"Independent mercenary captain, not an enlisted soldier"' in start
 assert '"Knight holding a native vassal fief"' in start
