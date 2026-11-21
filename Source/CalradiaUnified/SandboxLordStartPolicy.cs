@@ -41,6 +41,33 @@ namespace CalradiaUnified
             return "";
         }
 
+        /// <summary>
+        /// A new guided Lord must establish a native married household
+        /// with one or more genuine children. Siblings remain optional.
+        /// Historical Lord profiles do not enter this new gate.
+        /// </summary>
+        public static string ValidateRequiredFamily(bool spouseRequested,
+            int requestedChildren)
+        {
+            if(!spouseRequested)return "lord_spouse_required";
+            if(requestedChildren<1)return "lord_child_required";
+            if(requestedChildren>SandboxOriginProfile.MaxChildren)
+                return "lord_children_exceed_limit";
+            return "";
+        }
+
+        public static string ValidateObservedFamily(bool marriageReciprocal,
+            bool spouseInPlayerClan,int expectedChildren,
+            int verifiedNativeChildren)
+        {
+            if(!marriageReciprocal || !spouseInPlayerClan)
+                return "native_lord_marriage_missing";
+            if(expectedChildren<1 || verifiedNativeChildren<
+                expectedChildren)
+                return "native_lord_children_or_parentage_missing";
+            return "";
+        }
+
         public static string ValidateNativeHouse(string nativeType,
             string expectedKingdom,string actualKingdom,
             bool playerLeadsClan,bool playerLeadsParty,
