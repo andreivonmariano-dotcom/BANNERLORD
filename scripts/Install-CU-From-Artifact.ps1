@@ -113,7 +113,7 @@ try {
         "Bannerlord.MBOptionScreen"
     )
     $declared = @($manifest.Module.DependedModules.DependedModule |
-        ForEach-Object { [string]$_.Id.value })
+        ForEach-Object { [string]$_.GetAttribute("Id") })
     foreach ($dependency in $requiredButr) {
         if ($declared -notcontains $dependency) {
             throw ("Artifact is not a required-BUTR build: missing " +
