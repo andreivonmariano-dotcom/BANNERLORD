@@ -518,12 +518,13 @@ namespace CalradiaUnified
                     return false;
                 }
             }
-            // An Independent Lord cannot add an older brother. Reject the
-            // edit before it enters the saved House draft, but allow an
-            // older sister or a younger brother. The native clan leader
-            // does not change merely because a sibling is created.
+            // Reject edits that directly introduce an older brother
+            // in an Independent Lord house. Changing SiblingCount still
+            // exposes older stored entries so the player can repair them
+            // in Advanced. CommitHouse never accepts a conflicting draft.
+            // This rule does not itself change native clan leadership.
             if(!preCampaign &&
-                (key=="NobleBirthPosition" || key=="SiblingCount" ||
+                (key=="NobleBirthPosition" ||
                  key.StartsWith("Sibling.",StringComparison.Ordinal)))
             {
                 int olderBrother=SandboxHouseholdLineagePolicy
