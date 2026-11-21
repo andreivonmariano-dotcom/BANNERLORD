@@ -93,6 +93,21 @@ namespace CalradiaUnified
             if(reassigned)return "external_duty_changed_observed";
             return "external_active";
         }
+        /// <summary>
+        /// A missing provider proves neither discharge nor current rank.
+        /// Suspend stale saved evidence until a real SaS snapshot returns.
+        /// </summary>
+        public string SuspendUnverifiedExternal()
+        {
+            if(!VerifiedExternalEnlistment)return "not_required";
+            VerifiedExternalEnlistment=false;
+            Status="ExternalStatusUnverified";
+            PayAuthority="ExternalProviderUnavailable";
+            ExternalDailyWage=-1;
+            ExternalTermDaysLeft=-1;
+            ExternalInsideHostParty=false;
+            return "external_provider_unavailable";
+        }
         public string ObserveExternalAbsent()
         {
             if(!VerifiedExternalEnlistment)return "no_external_service";
@@ -158,7 +173,8 @@ namespace CalradiaUnified
                     status!="PendingEnlistment" &&
                     status!="HouseholdContact" &&
                     status!="EnlistedActive" &&
-                    status!="EnlistmentEnded")
+                    status!="EnlistmentEnded" &&
+                    status!="ExternalStatusUnverified")
                     return state;
                 state.Role=role;state.PatronId=patron;
                 state.KingdomId=kingdom;state.Status=status;

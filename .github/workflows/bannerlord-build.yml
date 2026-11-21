@@ -424,6 +424,7 @@ jobs:
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
+            BuildResults/policy-tests.log
           if-no-files-found: ignore
       - name: Upload build diagnostics
         if: always()

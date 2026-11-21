@@ -751,6 +751,22 @@ namespace CalradiaUnified
                     // transition, rank, wage and order. CU only observes
                     // its public API v1. No private or guessed calls.
                     var enlisted=SandboxSaSBridge.Read();
+                    if(!enlisted.Available &&
+                        serviceCareer.VerifiedExternalEnlistment)
+                    {
+                        string suspended=serviceCareer
+                            .SuspendUnverifiedExternal();
+                        livingPersons.Remember(
+                            "ExternalEnlistmentVerificationLost",
+                            player.StringId,
+                            serviceCareer.ExternalLordId,
+                            "result="+suspended+
+                            "|real_service_status_unknown=true");
+                        DiagnosticJournal.Event(
+                            "cu_sas_verification_suspended",
+                            "result="+suspended+
+                            "|no_discharge_claimed=true");
+                    }
                     if(enlisted.Available)
                     {
                         string externalResult=enlisted.Enlisted &&

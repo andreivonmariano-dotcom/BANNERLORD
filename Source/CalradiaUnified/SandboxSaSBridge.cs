@@ -62,15 +62,32 @@ namespace CalradiaUnified
                 result.Available=true;
                 var prop=api.GetProperty("IsPlayerEnlisted",
                     BindingFlags.Static|BindingFlags.Public);
-                result.Enlisted=prop!=null &&
-                    prop.GetValue(null,null) is bool &&
-                    (bool)prop.GetValue(null,null);
+                if(prop==null)
+                {
+                    result.Available=false;
+                    return result;
+                }
+                var enlistedValue=prop.GetValue(null,null);
+                if(!(enlistedValue is bool))
+                {
+                    result.Available=false;
+                    return result;
+                }
+                result.Enlisted=(bool)enlistedValue;
                 if(!result.Enlisted)return result;
                 var method=api.GetMethod("GetSnapshot",
                     BindingFlags.Static|BindingFlags.Public);
-                if(method==null)return result;
+                if(method==null)
+                {
+                    result.Available=false;
+                    return result;
+                }
                 var snap=method.Invoke(null,null);
-                if(snap==null)return result;
+                if(snap==null)
+                {
+                    result.Available=false;
+                    return result;
+                }
                 var lord=Field(snap,"Lord") as Hero;
                 var host=Field(snap,"HostParty");
                 result.InsideHostParty=host!=null &&
@@ -89,6 +106,7 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception(
                     "cu_sas_public_api_read_failed",e);
                 result.Enlisted=false;
+                result.Available=false;
             }
             return result;
         }

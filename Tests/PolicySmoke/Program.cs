@@ -316,6 +316,16 @@ internal static class Program
             pending.ExternalDailyWage==12 &&
             pending.DaysInService==7 &&
             pending.ExternalInsideHostParty);
+        var lostProvider=SandboxServiceCareerState.Parse(
+            pending.Serialize());
+        Check("missing service provider suspends saved enlistment proof",
+            lostProvider.SuspendUnverifiedExternal()==
+                "external_provider_unavailable" &&
+            !lostProvider.VerifiedExternalEnlistment &&
+            lostProvider.Status=="ExternalStatusUnverified" &&
+            lostProvider.ExternalDailyWage==-1 &&
+            SandboxServiceCareerState.Parse(lostProvider.Serialize())
+                .Status=="ExternalStatusUnverified");
         var afterEnlist=SandboxServiceCareerState.Parse(
             pending.Serialize());
         Check("verified external service survives saved dossier",
