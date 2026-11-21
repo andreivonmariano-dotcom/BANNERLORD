@@ -81,8 +81,9 @@ namespace CalradiaUnified
                 nativeFather.Children.Contains(spouse) &&
                 nativeMother.Children.Contains(spouse);
             bool matchesOrigin=bornClan!=null &&
-                spouse.Father.Clan==bornClan &&
-                spouse.Mother.Clan==bornClan;
+                nativeFather!=null && nativeMother!=null &&
+                nativeFather.Clan==bornClan &&
+                nativeMother.Clan==bornClan;
             bool namedClan=profile.SpouseBackground!="NobleChosen" ||
                 (bornClan!=null && String.Equals(bornClan.StringId,
                     profile.SpouseBirthClanId,
