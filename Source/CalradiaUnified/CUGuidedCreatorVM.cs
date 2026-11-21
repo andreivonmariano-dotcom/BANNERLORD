@@ -320,6 +320,13 @@ namespace CalradiaUnified
                     "Parent ages and real family links are checked.",
                     "number",min:profile.LordGuidedStart?1:0,max:6));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "KingSuccessionRule","Royal household heir ranking",
+                    "EldestChild ranks verified living children by birth "+
+                    "order. MalePreference ranks sons before daughters. "+
+                    "This never elects a native king, assigns a regent "+
+                    "or transfers any settlement.",
+                    choices:SandboxLordSuccessionPolicy.Rules));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "LordSuccessionRule","Children's inheritance custom",
                     "EldestChild ranks living native children by birth "+
                     "order regardless of sex. MalePreference ranks sons "+
@@ -417,6 +424,8 @@ namespace CalradiaUnified
                 profile.Role=="Wanderer")return false;
             if(!preCampaign && profile.LordGuidedStart &&
                 key=="SpouseEnabled")return false;
+            if(key=="KingSuccessionRule")
+                return !preCampaign && profile.KingGuidedStart;
             // New Outlaw household keeps spouses and siblings, but never
             // displays controls for fiefs, influence, noble ancestry or
             // named estate officers it cannot legitimately own.
@@ -428,6 +437,16 @@ namespace CalradiaUnified
             // New Lord owns one genuine native vassal house. The
             // creator cannot seize a stranger's fief or add an invented
             // court stipend. The two native cultural officers are fixed.
+            if((profile.KingGuidedStart ||
+                (preCampaign && profile.Role=="King")) &&
+               (key=="NobleBirthPosition" ||
+                key=="NobleElderHeroId" ||
+                (!preCampaign &&
+                 (key=="StartingFiefMode" || key=="StartingFiefId" ||
+                  key=="AllowStartingFiefTransfer" ||
+                  key=="RetinueMode" || key=="Gold" ||
+                  key=="Influence" || key=="Troops"))))
+                return false;
             if((profile.LordGuidedStart ||
                 (preCampaign && profile.Role=="Lord")) &&
                (key=="NobleBirthPosition" ||
@@ -715,11 +734,19 @@ namespace CalradiaUnified
                         copy,ActualFounderAge);
                 if(olderBrother==0)
                     olderBrother=SandboxHouseholdLineagePolicy
+                        .FirstOlderBrotherInFoundingKingHouse(
+                            copy,ActualFounderAge);
+                if(olderBrother==0)
+                    olderBrother=SandboxHouseholdLineagePolicy
                         .FirstOlderBrotherInSwornKnightHouse(
                             copy,ActualFounderAge);
                 if(olderBrother>0)
                 {
-                    if(copy.KnightGuidedStart)
+                    if(copy.KingGuidedStart)
+                        Report("Founding King: sibling "+olderBrother+
+                            " is an older brother and cannot enter the "+
+                            "uncontested royal founding house.");
+                    else if(copy.KnightGuidedStart)
                         Report("Sworn Knight: sibling "+olderBrother+
                             " cannot be an older brother. Set age to "+
                             ActualFounderAge+" or younger, or Female.");
@@ -897,6 +924,25 @@ namespace CalradiaUnified
             candidate.SoldierGuidedStart=candidate.Role=="Soldier";
             candidate.KnightGuidedStart=candidate.Role=="Knight";
             candidate.LordGuidedStart=candidate.Role=="Lord";
+            candidate.KingGuidedStart=candidate.Role=="King";
+            if(candidate.KingGuidedStart)
+            {
+                candidate.RoleAffiliationsEnabled=false;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.ServicePatronHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.Gold=-1;
+                candidate.Influence=-1;
+                candidate.Troops=0;
+                candidate.RetinueMode=SandboxKingStartPolicy.Retinue;
+                candidate.KingSuccessionRule=
+                    SandboxLordSuccessionPolicy.EldestChild;
+                candidate.FamilyHomeMode="OwnedFief";
+                candidate.FamilyHomeId="";
+            }
             if(candidate.LordGuidedStart)
             {
                 // Set required household choices before native identity
@@ -1063,6 +1109,9 @@ namespace CalradiaUnified
                     candidate.MercenaryGuidedStart+
                 "|soldier_guided="+candidate.SoldierGuidedStart+
                 "|guided_lord="+candidate.LordGuidedStart+
+                "|guided_king="+candidate.KingGuidedStart+
+                "|native_crown_and_royal_fief_required="+
+                    candidate.KingGuidedStart+
                 "|native_vassal_clan_and_fief_required="+
                     candidate.LordGuidedStart+
                 "|soldier_requested_entry_rank="+
@@ -1129,14 +1178,19 @@ namespace CalradiaUnified
             int knightOlderBrother=SandboxHouseholdLineagePolicy
                 .FirstOlderBrotherInSwornKnightHouse(
                     candidate,actualAge);
+            int kingOlderBrother=SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInFoundingKingHouse(
+                    candidate,actualAge);
             if(olderBrother==0)olderBrother=knightOlderBrother;
+            if(olderBrother==0)olderBrother=kingOlderBrother;
             if(olderBrother>0)
             {
                 advanced=true;
                 int siblingStep=Array.FindIndex(Visible,
                     field=>field.Key=="Sibling."+olderBrother+".Age");
                 if(siblingStep>=0)cursor=siblingStep;
-                Report((knightOlderBrother>0?"Sworn Knight":"Independent Lord")+
+                Report((kingOlderBrother>0?"Founding King":
+                    knightOlderBrother>0?"Sworn Knight":"Independent Lord")+
                     ": sibling "+olderBrother+
                     " is an older brother. Change his age to "+
                     actualAge+" or younger, or choose Female. "+
@@ -1414,6 +1468,21 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="King")
+                    return "King | native sovereign of a real kingdom\n"+
+                        "Chosen kingdom: "+
+                        (profile.StartingKingdomId.Length==0?
+                            "not selected":profile.StartingKingdomId)+
+                        "\nPlayer must genuinely lead its ruling clan "+
+                        "and main party. At least one real native fief."+
+                        "\nNo invented crown, fief grant, treasury, "+
+                        "royal stipend or free army."+
+                        "\nTwo native same-culture court Heroes: Marshal "+
+                        "and Chamberlain. Official command stays native."+
+                        "\nSpouse, children and siblings optional."+
+                        "\nNo older brother in an uncontested founding house."+
+                        "\nRoyal heir ranking is a saved family custom, "+
+                        "not a native kingship transfer or regency.";
                 if(preCampaign && profile.Role=="Lord")
                     return "Lord | founder of your own native noble house\n"+
                         "True vassal in "+
@@ -1503,6 +1572,10 @@ namespace CalradiaUnified
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
+                    (profile.KingGuidedStart?
+                        "Royal household heir custom: "+
+                        profile.KingSuccessionRule+
+                        " (ranked claim, native monarchy unchanged)\n":"")+
                     (profile.LordGuidedStart?
                         "Noble spouse: "+profile.SpouseBackground+
                         "\nHousehold inheritance custom: "+
