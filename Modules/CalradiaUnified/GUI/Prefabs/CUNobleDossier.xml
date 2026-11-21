@@ -46,22 +46,22 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="237"
                     PositionXOffset="488" PositionYOffset="136"/>
             <TextWidget Text="@SectionFamilyTitle" Brush.FontSize="22"
-                     Brush.TextHorizontalAlignment="Left"Color="#EAC991FF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Color="#EAC991FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="397" HeightSizePolicy="Fixed"
                     SuggestedHeight="36" PositionXOffset="48"
                     PositionYOffset="150"/>
             <TextWidget Text="@Family" Brush.FontSize="18"
-                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top"Color="#EDE2CFFF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Color="#EDE2CFFF" WidthSizePolicy="Fixed"
                     SuggestedWidth="397" HeightSizePolicy="Fixed"
                     SuggestedHeight="175" PositionXOffset="48"
                     PositionYOffset="191"/>
             <TextWidget Text="@SectionOfficersTitle" Brush.FontSize="22"
-                     Brush.TextHorizontalAlignment="Left"Color="#EAC991FF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Color="#EAC991FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="398" HeightSizePolicy="Fixed"
                     SuggestedHeight="36" PositionXOffset="503"
                     PositionYOffset="150"/>
             <TextWidget Text="@Officers" Brush.FontSize="18"
-                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top"Color="#EDE2CFFF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Color="#EDE2CFFF" WidthSizePolicy="Fixed"
                     SuggestedWidth="398" HeightSizePolicy="Fixed"
                     SuggestedHeight="175" PositionXOffset="503"
                     PositionYOffset="191"/>
@@ -70,17 +70,17 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="157"
                     PositionXOffset="33" PositionYOffset="393"/>
             <TextWidget Text="@SectionDutyTitle"
-                    Brush.FontSize="21"  Brush.TextHorizontalAlignment="Left"Color="#EAC991FF"
+                    Brush.FontSize="21"  Brush.TextHorizontalAlignment="Left" Color="#EAC991FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="838"
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
                     PositionXOffset="48" PositionYOffset="402"/>
             <TextWidget Text="@Duty" Brush.FontSize="18"
-                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top"Color="#EDE2CFFF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Color="#EDE2CFFF" WidthSizePolicy="Fixed"
                     SuggestedWidth="856" HeightSizePolicy="Fixed"
                     SuggestedHeight="107" PositionXOffset="48"
                     PositionYOffset="437"/>
             <TextWidget Text="@Footer" Brush.FontSize="15"
-                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top"Color="#CFBEA8FF" WidthSizePolicy="Fixed"
+                     Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Color="#CFBEA8FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="671" HeightSizePolicy="Fixed"
                     SuggestedHeight="44" PositionXOffset="35"
                     PositionYOffset="564"/>
