@@ -37,6 +37,9 @@ jobs:
       - name: Regress live-reported missing noble elder and House family recovery
         shell: pwsh
         run: python scripts/test_v069g_noble_house_preflight.py
+      - name: Audit all twelve starts, world scenarios, noble origins and native handoff
+        shell: pwsh
+        run: python scripts/test_v069h_all_starting_options.py
       - name: Simulate active creator controls and hit boxes at three viewports
         shell: pwsh
         run: python scripts/simulate_v069e_creator_hitboxes.py
