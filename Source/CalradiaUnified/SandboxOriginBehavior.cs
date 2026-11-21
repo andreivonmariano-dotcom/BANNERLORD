@@ -1190,10 +1190,11 @@ namespace CalradiaUnified
                     "result=" + familyHome +
                     "|requested_mode=" + profile.FamilyHomeMode +
                     "|requested_id=" + profile.FamilyHomeId);
-                if ((profile.FamilyHomeMode=="SpecificOwned" &&
-                    familyHome.StartsWith("skipped:",StringComparison.Ordinal)) ||
-                    familyHome.StartsWith("failed:",StringComparison.Ordinal) ||
-                    familyHome.StartsWith("refused:",StringComparison.Ordinal))
+                string homeContractError=
+                    SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                        profile.FamilyHomeMode,profile.SpouseEnabled,
+                        familyHome);
+                if(homeContractError.Length>0)
                     Notify("Family home could not be established: " +
                         familyHome);
                 if (profile.RealFamilyEnabled && (
@@ -1288,6 +1289,8 @@ namespace CalradiaUnified
                      family.StartsWith("invalid",StringComparison.Ordinal)))
                     failures=failures.Concat(new[]{
                         "family_creation_incomplete"}).ToArray();
+                if(homeContractError.Length>0)
+                    failures=failures.Concat(new[]{homeContractError}).ToArray();
                 if(profile.StartingFiefMode!="Native" &&
                     (fiefOutcome.StartsWith("refused:",StringComparison.Ordinal) ||
                      fiefOutcome.StartsWith("failed:",StringComparison.Ordinal)))
@@ -1398,6 +1401,7 @@ namespace CalradiaUnified
                     "|fiefs=" + (observedClan.Settlements == null ?
                         0 : observedClan.Settlements.Count) +
                     "|fief_request=" + fiefOutcome +
+                    "|family_home=" + familyHome +
                     "|spouse_present=" + (hero.Spouse != null) +
                     "|requested_children=" + profile.ChildCount +
                     "|children=" + (hero.Children == null ?
