@@ -213,6 +213,20 @@ namespace CalradiaUnified
                     // personality and establish actual starting relations.
                     SandboxFamilyDevelopment.Spouse(
                         profile,player,spouseHero);
+                    if(profile.MercenaryGuidedStart &&
+                        profile.SpouseBackground=="Commoner")
+                    {
+                        // Native marriage action has already verified the
+                        // household. A commoner spouse is not granted
+                        // aristocratic office by a mercenary contract.
+                        spouseHero.SetNewOccupation(Occupation.Wanderer);
+                        DiagnosticJournal.Event(
+                            "cu_mercenary_commoner_spouse_status",
+                            "hero="+spouseHero.StringId+
+                            "|native_marriage_verified=true"+
+                            "|occupation="+spouseHero.Occupation+
+                            "|no_hereditary_lord_title=true");
+                    }
                     DiagnosticJournal.Event("cu_family_spouse_created",
                         "id=" + spouseHero.StringId +
                         "|birth_background=" + profile.SpouseBackground +
@@ -291,7 +305,9 @@ namespace CalradiaUnified
                     // Never activate an underage native Hero.
                     if (!child.IsChild)
                     {
-                        child.SetNewOccupation(Occupation.Lord);
+                        child.SetNewOccupation(
+                            profile.MercenaryGuidedStart?
+                            Occupation.Wanderer:Occupation.Lord);
                         if (child.IsNotSpawned)
                             child.ChangeState(Hero.CharacterStates.Active);
                         if (!child.IsActive)
@@ -554,7 +570,8 @@ namespace CalradiaUnified
             // Do not create two active, living court members who could
             // be mistaken for owners, council officers or senior heirs.
             bool historicalOnly=(profile.Role=="Lord" ||
-                profile.Role=="Outlaw") &&
+                profile.Role=="Outlaw" ||
+                profile.MercenaryGuidedStart) &&
                 profile.NobleBirthPosition=="Independent";
             Hero newFather=null;
             Hero newMother=null;
@@ -598,7 +615,9 @@ namespace CalradiaUnified
                         "Independent founder parents unexpectedly active");
                 if(historicalOnly)
                     DiagnosticJournal.Event(
-                        profile.Role=="Outlaw" ?
+                        profile.MercenaryGuidedStart ?
+                            "cu_independent_mercenary_ancestry_recorded" :
+                            profile.Role=="Outlaw" ?
                             "cu_independent_outlaw_ancestry_recorded" :
                             "cu_independent_lord_ancestry_recorded",
                         "native_sibling_genealogy=true"+
