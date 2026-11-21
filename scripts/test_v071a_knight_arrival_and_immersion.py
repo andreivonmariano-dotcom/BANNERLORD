@@ -28,7 +28,8 @@ assert 'cu_knight_patron_house_known' in arrival
 assert 'knightOath.PatronId!=patron.StringId' in arrival
 assert 'knightOath.PlayerId!=player.StringId' in arrival
 assert 'host.LeaderHero!=patron' in arrival
-assert 'patron.CurrentSettlement!=null' in arrival
+assert 'var residence=patron.CurrentSettlement;' in arrival
+assert 'residence.GatePosition' in arrival
 assert 'player.CurrentSettlement!=null' in arrival
 assert 'party.LeaderHero!=player' in arrival
 assert 'party.SetPositionAfterMapChange(host.Position)' in arrival
