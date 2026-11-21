@@ -33,3 +33,13 @@ The in-game `cu_knight_oath` menu appears from town/castle for an eligible saved
 On a fresh Sworn House campaign, prove correct lord, clan and kingdom, a separate zero-fief `Clan.PlayerClan`, exact save-backed oath and player identity, visible oath menu, a real native settlement meeting, standing before/after, no duplicate action on repeated click, one overdue relation penalty, oath-break confirmation, honorable release and actual save/quit/reload. Validate lord death, native successor election, explicit renewal and interrupted status after allegiance change. Repeat in all chosen cultures, and retest old Knight/Lord/Soldier saves without migration.
 
 The configured CI policy-suite and pinned game-reference compiler constitute **Gate B only**. They do not certify actual Gauntlet display, Campaign time progression, settlement presence, real native actions or save/reload. PR #93 stays draft until real evidence is recorded.
+
+## Pinned Windows verification, 21 November 2026
+
+- **Successful compile/source run:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44886800516
+- **Exact compiled source:** `e09c188a94794d9a38edbbfe6d57d2bdf074fd81`
+- **Tests:** 1,011 independent C# policy checks and the v0.70i oath/kinship source regression passed. Model audit: 1,159,206 assertions and 7,488 checkpoints across 210,240 modeled days. The pinned v1.5.7.125802 runtime module compiled with **0 compiler warnings and 0 errors**.
+- **DLL SHA-256:** `158c4658e4b7981b7a0db986b7cdcaf813a97b7a82a83413b9808e1941dd6c7e`
+- **Exact compiled, game-untested artifact:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44886800516/artifacts/14699563912
+- **Important audit limitation:** the separate reflection-only Knight native-clan API probe failed to load a pinned `TaleWorlds.ObjectSystem` reference during metadata inspection. The experimental CI step is marked continue-on-error, and its failure is **not** evidence for a safe player-to-NPC-clan transfer. Q1 remains blocked. The compilation and oath regression suite passed independently.
+- **Highest valid gate:** B. These tests do not prove true native Knight oath gameplay, settlement menus, save/quit/reload or real clan joining. The previous verified PowerShell installer pin remains untouched, and draft PR #93 remains unmerged.
