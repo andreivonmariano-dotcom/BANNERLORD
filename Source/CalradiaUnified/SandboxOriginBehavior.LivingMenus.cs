@@ -153,7 +153,7 @@ namespace CalradiaUnified
             int amount=SandboxAgencyDecisionPolicy.Amount(
                 agencyDecisions.PendingKind);
             ShowNativeDetail(actor.Name.ToString()+" | Personal Matter",
-                actor.Name.ToString()+" asks for 
+                actor.Name.ToString()+" asks for "+
                 (agencyDecisions.PendingKind=="Recognition"?
                     "public acknowledgment of their work":
                     amount+" denars of household support")+
