@@ -18,6 +18,146 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native gift proof confirms BOTH payer debit and recipient credit",
+            SandboxNativeEffectProof.GiftResult(500,350,20,170,150)==
+                "confirmed" &&
+            SandboxNativeEffectProof.GiftResult(500,350,20,20,150)==
+                "unbalanced_native_effect" &&
+            SandboxNativeEffectProof.GiftResult(500,500,20,170,150)==
+                "unbalanced_native_effect" &&
+            SandboxNativeEffectProof.GiftResult(500,500,20,20,150)==
+                "no_native_effect" &&
+            SandboxNativeEffectProof.GiftResult(100,100,0,0,-1)==
+                "invalid" &&
+            SandboxNativeEffectProof.AnyPayerDebit(400,399));
+        Check("relation memories require actual verified game score changes",
+            SandboxNativeEffectProof.RelationConfirmed(20,22,2) &&
+            SandboxNativeEffectProof.RelationConfirmed(99,100,2) &&
+            SandboxNativeEffectProof.RelationConfirmed(-99,-100,-2) &&
+            !SandboxNativeEffectProof.RelationConfirmed(20,20,2) &&
+            !SandboxNativeEffectProof.RelationConfirmed(20,21,2) &&
+            SandboxNativeEffectProof.ObservedDelta(20,21)==1 &&
+            SandboxNativeEffectProof.RelationConfirmed(20,20,0));
+        var failedFamily=new SandboxFamilyRecoveryState();
+        failedFamily.RecordFailure("player","NobleCadet",
+            "family_creation_incomplete",true,2,1,true,1,0);
+        string savedRecovery=failedFamily.Serialize();
+        Check("save-backed failed family preserves original failure evidence",
+            failedFamily.NeedsReview &&
+            failedFamily.Status=="PartialStartNeedsReview" &&
+            SandboxFamilyRecoveryState.Parse(savedRecovery).Serialize()==
+                savedRecovery &&
+            !SandboxFamilyRecoveryState.Parse(
+                "CU_FAMILY_RECOVERY_1").NeedsReview);
+        Check("recovery recount is read-only and never an auto-replay",
+            failedFamily.Observe("another_hero",true,4,2)==
+                "no_matching_partial_start" &&
+            failedFamily.Observe("player",true,2,1)==
+                "native_family_counts_changed" &&
+            failedFamily.Status==
+                "NativeCountsMatchReviewStillRequired" &&
+            failedFamily.Describe().Contains("read-only") &&
+            failedFamily.Observe("player",true,2,1)=="same" &&
+            SandboxFamilyRecoveryState.Parse(failedFamily.Serialize())
+                .Status=="NativeCountsMatchReviewStillRequired");
+        Check("no optional grants follow failed native retinue",
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "Native","native_companions_preserved") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=0|family_only=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=0") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","partial:native_companions_dismissed=1") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","refused:no_retinue_for_role") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=0|no_valid_officer=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "UnsupportedMode","native_companions_preserved"));
+        var nativeEconomyRoles=SandboxOriginProfile.Roles;
+        Check("all 12 medieval roles declare accurate income authority and duty",
+            nativeEconomyRoles.Length==12 &&
+            nativeEconomyRoles.All(role=>
+                SandboxRoleEconomyPolicy.IncomeAuthority(role)!=
+                    "UnrecognizedRole" &&
+                SandboxRoleEconomyPolicy.HouseholdDuty(role)!=
+                    "UnrecognizedRole") &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("Recruit")==
+                "NoWageUntilVerifiedEnlistment" &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("NobleCadet")==
+                "BirthKinNoAutomaticEstateIncome" &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("Soldier")==
+                "NativeMercenaryContract");
+        Check("career evidence distinguishes ruler, vassal and enlistment",
+            SandboxRoleEconomyPolicy.CareerEvidence("King",
+                false,false,false,true,true)==
+                    "NativeRulerStatusVerified" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Knight",
+                false,true,false,true,false)==
+                    "NativeNobleServiceVerified" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Recruit",
+                false,false,false,false,false)==
+                    "EnlistmentNotVerified" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Recruit",
+                true,false,false,false,false)==
+                    "ExternalEnlistmentVerified" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Soldier",
+                false,false,true,true,false)==
+                    "NativeMercenaryVerified" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("HouseholdKnight",
+                false,false,false,false,false)==
+                    "PersonalPatronNotFormalEmployment");
+        var observedEconomy=new SandboxRoleEconomyState();
+        Check("native personal economy starts without assigning a wage",
+            observedEconomy.Start("Recruit",500,10) &&
+            observedEconomy.VerifiedExternalDailyWage==-1 &&
+            !observedEconomy.Start("King",2000,11));
+        Check("native gold debits and credits survive save without wage fiction",
+            observedEconomy.Observe(11,480,-1,
+                "EnlistmentNotVerified")=="native_balance_change_observed" &&
+            observedEconomy.ObservedDebits==20 &&
+            observedEconomy.ObservedCredits==0 &&
+            observedEconomy.Observe(11,480,-1,
+                "EnlistmentNotVerified")=="not_new_native_day" &&
+            observedEconomy.Observe(12,580,12,
+                "ExternalEnlistmentVerified")==
+                    "native_balance_change_observed" &&
+            observedEconomy.ObservedCredits==100 &&
+            observedEconomy.VerifiedExternalDailyWage==12 &&
+            observedEconomy.Describe().Contains(
+                "No inferred salary, tax, rent") &&
+            SandboxRoleEconomyState.Parse(observedEconomy.Serialize())
+                .Serialize()==observedEconomy.Serialize());
+        Check("NPC personal initiative responds to real traits and resources",
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "ProtectSharedHousehold",true,true,30,0,100,
+                1,0,0,100)=="HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "ProtectSharedHousehold",true,true,30,0,100,
+                1,0,0,2000)=="Recognition" &&
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "PreserveFamilyPosition",true,true,5,0,100,
+                0,0,2,100)=="" &&
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "EstablishLivelihood",true,true,5,0,100,
+                0,2,0,700)=="" &&
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "EstablishLivelihood",true,true,5,0,100,
+                0,0,0,100)=="LivelihoodAid" &&
+            SandboxAgencyDecisionPolicy.ChooseInitiative(
+                "EstablishLivelihood",true,false,5,0,100,
+                0,0,0,100)=="");
+        var phantomConsent=new SandboxInheritanceNegotiationState();
+        phantomConsent.Petition("ClanHeadConsents","castle_x",
+            "real_leader","birth_clan","HouseholdSeniority",0);
+        Check("high native relation is not game-backed NPC estate consent",
+            phantomConsent.Authorized &&
+            !phantomConsent.NativeHeadConsentObserved &&
+            !SandboxInheritanceNegotiationState.Parse(
+                phantomConsent.Serialize()).NativeHeadConsentObserved);
         Check("native Review Back to Clan Name restores House/Fortune",
             CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
                 CUNativeHouseNavigationPolicy.ReviewStage,

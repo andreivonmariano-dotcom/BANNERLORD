@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
@@ -120,18 +121,24 @@ namespace CalradiaUnified
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
                     continue;
                 var prior=agencyDecisions.For(hero.StringId);
-                string kind=SandboxAgencyDecisionPolicy.Choose(
+                string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
                     record.Goal,true,true,player.GetRelation(hero),
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
-                        agencyDecisions.Day-prior.LastDay);
+                        agencyDecisions.Day-prior.LastDay,
+                    hero.GetTraitLevel(DefaultTraits.Honor),
+                    hero.GetTraitLevel(DefaultTraits.Generosity),
+                    hero.GetTraitLevel(DefaultTraits.Calculating),
+                    hero.Gold);
                 if(kind.Length==0)continue;
                 if(agencyDecisions.Propose(hero.StringId,kind))
                 {
                     livingPersons.Remember("IndependentCharacterRequest",
                         hero.StringId,player.StringId,
                         "kind="+kind+
-                        "|source=character_goal_and_native_presence");
+                        "|source=modeled_npc_initiative"+
+                        "|native_evidence=goal_traits_wealth_presence"+
+                        "|not_a_claim_of_native_ai_dialogue=true");
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
                         "|day="+agencyDecisions.Day);
@@ -174,8 +181,9 @@ namespace CalradiaUnified
             string kind=agencyDecisions.PendingKind;
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             if(amount<0)return;
-            int relation=SandboxAgencyDecisionPolicy.RelationDelta(
+            int requestedRelation=SandboxAgencyDecisionPolicy.RelationDelta(
                 kind,accept);
+            string giftProof="not_requested";
             if(accept && amount>0)
             {
                 if(!SandboxAgencyDecisionPolicy.NativeTransferPermitted(
@@ -184,7 +192,8 @@ namespace CalradiaUnified
                     Notify("You lack the denars for this support request.");
                     return;
                 }
-                int goldBefore=player.Gold;
+                int payerBefore=player.Gold;
+                int recipientBefore=actor.Gold;
                 try
                 {
                     GiveGoldAction.ApplyBetweenCharacters(
@@ -194,21 +203,44 @@ namespace CalradiaUnified
                 {
                     DiagnosticJournal.Exception(
                         "cu_character_native_gift_failed",error);
-                    Notify("The native gold transfer did not complete.");
-                    return;
                 }
-                if(player.Gold>goldBefore-amount)
+                int payerAfter=player.Gold;
+                int recipientAfter=actor.Gold;
+                giftProof=SandboxNativeEffectProof.GiftResult(
+                    payerBefore,payerAfter,recipientBefore,recipientAfter,
+                    amount);
+                if(giftProof!="confirmed")
                 {
-                    Notify("The native gold transfer could not be verified.");
+                    livingPersons.Remember("CharacterGiftUnverified",
+                        actor.StringId,player.StringId,
+                        "gift_status="+giftProof+
+                        "|payer_before="+payerBefore+
+                        "|payer_after="+payerAfter+
+                        "|recipient_before="+recipientBefore+
+                        "|recipient_after="+recipientAfter+
+                        "|no_accepted_request_claim=true");
+                    DiagnosticJournal.Event("cu_character_native_gift_unverified",
+                        "actor="+actor.StringId+
+                        "|status="+giftProof+
+                        "|payer_delta="+(payerBefore-payerAfter)+
+                        "|recipient_delta="+(recipientAfter-recipientBefore));
+                    // Never take another payment for an uncertain native
+                    // transfer. An entirely unchanged transfer can be
+                    // attempted later at the player's choice.
+                    if(giftProof!="no_native_effect")
+                        agencyDecisions.Dismiss("UnverifiedNativeGift");
+                    Notify("Both native gold balances did not confirm "+
+                        "the intended gift. No acceptance was recorded.");
                     return;
                 }
             }
-            if(relation!=0)
+            int relationBefore=player.GetRelation(actor);
+            if(requestedRelation!=0)
             {
                 try
                 {
                     ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
-                        player,actor,relation,false);
+                        player,actor,requestedRelation,false);
                 }
                 catch(Exception error)
                 {
@@ -216,21 +248,42 @@ namespace CalradiaUnified
                         "cu_character_request_relation_failed",error);
                 }
             }
+            int relationAfter=player.GetRelation(actor);
+            bool relationProof=SandboxNativeEffectProof.RelationConfirmed(
+                relationBefore,relationAfter,requestedRelation);
+            int actualRelation=SandboxNativeEffectProof.ObservedDelta(
+                relationBefore,relationAfter);
             livingPersons.Remember(
-                accept?"CharacterRequestAccepted":"CharacterRequestDeclined",
+                relationProof?
+                    (accept?"CharacterRequestAccepted":
+                        "CharacterRequestDeclined"):
+                    "CharacterRequestRelationUnverified",
                 actor.StringId,player.StringId,
-                "kind="+kind+"|real_gold_transferred="+
-                    (accept?amount:0)+"|native_relation_delta="+relation);
+                "kind="+kind+
+                "|choice="+(accept?"accept":"decline")+
+                "|native_gift_status="+giftProof+
+                "|verified_denars="+(giftProof=="confirmed"?amount:0)+
+                "|relation_before="+relationBefore+
+                "|relation_after="+relationAfter+
+                "|actual_relation_delta="+actualRelation+
+                "|relation_confirmed="+relationProof);
             DiagnosticJournal.Event("cu_character_request_resolved",
                 "actor="+actor.StringId+
                 "|choice="+(accept?"accepted":"declined")+
                 "|type="+kind+
-                "|gold="+(accept?amount:0));
-            agencyDecisions.Dismiss(accept?"Accepted":"Declined");
-            Notify(actor.Name.ToString()+": request "+
-                (accept?"accepted.":"declined.")+
-                (accept && amount>0?
-                    " A native gold transfer was confirmed.":""));
+                "|gift_proof="+giftProof+
+                "|relation_proof="+relationProof+
+                "|actual_relation_delta="+actualRelation);
+            // A confirmed payment must never be duplicated if a following
+            // native relation action fails. The choice is terminal.
+            agencyDecisions.Dismiss(relationProof?
+                (accept?"Accepted":"Declined"):
+                "NativeRelationUnverified");
+            Notify(actor.Name.ToString()+": "+
+                (relationProof?"the native relationship was verified.":
+                "the intended relation change was not verified.")+
+                (giftProof=="confirmed"?
+                    " Both native gold balances confirmed the gift.":""));
         }
         private Clan RecordedBirthClan()
         {
@@ -291,7 +344,7 @@ namespace CalradiaUnified
                 ". Living strongholds: "+NativeBirthHoldings(clan)+
                 ". Current clan head: "+leader+
                 ". Claim: "+inheritanceNegotiation.Status+
-                ". Clan-head consent threshold: "+
+                ". Negotiation readiness relation threshold: "+
                 SandboxInheritanceNegotiationPolicy.ConsentThreshold(
                     successionInterest.CultureId,
                     successionInterest.EarlierSonsAtStart)+
@@ -300,10 +353,10 @@ namespace CalradiaUnified
                     .FamilySettlementContribution(
                         successionInterest.CultureId)+
                 " denars (maximum two, made at a native family court)."+
-                " A cadet must first join the same native kingdom "+
-                "through normal game politics. Family grants require "+
-                "death, clan-head consent, a secondary estate, and "+
-                "your explicit confirmation.");
+                " A cadet must join the native kingdom through normal "+
+                "politics. Favorable relations alone are NOT game-backed "+
+                "clan-head consent. Property transfer is disabled until "+
+                "an actual native clan-head decision can be observed.");
         }
         private void PetitionFamilyCouncil()
         {
@@ -344,9 +397,9 @@ namespace CalradiaUnified
                 "|native_transfer=false");
             Notify("Family petition: "+status+
                 ". "+(status=="ClanHeadConsents"?
-                    "The modeled clan-head decision permits a secondary "+
-                    "family grant. Review and explicitly confirm the "+
-                    "native transfer at this same estate.":
+                    "The family model finds this claim negotiable. "+
+                    "This is NOT observed consent from the native clan "+
+                    "head. No estate transfer is authorized.":
                     "No property has changed. The native kingdom and "+
                     "clan rules remain in force."));
         }
@@ -377,7 +430,8 @@ namespace CalradiaUnified
             int amount=SandboxInheritanceNegotiationPolicy
                 .FamilySettlementContribution(
                     successionInterest.CultureId);
-            int before=player.Gold;
+            int payerBefore=player.Gold;
+            int recipientBefore=leader.Gold;
             try
             {
                 GiveGoldAction.ApplyBetweenCharacters(
@@ -387,18 +441,43 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_family_mediation_native_payment_failed",error);
-                Notify("The native family mediation payment failed.");
-                return;
             }
-            if(player.Gold>before-amount)
+            int payerAfter=player.Gold;
+            int recipientAfter=leader.Gold;
+            string paymentProof=SandboxNativeEffectProof.GiftResult(
+                payerBefore,payerAfter,recipientBefore,recipientAfter,
+                amount);
+            if(paymentProof!="confirmed")
             {
-                Notify("The payment was not confirmed by native gold.");
+                // If any native funds changed, consume a mediation slot.
+                // The player must not be silently charged again.
+                if(paymentProof!="no_native_effect")
+                    inheritanceNegotiation.RecordMediation();
+                livingPersons.Remember("CulturalMediationPaymentUnverified",
+                    player.StringId,leader.StringId,
+                    "status="+paymentProof+
+                    "|payer_before="+payerBefore+
+                    "|payer_after="+payerAfter+
+                    "|recipient_before="+recipientBefore+
+                    "|recipient_after="+recipientAfter+
+                    "|native_fief_transferred=false");
+                Notify("The native transfer did not confirm both "+
+                    "the payer and recipient balances. "+
+                    "No relation benefit has been claimed.");
                 return;
             }
-            // The native gift occurred. Record it once even if relations
-            // subsequently refuse to update, to prevent double spending.
+            // The two native Hero balances confirm delivery. Record once
+            // even if relation change fails, preventing repeat payment.
             if(!inheritanceNegotiation.RecordMediation())
+            {
+                livingPersons.Remember("CulturalMediationNativePaymentOrphaned",
+                    player.StringId,leader.StringId,
+                    "verified_denars="+amount+
+                    "|mediation_slot_not_recorded=true");
+                Notify("Native funds moved, but the mediation limit "+
+                    "could not be updated. Do not pay again.");
                 return;
+            }
             int relationBefore=player.GetRelation(leader);
             try
             {
@@ -410,22 +489,31 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception(
                     "cu_family_mediation_relation_failed",error);
             }
+            int relationAfter=player.GetRelation(leader);
+            bool relationConfirmed=SandboxNativeEffectProof.RelationConfirmed(
+                relationBefore,relationAfter,4);
             livingPersons.Remember("CulturalClanMediationPaid",
                 player.StringId,leader.StringId,
-                "denars="+amount+
+                "verified_denars="+amount+
                 "|native_relation_before="+relationBefore+
-                "|native_relation_after="+player.GetRelation(leader)+
+                "|native_relation_after="+relationAfter+
+                "|actual_relation_delta="+
+                    SandboxNativeEffectProof.ObservedDelta(
+                        relationBefore,relationAfter)+
+                "|relation_confirmed="+relationConfirmed+
                 "|culture="+successionInterest.CustomaryModel+
                 "|native_estate_transferred=false");
             DiagnosticJournal.Event("cu_cultural_family_mediation",
                 "player="+player.StringId+"|head="+leader.StringId+
-                "|payment="+amount+
+                "|verified_payment="+amount+
                 "|mediations="+inheritanceNegotiation.Mediations+
+                "|relation_confirmed="+relationConfirmed+
                 "|native_fief_transferred=false");
-            Notify("Family mediation delivered: "+amount+
-                " native denars. The clan head's relation has been "+
-                "updated through the game. Petition again after "+
-                "checking the family council's terms.");
+            Notify(relationConfirmed?
+                "Native denar delivery and clan-head relation gain "+
+                    "confirmed. Review the family council terms.":
+                "Native denars were delivered. The intended clan-head "+
+                    "relation gain was not verified.");
         }
         private void WithdrawFamilyClaim()
         {
@@ -447,6 +535,7 @@ namespace CalradiaUnified
             var estate=Settlement.CurrentSettlement;
             if(player==null || clan==null || estate==null ||
                 !inheritanceNegotiation.Authorized ||
+                !inheritanceNegotiation.NativeHeadConsentObserved ||
                 estate.StringId!=inheritanceNegotiation.SettlementId ||
                 clan.StringId!=inheritanceNegotiation.BirthClanId ||
                 clan.Leader==null ||
@@ -567,6 +656,17 @@ namespace CalradiaUnified
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
+                // Visible even if a failed family never reached the
+                // successful Living Persons capture. No repair action
+                // is issued automatically on save/load or menu opening.
+                starter.AddGameMenuOption(from,
+                    "cu_partial_family_review_"+from,
+                    "CU: Review incomplete Starting Life",
+                    args=>familyRecovery.NeedsReview &&
+                        Hero.MainHero!=null,
+                    args=>ShowNativeDetail(
+                        "Starting Life | Native family review",
+                        familyRecovery.Describe()),false);
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
                     "CU: People & Lineage",
@@ -577,6 +677,13 @@ namespace CalradiaUnified
                         GameMenu.SwitchToMenu("cu_people_lineage");
                     },false);
             }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_role_economy_observed",
+                "Livelihood, duties and native denar evidence",
+                args=>roleEconomy.Started,
+                args=>ShowNativeDetail(
+                    "Starting Role | Verified livelihood record",
+                    roleEconomy.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "Household register and character ambitions",

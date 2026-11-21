@@ -31,6 +31,36 @@ namespace CalradiaUnified
                 return "Recognition";
             return "";
         }
+        /// <summary>
+        /// A mod-authored initiative based on actual native Hero traits and
+        /// current wealth. No invented speech, memories, or native AI orders.
+        /// The pending request becomes real only when offered in a game menu.
+        /// </summary>
+        public static string ChooseInitiative(string goal,bool adult,
+            bool present,int relation,int priorRequests,int daysFromLast,
+            int nativeHonor,int nativeGenerosity,int nativeCalculating,
+            int nativeNpcGold)
+        {
+            string baseChoice=Choose(goal,adult,present,relation,
+                priorRequests,daysFromLast);
+            if(baseChoice.Length==0)return "";
+            if(nativeNpcGold<0)return "";
+            // A well-funded person does not need a generic money plea.
+            // A status-conscious, respected kinsman can instead request
+            // acknowledgement. Other personalities defer the appeal.
+            if((baseChoice=="HouseholdAid" &&
+                nativeNpcGold>=1500 && nativeHonor>0) ||
+               (baseChoice=="LivelihoodAid" && nativeNpcGold>=3000))
+                baseChoice="Recognition";
+            if(baseChoice=="Recognition" &&
+                nativeCalculating>=2 && relation<10)
+                return "";
+            if(baseChoice=="LivelihoodAid" &&
+                nativeGenerosity>=2 && nativeNpcGold>=600)
+                return "";
+            return baseChoice;
+        }
+
         public static int Amount(string kind)
         {
             if(kind=="HouseholdAid")return 150;

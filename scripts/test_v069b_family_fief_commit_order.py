@@ -21,8 +21,9 @@ ordered = [
     "SandboxServicePatron.TryAssign(",
     "SandboxStartingFief.TryApply(profile,hero)",
     "SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome)",
-    "if (profile.Gold >= 0)",
     "SandboxCulturalRetinue.TryCreate(profile,hero)",
+    "SandboxStartContract.RetinueReadyForOtherGrants(",
+    "if (profile.Gold >= 0)",
 ]
 positions = [life.index(token) for token in ordered]
 assert positions == sorted(positions), list(zip(ordered, positions))

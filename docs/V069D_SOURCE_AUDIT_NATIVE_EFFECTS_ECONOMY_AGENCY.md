@@ -1,0 +1,48 @@
+# v0.69d | Source audit and review of Q1, Q2 and Q3
+
+**Date:** 21 November 2026. **Working branch:** `fix/v069d-native-evidence-economy-reconciliation`, stacked on draft PR #91, draft PR #90 and v0.68 PR #89. **Review basis:** inspected exact source in `SandboxFamilyCreator`, `SandboxCulturalRetinue`, `SandboxOriginBehavior`, `SandboxOriginBehavior.LivingMenus`, `SandboxStartContract`, `SandboxAgencyDecisionState/Policy`, `SandboxCharacterAgendaState`, `SandboxInheritanceNegotiationState/Policy`, `SandboxRoleConsistencyPolicy`, `SandboxStartingLifePolicy` and executable PolicySmoke/CI files. Historical `main` is not this runtime source.
+
+## Overall assessment
+
+The latest v0.69c baseline built successfully in [Windows run 44860169840](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44860169840), with **888 executed C# policy checks**, no compiler warnings or errors, deterministic model simulations and runtime artifact hashes. Those checks establish **gate B: compiled**, not installed Bannerlord behavior. No v0.69c live user-interface, native Game session, 30-day playthrough, failure injection or save/quit/reload results have been verified. Do not claim release ready.
+
+The requested Q1, Q2 and Q3 remain staged. A role/status matrix, saved inferred NPC agendas, and bounded local requests are real code; a full medieval society and independent NPC simulation are not.
+
+## Q1 | Priority-0 and priority-1 integrity findings
+
+**P0: Native phase-8 start is irreversible from phase 9.** `SandboxOriginBehavior.TryApplyOnce` still sets `applied=true` before the CU phase-9 family/retinue stage. This is intentional to avoid replay and double grants. A later failure cannot restore native fiefs, family members or ranks. Do not claim transactional rollback or auto retry.
+
+**P0: Partially committed native relatives.** `SandboxFamilyCreator` tracks returned native child allocations and protects true spouses/parents/party Heroes. A failure *after* native MarriageAction, CreateChild, or committed sibling parentage still leaves valid native Heroes. Deleting them would damage the campaign. v0.69d introduces `SandboxFamilyRecoveryState`, an exact player-linked save-backed failure dossier that re-observes only native spouse/children/sibling counts. The settlement review remains visible even if Living Persons capture failed. It does not create, delete, teleport, reapply grants or certify that matching counts correspond to the requested individuals.
+
+**P1: Original companion roster lost during partial retinue replacement.** Before v0.69d, `SandboxCulturalRetinue.TryCreate` staged officer Heroes, fired original companions, *then* registered new officers. Later failures left dismissed originals and potentially registered partial replacements. v0.69d registers and verifies all new officers before any original dismissal, refuses non-atomic multi-companion dismissal, and preserves new officers with confirmed native party, residence or companion links. The first native firing step remains irreversible and needs real game testing. `SandboxStartContract.RetinueReadyForOtherGrants` now blocks later gold, troops, renown and equipment if the chosen retinue is incomplete.
+
+**P1: False positive native gifts and relationship bookkeeping.** `SandboxOriginBehavior.LivingMenus.AnswerCharacterRequest` and `OfferFamilyMediation` formerly verified only the payer's reduced gold and sometimes logged intended relation changes without checking actual Hero relation. v0.69d `SandboxNativeEffectProof` requires exact payer debit **and** recipient credit, plus actual observed native relation after the action. Unbalanced payments are recorded, not announced as successful. A potentially debited transaction is not automatically retried. No fabricated reward is added.
+
+**P1: Estate transfer from inferred clan-head permission.** `SandboxInheritanceNegotiationPolicy.Evaluate` returns the legacy status `ClanHeadConsents` once a cultural native-relation threshold is met. That is not an observed NPC action. v0.69d explicitly labels this a *modeled favorable negotiation*. Actual settlement transfer is blocked by `NativeHeadConsentObserved=false` pending a proven game-backed consent adapter. Old `CU_NEGOTIATION_2` saves remain readable, but no legacy status can bypass the gate.
+
+**P1: Failure visibility.** v0.69d records family failures in `CU_v069d_family_recovery` and exposes a native settlement review. The review cannot prove family identity, birth order or every cultural premise from counts alone. Requested family members must still be inspected against native Hero IDs and genealogy.
+
+## Q2 | All twelve roles, property and livelihoods
+
+`SandboxRoleConsistencyPolicy` covers the 12 supported labels and native start requirements. `SandboxRoleEconomyPolicy` adds explicit native income authority, social duty and current career status for King, Lord, Knight, Soldier, Admiral, Trader, Outlaw, Beggar, Wanderer, Recruit, HouseholdKnight and NobleCadet. The point is to prevent invented salaries: a Recruit has no guaranteed wage before verified enlistment, a HouseholdKnight has a patron reference rather than a proven household employment contract, a NobleCadet has real kinship without automatic estate revenues, and a Soldier remains a mercenary captain under the native kingdom contract.
+
+`SandboxRoleEconomyState` now snapshots actual `Hero.Gold`, records positive and negative observed changes as **unattributed** credits and debits, persists through `CU_v069d_role_economy`, and shows the results in the native People & Lineage menu. Only a wage received from the verified public Serve as Soldier provider is labeled an external daily wage. This ledger is **not** a modeled income/expense account, family budget, tax collection, wage-paying system or occupational progression implementation. Career promotion and contractual obligations remain under the actual game or compatible mod authority.
+
+## Q3 | Character initiative and independent NPC decisions
+
+Existing goals already update from real native parentage, shared party, clan and occupation. v0.69d extends `SandboxAgencyDecisionPolicy.ChooseInitiative` to consider native `Honor`, `Generosity`, `Calculating` and current NPC gold when a known real adult NPC is physically available. Distinct persons can request household help, livelihood aid, recognition or defer an invitation. The same `SandboxAgencyDecisionState` enforces one pending invitation, a 70-day cooldown, 35-day expiry and three lifetime requests per person. The accepted or declined effects on gold and relationships must be **observed** through native game APIs before a factual memory is saved.
+
+This is bounded **mod-authored NPC initiative**, not proof of real native AI internal desires, dialogue, migrations, careers, matchmaking, independent household finances or unobserved memories. The game-native estate-consent gap is no longer hidden behind a relation score.
+
+## Verification requirements and open failures
+
+Windows workflow must pass:
+- C# smoke assertions for two-sided transfers, relation delta, partial family record and native save roundtrip, all twelve economic roles, verified external wage, trait-varying NPC decisions, non-consent, and retinue grant gate
+- `scripts/test_v069d_native_evidence_economy_recovery.py` and existing historical source regressions
+- Pinned Bannerlord 1.5.7.125802 C# compile with 0 warnings/errors, executable policy models, package ZIP and DLL hashes, PowerShell installer/diagnostics regression
+
+Native game acceptance remains mandatory for: all 12 roles; spouse/child/sibling native genealogy; original companion roster; House/Review/age and stats creator navigation; accepted/declined NPC gifts at 0/near-100 relation; actual receiver balance; family mediation; settlement consent gating; failure before/after marriage and retinue; native 30-day playthrough, save/quit/reload, no duplicate grants; and DLC/other-mod compatibility checks.
+
+**Open high-priority engineering:** more complete transactional/compensating phase-9 design, unlinked orphan child reconciliation, direct evidence of identity and native residency rather than mere counts, authentic taxes/wages/duties per role, and free-running NPC plans and effects. Do not merge stacked drafts on source-only evidence.
+
+**Verified Windows CI:** [run 44861474752](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44861474752), run head `1cab880bec1ddd1d98c942c34fe0234db01d09d5`, last runtime-source change `bfbc926d196e5a606508bbba7c1af53b52bf25ba`. **899 executed C# gameplay policy checks passed**, including 11 new v0.69d checks, plus native-effect/recovery/economy/source-order Python regressions. The medieval-life model completed 96 seeds × 3,650 simulated days (1,062,792 checks). Living affairs completed 120 × 730 days (180,425 checks). Existing campaigns completed 40 × 365 days (303,098 checks). Pinned Bannerlord 1.5.7.125802 module compilation: **0 warnings, 0 errors**; runtime ZIP, Windows installer and diagnostic gates passed. DLL 588,288 bytes, SHA-256 `db5f6ee8ceb92bea7e512935d260a7f863b55bc558e5aafe209da0a2ff42cb63`. Inner ZIP 267,046 bytes, SHA-256 `6279868adb24d40edb723d1512ab2936296e0b529ec63480ead2e98e035867c6`. [Compiled, game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44861474752/artifacts/14689912379). Its `v0.38.0` manifest/package label remains historical. **Gate B only.** No installed Bannerlord game, 12-role creator pass, live compensation failure injection, real transfer, 30-day playthrough, or save/quit/reload acceptance has been observed.
