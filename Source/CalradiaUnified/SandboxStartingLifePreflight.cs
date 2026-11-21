@@ -67,6 +67,33 @@ namespace CalradiaUnified
                     clan.Settlements==null?0:clan.Settlements.Count);
             if(stationError.Length>0)
                 return "native_station:"+stationError;
+            if(p.LordGuidedStart)
+            {
+                string lord=SandboxLordStartPolicy.ValidateNativeHouse(
+                    actualType,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    !clan.IsMinorFaction && !clan.IsBanditFaction &&
+                        !clan.IsRebelClan && player.IsLord,
+                    clan.IsEliminated,fiefs);
+                DiagnosticJournal.Event("cu_lord_native_preflight",
+                    "result="+(lord.Length==0?"PASS":"FAIL")+
+                    "|reason="+lord+
+                    "|native_type="+actualType+
+                    "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|native_vassal="+(!ruling &&
+                        !clan.IsUnderMercenaryService)+
+                    "|native_fiefs="+fiefs+
+                    "|no_fief_transfer=true");
+                if(lord.Length>0)return "lord:"+lord;
+            }
             if(p.SoldierGuidedStart)
             {
                 // SaS owns the real soldier role and the commander. A
