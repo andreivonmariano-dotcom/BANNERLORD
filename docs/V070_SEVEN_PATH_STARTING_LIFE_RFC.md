@@ -69,11 +69,11 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 ### King
 
 - The player must hold **verified native ruling-clan status** over a valid kingdom with the appropriate royal estate and political relations. The King option cannot be satisfied by setting a title string.
-- Spouse, children and siblings optional, with succession custom controlling heir ranking. An older brother normally makes the founding-king claim contested, not a silent automatic overthrow. Default founding monarchy restricts older male siblings, with a future advanced Disputed Claim option only after tested succession.
+- A spouse and **at least one genuine native child are required**, with additional children and siblings optional, and succession custom controlling heir ranking. An older brother normally makes the founding-king claim contested, not a silent automatic overthrow. Default founding monarchy restricts older male siblings, with a future advanced Disputed Claim option only after tested succession.
 - Royal household officers, guards, council and income must match actual native authority. A regent may act for an underage heir only through a tested regency system.
 - The guided King uses exact native `king` Advanced Start, selected kingdom, real `Kingdom.RulingClan == Clan.PlayerClan`, player-led clan and party, non-mercenary status, and at least one genuinely owned native fief. No invented crown, kingdom, extra castle, stipend, treasury or army.
-- Its two culturally trained native officers are Marshal and Chamberlain. Both must be real clan and party Heroes. Older King profiles retain their historical retinue configuration.
-- `KingSuccessionRule` ranks verified biological children by `EldestChild` or `MalePreference` household priority. A childless king has no designated heir. These saved, observed preferences never decide native monarchy succession, change settlement ownership or create an untested regency.
+- Its **three** native culturally trained court officers are Marshal, Royal Minister (governor), and Kingsguard. Marshal and Kingsguard belong to the actual main party. Royal Minister must hold a real vacant native governorship on a fief owned by the ruling clan, verified through both `Town.Governor` and `Hero.GovernorOf`. No existing governor is removed. Older King profiles retain their historical retinue configuration.
+- `KingSuccessionRule` ranks verified biological children by `EldestChild` or `MalePreference` household priority. An empty native child roster is not a valid guided King dynasty. These saved, observed preferences never decide native monarchy succession, change settlement ownership or create an untested regency.
 - Do not silently kill, reparent or replace an established native sovereign to install the player. If the native starting provider cannot establish the requested ruler status, block the start prior to irreversible finalization.
 
 ## Family eligibility and inheritance contract
@@ -83,7 +83,7 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 - **Knight, Lord's younger sibling:** spouse and children only. Native existing siblings belong to the selected real clan and cannot be removed or regenerated.
 - **Other Knight:** spouse, children and optional generated siblings. Default separate-house founding rule rejects older male siblings where the player is head.
 - **Lord:** requires a spouse and at least one child, optional siblings, default reject older male siblings.
-- **King:** spouse, children, optional siblings, default founding-royal restriction against older male siblings. More flexible succession requires explicit cultural rule and disputed-claim system.
+- **King:** spouse and at least one child mandatory, optional additional children and siblings, default founding-royal restriction against older male siblings. More flexible succession requires explicit cultural rule and disputed-claim system.
 - **Wanderer, Outlaw, Mercenary:** spouse, children, optional siblings, with no unjustified noble rank or inheritance.
 - Distinguish **parentage**, **birth order**, **eligibility to inherit property**, **title ownership**, **clan leader office** and **military command**. The same person can be first in a succession line without presently controlling the clan. Do not infer exact birth order from rounded integer ages.
 - Preserve genuine family ancestors as historical genealogical references. If the user chooses an Independent House, newly generated father/mother are not activated as visible living court officials. Do not remove actual parent IDs from native Heroes after a family has been linked.
