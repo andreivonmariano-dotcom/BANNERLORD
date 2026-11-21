@@ -365,6 +365,68 @@ internal static class Program
             !guidedMercenary.MercenaryGuidedStart &&
             !guidedMercenary.OutlawGuidedStart &&
             !guidedMercenary.WandererNoHouseStart);
+        Check("mercenary expenses include genuine wages plus provisions",
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                120,20,10)==150 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                0,0,0)==0 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                -1,20,10)==-1 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                Int32.MaxValue,1,0)==-1);
+        Check("mercenary offers cover real costs at selectable margins",
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,0)==150 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,25)==188 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,50)==225 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(0,25)==0 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,-1)==-1 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(Int32.MaxValue,100)==-1);
+        Check("mercenary starting cash covers thirty real operating days",
+            SandboxMercenarySolvencyPolicy.StartingRunwayDays==30 &&
+            SandboxMercenarySolvencyPolicy.InitialFoodDays==14 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTreasuryTarget(150)==4950 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTopUp(4000,150)==950 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTopUp(5000,150)==0 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTreasuryTarget(Int32.MaxValue)==-1);
+        Check("mercenary advance and exit bond are distinct real obligations",
+            SandboxMercenarySolvencyPolicy
+                .PayrollAdvanceDays==7 &&
+            SandboxMercenarySolvencyPolicy
+                .ExitBondDays==21 &&
+            SandboxMercenarySolvencyPolicy.PayrollAdvance(150)==1050 &&
+            SandboxMercenarySolvencyPolicy.ExitBond(150)==3150 &&
+            SandboxMercenarySolvencyPolicy.ExitBond(
+                Int32.MaxValue)==-1);
+        Check("mercenary contract refuses uncovered payroll and fake security",
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,130,1050,3150,25)=="loss_making" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,170,1050,3150,25)=="below_requested_margin" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1049,3150,25)=="payroll_advance_not_funded" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1050,3149,25)=="exit_bond_not_funded" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1050,3150,25)=="contract_financially_eligible" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,150,1050,3150,0)=="contract_financially_eligible");
+        Check("mercenary coverage ignores unverified victory or loot income",
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(150,188)==125 &&
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(150,130)==86 &&
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(0,188)==-1);
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
