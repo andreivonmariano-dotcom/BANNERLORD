@@ -13,6 +13,11 @@ namespace CalradiaUnified
         public int PetitionDay=-1,Attempts,Mediations;
         public bool Authorized{get{return Status=="ClanHeadConsents" &&
             SettlementId.Length>0 && LeaderId.Length>0;}}
+        // The legacy name "ClanHeadConsents" currently represents a
+        // relation-threshold MODEL, not observed native NPC consent.
+        // No game-backed clan-head decision adapter exists in 1.5.7.
+        // Never use this inferred flag to transfer a native fief.
+        public bool NativeHeadConsentObserved {get{return false;}}
         public string Petition(string outcome,string settlement,
             string leader,string birthClan,string model,int day)
         {
