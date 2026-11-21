@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress mercenary low-pay consent, protected exit bond and renegotiation
+        shell: pwsh
+        run: python scripts/test_v070f_mercenary_three_consent_rules.py
       - name: Regress mercenary company runway, funded-offer economics and design boundary
         shell: pwsh
         run: python scripts/test_v070e_mercenary_solvent_contract_design.py
