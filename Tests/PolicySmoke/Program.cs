@@ -248,6 +248,62 @@ internal static class Program
             recoverableHouse.StartingKingdomId=="vlandia" &&
             SandboxOriginProfile.Parse(recoverableHouse.Serialize())
                 .Serialize()==recoverableHouse.Serialize());
+        // For an Independent Lord, the player is eldest brother.
+        // Native clan leadership remains a separate game-owned role.
+        var eldestBrotherPlan=new SandboxOriginProfile();
+        Check("independent lord eldest-brother fixture",
+            eldestBrotherPlan.TrySet("Role","Lord") &&
+            eldestBrotherPlan.TrySet("StartingKingdomId","vlandia") &&
+            eldestBrotherPlan.TrySet("NobleBirthPosition","Independent") &&
+            eldestBrotherPlan.TrySet("SiblingCount","1") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Male") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","42"));
+        string independentHouseError;
+        Check("independent lord refuses older brother at House validation",
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    eldestBrotherPlan,40)==1 &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="independent_lord_older_brother" &&
+            !eldestBrotherPlan.IsValid(40,out independentHouseError) &&
+            independentHouseError.Contains(
+                "independent_lord_older_brother"));
+        Check("old profile with older brother remains detectable",
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                SandboxOriginProfile.Parse(
+                    eldestBrotherPlan.Serialize()),40)==
+                    "independent_lord_older_brother");
+        Check("independent lord permits older sister",
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Female") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="" &&
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    eldestBrotherPlan,40)==0);
+        Check("independent lord permits younger or same-age brother",
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Male") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","39") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="" &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","40") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("disabled older brother is not considered",
+            eldestBrotherPlan.TrySet("Sibling.1.Age","42") &&
+            eldestBrotherPlan.TrySet("SiblingCount","0") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("other noble backgrounds retain separate older sibling rules",
+            eldestBrotherPlan.TrySet("SiblingCount","1") &&
+            eldestBrotherPlan.TrySet("NobleBirthPosition",
+                "YoungerBrotherOfLord") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("non-lord independent house allows an older brother",
+            eldestBrotherPlan.TrySet("NobleBirthPosition","Independent") &&
+            eldestBrotherPlan.TrySet("Role","Knight") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
         Check("younger brother of a king requires real old king lineage",
             SandboxNobleStartPolicy.CanBindElder(
                 "YoungerBrotherOfKing","Lord",false,true,true,
