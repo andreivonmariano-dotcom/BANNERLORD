@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress mercenary company runway, funded-offer economics and design boundary
+        shell: pwsh
+        run: python scripts/test_v070e_mercenary_solvent_contract_design.py
       - name: Regress native Mercenary company identity, kingdom oath and family safety
         shell: pwsh
         run: python scripts/test_v070d_native_mercenary_company_contract.py
