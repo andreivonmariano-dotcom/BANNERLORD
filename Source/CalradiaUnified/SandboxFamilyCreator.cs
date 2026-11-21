@@ -598,7 +598,9 @@ namespace CalradiaUnified
                         "Independent founder parents unexpectedly active");
                 if(historicalOnly)
                     DiagnosticJournal.Event(
-                        "cu_independent_lord_ancestry_recorded",
+                        profile.Role=="Outlaw" ?
+                            "cu_independent_outlaw_ancestry_recorded" :
+                            "cu_independent_lord_ancestry_recorded",
                         "native_sibling_genealogy=true"+
                         "|generated_parents_inactive="+
                             ((newFather==null || !newFather.IsActive) &&
