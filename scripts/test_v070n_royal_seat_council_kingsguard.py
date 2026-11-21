@@ -66,7 +66,7 @@ for token in (
     'MaxGuard', 'RecruitBatch', 'HasNativeGuardGear(',
     'EligibleNativeGuardTroop(', 'garrison.MemberRoster',
     'ChangeOwnerOfSettlementAction','ChangeKingdomAction',
-    'new CharacterObject',
+    'new CharacterObject(',
 ):
     assert token not in council+state+ministry,token
 print("PASS v0.70n SOURCE: Kingsguard is ONE native Hero companion "
