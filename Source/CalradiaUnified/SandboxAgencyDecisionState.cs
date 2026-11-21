@@ -44,7 +44,8 @@ namespace CalradiaUnified
             }
             if(r.RequestsMade>=SandboxAgencyDecisionPolicy
                 .MaxRequestsPerHero ||
-                Day-r.LastDay<SandboxAgencyDecisionPolicy.CooldownDays)
+                (long)Day-r.LastDay<
+                    SandboxAgencyDecisionPolicy.CooldownDays)
                 return false;
             r.RequestsMade++;
             r.LastDay=Day;
@@ -118,12 +119,26 @@ namespace CalradiaUnified
                 if(f.Length!=4 || f[0]!="R" ||
                     !Int32.TryParse(f[2],out last) ||
                     !Int32.TryParse(f[3],out count) ||
-                    count<0 || count>SandboxAgencyDecisionPolicy
-                        .MaxRequestsPerHero || last>day)continue;
+                    count<1 || count>SandboxAgencyDecisionPolicy
+                        .MaxRequestsPerHero || last<0 || last>day)
+                    continue;
                 string id=D(f[1]);
                 if(id.Length==0 || result.For(id)!=null)continue;
                 result.Records.Add(new Record{
                     HeroId=id,LastDay=last,RequestsMade=count});
+            }
+            // Every legitimate pending invitation was created by Propose:
+            // its person has a stored quota record, and that record's
+            // LastDay is exactly the invitation's opening day. A damaged
+            // save must not display a phantom NPC request or invent a
+            // history event after loading.
+            if(result.HasPending)
+            {
+                var pendingRecord=result.For(result.PendingHeroId);
+                if(pendingRecord==null ||
+                    pendingRecord.RequestsMade<1 ||
+                    pendingRecord.LastDay!=result.PendingOpenedDay)
+                    result.Dismiss("UnverifiedRestoredRequest");
             }
             return result;
         }
