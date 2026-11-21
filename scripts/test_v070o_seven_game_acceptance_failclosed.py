@@ -103,7 +103,14 @@ def proof_for(role):
         ui_matches_real_game_state=True,
         ui_no_duplicate_settlement_actions=True,
         ui_actions_match_native_context=True,
-        ui_legacy_new_game_editor_hidden=True)
+        ui_legacy_new_game_editor_hidden=True,
+        ui_butr_required_modules_loaded=True,
+        ui_butr_no_patch_errors=True,
+        ui_clan_native_extension_after_reload=True,
+        ui_party_native_extension_after_reload=True,
+        ui_mcm_mod_options_available=True)
+    if role in ("Lord","King"):
+        proof["ui_kingdom_native_extension_after_reload"]=True
     if role in module.ROLE_UI_SCREENSHOTS:
         proof.update(ui_gauntlet_dossier_after_reload=True,
                      ui_gauntlet_dossier_back_escape=True)
@@ -178,6 +185,14 @@ with tempfile.TemporaryDirectory() as folder:
             module.audit_role(role,mutate(role,context,
                 "result=PASS|troops_transferred=5|troops_spawned=5|real_garrison=True"),
                 native)["missing"])
+    bad_butr=proof_for("King")
+    bad_butr["ui_kingdom_native_extension_after_reload"]="True"
+    (native/"king.json").write_text(
+        json.dumps(bad_butr),encoding="utf-8")
+    assert "native_ui_unverified_ui_kingdom_native_extension_after_reload" in (
+        module.audit_role("King",cases,native)["missing"])
+    (native/"king.json").write_text(
+        json.dumps(proof_for("King")),encoding="utf-8")
     assert "unverified_cu_sas_service_observed" in (
         module.audit_role("Soldier",mutate("Soldier",
             "cu_sas_service_observed",
