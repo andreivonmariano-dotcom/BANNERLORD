@@ -68,7 +68,7 @@ namespace CalradiaUnified
                 return "refused:native_party_size_limit";
             int nativeWage=(int)Math.Ceiling(
                 Campaign.Current.Models.PartyWageModel.GetTotalWage(
-                    party).ResultNumber);
+                    party,party.MemberRoster).ResultNumber);
             int troopWage=Campaign.Current.Models.PartyWageModel
                 .GetCharacterWage(native);
             int expectedWage=nativeWage+add*Math.Max(0,troopWage);
@@ -91,7 +91,7 @@ namespace CalradiaUnified
 
                 int actualWage=(int)Math.Ceiling(
                     Campaign.Current.Models.PartyWageModel.GetTotalWage(
-                        party).ResultNumber);
+                    party,party.MemberRoster).ResultNumber);
                 int minGold=SandboxOutlawBandPolicy.RequiredStartingGold(
                     actualWage);
                 if(minGold<0)
