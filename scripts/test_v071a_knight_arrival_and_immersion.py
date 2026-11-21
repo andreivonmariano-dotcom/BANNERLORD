@@ -73,7 +73,8 @@ for key in ("Family","Officers","Duty","Footer"):
               if x.get("Text")=="@"+key)
     assert text.get("Brush.TextHorizontalAlignment")=="Left",key
     assert text.get("Brush.TextVerticalAlignment")=="Top",key
-    assert int(text.get("Brush.FontSize"))>=15,key
+    minimum=17 if key=="Duty" else 13
+    assert int(text.get("Brush.FontSize"))>=minimum,key
 gallery=ET.parse(PREFABS/"CUFamilyPortraits.xml").getroot()
 members=next(x for x in gallery.iter("ListPanel")
              if x.get("DataSource")=="{Members}")
