@@ -616,7 +616,7 @@ namespace CalradiaUnified
                  StartingKingdomId!="" ||
                  StartingFiefMode!="Native" ||
                  AllowStartingFiefTransfer ||
-                 RetinueMode!="RoleBased" ||
+                 RetinueMode!="RoleBased" || Troops!=0 ||
                  (SpouseEnabled && FamilyHomeMode!="None")))
             {
                 error="Guided Outlaw must begin as an independent "+
