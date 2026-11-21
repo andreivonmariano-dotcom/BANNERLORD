@@ -16,6 +16,9 @@ namespace CalradiaUnified
         public string FirstTownId="",SecondTownId="";
         public int StartDay=-1,DueDay=-1,LastObservedDay=-1,
             CompletedOrders,MissedOrders,LastReportedDay=-1;
+        // Optional appended fields retain compatibility with the
+        // original eleven-field CU_KNIGHT_SERVICE_1 save records.
+        public int RecommendationDay=-1,RoyalHearingDay=-1;
         public bool Active {get{return Status=="Active";}}
         private static bool Id(string id)
         {
@@ -101,6 +104,29 @@ namespace CalradiaUnified
             if(CompletedOrders<10000)CompletedOrders++;
             return "native_patron_service_report_completed";
         }
+        public bool CanPresentRecommendation(string patron,int day)
+        {
+            return PatronId==patron && !String.IsNullOrEmpty(patron) &&
+                day>=0 && CompletedOrders>=3 &&
+                RecommendationDay<0;
+        }
+        public bool RecordRecommendation(string patron,int day)
+        {
+            if(!CanPresentRecommendation(patron,day))return false;
+            RecommendationDay=day;
+            return true;
+        }
+        public bool CanHearKing(int day)
+        {
+            return RecommendationDay>=0 &&
+                RoyalHearingDay<0 && day>=RecommendationDay;
+        }
+        public bool RecordRoyalHearing(int day)
+        {
+            if(!CanHearKing(day))return false;
+            RoyalHearingDay=day;
+            return true;
+        }
         public string PersonalStanding()
         {
             if(CompletedOrders>=6)return "Veteran retainer";
@@ -117,7 +143,9 @@ namespace CalradiaUnified
                 LastObservedDay.ToString(CultureInfo.InvariantCulture),
                 CompletedOrders.ToString(CultureInfo.InvariantCulture),
                 MissedOrders.ToString(CultureInfo.InvariantCulture),
-                LastReportedDay.ToString(CultureInfo.InvariantCulture)});
+                LastReportedDay.ToString(CultureInfo.InvariantCulture),
+                RecommendationDay.ToString(CultureInfo.InvariantCulture),
+                RoyalHearingDay.ToString(CultureInfo.InvariantCulture)});
         }
         public static SandboxKnightServiceOrderState Parse(string packed)
         {
@@ -127,8 +155,15 @@ namespace CalradiaUnified
             var lines=packed.Replace("\r","").Split('\n');
             if(lines.Length!=2 || lines[0]!=Version)return empty;
             var f=lines[1].Split('|');
-            if(f.Length!=11)return empty;
+            if(f.Length!=11 && f.Length!=13)return empty;
             int start,due,observed,completed,missed,reported;
+            int recommendation=-1,royalHearing=-1;
+            if(f.Length==13 &&
+                (!Int32.TryParse(f[11],NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,out recommendation) ||
+                 !Int32.TryParse(f[12],NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,out royalHearing)))
+                return empty;
             if((f[0].Length>0&&!Id(f[0])) ||
                 (f[1]!=""&&f[1]!="Scout"&&f[1]!="Muster") ||
                 (f[2]!="Available"&&f[2]!="Active"&&
@@ -150,6 +185,10 @@ namespace CalradiaUnified
                 start< -1 || due< -1 || observed< -1 ||
                 completed<0 || completed>10000 ||
                 missed<0 || missed>10000 || reported< -1 ||
+                recommendation< -1 || royalHearing< -1 ||
+                (royalHearing>=0 &&
+                    (recommendation<0 || royalHearing<recommendation)) ||
+                (recommendation>=0 && completed<3) ||
                 (f[2]=="Active" &&
                  (f[0].Length==0 || start<0 || due!=start+14)))
                 return empty;
@@ -158,7 +197,9 @@ namespace CalradiaUnified
                 FirstTownId=f[3],SecondTownId=f[4],
                 StartDay=start,DueDay=due,LastObservedDay=observed,
                 CompletedOrders=completed,MissedOrders=missed,
-                LastReportedDay=reported};
+                LastReportedDay=reported,
+                RecommendationDay=recommendation,
+                RoyalHearingDay=royalHearing};
         }
     }
 }
