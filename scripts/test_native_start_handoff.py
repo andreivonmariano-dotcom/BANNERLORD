@@ -44,7 +44,9 @@ for native in ('Scenario', 'LastStandKingdomId', 'InvasionScenarioFactionId',
 assert 'OnCharacterCreationIsOverEvent.AddNonSerializedListener' in behavior
 assert 'if (phase != 9' in behavior
 assert 'characterCreationComplete = true' in behavior
-assert 'if (!characterCreationComplete || !startedNewGame' in behavior
+assert 'soldierPendingStartSaved) || applied ||' in behavior
+assert 'if(!waiting.Available || !waiting.Enlisted)' in behavior
+assert 'applied = true;' in behavior
 early = behavior.split('private void NewGameCreated(', 1)[1].split('private void CharacterCreationCompleted', 1)[0]
 assert 'TryApplyOnce();' not in early
 assert 'SandboxFamilyCreator.TryCreate(profile,hero)' in behavior
