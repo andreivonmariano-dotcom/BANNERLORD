@@ -1365,6 +1365,9 @@ namespace CalradiaUnified
                 if(postFamilyGate.Length==0 && profile.LordGuidedStart)
                     postFamilyGate=VerifyGuidedLordNativeFamily(
                         profile,hero);
+                if(postFamilyGate.Length==0 && profile.KingGuidedStart)
+                    postFamilyGate=VerifyGuidedKingNativeFamily(
+                        profile,hero);
                 if(postFamilyGate.Length>0)
                 {
                     RecordFailedNativeFamily(profile,hero,postFamilyGate);
@@ -1522,21 +1525,29 @@ namespace CalradiaUnified
                     return;
                 }
 
-                // New King: two actual clan companions, not invented
-                // council offices. The Marshal is a trained field
-                // officer, the Chamberlain a real party quartermaster.
-                // Native sovereign authority remains in the kingdom.
+                // The King owns three REAL starting officers.
+                // Marshal and Kingsguard travel in the native party.
+                // Royal Minister serves as the actual governor of a
+                // vacant native-owned town or castle, not a fake court
+                // label or another field troop.
                 if(profile.KingGuidedStart)
                 {
                     var royalOfficers=Clan.PlayerClan.Companions.ToArray();
-                    bool marshal=royalOfficers.Count(o=>o!=null &&
-                        o.Name.ToString().EndsWith(
-                            "(Marshal)",StringComparison.Ordinal) &&
-                        o.Occupation==Occupation.Lord)==1;
-                    bool chamberlain=royalOfficers.Count(o=>o!=null &&
-                        o.Name.ToString().EndsWith(
-                            "(Chamberlain)",StringComparison.Ordinal) &&
-                        o.Occupation==Occupation.Wanderer)==1;
+                    var marshal=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(Marshal)",StringComparison.Ordinal));
+                    var minister=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(RoyalMinister)",StringComparison.Ordinal));
+                    var kingsguard=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(Kingsguard)",StringComparison.Ordinal));
+                    bool marshalRole=marshal!=null &&
+                        marshal.Occupation==Occupation.Lord;
+                    bool ministerRole=minister!=null &&
+                        minister.Occupation==Occupation.Wanderer;
+                    bool kingsguardRole=kingsguard!=null &&
+                        kingsguard.Occupation==Occupation.Lord;
                     bool registered=royalOfficers.All(o=>
                         o!=null && o.Clan==Clan.PlayerClan &&
                         o.CompanionOf==Clan.PlayerClan);
@@ -1545,25 +1556,43 @@ namespace CalradiaUnified
                         o.CharacterObject!=null);
                     bool culture=royalOfficers.All(o=>
                         o!=null && o.Culture==hero.Culture);
-                    bool party=MobileParty.MainParty!=null &&
-                        royalOfficers.All(o=>o!=null &&
-                            o.CharacterObject!=null &&
-                            MobileParty.MainParty.MemberRoster
-                                .GetTroopCount(o.CharacterObject)==1);
+                    bool marshalParty=marshal!=null &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            marshal.CharacterObject)==1;
+                    bool guardParty=kingsguard!=null &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            kingsguard.CharacterObject)==1;
+                    bool governor=minister!=null &&
+                        SandboxKingNativeMinistry.VerifiedGovernor(
+                            minister) &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            minister.CharacterObject)==0;
                     string court=SandboxKingStartPolicy.ValidateCourt(
-                        retinue,royalOfficers.Length,culture,
-                        registered,real,party,marshal,chamberlain);
+                        retinue,royalOfficers.Length,culture,registered,
+                        real,marshalParty,governor,guardParty,
+                        marshalRole,ministerRole,kingsguardRole);
                     DiagnosticJournal.Event(
                         "cu_king_native_court_verification",
                         "result="+(court.Length==0?"PASS":"FAIL")+
                         "|reason="+court+
-                        "|marshal="+marshal+
-                        "|chamberlain="+chamberlain+
-                        "|native_party="+party+
-                        "|native_heroes="+real+
-                        "|native_clan="+registered+
+                        "|marshal="+(marshal==null?"none":marshal.StringId)+
+                        "|royal_minister="+
+                            (minister==null?"none":minister.StringId)+
+                        "|kingsguard="+
+                            (kingsguard==null?"none":kingsguard.StringId)+
+                        "|marshal_in_party="+marshalParty+
+                        "|minister_native_governor="+governor+
+                        "|minister_fief="+(minister==null ||
+                            minister.GovernorOf==null?"none":
+                            minister.GovernorOf.StringId)+
+                        "|kingsguard_in_party="+guardParty+
                         "|same_culture="+culture+
-                        "|no_royal_power_grant=true");
+                        "|real_native_heroes="+real+
+                        "|native_clan="+registered+
+                        "|royal_office_authority_not_invented=true");
                     if(court.Length>0)
                     {
                         RecordFailedNativeFamily(profile,hero,
@@ -1572,8 +1601,8 @@ namespace CalradiaUnified
                             "sandbox_start_contract",
                             "result=FAIL|reason=royal_court:"+court+
                             "|no_discretionary_grants=true");
-                        Notify("Native royal court could not be "+
-                            "verified: "+court);
+                        Notify("Royal court or actual governor could not "+
+                            "be verified: "+court);
                         return;
                     }
                 }
