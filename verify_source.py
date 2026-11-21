@@ -54,7 +54,9 @@ assert 'EnableManualGarrisonTransfers=false' in conf
 assert 'EnableManualGarrisonWageCaps=false' in conf
 assert 'DiagnosticJournal.cs' in (P/'Tests/PolicySmoke/PolicySmoke.csproj').read_text()
 assert 'new DiagnosticBehavior(config)' in (src/'SubModule.cs').read_text()
-assert 'new NativeSettingsBehavior(config)' in (src/'SubModule.cs').read_text()
+assert 'new NativeSettingsBehavior(config)' not in (src/'SubModule.cs').read_text()
+assert 'AttributeGlobalSettings<CUBUTRMCMSettings>' in (src/'CUBUTRMCMSettings.cs').read_text()
+assert 'UIExtender.Create("CalradiaUnified")' in (src/'SubModule.cs').read_text()
 assert 'new SandboxOriginBehavior()' in (src/'SubModule.cs').read_text()
 assert (src/'SandboxOriginProfile.cs').exists()
 assert (src/'SandboxRolePolicy.cs').exists()
