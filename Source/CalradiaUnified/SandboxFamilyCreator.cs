@@ -327,19 +327,20 @@ namespace CalradiaUnified
                 for (int i = 0; i < profile.SiblingCount; i++)
                 {
                     var siblingProfile=profile.Siblings[i];
-                    bool birthHouseholdHeir=
+                    bool birthHouseholdResident=
                         SandboxNobleStartPolicy.IsSonOrigin(
                             profile.NobleBirthPosition) &&
-                        siblingProfile.Gender=="Male" &&
                         siblingProfile.Age>player.Age &&
                         player.Father!=null &&
                         player.Father.Clan!=null &&
                         player.Father.Clan!=Clan.PlayerClan;
+                    bool birthHouseholdHeir=birthHouseholdResident &&
+                        siblingProfile.Gender=="Male";
                     // An older native noble heir belongs to the father's
                     // house. He does not automatically enlist in a younger
                     // son's party or move into the junior clan.
                     Hero sibling=Create(siblingTemplates[i],siblingProfile.Name,
-                        siblingProfile.Age,birthHouseholdHeir?
+                        siblingProfile.Age,birthHouseholdResident?
                         player.Father.Clan:null);
                     sibling.Father=player.Father;
                     sibling.Mother=player.Mother;
@@ -355,7 +356,8 @@ namespace CalradiaUnified
                     if(!birthHouseholdHeir &&
                         profile.Role!="King" &&
                         profile.Role!="Lord" &&
-                        profile.Role!="Knight")
+                        profile.Role!="Knight" &&
+                        profile.Role!="NobleCadet")
                         sibling.SetNewOccupation(Occupation.Wanderer);
                     if (sibling.Father != null &&
                         !sibling.Father.Children.Contains(sibling))
@@ -363,16 +365,27 @@ namespace CalradiaUnified
                     if (sibling.Mother != null &&
                         !sibling.Mother.Children.Contains(sibling))
                         sibling.Mother.Children.Add(sibling);
-                    if(birthHouseholdHeir)
+                    if(birthHouseholdResident)
                     {
                         if(sibling.Clan!=player.Father.Clan)
                             throw new InvalidOperationException(
-                                "Older heir was not retained by birth clan");
+                                "Older noble sibling left birth clan");
+                        var placement=SandboxBirthHouseholdPlacement.Place(
+                            sibling,player.Father);
+                        if(placement.StartsWith("refused:",
+                            StringComparison.Ordinal) ||
+                           placement.StartsWith("failed:",
+                            StringComparison.Ordinal))
+                            throw new InvalidOperationException(
+                                "Older noble sibling has no native home: "+
+                                placement);
                         DiagnosticJournal.Event(
                             "cu_family_older_heir_stays_with_father",
                             "hero="+sibling.StringId+
                             "|father="+player.Father.StringId+
                             "|birth_clan="+sibling.Clan.StringId+
+                            "|male_heir="+birthHouseholdHeir+
+                            "|residence="+placement+
                             "|player_party_member=false");
                     }
                     else
@@ -402,7 +415,8 @@ namespace CalradiaUnified
                         "|father="+sibling.Father.StringId+
                         "|mother="+sibling.Mother.StringId+
                         "|culture="+sibling.Culture.StringId+
-                        "|party_member="+(!birthHouseholdHeir)+
+                        "|party_member="+(!birthHouseholdResident)+
+                        "|birth_household_resident="+birthHouseholdResident+
                         "|birth_household_heir="+birthHouseholdHeir+
                         "|clan="+(sibling.Clan==null?
                             "none":sibling.Clan.StringId));

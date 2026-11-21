@@ -122,6 +122,9 @@ namespace CalradiaUnified
             if(missing<0)return "inconsistent_older_brothers";
             if(missing>0 && BrotherSource(player)==null)
                 return "no_native_older_brother_source";
+            if(missing>0 &&
+                !SandboxBirthHouseholdPlacement.CanPlace(father))
+                return "no_birth_household_residence";
             return "";
         }
 
@@ -183,6 +186,9 @@ namespace CalradiaUnified
             var source=missing>0?BrotherSource(player):null;
             if(missing>0 && source==null)
                 return "refused:native_older_brother_template_missing";
+            if(missing>0 &&
+                !SandboxBirthHouseholdPlacement.CanPlace(father))
+                return "refused:no_birth_household_residence";
             var generated=new List<Hero>();
             var reserved=new List<string>{player.Name.ToString(),
                 father.Name.ToString(),mother.Name.ToString()};
@@ -222,11 +228,20 @@ namespace CalradiaUnified
                         brother.Clan!=father.Clan)
                         throw new InvalidOperationException(
                             "Generated firstborn genealogy failed");
+                    string placement=SandboxBirthHouseholdPlacement.Place(
+                        brother,father);
+                    if(placement.StartsWith("refused:",
+                        StringComparison.Ordinal) ||
+                       placement.StartsWith("failed:",
+                        StringComparison.Ordinal))
+                        throw new InvalidOperationException(
+                            "Older son has no native home: "+placement);
                     reserved.Add(name);
                     DiagnosticJournal.Event("cu_dynastic_older_son_created",
                         "father="+father.StringId+"|mother="+mother.StringId+
                         "|brother="+brother.StringId+"|name="+name+
-                        "|age="+brother.Age+"|clan="+brother.Clan.StringId);
+                        "|age="+brother.Age+"|clan="+brother.Clan.StringId+
+                        "|residence="+placement);
                 }
                 var older=OlderSons(father,mother,player);
                 if(!SandboxHouseholdLineagePolicy.ExactFinalRank(

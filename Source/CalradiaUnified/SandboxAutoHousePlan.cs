@@ -21,6 +21,8 @@ namespace CalradiaUnified
             plan.SpouseBackground=
                 (plan.Role=="Lord" || plan.Role=="King")?
                 "NobleRandom":"Commoner";
+            if(SandboxCustomLifeRolePolicy.IsLandless(plan.Role))
+                plan.FamilyHomeMode="None";
             plan.FamilyScenario=plan.Role=="Admiral"?
                 "Seafaring":SandboxStartingLifePolicy.FamilyScenario(
                     plan.Role,plan.EarlyHousehold);
