@@ -113,6 +113,28 @@ internal static class Program
         guidedLord.LordGuidedStart=true;
         guidedLord.StartingKingdomId="vlandia";
         guidedLord.RetinueMode="RoleBased";
+        Check("guided Lord rejects missing spouse and lone bachelor house",
+            SandboxLordStartPolicy.ValidateRequiredFamily(false,0)==
+                "lord_spouse_required" &&
+            !guidedLord.IsValid(30,out _) &&
+            SandboxLordStartPolicy.ValidateRequiredFamily(false,2)==
+                "lord_spouse_required");
+        guidedLord.SpouseEnabled=true;
+        Check("guided Lord rejects childless spouse-only household",
+            SandboxLordStartPolicy.ValidateRequiredFamily(true,0)==
+                "lord_child_required" &&
+            !guidedLord.IsValid(30,out _));
+        guidedLord.ChildCount=1;
+        Check("guided Lord needs real marriage and exact native parentage",
+            SandboxLordStartPolicy.ValidateRequiredFamily(true,1)=="" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,true,1,1)=="" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                false,true,1,1)=="native_lord_marriage_missing" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,false,1,1)=="native_lord_marriage_missing" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,true,2,1)=="native_lord_children_or_parentage_missing");
         Check("guided Lord profile is independently valid and save-backed",
             guidedLord.IsValid(30,out _) &&
             SandboxOriginProfile.Parse(guidedLord.Serialize())
@@ -153,7 +175,10 @@ internal static class Program
             !SandboxOriginProfile.Parse(
                 "Version=CU_ORIGIN_1\nRole=Lord\nStartingFiefMode=Castle\n"+
                 "AllowStartingFiefTransfer=true\nGold=50000\n")
-                .LordGuidedStart);
+                .LordGuidedStart &&
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=Lord\nSpouseEnabled=false\n"+
+                "ChildCount=0\n").LordGuidedStart);
         Check("guided sworn Knight refuses native vassal and mercenary",
             SandboxKnightStartPolicy.ValidateRequest(
                 "SwornHouse","vlandia",0)=="" &&
