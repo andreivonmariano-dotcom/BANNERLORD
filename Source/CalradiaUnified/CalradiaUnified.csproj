@@ -24,7 +24,7 @@
   <ItemGroup>
     <PackageReference Include="Bannerlord.UIExtenderEx" Version="3.0.3"
        PrivateAssets="all" ExcludeAssets="runtime" />
-    <PackageReference Include="Bannerlord.UIExtenderEx.Analyzers" Version="3.0.3"
+    <PackageReference Include="Bannerlord.UIExtenderEx.Analyzers" Version="3.0.3.9"
        PrivateAssets="all" />
     <PackageReference Include="Bannerlord.MCM" Version="5.13.1"
        PrivateAssets="all" ExcludeAssets="runtime" />
