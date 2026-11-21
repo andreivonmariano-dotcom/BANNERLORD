@@ -141,6 +141,10 @@ namespace CalradiaUnified
         // The player and spouse editors must never share stat state.
         public readonly SortedDictionary<string, int> SpouseOverrides =
             new SortedDictionary<string, int>(StringComparer.Ordinal);
+        // Independent target: the optional single Wanderer companion.
+        // Never overwrite the player's or spouse's stats.
+        public readonly SortedDictionary<string,int> WandererCompanionOverrides=
+            new SortedDictionary<string,int>(StringComparer.Ordinal);
         // Up to 12 exact, engine-resolved item IDs; missing IDs are never granted.
         public readonly SortedDictionary<int, string> ItemIds =
             new SortedDictionary<int, string>();
@@ -223,6 +227,7 @@ namespace CalradiaUnified
             ProgressionMode="Native";
             Overrides.Clear();
             SpouseOverrides.Clear();
+            WandererCompanionOverrides.Clear();
             ItemIds.Clear();
             // Never carry hidden pregame bonuses, resources or world
             // modifiers into a new campaign before explicit confirmation.
@@ -486,6 +491,19 @@ namespace CalradiaUnified
                     if(!Number(value,0,220,out n))return false;
                     WandererCompanionSkill=n;return true;
             }
+            if (key.StartsWith("WandererCompanionStat.",
+                StringComparison.Ordinal))
+            {
+                string subkey=key.Substring(
+                    "WandererCompanionStat.".Length);
+                if(!SandboxStatBudgetPolicy.IsStatKey(subkey) ||
+                    !Int32.TryParse(value,NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,out n) ||
+                    !SandboxStatBudgetPolicy.InRange(subkey,n))
+                    return false;
+                WandererCompanionOverrides[subkey]=n;
+                return true;
+            }
             if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
             {
                 string subkey=key.Substring("SpouseStat.".Length);
@@ -632,6 +650,14 @@ namespace CalradiaUnified
             if(homeStationError.Length>0)
             {
                 error=homeStationError;
+                return false;
+            }
+            if(WandererCompanionOverrides.Any(kv=>
+                !SandboxStatBudgetPolicy.InRange(kv.Key,kv.Value)) ||
+                (WandererCompanionOverrides.Count>0 &&
+                 (!WandererNoHouseStart || !WandererCompanionEnabled)))
+            {
+                error="Invalid optional Wanderer companion stats.";
                 return false;
             }
             if (SpouseOverrides.Any(kv=>
@@ -797,6 +823,9 @@ namespace CalradiaUnified
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach(var pair in SpouseOverrides)
                 lines.Add("SpouseStat."+pair.Key+"="+
+                    pair.Value.ToString(CultureInfo.InvariantCulture));
+            foreach(var pair in WandererCompanionOverrides)
+                lines.Add("WandererCompanionStat."+pair.Key+"="+
                     pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach (var pair in ItemIds)
                 lines.Add("Item." + pair.Key + "=" + pair.Value);
