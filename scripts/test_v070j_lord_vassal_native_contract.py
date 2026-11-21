@@ -45,9 +45,9 @@ assert 'profile.LordGuidedStart' in creator
 assert 'if(profile.LordGuidedStart)' in behavior
 assert '"cu_lord_native_household_officers"' in behavior
 assert '"cu_lord_native_final_verification"' in behavior
-assert 'SandboxLordStartPolicy.ValidateNativeHouse(' in behavior
+assert '.ValidateNativeHouse(actualStart,' in behavior
 assert 'SandboxLordStartPolicy' in behavior
-assert 'SandboxLordStartPolicy.ValidateOfficers(' in behavior
+assert '.ValidateOfficers(retinue,lordOfficers.Length,' in behavior
 assert 'officer.SetNewOccupation(nobleFieldOffice?' in retinue
 assert 'AddCompanionAction.Apply(' in retinue
 assert 'AddHeroToPartyAction.Apply(' in retinue
