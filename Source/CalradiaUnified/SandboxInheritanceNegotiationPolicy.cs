@@ -47,6 +47,36 @@ namespace CalradiaUnified
                 precedingOlderSons))return "ClaimContested";
             return "ClanHeadConsents";
         }
+        public static int FamilySettlementContribution(string culture)
+        {
+            switch(SandboxCulturalInheritancePolicy.Model(culture))
+            {
+                case "HouseholdSeniority":return 600;
+                case "ClanConsensus":return 350;
+                case "KindredCouncil":return 250;
+                case "CivilAppointment":return 700;
+                case "FamilyNegotiation":return 400;
+                case "ClanCoalition":return 300;
+                default:return -1;
+            }
+        }
+        public static bool MediationGate(string petitionStatus,
+            int completedMediations,bool atNativeFamilyCourt,
+            bool sameNativeKingdom,bool nativeLeaderAlive,
+            int playerGold,string culture)
+        {
+            int fee=FamilySettlementContribution(culture);
+            return petitionStatus=="ClaimContested" &&
+                completedMediations>=0 && completedMediations<2 &&
+                atNativeFamilyCourt && sameNativeKingdom &&
+                nativeLeaderAlive && fee>0 && playerGold>=fee;
+        }
+        public static bool MayWithdraw(string status)
+        {
+            return status=="ClaimContested" ||
+                status=="ClaimRejected" ||
+                status=="ClanHeadConsents";
+        }
         public static bool TransferGate(bool explicitPlayerConfirmed,
             bool priorConsent,string expectedBirthClanId,
             string currentOwnerClanId,bool sameKingdom,
