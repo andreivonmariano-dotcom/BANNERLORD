@@ -81,30 +81,54 @@ internal static class Program
                 "king","vlandia","vlandia",
                 true,true,true,false,true,false,0)==
                     "royal_native_fief_missing");
-        Check("guided King court requires actual Marshal and Chamberlain",
+        Check("guided King court requires Marshal, Kingsguard and native Minister",
             SandboxKingStartPolicy.CourtOffices.SequenceEqual(
-                new[]{"Marshal","Chamberlain"}) &&
+                new[]{"Marshal","Kingsguard","RoyalMinister"}) &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=3|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,true,true,true,true,true)=="" &&
             SandboxKingStartPolicy.ValidateCourt(
                 "officers=2|native_companions_dismissed=1|same_culture=true",
-                2,true,true,true,true,true,true)=="" &&
-            SandboxKingStartPolicy.ValidateCourt(
-                "officers=1|native_companions_dismissed=1|same_culture=true",
-                2,true,true,true,true,true,true)==
+                3,true,true,true,true,true,true,true,true,true)==
                     "native_royal_court_receipt_missing" &&
             SandboxKingStartPolicy.ValidateCourt(
-                "officers=2|native_companions_dismissed=1|same_culture=true",
-                2,true,true,true,true,true,false)==
-                    "native_royal_court_unverified");
+                "officers=3|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,false,true,true,true,true)==
+                    "native_royal_court_unverified" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,true,true,true)=="" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,false,true,true)==
+                    "royal_governor_seat_occupied_or_missing" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,true,false,true)==
+                    "native_royal_governor_not_verified");
         var guidedKing=new SandboxOriginProfile();
         guidedKing.Role="King";
         guidedKing.KingGuidedStart=true;
         guidedKing.StartingKingdomId="vlandia";
         guidedKing.RetinueMode="RoleBased";
-        Check("guided King allows unmarried childless ruler",
+        Check("guided King requires real marriage and native royal heir",
+            !guidedKing.IsValid(30,out _) &&
+            SandboxKingStartPolicy.ValidateRequiredRoyalFamily(false,0)==
+                "royal_spouse_required");
+        guidedKing.SpouseEnabled=true;
+        Check("guided King refuses spouse without a child",
+            !guidedKing.IsValid(30,out _) &&
+            SandboxKingStartPolicy.ValidateRequiredRoyalFamily(true,0)==
+                "royal_child_required");
+        guidedKing.ChildCount=1;
+        Check("guided King validates native royal family and legacy ID",
             guidedKing.IsValid(30,out _) &&
             SandboxOriginProfile.Parse(guidedKing.Serialize())
                 .KingGuidedStart &&
-            SandboxNativeTypeForPolicy("King")=="guidedKing");
+            SandboxNativeTypeForPolicy("King")=="king" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                true,true,1,1)=="" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                false,true,1,1)=="native_royal_marriage_unverified" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                true,true,2,1)=="native_royal_children_unverified");
         guidedKing.StartingFiefMode="Castle";
         guidedKing.AllowStartingFiefTransfer=true;
         Check("guided King refuses arbitrary donor castle",
@@ -138,25 +162,29 @@ internal static class Program
             !SandboxKingStartPolicy.CanGrantNativeFief() &&
             !SandboxKingStartPolicy.CanInstallRegent());
         var kingClaims=new SandboxKingSuccessionState();
-        Check("King save-backed claims allow no spouse and no children",
+        Check("guided King cannot record empty native dynasty",
             kingClaims.Begin("founder","house","vlandia",
                 "EldestChild",
                 new SandboxLordSuccessionPolicy.Candidate[0],100)==
-                    "native_royal_household_recorded" &&
-            kingClaims.IsRecorded &&
-            kingClaims.PreferredHeirId=="" &&
-            kingClaims.Status=="NativeReignNoChildClaim" &&
-            SandboxKingSuccessionState.Parse(
-                kingClaims.Serialize()).Serialize()==
-                kingClaims.Serialize());
+                    "no_verified_native_royal_child" &&
+            !kingClaims.IsRecorded);
         var daughter=new SandboxLordSuccessionPolicy.Candidate(
             "daughter",22,true,0,true,true,true);
         var son=new SandboxLordSuccessionPolicy.Candidate(
             "son",17,false,1,true,true,true);
-        Check("King native claims record observed daughter heir",
+        Check("King saves a real daughter and son with exact identities",
+            kingClaims.Begin("founder","house","vlandia",
+                "EldestChild",new[]{daughter,son},100)==
+                    "native_royal_household_recorded" &&
+            kingClaims.IsRecorded &&
+            kingClaims.PreferredHeirId=="daughter" &&
+            kingClaims.Status=="NativeReignHouseholdClaimOnly" &&
+            SandboxKingSuccessionState.Parse(
+                kingClaims.Serialize()).Serialize()==
+                kingClaims.Serialize());
+        Check("King native claims follow observed eldest living heir",
             kingClaims.Observe(101,true,"house","founder",
-                new[]{daughter,son})==
-                    "native_crown_observation_changed" &&
+                new[]{daughter,son})=="native_crown_unchanged" &&
             kingClaims.PreferredHeirId=="daughter" &&
             kingClaims.Status=="NativeReignHouseholdClaimOnly");
         Check("King cannot invent automatic regency on death",
