@@ -933,8 +933,8 @@ namespace CalradiaUnified
             candidate.RetinueMode=candidate.WandererNoHouseStart?
                 "FamilyOnly":candidate.OutlawGuidedStart?
                 "RoleBased":candidate.MercenaryGuidedStart ||
-                candidate.SoldierGuidedStart ||
                 candidate.KnightGuidedStart ?
+                "FamilyOnly":candidate.SoldierGuidedStart ?
                 "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
