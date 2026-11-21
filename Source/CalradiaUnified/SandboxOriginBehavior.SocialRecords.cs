@@ -57,6 +57,8 @@ namespace CalradiaUnified
                 (militaryWitness.ArmyCommandDay>=0?"yes":"no");
             result+="\nBattles witnessed: "+battleHistory.Entries.Count+
                 "\n"+battleHistory.DescribeRecent(3);
+            if(knightOath.IsConfigured)
+                result+="\n"+KnightBattleServiceSummary();
             result+="\nRecent personal matters:";
             if(deeds.Length==0)
                 result+=" none verified";
