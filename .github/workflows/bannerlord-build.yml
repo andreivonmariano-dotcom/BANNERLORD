@@ -449,7 +449,7 @@ jobs:
           # Missing required dependency must refuse replacement BEFORE
           # moving the existing module or creating another backup.
           $butr = Join-Path $fake "Modules/Bannerlord.ButterLib"
-          $disabledButr = Join-Path $fake "Modules/ButterLib_InstallerTestDisabled"
+          $disabledButr = Join-Path $fake "ButterLib_InstallerTestDisabled"
           Move-Item -LiteralPath $butr -Destination $disabledButr
           $before = (Get-FileHash -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll") -Algorithm SHA256).Hash
           $backupsBefore = @(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count
