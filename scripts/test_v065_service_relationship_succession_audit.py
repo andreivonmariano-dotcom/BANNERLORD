@@ -59,7 +59,7 @@ assert bh.index("SandboxLivingPersons.Capture(") > bh.index(
     'DiagnosticJournal.Event("sandbox_start_contract",')
 # v0.67 groups the old status action under the native People & Lineage menu.
 native_affairs=text("SandboxOriginBehavior.LivingMenus.cs")
-assert '"CU: People & Lineage"' in native_affairs
+assert '"Household and personal affairs"' in native_affairs
 assert '"cu_people_household"' in native_affairs
 assert 'RegisterPeopleAndLineageMenus(starter);' in bh
 print("PASS: World visibility, native career tracking, observed social changes, succession interests and no false start PASS (SOURCE ONLY)")

@@ -35,9 +35,9 @@ assert 'NativeHeroDisplayName(' in king
 assert 'NativeHeroDisplayNames(' in king
 assert 'NativeHeroDisplayName(royalCouncil.MinisterId)' in council
 assert 'NativeHeroDisplayName(royalCouncil.MarshalId)' in council
-assert '"CU: Royal court and council"' in council
+assert '"My royal court and council"' in council
 assert 'args=>royalCouncil.IsRecorded' in council
-assert '"CU: Royal court and council",\n                    args=>royalCouncil.IsRecorded' in council
+assert '"My royal court and council",\n                    args=>royalCouncil.IsRecorded' in council
 assert '"cu_royal_council_ui_location"' in council
 assert 'ShowNativeDetail(' in council
 assert 'NativeRoyalCouncilPresent(true)' in council
@@ -45,11 +45,11 @@ assert 'NativeCourtOfficer("Kingsguard")' in council
 assert 'kingsguard.CharacterObject' in council
 assert 'TeleportHeroAction.ApplyImmediateTeleportToSettlement(' in (
     read("SandboxKingNativeMinistry.cs"))
-assert '"cu_knight_oath_entry_"+from' in knight
+assert '"cu_knight_oath_entry"' in knight
 assert 'knightOath.PatronId' in knight
 assert 'patron.Clan.Name.ToString()' in knight
-assert '"CU: Lord family and inheritance"' in lord
-assert '"CU: Royal household and succession"' in king
+assert '"My household inheritance"' in lord
+assert '"Dynastic succession"' in king
 assert 'OnPropertyChangedWithValue(Summary,"Summary")' in creator
 assert 'OnPropertyChangedWithValue(Hint,"Hint")' in creator
 assert 'OnPropertyChangedWithValue(IsReview,"IsReview")' in creator

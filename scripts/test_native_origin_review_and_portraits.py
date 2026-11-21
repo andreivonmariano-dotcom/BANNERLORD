@@ -84,7 +84,7 @@ assert "TeleportHero" not in gallery
 assert "AddHeroToParty" not in gallery
 assert "MarriageAction" not in gallery
 assert '"cu_family_portraits_open"' in gallery
-assert '"cu_family_portraits_" + from' in behavior
+assert '"cu_family_portraits"' in behavior
 assert 'new CUFamilyPortraitScreen()' in behavior
 
 # Every visible C# field must exist in XML and parent types.
