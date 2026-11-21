@@ -72,6 +72,14 @@ namespace CalradiaUnified
             {
                 if(houseDraft!=null)
                     profile=SandboxOriginProfile.Parse(houseDraft.Serialize());
+                // Upgraded World drafts cannot arrive in House without
+                // the new guided Lord's required marriage and first child.
+                // This is editor initialization, not a live-campaign edit.
+                if(profile.LordGuidedStart)
+                {
+                    profile.SpouseEnabled=true;
+                    profile.ChildCount=Math.Max(1,profile.ChildCount);
+                }
                 if(!profile.AutoHouseNamesPrepared)
                 {
                     var hero=Hero.MainHero;
@@ -275,14 +283,16 @@ namespace CalradiaUnified
                     "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseEnabled",
                     "Begin married?",
-                    "Your character's native age and culture are now known. No spouse is created until the campaign begins.",
+                    "Lord: a real spouse is mandatory. Other paths may opt out.",
                     "boolean"));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","FamilyScenario",
                     "Household story",
                     "Natural: varied traits. Honorable: honorable spouse and kinder children. Martial, Scholarly, Mercantile, Seafaring or Strained change family bonds and upbringing.",
                     choices:SandboxFamilyDevelopmentPolicy.Scenarios,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseName",
-                    "Spouse name","Name your generated starting spouse.","text",advanced:true));
+                    "Spouse name","Name your generated native spouse. "+
+                    "A Lord requires a spouse.","text",
+                    advanced:!profile.LordGuidedStart));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseAge",
                     "Spouse age","Ages must permit the selected children.",
                     "number",min:18,max:70,advanced:true));
@@ -302,14 +312,16 @@ namespace CalradiaUnified
                         "empire","aserai","khuzait"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","ChildCount",
                     "Starting children",
-                    "A spouse is required. Ages are checked against the actual player and spouse.",
-                    "number",min:0,max:6));
+                    "A Lord requires at least one genuine child. "+
+                    "Parent ages and real family links are checked.",
+                    "number",min:profile.LordGuidedStart?1:0,max:6));
                 for(int i=1;i<=SandboxOriginProfile.MaxChildren;i++)
                 {
                     string prefix="Child."+i+".";
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Name","Child "+i+" | Name",
-                        "Give this child a real native Hero name.","text",advanced:true));
+                        "Give this child a real native Hero name.","text",
+                        advanced:!(profile.LordGuidedStart && i==1)));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Age","Child "+i+" | Age",
                         "Choose a permitted age. The limit adjusts to both parents.",
@@ -392,6 +404,8 @@ namespace CalradiaUnified
             string key=field.Key;
             if(key=="EarlyHousehold" && preCampaign &&
                 profile.Role=="Wanderer")return false;
+            if(!preCampaign && profile.LordGuidedStart &&
+                key=="SpouseEnabled")return false;
             // New Outlaw household keeps spouses and siblings, but never
             // displays controls for fiefs, influence, noble ancestry or
             // named estate officers it cannot legitimately own.
@@ -638,6 +652,18 @@ namespace CalradiaUnified
                 Report("Invalid value for "+key+".");
                 return false;
             }
+            if(!preCampaign && copy.LordGuidedStart &&
+                (key=="SpouseEnabled" || key=="ChildCount"))
+            {
+                string required=SandboxLordStartPolicy.ValidateRequiredFamily(
+                    copy.SpouseEnabled,copy.ChildCount);
+                if(required.Length>0)
+                {
+                    Report("Lord household requires a spouse and at "+
+                        "least one child. Siblings remain optional.");
+                    return false;
+                }
+            }
             if(key.StartsWith("Child.",StringComparison.Ordinal) &&
                 key.EndsWith(".Age",StringComparison.Ordinal))
             {
@@ -852,6 +878,12 @@ namespace CalradiaUnified
             candidate.LordGuidedStart=candidate.Role=="Lord";
             if(candidate.LordGuidedStart)
             {
+                // Set required household choices before native identity
+                // and family creation. All real Heroes come later.
+                candidate.SpouseEnabled=true;
+                candidate.ChildCount=Math.Max(1,candidate.ChildCount);
+                candidate.FamilyHomeMode="OwnedFief";
+                candidate.FamilyHomeId="";
                 candidate.RoleAffiliationsEnabled=false;
                 candidate.NobleBirthPosition="Independent";
                 candidate.NobleElderHeroId="";
@@ -1021,6 +1053,17 @@ namespace CalradiaUnified
             candidate.RealFamilyEnabled=candidate.SpouseEnabled ||
                 candidate.ChildCount>0 || candidate.SiblingCount>0;
             string error;
+            if(candidate.LordGuidedStart)
+            {
+                string required=SandboxLordStartPolicy.ValidateRequiredFamily(
+                    candidate.SpouseEnabled,candidate.ChildCount);
+                if(required.Length>0)
+                {
+                    Report("Lord household: spouse and at least one "+
+                        "child are required. Siblings are optional.");
+                    return;
+                }
+            }
             if(candidate.ChildCount>0 && !candidate.SpouseEnabled)
             {
                 Report("Starting children require a spouse.");
@@ -1183,7 +1226,9 @@ namespace CalradiaUnified
                         (profile.NobleBirthPosition=="Independent"?"":" "+
                         projectedElderName);
                 if(!preCampaign && Current.Key=="ChildCount")
-                    return "Suggested children: "+
+                    return (profile.LordGuidedStart?
+                        "Lord requires one or more genuine children. ":
+                        "")+"Suggested children: "+
                         (profile.ChildCount==0?"none":String.Join(", ",
                             profile.Children.Take(profile.ChildCount)
                                 .Select(x=>x.Name+" ("+x.Age+")"))) +
@@ -1354,8 +1399,9 @@ namespace CalradiaUnified
                         "\nNo additional fief gift, bonus funds or troops."+
                         "\nTwo cultured native Heroes: Master of Arms "+
                         "and sworn Knight. Both must join the clan party."+
-                        "\nSpouse, children and siblings are optional."+
-                        "\nNo older founding brother. Older sisters allowed."+
+                        "\nSpouse and at least one native child required."+
+                        "\nSiblings optional. No older founding brother."+
+                        "\nOlder sisters are allowed."+
                         "\nNo royal title or invented court authority.";
                 if(preCampaign && profile.Role=="Knight")
                     return "Knight | "+profile.KnightOrigin+"\n"+
