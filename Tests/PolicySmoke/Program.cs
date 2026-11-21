@@ -23,6 +23,148 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.71c: pure-state tests, independent of a running campaign.
+        var offices=new SandboxHouseholdDutyState();
+        Check("household offices require a real bounded Hero ID",
+            offices.Assign("Steward","")==
+                "invalid_office_or_native_hero" &&
+            offices.Assign("Emperor","companion_1")==
+                "invalid_office_or_native_hero");
+        Check("one companion holds one personal household duty",
+            offices.Assign("Steward","companion_1")==
+                "personal_duty_recorded" &&
+            offices.Assign("Captain","companion_1")==
+                "companion_already_has_duty" &&
+            offices.Assign("Captain","companion_2")==
+                "personal_duty_recorded");
+        Check("household report is one native day per office",
+            offices.Report("Steward","companion_1",13)==
+                "native_duty_report_recorded" &&
+            offices.Report("Steward","companion_1",13)==
+                "already_reported_today" &&
+            offices.Report("Steward","companion_2",14)==
+                "duty_identity_not_verified" &&
+            offices.ReportCount("Steward")==1);
+        Check("family audience has thirty-day native cooldown",
+            offices.RecordAudience("spouse_1",3) &&
+            !offices.CanAudience("spouse_1",32) &&
+            offices.CanAudience("spouse_1",33) &&
+            offices.RecordAudience("spouse_1",33));
+        Check("family gifts are attempted once each thirty days",
+            offices.RecordGiftAttempt("child_1",5) &&
+            !offices.RecordGiftAttempt("child_1",5) &&
+            !offices.CanGift("child_1",34) &&
+            offices.CanGift("child_1",35));
+        Check("household assignments and audience receipts reload",
+            SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .Serialize()==offices.Serialize() &&
+            SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .ReportCount("Steward")==1 &&
+            !SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .CanGift("child_1",34));
+        Check("invalid household saves fail to empty without grants",
+            SandboxHouseholdDutyState.Parse(
+                offices.Serialize()+"|forged")
+                .AssignedId("Steward")=="" &&
+            SandboxHouseholdDutyState.Parse(
+                "CU_HOUSEHOLD_DUTIES_1\\nunsafe")
+                .ReportCount("Captain")==0);
+
+        var journey=new SandboxCareerChronicleState();
+        Check("career only accepts seven native-backed role paths",
+            !journey.Begin("Admiral") &&
+            journey.Begin("Wanderer") &&
+            !journey.Begin("King"));
+        Check("wanderer chapters require three different real towns",
+            journey.Observe(10,true,true,true,"town_1")==
+                "career_chapter_1_verified" &&
+            journey.Observe(10,true,true,true,"town_2")==
+                "not_new_native_day" &&
+            journey.Observe(11,true,true,true,"town_1")==
+                "native_objective_not_verified" &&
+            journey.Observe(12,true,true,true,"town_2")==
+                "career_chapter_2_verified" &&
+            journey.Observe(13,true,true,true,"town_3")==
+                "career_chapter_3_verified" &&
+            journey.Chapter==3);
+        Check("wanderer visits persist without inferred new towns",
+            SandboxCareerChronicleState.Parse(journey.Serialize())
+                .Serialize()==journey.Serialize() &&
+            journey.FirstTownId=="town_1" &&
+            journey.SecondTownId=="town_2");
+        var band=new SandboxCareerChronicleState();
+        band.Begin("Outlaw");
+        Check("outlaw gathering requires actual first proof",
+            band.Observe(0,false,false,false,"")==
+                "native_objective_not_verified" &&
+            band.Observe(1,true,true,true,"")==
+                "career_chapter_1_verified");
+        band.Observe(2,true,true,true,"");
+        Check("outlaw chapter streak breaks across missing days",
+            band.Observe(4,true,true,true,"")==
+                "native_objective_in_progress" &&
+            band.ConsecutiveDays==1);
+        band.Observe(5,true,true,true,"");
+        Check("outlaw three-day band tenure is confirmed",
+            band.Observe(6,true,true,true,"")==
+                "career_chapter_2_verified" &&
+            band.Chapter==2);
+        for(int day=7;day<=12;day++)
+            band.Observe(day,true,true,true,"");
+        Check("outlaw seven-day larger band opens final chapter",
+            band.Observe(13,true,true,true,"")==
+                "career_chapter_3_verified" &&
+            band.Chapter==3);
+        var hire=new SandboxCareerChronicleState();
+        hire.Begin("Mercenary");
+        hire.Observe(0,true,true,true,"");
+        for(int day=1;day<=6;day++)
+            hire.Observe(day,true,true,true,"");
+        Check("mercenary seven-day verified contract chapter",
+            hire.Observe(7,true,true,true,"")==
+                "career_chapter_2_verified");
+        for(int day=8;day<=27;day++)
+            hire.Observe(day,true,true,true,"");
+        Check("mercenary third chapter requires 21 more days",
+            hire.Observe(28,true,true,true,"")==
+                "career_chapter_3_verified" &&
+            hire.Chapter==3);
+        foreach(var role in new[]{"Soldier","Knight","King"})
+        {
+            var story=new SandboxCareerChronicleState();
+            story.Begin(role);
+            Check(role+" native-proof chapters cannot auto-skip",
+                story.Observe(0,false,false,false,"")==
+                    "native_objective_not_verified" &&
+                story.Observe(1,true,true,true,"")==
+                    "career_chapter_1_verified" &&
+                story.Observe(2,true,true,true,"")==
+                    "career_chapter_2_verified" &&
+                story.Observe(3,true,true,true,"")==
+                    "career_chapter_3_verified" &&
+                story.Chapter==3);
+        }
+        var estate=new SandboxCareerChronicleState();
+        estate.Begin("Lord");
+        estate.Observe(0,true,true,true,"");
+        for(int day=1;day<=6;day++)
+            estate.Observe(day,true,true,true,"");
+        Check("lord's recorded estate must endure seven days",
+            estate.Observe(7,true,true,true,"")==
+                "career_chapter_2_verified" &&
+            estate.Observe(8,true,true,false,"")==
+                "native_objective_not_verified" &&
+            estate.Observe(9,true,true,true,"")==
+                "career_chapter_3_verified");
+        Check("chronicle save is versioned and malformed data rejected",
+            SandboxCareerChronicleState.Parse(estate.Serialize())
+                .Serialize()==estate.Serialize() &&
+            !SandboxCareerChronicleState.Parse(
+                estate.Serialize()+"|forged").Started &&
+            !SandboxCareerChronicleState.Parse(
+                "CU_CAREER_CHRONICLE_1\\nAdmiral|3|5|0||")
+                .Started);
+
         // v0.69h source/model matrix audit. A passing assertion does not
         // prove a Bannerlord campaign start or saved native Hero state.
         var nativeRoles=new [] {
