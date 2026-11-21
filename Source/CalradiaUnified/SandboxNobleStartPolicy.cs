@@ -109,6 +109,10 @@ namespace CalradiaUnified
         }
         public static string CultureTitle(string culture,string office)
         {
+            // The outlaw lieutenant is not knighted, ennobled or
+            // appointed by any kingdom. Never prefix a bandit with Ser,
+            // Druzhinnik, Noyan or another aristocratic honorific.
+            if(office=="SecondInCommand")return "Band Lieutenant";
             string prefix= culture=="vlandia"?"Ser " :
                 culture=="sturgia"?"Druzhinnik " :
                 culture=="battania"?"Champion " :
