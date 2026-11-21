@@ -553,7 +553,8 @@ namespace CalradiaUnified
             // references only if the player has requested siblings.
             // Do not create two active, living court members who could
             // be mistaken for owners, council officers or senior heirs.
-            bool historicalOnly=profile.Role=="Lord" &&
+            bool historicalOnly=(profile.Role=="Lord" ||
+                profile.Role=="Outlaw") &&
                 profile.NobleBirthPosition=="Independent";
             Hero newFather=null;
             Hero newMother=null;
