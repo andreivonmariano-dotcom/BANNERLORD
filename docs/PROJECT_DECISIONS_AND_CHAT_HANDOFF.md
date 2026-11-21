@@ -21,9 +21,9 @@ Do not advance the feature scope ahead of Q1 integrity gates.
 - **21 November, latest source audit:** P0 phase-8 native start is irreversible before phase-9 CU preflight. P0 `SandboxAutoHousePlan`'s landless `FamilyHomeMode=None` was not a valid profile option and was silently lost on parsing. P1 final start contract omitted failed family-home placement, cultural consent was derived from a relation threshold rather than a native NPC choice, gift bookkeeping did not confirm both sides of the transfer, location history could become stale, created family/officers lacked complete compensation, agenda goals were static, and roles remained incomplete socially. Internal manifest still reads v0.38.0.
 - **21 November, current user directive:** implement Q1, Q2 and Q3 stepwise, store priority in source Google Doc, and maintain a cross-chat record. This file records the material engineering decisions and outcomes, not a verbatim transcript.
 
-## Current milestone: v0.69 step 1, source pending CI
+## Current milestone: v0.69 step 1, Windows CI PASSED
 
-**Branch:** `fix/v069-starting-life-household-contract`, based on v0.68 head `83061e77dee4804efa758f625e03bdef84e9753a`.
+**Branch:** `fix/v069-starting-life-household-contract`, [draft PR #90](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/90), based on v0.68 head `83061e77dee4804efa758f625e03bdef84e9753a`.
 
 **Step 1 changes:**
 - `SandboxFamilyHomePolicy` admits `None`, rejects a promised owned home for a landless married start, and checks that an explicitly requested native household placement really ended in `placed:...`.
@@ -34,7 +34,7 @@ Do not advance the feature scope ahead of Q1 integrity gates.
 - New C# policy tests exercise `None` roundtrip, nonlanded auto home, impossible landless home, and failed/partial/confirmed placement.
 - This is only a **partial Q1 repair**. Do not mark all v0.69 P0/P1 audit items resolved.
 
-**Verification:** CI and live-game testing have not yet been established for v0.69 in this handoff. Read the latest Actions run and update this paragraph before representing this version as compiled.
+**Verified Windows CI:** [run 44857872281](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44857872281), exact code SHA `fdba449c8d5e2e36c91be304edf8b48e7c8398d5`. **872 executed gameplay policy checks passed**. Medieval-life simulation: 96 × 3,650 modeled days, 1,062,792 checks. Living-affairs simulation: 120 × 730 modeled days, 180,425 checks. Existing campaign simulation: 40 × 365 modeled days, 303,098 checks. Compiled using pinned 1.5.7.125802 assemblies with 0 warnings and 0 errors; package and PowerShell test gates passed. DLL SHA-256: `698200f99e474faf6eb1f6d132c1384be943a386b3ff116ec5ab6f7ccb22f861` (563,712 bytes). Runtime inner ZIP SHA-256: `30917e819dd18fb12b229c65750763ddb770275f5793ebb696c241ad9a02feaf` (260,441 bytes). [Compiled, not game-tested candidate](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44857872281/artifacts/14688462229). The internal v0.38.0 package version is historical. **Highest completed gate: B, compilation.** Subsequent documentation commits do not affect this compiled runtime source.
 
 ## Unresolved Q1 blocker queue
 
