@@ -3,6 +3,7 @@ using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.ObjectSystem;
+using TaleWorlds.ScreenSystem;
 
 namespace CalradiaUnified
 {
@@ -131,10 +132,28 @@ namespace CalradiaUnified
                 "|live_children="+children.Length+
                 "|native_companions="+officers.Length+
                 "|native_read_only=true");
-            ShowNativeDetail("Starting household | "+type,
-                family+"\n\n"+assignment+"\n\n"+role+
-                "\n\nNative Clan, Party and Kingdom screens show "+
-                "the current game-owned state.");
+            // Use a native Gauntlet screen for clear reading rather than
+            // sending several paragraphs through a one-button inquiry.
+            // The prior native inquiry remains as an exception fallback.
+            try
+            {
+                ScreenManager.PushScreen(new CUNobleDossierScreen(
+                    type,
+                    "Starting household | "+type,
+                    "Clan: "+clan.Name,
+                    family,assignment,role,
+                    "Native Clan, Party and Kingdom screens remain "+
+                    "authoritative for characters and political powers."));
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_native_household_dossier_fallback",error);
+                ShowNativeDetail("Starting household | "+type,
+                    family+"\n\n"+assignment+"\n\n"+role+
+                    "\n\nNative Clan, Party and Kingdom screens show "+
+                    "the current game-owned state.");
+            }
         }
     }
 }
