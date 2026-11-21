@@ -46,3 +46,143 @@ with tempfile.TemporaryDirectory() as folder:
 print("PASS v0.70o: seven live acceptance roles require actual "
       "native runtime sessions, post-reload evidence and screenshots; "
       "source/CI simulations alone remain BLOCKED.")
+
+# These are synthetic parser fixtures, never actual Bannerlord acceptance.
+# Exercise positive and negative branches, not only missing-file rejection.
+import json
+import struct
+import zlib
+
+def native_png():
+    width,height=640,360
+    raw=(b"\\x00"+b"\\x11\\x22\\x33"*width)*height
+    def chunk(name,data):
+        return (struct.pack(">I",len(data))+name+data+
+                struct.pack(">I",zlib.crc32(name+data)&0xffffffff))
+    return (b"\\x89PNG\\r\\n\\x1a\\n"+
+            chunk(b"IHDR",struct.pack(">IIBBBBB",width,height,8,2,0,0,0))+
+            chunk(b"IDAT",zlib.compress(raw))+chunk(b"IEND",b""))
+
+def row(role,context,status,session=None):
+    return dict(utc="2026-11-21T02:00:00Z",
+                session_id=session or "session_"+role,
+                context=context,detail=status)
+
+def fixtures(role):
+    events=[]
+    for context in module.REQUIRED[role]:
+        receipt=module.GOOD.get(context,("result=PASS",))[0]
+        extras=""
+        if context=="cu_royal_court_native_commission":
+            extras=("|native_court_seat=royal_fief"
+                    "|actual_marshal=marshal_id"
+                    "|actual_minister_governor=minister_id"
+                    "|actual_kingsguard_hero=guard_id")
+        if context=="cu_king_royal_minister_native_governor":
+            extras="|minister=minister_id|settlement=royal_fief"
+        events.append(row(role,context,receipt+extras))
+    events.append(row(role,"sandbox_start_contract",
+                      "result=PASS|role="+role))
+    return events
+
+def proof_for(role):
+    proof=dict(role=role,start_session_id="session_"+role,
+        native_reloaded_after_quit=True,same_player_hero_id="player",
+        same_clan_id="clan",observed_native_role_after_reload=role,
+        verified_family_after_reload=True,
+        verified_service_or_authority_after_reload=True)
+    if role=="King":
+        proof.update(
+            royal_seat_id_after_reload="royal_fief",
+            marshal_hero_id_after_reload="marshal_id",
+            royal_minister_hero_id_after_reload="minister_id",
+            kingsguard_hero_id_after_reload="guard_id",
+            minister_native_governor_after_reload=True,
+            marshal_in_main_party_after_reload=True,
+            kingsguard_in_main_party_after_reload=True,
+            kingsguard_native_equipment_observed=True,
+            kingsguard_entered_native_combat=True,
+            kingsguard_post_battle_identity_confirmed=True)
+    return proof
+
+with tempfile.TemporaryDirectory() as folder:
+    folder=Path(folder)
+    native=folder/"proof"
+    native.mkdir()
+    for role in module.ROLES:
+        (native/(role.lower()+".json")).write_text(
+            json.dumps(proof_for(role)),encoding="utf-8")
+        (native/(role.lower()+".png")).write_bytes(native_png())
+    (native/"king_kingsguard_battle.png").write_bytes(native_png())
+    cases=[x for role in module.ROLES for x in fixtures(role)]
+    good=module.audit_all(cases,native)
+    assert len(good)==7 and all(x["result"]=="PASS" for x in good)
+    # A signed-looking fixture passes format validation, not genuine-game
+    # provenance. It must never be published as a live session result.
+    assert all(x["session_id"].startswith("session_") for x in good)
+    def mutate(role,context,value):
+        rows=[dict(x) for x in cases]
+        i=next(i for i,x in enumerate(rows)
+               if x["session_id"]=="session_"+role and
+               x["context"]==context)
+        rows[i]["detail"]=value
+        return rows
+    assert "unverified_cu_starting_life_preflight" in (
+        module.audit_role("Wanderer",mutate("Wanderer",
+            "cu_starting_life_preflight","result=PASSIVE"),native)["missing"])
+    assert "unverified_cu_starting_life_preflight" in (
+        module.audit_role("Wanderer",mutate("Wanderer",
+            "cu_starting_life_preflight","result=FAIL|result=PASS"),native)["missing"])
+    assert "unverified_cu_knight_oath_start" in (
+        module.audit_role("Knight",mutate("Knight",
+            "cu_knight_oath_start","result=PASS|native_personal_oath"),native)["missing"])
+    assert "unverified_cu_sas_service_observed" in (
+        module.audit_role("Soldier",mutate("Soldier",
+            "cu_sas_service_observed",
+            "result=external_service_ended_observed|party_confirmed=False"),
+            native)["missing"])
+    assert "unverified_cu_king_native_council_meeting" in (
+        module.audit_role("King",mutate("King",
+            "cu_king_native_council_meeting",
+            "result=real_royal_hero_council_convened|native_minister_governs=False|marshal_in_party=True|kingsguard_single_hero_in_party=True"),
+            native)["missing"])
+    poisoned=cases+[row("King","sandbox_start_contract",
+                       "result=FAIL|reason=council_unverified")]
+    assert module.audit_role("King",poisoned,native)["result"]=="BLOCKED"
+    same=[dict(x) for x in cases]
+    for x in same:
+        if x["session_id"]=="session_Outlaw":
+            x["session_id"]="session_Wanderer"
+    proof_outlaw=proof_for("Outlaw")
+    proof_outlaw["start_session_id"]="session_Wanderer"
+    (native/"outlaw.json").write_text(
+        json.dumps(proof_outlaw),encoding="utf-8")
+    duplicated=module.audit_all(same,native)
+    assert duplicated[0]["result"]=="BLOCKED"
+    assert duplicated[1]["result"]=="BLOCKED"
+    assert "session_reused_between_starting_paths" in duplicated[1]["missing"]
+    (native/"outlaw.json").write_text(
+        json.dumps(proof_for("Outlaw")),encoding="utf-8")
+    false_reloaded=proof_for("King")
+    false_reloaded["native_reloaded_after_quit"]="False"
+    (native/"king.json").write_text(
+        json.dumps(false_reloaded),encoding="utf-8")
+    assert "incomplete_native_reload_observation" in (
+        module.audit_role("King",cases,native)["missing"])
+    false_reloaded=proof_for("King")
+    false_reloaded["kingsguard_hero_id_after_reload"]="different_hero"
+    (native/"king.json").write_text(
+        json.dumps(false_reloaded),encoding="utf-8")
+    assert "king_native_officers_combat_or_reload_unverified" in (
+        module.audit_role("King",cases,native)["missing"])
+    (native/"king.json").write_text(
+        json.dumps(proof_for("King")),encoding="utf-8")
+    (native/"king_kingsguard_battle.png").write_bytes(b"not_a_png"*300)
+    assert "missing_kingsguard_native_battle_screenshot" in (
+        module.audit_role("King",cases,native)["missing"])
+    (native/"king_kingsguard_battle.png").write_bytes(native_png())
+    assert module.audit_role("King",cases+[row("King",
+        "exception_detected","context=king_critical")],native)["result"]=="BLOCKED"
+print("PASS v0.70p: exact native receipts, unique sessions, terminal "
+      "status, real governor/one-Hero King identity, battle/reload "
+      "evidence contract and fail-closed corruption checks.")
