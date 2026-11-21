@@ -65,6 +65,8 @@ jobs:
         run: python scripts/test_v071b_household_portraits_roles_and_decisions.py
       - name: Native household duties and seven-role career chapters
         run: python scripts/test_v071c_career_chapters_and_household_duties.py
+      - name: Immersive household access and face-to-face petition source gate
+        run: python scripts/test_v071d_immersive_household_context.py
       - name: Guard required BUTR stack, native mixins and patch placement
         run: python scripts/test_v070y_butr_required_native_integration.py
       - name: Audit every custom Gauntlet prefab and native BUTR patch
