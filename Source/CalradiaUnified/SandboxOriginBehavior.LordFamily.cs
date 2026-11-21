@@ -55,6 +55,53 @@ namespace CalradiaUnified
             }
             string result=SandboxLordStartPolicy.ValidateObservedFamily(
                 married,sameClan,profile.ChildCount,matched);
+            // A noble-sounding surname is insufficient. Both native
+            // parents must still exist, remain reciprocal spouses and
+            // acknowledge the generated spouse as their real child.
+            var bornClan=spouse==null?null:spouse.OriginClan;
+            var nativeFather=spouse==null?null:spouse.Father;
+            var nativeMother=spouse==null?null:spouse.Mother;
+            bool distinctNobleBirth=bornClan!=null &&
+                bornClan!=clan && !bornClan.IsEliminated &&
+                !bornClan.IsMinorFaction && !bornClan.IsBanditFaction &&
+                !bornClan.IsRebelClan && bornClan.Kingdom!=null &&
+                bornClan.Kingdom.StringId==profile.StartingKingdomId;
+            bool marriedNativeParents=nativeFather!=null &&
+                nativeMother!=null && nativeFather.IsAlive &&
+                nativeMother.IsAlive && nativeFather.IsLord &&
+                nativeMother.IsLord &&
+                nativeFather.Clan==bornClan &&
+                nativeMother.Clan==bornClan &&
+                nativeFather.Spouse==nativeMother &&
+                nativeMother.Spouse==nativeFather;
+            bool reciprocalChild=spouse!=null && nativeFather!=null &&
+                nativeMother!=null &&
+                nativeFather.Children!=null &&
+                nativeMother.Children!=null &&
+                nativeFather.Children.Contains(spouse) &&
+                nativeMother.Children.Contains(spouse);
+            bool matchesOrigin=bornClan!=null &&
+                spouse.Father.Clan==bornClan &&
+                spouse.Mother.Clan==bornClan;
+            bool namedClan=profile.SpouseBackground!="NobleChosen" ||
+                (bornClan!=null && String.Equals(bornClan.StringId,
+                    profile.SpouseBirthClanId,
+                    StringComparison.OrdinalIgnoreCase));
+            string noble=SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                distinctNobleBirth,marriedNativeParents,
+                reciprocalChild,matchesOrigin,namedClan);
+            if(result.Length==0)result=noble;
+            DiagnosticJournal.Event("cu_lord_native_noble_inlaws",
+                "result="+(noble.Length==0?"PASS":"FAIL")+
+                "|reason="+noble+
+                "|birth_clan="+(bornClan==null?"none":bornClan.StringId)+
+                "|father="+(nativeFather==null?"none":
+                    nativeFather.StringId)+
+                "|mother="+(nativeMother==null?"none":
+                    nativeMother.StringId)+
+                "|native_married_parents="+marriedNativeParents+
+                "|reciprocal_native_child="+reciprocalChild+
+                "|no_existing_npc_rewritten=true");
             DiagnosticJournal.Event("cu_lord_native_family_verification",
                 "result="+(result.Length==0?"PASS":"FAIL")+
                 "|reason="+result+
