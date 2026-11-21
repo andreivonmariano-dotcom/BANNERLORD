@@ -23,6 +23,76 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.71f: native personality and earned political audience.
+        Check("reserved petitioners speak from actual low native relation",
+            SandboxPetitionVoicePolicy.Style(
+                "SupportHousehold",2,2,0,-3)=="Guarded" &&
+            SandboxPetitionVoicePolicy.Style(
+                "EstablishLivelihood",0,0,2,10)=="Guarded");
+        Check("household duty ambition affects native-trait dialogue",
+            SandboxPetitionVoicePolicy.Style(
+                "MaintainHousehold",1,0,0,15)=="Duty" &&
+            SandboxPetitionVoicePolicy.Style(
+                "BuildTradingContacts",0,0,1,15)=="Ambitious");
+        Check("generous petitioner remains warm only after trust",
+            SandboxPetitionVoicePolicy.Style(
+                "MapSafePassages",0,2,0,25)=="Warm" &&
+            SandboxPetitionVoicePolicy.Style(
+                "MapSafePassages",0,0,0,25)=="Direct");
+        Check("knight rank requires service, lord favor and renown",
+            SandboxKnightStandingPolicy.Standing(9,200f,6,3)==
+                "Newly sworn knight" &&
+            SandboxKnightStandingPolicy.Standing(20,10f,1,0)==
+                "Proven sworn sword" &&
+            SandboxKnightStandingPolicy.Standing(25,50f,3,1)==
+                "Trusted household knight" &&
+            SandboxKnightStandingPolicy.Standing(40,125f,6,2)==
+                "Veteran retainer" &&
+            SandboxKnightStandingPolicy.Standing(40,124f,6,2)==
+                "Trusted household knight");
+        Check("political recommendation needs actual renown and service",
+            SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,74f,3,1,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,0,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,false,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,true,false));
+        var royalRecord=new SandboxKnightServiceOrderState();
+        royalRecord.Begin("lord_royal","Muster",0);
+        royalRecord.Report("lord_royal",3,true);
+        royalRecord.Begin("lord_royal","Muster",10);
+        royalRecord.Report("lord_royal",13,true);
+        royalRecord.Begin("lord_royal","Muster",20);
+        royalRecord.Report("lord_royal",23,true);
+        Check("a patron recommendation needs three witnessed reports",
+            royalRecord.CompletedOrders==3 &&
+            royalRecord.RecordRecommendation("lord_royal",24) &&
+            !royalRecord.RecordRecommendation("lord_royal",24) &&
+            !royalRecord.RecordRecommendation("other_lord",25));
+        Check("royal audience is one-shot after a native patron review",
+            !royalRecord.CanHearKing(23) &&
+            royalRecord.CanHearKing(24) &&
+            royalRecord.RecordRoyalHearing(25) &&
+            !royalRecord.RecordRoyalHearing(26));
+        Check("patron and ruler receipts survive save/load exactly",
+            SandboxKnightServiceOrderState.Parse(royalRecord.Serialize())
+                .Serialize()==royalRecord.Serialize() &&
+            SandboxKnightServiceOrderState.Parse(royalRecord.Serialize())
+                .RoyalHearingDay==25);
+        var oldService=royalRecord.Serialize().Split('\n');
+        var oldParts=oldService[1].Split('|');
+        var oldEleven=oldService[0]+"\n"+
+            String.Join("|",oldParts.Take(11));
+        Check("old eleven-field knight saves remain loadable",
+            SandboxKnightServiceOrderState.Parse(oldEleven)
+                .CompletedOrders==3 &&
+            SandboxKnightServiceOrderState.Parse(oldEleven)
+                .RecommendationDay==-1);
+
         // v0.71e: grounded petition story arcs and sworn-lord orders.
         var petitionStory=new SandboxPetitionStoryState();
         Check("petition stories require actual supported actor/kind",
