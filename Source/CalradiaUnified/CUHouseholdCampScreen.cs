@@ -16,14 +16,14 @@ namespace CalradiaUnified
     public sealed class CUHouseholdCampScreen : ScreenBase
     {
         private readonly List<Hero> present;
-        private readonly string banner,roster,officers,letters,service;
+        private readonly string banner,roster,officers,letters,service,chronicle;
         private readonly Action<Hero> inspect;
         private GauntletLayer layer;
         private CUHouseholdCampVM data;
 
         public CUHouseholdCampScreen(List<Hero> presentHeroes,
             string bannerName,string presentRoll,string dutyText,
-            string correspondence,string serviceText,
+            string correspondence,string serviceText,string chronicleText,
             Action<Hero> inspectAction)
         {
             present=presentHeroes??new List<Hero>();
@@ -32,13 +32,14 @@ namespace CalradiaUnified
             officers=dutyText??"";
             letters=correspondence??"";
             service=serviceText??"";
+            chronicle=chronicleText??"";
             inspect=inspectAction;
         }
         protected override void OnInitialize()
         {
             base.OnInitialize();
             data=new CUHouseholdCampVM(present,banner,roster,
-                officers,letters,service,inspect,CloseSafely);
+                officers,letters,service,chronicle,inspect,CloseSafely);
             layer=new GauntletLayer("CUHouseholdCamp",130,false)
             {
                 IsFocusLayer=true
@@ -90,7 +91,7 @@ namespace CalradiaUnified
     public sealed class CUHouseholdCampVM : ViewModel
     {
         private readonly Action close;
-        private readonly string roll,officerText,letterText,serviceText;
+        private readonly string roll,officerText,letterText,serviceText,chronicleText;
         [DataSourceProperty]
         public MBBindingList<CUFamilyPortraitVM> Attendees
             {get;private set;}
@@ -102,12 +103,14 @@ namespace CalradiaUnified
 
         public CUHouseholdCampVM(List<Hero> people,string banner,
             string roster,string officers,string letters,
-            string service,Action<Hero> inspect,Action closeAction)
+            string service,string chronicle,Action<Hero> inspect,
+            Action closeAction)
         {
             close=closeAction;
             Banner=banner;
             roll=roster;officerText=officers;
             letterText=letters;serviceText=service;
+            chronicleText=chronicle;
             Attendees=new MBBindingList<CUFamilyPortraitVM>();
             foreach(var person in people)
             {
@@ -163,6 +166,12 @@ namespace CalradiaUnified
             SetSection("Service","Your present charge",
                 serviceText,
                 "Service credit comes only from native campaign evidence.");
+        }
+        public void ExecuteChronicle()
+        {
+            SetSection("Chronicle","The record of your household",
+                chronicleText,
+                "Only observed events and completed petitions are entered.");
         }
         public void ExecuteClose()
         {
