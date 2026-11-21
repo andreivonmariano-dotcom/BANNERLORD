@@ -411,7 +411,7 @@ namespace CalradiaUnified
                 "cu_knight_joint_battle_report",
                 "cu_knight_patron_options",
                 "cu_knight_joint_battle_report_reply",
-                "My lord, I fought in your company. Hear my account?",
+                "My lord, our banners fought together. Hear my account?",
                 ()=>CanReportKnightBattleService(),
                 ()=>ReportKnightBattleService(),114);
             starter.AddDialogLine(
