@@ -45,6 +45,13 @@ assert 'inheritanceNegotiation.RecordMediation()' in menu
 assert 'CU_NEGOTIATION_2' in state
 assert 'CU_NEGOTIATION_1' in state
 assert 'GameMenu.SwitchToMenu(affairsReturnMenu)' in menu
+assert 'InformationManager.ShowInquiry(new InquiryData(' in menu
+assert 'ConfirmCharacterSupport()' in menu
+assert 'ConfirmEstateInNativeDialog()' in menu
+assert 'args=>ConfirmCharacterSupport(),false' in menu
+assert 'args=>ConfirmEstateInNativeDialog(),false' in menu
+assert '"Confirm grant","Cancel"' in menu
+assert '"Confirm","Cancel"' in menu
 assert 'ScreenManager.PushScreen' not in menu
 assert 'Gauntlet' not in menu
 assert '"CU: Review my service, relatives and recorded history"' not in behavior

@@ -10,7 +10,7 @@ Calradia Unified creates a single **CU: People & Lineage** entry in the vanilla 
 2. **Personal matters and character requests:** Hear a locally present adult's request, provide actual financial support or recognition, or decline. Only current companions in the same real party or Heroes physically staying at the current settlement are eligible. HomeSettlement alone is insufficient to prove presence. The NPC's own agenda determines their request type, with native relation and cooldown eligibility. A native GiveGoldAction performs any gift and native relation actions reflect response. No hypothetical gold is credited. The player is asked rather than automatically charged.
 3. **Family council and native estate claims:** View actual birth clan, available real fortifications and cultural custom. Petition for a **secondary** native holding at a birth-clan fortification, then explicitly confirm the action. A negotiated outcome is recorded independently from a completed native property transfer. There are limited petitions and a separate confirmation step.
 
-The menu is native `CampaignGameStarter.AddGameMenu` and `AddGameMenuOption`, not a custom persistent scene overlay. All entry IDs are namespaced `cu_`. Menus return to the originating town or castle.
+The menu is native `CampaignGameStarter.AddGameMenu` and `AddGameMenuOption`, not a custom persistent scene overlay. Character profiles and family dossiers open using native `InformationManager.ShowInquiry` panels for readable text. Both financial support and native estate grants require explicit vanilla inquiry confirmation before applying actions. All entry IDs are namespaced `cu_`. Menus return to the originating town or castle.
 
 ## Q2: independently motivated people
 
