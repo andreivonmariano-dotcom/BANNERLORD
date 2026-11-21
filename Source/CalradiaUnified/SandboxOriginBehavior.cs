@@ -1340,6 +1340,52 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
                     Notify("Start role was not applied: " + profile.Role);
 
+                // Do not grant optional gold, troops, renown or items
+                // after an unfulfilled native family home or estate.
+                // The native phase-8 origin and already created kin remain.
+                if(homeContractError.Length>0 ||
+                    (profile.StartingFiefMode!="Native" &&
+                     (fiefOutcome.StartsWith("refused:",
+                         StringComparison.Ordinal) ||
+                      fiefOutcome.StartsWith("failed:",
+                         StringComparison.Ordinal))))
+                {
+                    string gate=homeContractError.Length>0?
+                        homeContractError:"starting_fief_request_unfulfilled";
+                    RecordFailedNativeFamily(profile,hero,gate);
+                    DiagnosticJournal.Event("sandbox_start_contract",
+                        "result=FAIL|reason="+gate+
+                        "|optional_grants_skipped=true"+
+                        "|native_state_retained=true");
+                    return;
+                }
+
+                // Role-based officers use same-culture native noble donors.
+                // FamilyOnly removes native wanderers without adding
+                // unrelated officers. Native preserves the original roster.
+                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
+                DiagnosticJournal.Event("cu_cultural_retinue_status",
+                    "role="+profile.Role+
+                    "|mode="+profile.RetinueMode+
+                    "|result="+retinue);
+                if(retinue.StartsWith("refused:",StringComparison.Ordinal) ||
+                   retinue.StartsWith("partial:",StringComparison.Ordinal))
+                    Notify("Starting household officers: "+retinue);
+
+                if(!SandboxStartContract.RetinueReadyForOtherGrants(
+                    profile.RetinueMode,retinue))
+                {
+                    RecordFailedNativeFamily(profile,hero,
+                        "retinue_not_verified");
+                    DiagnosticJournal.Event("sandbox_start_contract",
+                        "result=FAIL|reason=retinue_not_verified"+
+                        "|retinue="+retinue+
+                        "|no_discretionary_gold_troops_items_or_renown=true");
+                    Notify("The chosen retinue could not be verified. "+
+                        "Optional Starting Life grants were withheld.");
+                    return;
+                }
+
                 if (profile.Gold >= 0)
                 {
                     int delta = profile.Gold - Math.Max(0, hero.Gold);
@@ -1373,18 +1419,6 @@ namespace CalradiaUnified
                 else if (profile.RoleAffiliationsEnabled)
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
-
-                // Role-based officers use same-culture native noble donors.
-                // FamilyOnly removes native wanderers without adding
-                // unrelated officers. Native preserves the original roster.
-                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
-                DiagnosticJournal.Event("cu_cultural_retinue_status",
-                    "role="+profile.Role+
-                    "|mode="+profile.RetinueMode+
-                    "|result="+retinue);
-                if(retinue.StartsWith("refused:",StringComparison.Ordinal) ||
-                   retinue.StartsWith("partial:",StringComparison.Ordinal))
-                    Notify("Starting household officers: "+retinue);
 
                 ApplyExistingItems(profile);
 
