@@ -147,13 +147,13 @@ assert (P/'docs/V015_RUNTIME_ACCEPTANCE.md').exists()
 assert 'events.csv.previous' in (P/'scripts/Export-CU-Diagnostics.ps1').read_text()
 assert 'FeudalBudgetPolicy.cs' in (P/'Tests/CampaignSimulator/CampaignSimulator.csproj').read_text()
 assert (P/'Tests/CampaignSimulator/FeudalStress.cs').exists()
-assert 'RegisterFeudalMenu(starter, menu)' in (src/'CivicBehavior.cs').read_text()
+assert 'RegisterFeudalMenu(starter, defenseMenu)' in (src/'CivicBehavior.cs').read_text()
 assert 'TickFeudalEstates()' in (src/'CivicBehavior.cs').read_text()
 assert 'EnableAutoGarrisonWageCaps=false' in conf
 assert 'EnableAutoGarrisonTraining=false' in conf
 assert 'EnableVillageHarvest=false' in conf
 assert 'EnableSurplusEstateSales=false' in conf
-assert 'RegisterGarrisonMenu(starter, menu)' in (src/'CivicBehavior.cs').read_text()
+assert 'RegisterGarrisonMenu(starter, defenseMenu)' in (src/'CivicBehavior.cs').read_text()
 assert 'LocalToday' in (src/'CivicState.cs').read_text()
 assert 'GarrisonToday' in (src/'CivicState.cs').read_text()
 assert 'EnableGarrisonTraining=false' in conf
