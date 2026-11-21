@@ -823,27 +823,27 @@ internal static class Program
                 "HouseholdAid",false)==-1);
         Check("saved NPC invitation requires the matching quota record",
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|phantom|HouseholdAid|15")
+                "CU_AGENCY_1\n15|phantom|HouseholdAid|15")
                 .HasPending &&
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
-                "\\nR|sister|15|1").HasPending &&
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|sister|15|1").HasPending &&
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
-                "\\nR|brother|14|1").HasPending &&
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|14|1").HasPending &&
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
-                "\\nR|brother|15|0").HasPending);
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|15|0").HasPending);
         Check("invalid saved request timestamps cannot bypass quotas",
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
-                "\\nR|brother|-2147483648|1").HasPending &&
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|-2147483648|1").HasPending &&
             SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
-                "\\nR|brother|-2147483648|1").Records.Count==0 &&
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|-2147483648|1").Records.Count==0 &&
             !SandboxAgencyDecisionState.Parse(
-                "CU_AGENCY_1\\n50|brother|HouseholdAid|15"+
-                "\\nR|brother|15|1").HasPending);
+                "CU_AGENCY_1\n50|brother|HouseholdAid|15"+
+                "\nR|brother|15|1").HasPending);
         var nearMaxNpcDay=new SandboxAgencyDecisionState{
             Day=Int32.MaxValue};
         Check("large campaign day cannot overflow first NPC cooldown",
