@@ -213,10 +213,12 @@ namespace CalradiaUnified
                 if(native.Any(h=>h.Clan!=Clan.PlayerClan ||
                     h.CompanionOf!=Clan.PlayerClan))
                     return "refused:native_companion_not_firable";
-                // Multi-companion dismissal is not an atomic native
-                // transaction. Never strand half the old roster.
-                if(native.Length>1)
-                    return "refused:multi_companion_dismissal_not_atomic";
+                // Native Fire operates one companion at a time. Validate
+                // all candidates first and check EVERY confirmed removal.
+                // A partial native mutation is reported as partial rather
+                // than a fabricated atomic success.
+                if(native.Length>16)
+                    return "refused:native_companion_roster_too_large";
                 int fired=0;
                 try
                 {
@@ -230,6 +232,11 @@ namespace CalradiaUnified
                                 "Native companion was not dismissed");
                         fired++;
                     }
+                    if(fired!=native.Length || native.Any(old=>
+                        old.CompanionOf==Clan.PlayerClan ||
+                        Clan.PlayerClan.Companions.Contains(old)))
+                        throw new InvalidOperationException(
+                            "Not all native wanderers were dismissed");
                     DiagnosticJournal.Event("cu_cultural_retinue_replacement",
                         "mode=FamilyOnly"+
                         "|native_companions_before="+native.Length+
@@ -263,8 +270,16 @@ namespace CalradiaUnified
                 old.Clan!=Clan.PlayerClan ||
                 old.CompanionOf!=Clan.PlayerClan))
                 return "refused:native_companion_not_firable";
-            if(replace && existing.Length>1)
-                return "refused:multi_companion_dismissal_not_atomic";
+            if(replace && existing.Length>16)
+                return "refused:native_companion_roster_too_large";
+            DiagnosticJournal.Event("cu_cultural_retinue_roster_preflight",
+                "mode="+profile.RetinueMode+
+                "|native_companions_before="+existing.Length+
+                "|every_native_companion_firable="+
+                    !existing.Any(old=>old.CompanionOf!=Clan.PlayerClan)+
+                "|staged_before_dismissal=true"+
+                "|native_fire_sequential=true"+
+                "|failed_removal_reported_partial=true");
             var sources=new CharacterObject[offices.Length];
             for(int i=0;i<offices.Length;i++)
             {
@@ -382,6 +397,12 @@ namespace CalradiaUnified
                                 "Native companion dismissal was not confirmed");
                     }
                 }
+                if(replace && (replaced!=existing.Length ||
+                    existing.Any(old=>
+                        old.CompanionOf==Clan.PlayerClan ||
+                        Clan.PlayerClan.Companions.Contains(old))))
+                    throw new InvalidOperationException(
+                        "Native companion replacement not fully verified");
                 DiagnosticJournal.Event("cu_cultural_retinue_replacement",
                     "mode="+profile.RetinueMode+
                     "|native_companions_before="+existing.Length+
