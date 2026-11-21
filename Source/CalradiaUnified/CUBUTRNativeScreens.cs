@@ -66,52 +66,21 @@ namespace CalradiaUnified
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => CUButton(
-            "CUClanButton","@CUClanSummary");
-        private static string CUButton(string id,string binding)
-        {
-            return CUNativeScreenPrefab.Button(id,binding);
-        }
+        public string Content => "<ButtonWidget Id=\"CUClanButton\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"340\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"46\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"82\" Command.Click=\"ExecuteCUDossier\"><Children><TextWidget Brush.FontSize=\"13\" Text=\"@CUClanSummary\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
     [PrefabExtension("Party", "descendant::Window/Children")]
     internal sealed class CUPartyMoviePatch : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => CUNativeScreenPrefab.Button(
-            "CUPartyButton","@CUPartySummary");
+        public string Content => "<ButtonWidget Id=\"CUPartyButton\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"340\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"46\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"82\" Command.Click=\"ExecuteCUDossier\"><Children><TextWidget Brush.FontSize=\"13\" Text=\"@CUPartySummary\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
     [PrefabExtension("Kingdom", "descendant::Window/Children")]
     internal sealed class CUKingdomMoviePatch : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => CUNativeScreenPrefab.Button(
-            "CUKingdomButton","@CUKingdomSummary");
+        public string Content => "<ButtonWidget Id=\"CUKingdomButton\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"340\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"46\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"82\" Command.Click=\"ExecuteCUDossier\"><Children><TextWidget Brush.FontSize=\"13\" Text=\"@CUKingdomSummary\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
 
-    internal static class CUNativeScreenPrefab
-    {
-        internal static string Button(string id,string title)
-        {
-            // Native ButtonBrush, compact slot and one data-bound label.
-            return "<ButtonWidget Id=\""+id+
-                "\" Brush=\"ButtonBrush\" "+
-                "DoNotPassEventsToChildren=\"true\" "+
-                "UpdateChildrenStates=\"true\" "+
-                "WidthSizePolicy=\"Fixed\" SuggestedWidth=\"330\" "+
-                "HeightSizePolicy=\"Fixed\" SuggestedHeight=\"44\" "+
-                "HorizontalAlignment=\"Right\" "+
-                "VerticalAlignment=\"Top\" "+
-                "PositionXOffset=\"-26\" PositionYOffset=\"84\" "+
-                "Command.Click=\"ExecuteCUDossier\">"+
-                "<Children><TextWidget Brush.FontSize=\"14\" "+
-                "Text=\""+title+"\" "+
-                "WidthSizePolicy=\"StretchToParent\" "+
-                "HeightSizePolicy=\"StretchToParent\" "+
-                "HorizontalAlignment=\"Center\" "+
-                "VerticalAlignment=\"Center\" />"+
-                "</Children></ButtonWidget>";
-        }
-    }
 }
