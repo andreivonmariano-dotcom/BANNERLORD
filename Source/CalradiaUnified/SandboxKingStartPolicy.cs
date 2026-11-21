@@ -12,7 +12,7 @@ namespace CalradiaUnified
         public const string NativeType="king";
         public const string Retinue="RoleBased";
         public static readonly string[] CourtOffices={
-            "Marshal","RoyalMinister","Kingsguard"
+            "Marshal","Kingsguard","RoyalMinister"
         };
         public static string ValidateRequest(string role,
             string kingdomId,string birth,string elderId,string patronId,
