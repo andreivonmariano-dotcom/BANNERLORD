@@ -107,7 +107,7 @@ def screenshot_ok(path):
         with path.open("rb") as stream:
             header=stream.read(24)
         return (len(header)==24 and
-            header[:8]==b"\\x89PNG\\r\\n\\x1a\\n" and
+            header[:8]==b"\x89PNG\r\n\x1a\n" and
             header[12:16]==b"IHDR" and
             640<=struct.unpack(">I",header[16:20])[0]<=16384 and
             360<=struct.unpack(">I",header[20:24])[0]<=16384)
