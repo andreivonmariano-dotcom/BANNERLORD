@@ -63,21 +63,12 @@ namespace CalradiaUnified
         public static string NativeBUTRStatus(string context)
         {
             if(Campaign.Current==null || Hero.MainHero==null ||
-                Clan.PlayerClan==null)return "No active household";
-            var clan=Clan.PlayerClan;
-            var hero=Hero.MainHero;
-            if(context=="Party")
-                return "Household: "+(clan.Companions==null?0:
-                    clan.Companions.Count)+" native companions";
-            if(context=="Kingdom")
-                return clan.Kingdom==null?
-                    "Independent house: no native kingdom allegiance":
-                    clan.Kingdom.RulingClan==clan?
-                    "Crown: your clan holds native ruling authority":
-                    "Kingdom: your clan serves "+clan.Kingdom.Name;
-            return "House of "+clan.Name+" | spouse: "+
-                NativePersonName(hero.Spouse)+" | children: "+
-                (hero.Children==null?0:hero.Children.Count);
+                Clan.PlayerClan==null)return "Campaign records unavailable";
+            // Short native-tab labels are deliberate. Names, family and
+            // duties belong in the full dossier, not a clipped button.
+            if(context=="Party")return "Company and officers";
+            if(context=="Kingdom")return "Royal and kingdom affairs";
+            return "Household and career dossier";
         }
         private void ShowStartingHouseholdStatus()
         {
@@ -157,6 +148,33 @@ namespace CalradiaUnified
                     ". Court: "+(royalCouncil.IsRecorded?
                         "recorded":"not commissioned")+
                     ". Native kingdom decisions remain authoritative.";
+            }
+            else if(roleEconomy.Started)
+            {
+                // These four non-noble paths retain their own identities
+                // and verified campaign state, without fake kingdom
+                // standing, salaries, commands or noble households.
+                type=roleEconomy.Role=="EnlistedSoldier"?
+                    "Soldier":roleEconomy.Role;
+                if(type!="Wanderer" && type!="Outlaw" &&
+                   type!="Mercenary" && type!="Soldier")
+                    type="Campaign";
+                string affiliation=clan.Kingdom==null?
+                    "No native kingdom affiliation recorded":
+                    "Current native kingdom: "+clan.Kingdom.Name;
+                role="Career: "+type+
+                    ". Actual recorded state: "+
+                    roleEconomy.CareerStatus+
+                    ". Native denars observed: "+
+                    roleEconomy.LastGold+
+                    ". "+affiliation+
+                    ". Native payroll evidence: "+
+                    (roleEconomy.VerifiedExternalDailyWage<0?
+                        "not confirmed":
+                        roleEconomy.VerifiedExternalDailyWage+
+                        " daily from the external provider")+
+                    ". This screen does not grant rank, equipment, "+
+                    "land, kingdom membership or free troops.";
             }
             DiagnosticJournal.Event("cu_native_household_display_opened",
                 "result=OPENED|role="+type+
