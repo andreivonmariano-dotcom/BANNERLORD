@@ -64,6 +64,9 @@ jobs:
       - name: Regress v069c provisional family cleanup, twelve roles and living goals
         shell: pwsh
         run: python scripts/test_v069c_family_role_persona_contracts.py
+      - name: Regress v069d native proof, failed kin, role economy and NPC agency
+        shell: pwsh
+        run: python scripts/test_v069d_native_evidence_economy_recovery.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
