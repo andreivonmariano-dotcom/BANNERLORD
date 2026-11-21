@@ -644,13 +644,16 @@ namespace CalradiaUnified
                 "See the vanilla Clan screen for full native family "+
                 "membership and military status.");
         }
+        private string claimReturnMenu="cu_people_lineage";
+
         private void RegisterPeopleAndLineageMenus(
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "Your house and its people. Consider family ties, "+
-                "household duties, private petitions and inheritance. "+
-                "The Clan and Kingdom ledgers hold the official record.",
+                "You gather the people of your own house at court. "+
+                "Consult the household roll, receive your officers "+
+                "and review matters of land and inheritance. "+
+                "Other families must be spoken to in person.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
             starter.AddGameMenu("cu_people_household",
                 "The household roll. Names, places and ambitions "+
@@ -669,18 +672,34 @@ namespace CalradiaUnified
                 string from=location;
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "Household and personal affairs",
-                    args=>Hero.MainHero!=null &&
-                        (livingPersons.People.Count>0 ||
-                         knightOath.IsConfigured ||
-                         lordInheritance.IsRecorded ||
-                         kingSuccession.IsRecorded ||
-                         familyRecovery.NeedsReview ||
-                         roleEconomy.Started ||
-                         successionInterest.IsRecorded),
+                    "Hold household court",
+                    args=>applied && Hero.MainHero!=null &&
+                        Clan.PlayerClan!=null &&
+                        Settlement.CurrentSettlement!=null &&
+                        Settlement.CurrentSettlement.IsFortification &&
+                        !Settlement.CurrentSettlement.IsUnderSiege &&
+                        Settlement.CurrentSettlement.OwnerClan==
+                            Clan.PlayerClan,
                     args=>{
                         affairsReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_lineage");
+                    },false);
+                // A cadet claiming an estate must still reach the real
+                // birth family's hall, not a foreign neutral court or
+                // a fictional remote-clan command.
+                starter.AddGameMenuOption(from,
+                    "cu_birth_family_council_entry_"+from,
+                    "Request an audience with my birth family",
+                    args=>successionInterest.IsRecorded &&
+                        RecordedBirthClan()!=null &&
+                        Settlement.CurrentSettlement!=null &&
+                        Settlement.CurrentSettlement.IsFortification &&
+                        !Settlement.CurrentSettlement.IsUnderSiege &&
+                        Settlement.CurrentSettlement.OwnerClan==
+                            RecordedBirthClan(),
+                    args=>{
+                        claimReturnMenu=from;
+                        GameMenu.SwitchToMenu("cu_people_claim");
                     },false);
             }
             // Recoverable failures are still accessible, but never
@@ -746,13 +765,16 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_requests",
                 "Private petitions and favors",
-                args=>characterAgendas.Entries.Count>0,
+                args=>false,
                 args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_claim",
                 "Family council and inheritance",
                 args=>successionInterest.IsRecorded,
-                args=>GameMenu.SwitchToMenu("cu_people_claim"),false);
+                args=>{
+                    claimReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_people_claim");
+                },false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_exit","Return to settlement",
                 args=>true,
@@ -776,21 +798,21 @@ namespace CalradiaUnified
                 args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
 
             starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_request","Hear the pending request",
-                args=>HasRequest(),
-                args=>DescribeCharacterRequest(),false);
+                "cu_people_request","Read the pending correspondence",
+                args=>agencyDecisions.HasPending,
+                args=>HearDossierPetition(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_accept","Provide the requested support",
-                args=>HasRequest(),
-                args=>ConfirmCharacterSupport(),false);
+                args=>false,
+                args=>{},false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_decline","Decline the request",
-                args=>HasRequest(),
-                args=>AnswerCharacterRequest(false),false);
+                args=>false,
+                args=>{},false);
             starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_no_requests","Check for local requests",
-                args=>!HasRequest(),
-                args=>DescribeCharacterRequest(),false);
+                "cu_people_no_requests","Read private correspondence",
+                args=>!agencyDecisions.HasPending,
+                args=>HearDossierPetition(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_requests_back","Return to People & Lineage",
                 args=>true,
@@ -831,7 +853,7 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_back","Return to People & Lineage",
                 args=>true,
-                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
+                args=>GameMenu.SwitchToMenu(claimReturnMenu),false);
         }
     }
 }
