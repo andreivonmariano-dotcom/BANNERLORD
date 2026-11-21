@@ -188,23 +188,72 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             if(starter==null)return;
-            // A first audience is a real encounter with the recorded lord.
-            // It cannot fire from a distant menu or a fabricated NPC.
+            // The opening audience is a native meeting with the saved,
+            // real lord. Asking questions does not grant relation or mark
+            // a muster. Only the spoken pledge receives native credit.
             starter.AddPlayerLine(
                 "cu_knight_patron_first_audience","hero_main_options",
-                "cu_knight_patron_first_audience_reply",
+                "cu_knight_ceremony_open",
                 "My lord, I have come to take my place in your service.",
                 ()=>SpeakingWithSwornPatron() &&
-                    knightOath.LastMusterDay<0,
-                ()=>RecordNativePatronAudience(),200);
+                    knightOath.LastMusterDay<0,null,200);
+            starter.AddDialogLine(
+                "cu_knight_ceremony_open","cu_knight_ceremony_open",
+                "cu_knight_ceremony_choices",
+                "Then stand before me as the head of your own house. "+
+                "Your banner is yours to command. Tell me what "+
+                "you promise under mine.",
+                null,null,200);
+            starter.AddPlayerLine(
+                "cu_knight_ceremony_duties","cu_knight_ceremony_choices",
+                "cu_knight_ceremony_duties_reply",
+                "Tell me first what service you expect.",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay<0,null,110);
+            starter.AddDialogLine(
+                "cu_knight_ceremony_duties_reply",
+                "cu_knight_ceremony_duties_reply",
+                "cu_knight_ceremony_choices",
+                "Keep faith with your word, present yourself when "+
+                "summoned, and ride with my company when called. "+
+                "Your companions remain under your command.",
+                null,null,100);
+            starter.AddPlayerLine(
+                "cu_knight_ceremony_house","cu_knight_ceremony_choices",
+                "cu_knight_ceremony_house_reply",
+                "I wish to know the people of your house.",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay<0,null,110);
+            starter.AddDialogLine(
+                "cu_knight_ceremony_house_reply",
+                "cu_knight_ceremony_house_reply",
+                "cu_knight_ceremony_choices",
+                "Learn their names in the clan ledger, and greet "+
+                "them as people of this realm, not as your own kin. "+
+                "Standing is earned through deeds.",
+                null,null,100);
+            starter.AddPlayerLine(
+                "cu_knight_ceremony_pledge","cu_knight_ceremony_choices",
+                "cu_knight_patron_first_audience_reply",
+                "On my honor, I pledge my sword and faithful service.",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay<0 &&
+                    KnightConversationMusterAvailable(),
+                ()=>RecordNativePatronAudience(),180);
             starter.AddDialogLine(
                 "cu_knight_patron_first_audience_reply",
                 "cu_knight_patron_first_audience_reply",
                 "hero_main_options",
-                "Welcome to my banner. Your house is known to mine. "+
-                "Keep your people safe, and answer my summons. "+
-                "You remain master of your own household.",
+                "I have heard your oath. Rise, and keep faith "+
+                "with your household and the people who ride "+
+                "beside you. We shall speak again at muster.",
                 null,null,200);
+            starter.AddPlayerLine(
+                "cu_knight_ceremony_defer","cu_knight_ceremony_choices",
+                "hero_main_options",
+                "I must settle my affairs before I speak the pledge.",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay<0,null,80);
             starter.AddPlayerLine(
                 "cu_knight_patrontalk_start",
                 "hero_main_options","cu_knight_patron_answer",
