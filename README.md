@@ -1,16 +1,20 @@
-# Calradia Unified: latest verified installer candidate (v0.69f)
+# Calradia Unified: latest compiled developer candidate (v0.69g)
 
-**Current compiled development build:** **v0.69f** ([Windows run 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228), 907 C# policy checks passed, 0 compiler warnings/errors). [Download the exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491). The game module's `SubModule.xml` still carries the **historical v0.38.0 manifest**. The installer now displays the development build label independently, so the manifest's old version no longer hides which compiled candidate was selected.
+**v0.69g** addresses the user's first actual gameplay failure: **Younger Brother of a Lord** had no eligible real native elder. That stopped the spouse, two children and two siblings from being created. The new House safeguard blocks an unsupported noble lineage **before native finalization**, returns to the noble-birth selector and preserves all household choices. It does not fabricate a native lord.
 
-**PowerShell 5.1, list the latest pinned build:**
+[Successful Windows build 44866582823](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823) passed **910 C# policy checks**, 0 compilation warnings/errors and the existing simulations. [Download the exact compiled, still game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071). The game's historical `SubModule.xml` continues to say **v0.38.0**.
+
+**PowerShell 5.1, show the exact v0.69g candidate and its SHA-256:**
 
 ```powershell
 $Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
-Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/42238c276cea8c9e6519ea83c2f520663dcaf18f/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
+Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/ace58f7e19d15ee1db8698a0e0b1de660dd4199a/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
 & $Installer -ShowLatest
 ```
 
-Download that run's ZIP from the linked artifact page. The installer accepts `-LatestVerified -GameRoot "YOUR_BANNERLORD_FOLDER" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting` and checks SHA-256 **`3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684`** before replacing the module. [Exact install commands and audit instructions](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). The candidate has **not** passed live Bannerlord visual, gameplay or native save/reload acceptance. Do not treat it as a game-tested release.
+Download that exact Actions ZIP, then install with `-LatestVerified -GameRoot "YOUR_GAME" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting`. Pinned DLL SHA-256: **`2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0`**. The script backs up the existing module before replacement and leaves saves untouched. [Full current installer instructions](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). [Evidence-based defect report](docs/V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md).
+
+**Acceptance:** This repair is compiled and simulation-tested, not yet verified in a new actual Bannerlord session. The old session confirms a gameplay failure, not a passing new-game test. The correction is on [draft PR #93](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/93), not merged as a release.
 
 ---
 
