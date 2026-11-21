@@ -24,7 +24,8 @@ NATIVE_UI_FIELDS=(
  "ui_matches_real_game_state",
 )
 ROLE_UI_SCREENSHOTS={
- "Knight":("knight_oath_ui.png","knight_household_ui.png"),
+ "Knight":("knight_oath_ui.png","knight_household_ui.png",
+           "knight_patron_conversation.png"),
  "Lord":("lord_inheritance_ui.png","lord_household_ui.png"),
  "King":("king_council_ui.png","king_governor_ui.png",
          "king_household_ui.png"),
@@ -43,7 +44,8 @@ REQUIRED={
             "cu_soldier_native_start_verification",
             "cu_sas_service_observed"),
  "Knight":("cu_starting_life_preflight",
-           "cu_knight_oath_start"),
+           "cu_knight_oath_start",
+           "cu_knight_patron_conversation_muster"),
  "Lord":("cu_starting_life_preflight",
          "cu_lord_native_preflight",
          "cu_lord_native_family_verification",
@@ -77,6 +79,8 @@ GOOD={
      "result=external_duty_changed_observed|party_confirmed=True"),
  "cu_knight_oath_start":(
      "result=oath_recorded|independent_house=true|native_vassalage=false",),
+ "cu_knight_patron_conversation_muster":(
+     "result=native_meeting_muster_recorded|native_conversation=true|native_favor_action=True",),
  "cu_lord_native_preflight":("result=PASS",),
  "cu_lord_native_family_verification":("result=PASS",),
  "cu_lord_native_noble_inlaws":("result=PASS",),

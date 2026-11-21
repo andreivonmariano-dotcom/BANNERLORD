@@ -6,7 +6,8 @@ root=Path(__file__).resolve().parents[1]
 src=root/"Source"/"CalradiaUnified"
 get=lambda name:(src/name).read_text(encoding="utf-8")
 state=get("SandboxKnightOathState.cs")
-native=get("SandboxOriginBehavior.KnightOath.cs")
+native=(get("SandboxOriginBehavior.KnightOath.cs")+
+        get("SandboxOriginBehavior.KnightDialogue.cs"))
 origin=get("SandboxOriginBehavior.cs")
 policy=get("SandboxKnightStartPolicy.cs")
 profile=get("SandboxOriginProfile.cs")

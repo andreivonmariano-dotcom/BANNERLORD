@@ -147,6 +147,10 @@ with tempfile.TemporaryDirectory() as folder:
     assert "unverified_cu_knight_oath_start" in (
         module.audit_role("Knight",mutate("Knight",
             "cu_knight_oath_start","result=PASS|native_personal_oath"),native)["missing"])
+    assert "unverified_cu_knight_patron_conversation_muster" in (
+        module.audit_role("Knight",mutate("Knight",
+            "cu_knight_patron_conversation_muster",
+            "result=native_meeting_muster_recorded|native_conversation=false|native_favor_action=True"),native)["missing"])
     assert "unverified_cu_sas_service_observed" in (
         module.audit_role("Soldier",mutate("Soldier",
             "cu_sas_service_observed",
