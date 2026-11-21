@@ -14,18 +14,61 @@ namespace CalradiaUnified
     /// </summary>
     internal static class SandboxKingNativeMinistry
     {
-        internal static Settlement VacantOwnedFief()
+        /// <summary>
+        /// Only existing native settlement ownership is authoritative.
+        /// Bannerlord has no verified public pinned "capital" setter.
+        /// Read the kingdom's native initial homeland when available;
+        /// otherwise designate a REAL player-owned town/castle as the
+        /// CU royal court seat, never as an engine capital mutation.
+        /// The designation is persisted by the court behavior.
+        /// </summary>
+        internal static Settlement VerifiedRoyalCourtSeat()
         {
             var clan=Clan.PlayerClan;
-            if(clan==null || clan.Settlements==null)
+            var kingdom=clan==null?null:clan.Kingdom;
+            if(clan==null || kingdom==null ||
+                kingdom.RulingClan!=clan || clan.Settlements==null)
                 return null;
-            return clan.Settlements.Where(s=>s!=null &&
+            var owned=clan.Settlements.Where(s=>s!=null &&
                 s.OwnerClan==clan &&
                 s.IsFortification && s.Town!=null &&
-                !s.IsUnderSiege && s.Town.Governor==null)
-                .OrderBy(s=>s.IsTown?0:1)
+                !s.IsUnderSiege).ToArray();
+            // The native capital name varies across supported versions.
+            // Reflection is read-only and never assumes that a fictional
+            // property exists. A found initial home is not silently
+            // renamed in the kingdom model.
+            Settlement nativeHome=null;
+            foreach(string propertyName in new[]{
+                "InitialHomeSettlement","InitialHomeLand"})
+            {
+                try
+                {
+                    var prop=kingdom.GetType().GetProperty(propertyName);
+                    if(prop!=null && prop.CanRead)
+                    {
+                        nativeHome=prop.GetValue(kingdom,null) as Settlement;
+                        if(nativeHome!=null)break;
+                    }
+                }
+                catch(Exception e)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_royal_home_reflection_unavailable",e);
+                }
+            }
+            if(nativeHome!=null && owned.Contains(nativeHome))
+                return nativeHome;
+            // No game-native capital designation is asserted for fallback.
+            return owned.OrderBy(s=>s.IsTown?0:1)
                 .ThenBy(s=>s.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
+        }
+
+        internal static Settlement VacantOwnedFief()
+        {
+            var seat=VerifiedRoyalCourtSeat();
+            return seat!=null && seat.Town.Governor==null?
+                seat:null;
         }
 
         internal static string TryAppoint(Hero minister,
@@ -62,7 +105,9 @@ namespace CalradiaUnified
                     "none":minister.GovernorOf.StringId)+
                 "|native_change_governor_action=true"+
                 "|previous_governor=none"+
-                "|no_estate_owner_change=true");
+                "|no_estate_owner_change=true"+
+                "|court_seat_designation_only=true"+
+                "|native_capital_property_unchanged=true");
             if(!accepted)return "native_governor_action_unconfirmed";
             settlementId=seat.StringId;
             return "native_royal_minister_governs:"+settlementId;
