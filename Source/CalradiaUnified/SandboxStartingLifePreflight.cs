@@ -25,7 +25,7 @@ namespace CalradiaUnified
             var kingdom=clan.Kingdom;
             string actualType=campaign.AdvancedStartData.GetStartType();
             string expectedType=SandboxNativeStartOptions
-                .StartTypeForRole(p.Role);
+                .StartTypeForProfile(p);
             int fiefs=clan.Settlements==null?0:clan.Settlements.Count;
             bool ruling=kingdom!=null && kingdom.RulingClan==clan;
             // Collect requested versus native-observed values even if the
@@ -45,19 +45,56 @@ namespace CalradiaUnified
             var nativeErrors=SandboxStartContract.Validate(
                 expectedType,
                 actualType,
-                p.StartingKingdomId,
+                p.SoldierGuidedStart?"":p.StartingKingdomId,
                 kingdom==null?"":kingdom.StringId,
                 ruling,fiefs,
                 false,false,0,0);
             if(nativeErrors.Length>0)
                 return "native_start:"+nativeErrors[0];
-            string stationError=SandboxRoleConsistencyPolicy.CheckNativeStation(
-                p.Role,campaign.AdvancedStartData.GetStartType(),
-                kingdom!=null,kingdom!=null &&
-                kingdom.RulingClan==clan,
-                clan.Settlements==null?0:clan.Settlements.Count);
+            string stationError=p.SoldierGuidedStart?
+                SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                    actualType,kingdom!=null,fiefs!=0,
+                    clan.IsUnderMercenaryService):
+                SandboxRoleConsistencyPolicy.CheckNativeStation(
+                    p.Role,campaign.AdvancedStartData.GetStartType(),
+                    kingdom!=null,kingdom!=null &&
+                    kingdom.RulingClan==clan,
+                    clan.Settlements==null?0:clan.Settlements.Count);
             if(stationError.Length>0)
                 return "native_station:"+stationError;
+            if(p.SoldierGuidedStart)
+            {
+                // SaS owns the real soldier role and the commander. A
+                // kingdom or clan affiliation does NOT prove enlistment.
+                var native=SandboxSaSBridge.Read();
+                string service=SandboxSoldierEnlistmentPolicy
+                    .ValidateEnlisted(native.Available,native.Enlisted,
+                        p.StartingKingdomId,p.ServicePatronHeroId,
+                        native.LordId,native.LordKingdomId,
+                        native.RankId,native.NativeHostPartyLedByLord,
+                        clan.IsUnderMercenaryService,fiefs>0);
+                string rank=SandboxSoldierEnlistmentPolicy
+                    .ValidateRequestedEntryRank(
+                        p.SoldierEntryRank,native.RankId);
+                if(service.Length==0 && rank.Length>0)
+                    service=rank;
+                if(service.Length==0 && native.RankNumber>0 &&
+                   native.RankNumber!=SandboxSoldierEnlistmentPolicy
+                       .NativeRankNumber(native.RankId))
+                    service="native_rank_number_mismatch";
+                DiagnosticJournal.Event("cu_soldier_real_enlistment_preflight",
+                    "result="+(service.Length==0?"PASS":"FAIL")+
+                    "|reason="+service+
+                    "|requested_rank="+p.SoldierEntryRank+
+                    "|actual_rank="+native.RankId+
+                    "|lord_id="+native.LordId+
+                    "|lord_kingdom="+native.LordKingdomId+
+                    "|host_party_led_by_lord="+
+                        native.NativeHostPartyLedByLord+
+                    "|native_wage="+native.Wage+
+                    "|native_progression_owned_by_sas=true");
+                if(service.Length>0)return "soldier:"+service;
+            }
             // The native mercenary START ID alone is insufficient:
             // verify genuine mercenary-clan service, own commander,
             // correct employer and no landed lord status.
