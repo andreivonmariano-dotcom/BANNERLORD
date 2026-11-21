@@ -1439,6 +1439,48 @@ namespace CalradiaUnified
                     return;
                 }
 
+                // The new Outlaw starts with a single real band lieutenant.
+                // A title or creator choice does not establish a native
+                // companion, and an unrelated starting wanderer must not
+                // remain in the saved clan roster.
+                if(profile.OutlawGuidedStart)
+                {
+                    var officers=Clan.PlayerClan.Companions.ToArray();
+                    bool valid=profile.Role=="Outlaw" &&
+                        retinue.StartsWith("officers=1|",
+                            StringComparison.Ordinal) &&
+                        retinue.EndsWith("|same_culture=true",
+                            StringComparison.Ordinal) &&
+                        officers.Length==1 && officers[0]!=null &&
+                        officers[0].Occupation==Occupation.Wanderer &&
+                        officers[0].Culture==hero.Culture &&
+                        officers[0].Clan==Clan.PlayerClan &&
+                        officers[0].CompanionOf==Clan.PlayerClan &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            officers[0].CharacterObject)==1;
+                    DiagnosticJournal.Event(
+                        "cu_outlaw_lieutenant_start_contract",
+                        "result="+(valid?"PASS":"FAIL")+
+                        "|native_outlaw_requested=true"+
+                        "|retinue_receipt="+retinue+
+                        "|clan_companion_count="+officers.Length+
+                        "|actual_companion_id="+(officers.Length==1 &&
+                            officers[0]!=null?officers[0].StringId:"none")+
+                        "|native_lordship_not_granted=true"+
+                        "|bandit_faction_not_invented=true");
+                    if(!valid)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL"+
+                            "|reason=outlaw_lieutenant_not_verified"+
+                            "|no_discretionary_grants_applied=true");
+                        Notify("The Outlaw's named lieutenant was not "+
+                            "verified in the actual native party.");
+                        return;
+                    }
+                }
+
                 string wandererCompanionResult="not_applicable";
                 if(profile.WandererNoHouseStart && profile.Role=="Wanderer")
                 {
