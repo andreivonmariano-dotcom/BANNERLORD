@@ -45,10 +45,10 @@ assert 'OpenDossierFamilyPortraits' in house
 assert 'ScreenManager.PushScreen(new CUFamilyPortraitScreen())' in house
 assert 'HearDossierPetition' in house
 assert 'DeclineDossierPetition' in house
-assert 'OfferLocalCharacterRequest(Hero.MainHero)' in house
+assert 'cu_petition_ledger_consulted' in house
 assert 'RequestedCharacter()' in house
-assert 'ConfirmCharacterSupport()' in house
-assert 'AnswerCharacterRequest(false)' in house
+assert 'remote_payment_or_relation_action=false' in house
+assert 'HearDossierPetition()' in house
 assert 'ShowNativeDetail(' in house
 assert 'GiveGoldAction.ApplyBetweenCharacters(' in menu
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in menu
