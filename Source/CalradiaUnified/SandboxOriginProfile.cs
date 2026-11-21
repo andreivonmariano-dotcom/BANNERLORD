@@ -131,6 +131,10 @@ namespace CalradiaUnified
         // v0.70d is a new, kingdom-contracted company. Old Soldier
         // profiles retain their historical native mercenary meaning.
         public bool MercenaryGuidedStart;
+        // v0.70g: Soldier is genuine native external enlistment, never
+        // a second mercenary captain. Legacy Soldier profiles opt out.
+        public bool SoldierGuidedStart;
+        public string SoldierEntryRank = "Recruit";
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -224,6 +228,8 @@ namespace CalradiaUnified
             WandererNoHouseStart=false;
             OutlawGuidedStart=false;
             MercenaryGuidedStart=false;
+            SoldierGuidedStart=false;
+            SoldierEntryRank="Recruit";
             WandererCompanionEnabled=false;
             WandererCompanionName="Taran";
             WandererCompanionAge=25;
@@ -486,6 +492,13 @@ namespace CalradiaUnified
                 case "MercenaryGuidedStart":
                     if(!Boolean.TryParse(value,out b))return false;
                     MercenaryGuidedStart=b;return true;
+                case "SoldierGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    SoldierGuidedStart=b;return true;
+                case "SoldierEntryRank":
+                    if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
+                        return false;
+                    SoldierEntryRank=value;return true;
                 case "WandererCompanionEnabled":
                     if(!Boolean.TryParse(value,out b))return false;
                     WandererCompanionEnabled=b;return true;
@@ -617,6 +630,28 @@ namespace CalradiaUnified
                 !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
             {
                 error="Choose a supported early household and ambition.";
+                return false;
+            }
+            if(SoldierGuidedStart &&
+                (Role!="Soldier" || MercenaryGuidedStart ||
+                 OutlawGuidedStart || WandererNoHouseStart ||
+                 !SandboxSoldierEnlistmentPolicy.IsEntryRank(
+                     SoldierEntryRank) ||
+                 String.IsNullOrEmpty(StartingKingdomId) ||
+                 RoleAffiliationsEnabled ||
+                 NobleBirthPosition!="Independent" ||
+                 !String.IsNullOrEmpty(NobleElderHeroId) ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native" ||
+                 !String.IsNullOrEmpty(StartingFiefId) ||
+                 AllowStartingFiefTransfer ||
+                 Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Soldier requires a real external enlisted "+
+                    "lord, three valid requested entry ranks and an "+
+                    "independent landless native start. SaS owns rank "+
+                    "and wages. No invented troops or noble residence.";
                 return false;
             }
             if(MercenaryGuidedStart &&
@@ -863,6 +898,9 @@ namespace CalradiaUnified
                     OutlawGuidedStart.ToString().ToLowerInvariant(),
                 "MercenaryGuidedStart=" +
                     MercenaryGuidedStart.ToString().ToLowerInvariant(),
+                "SoldierGuidedStart=" +
+                    SoldierGuidedStart.ToString().ToLowerInvariant(),
+                "SoldierEntryRank=" + SoldierEntryRank,
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
