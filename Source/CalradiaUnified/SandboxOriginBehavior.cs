@@ -740,15 +740,16 @@ namespace CalradiaUnified
             if(applied && IsStandaloneSandbox() &&
                 familyRecovery.NeedsReview && Hero.MainHero!=null)
             {
-                var player=Hero.MainHero;
-                int siblingCount=CountNativeFullSiblings(player);
-                string change=familyRecovery.Observe(player.StringId,
-                    player.Spouse!=null,
-                    player.Children==null?0:player.Children.Count,
+                var recoveryPlayer=Hero.MainHero;
+                int siblingCount=CountNativeFullSiblings(recoveryPlayer);
+                string change=familyRecovery.Observe(recoveryPlayer.StringId,
+                    recoveryPlayer.Spouse!=null,
+                    recoveryPlayer.Children==null?0:
+                        recoveryPlayer.Children.Count,
                     siblingCount);
                 if(change=="native_family_counts_changed")
                     DiagnosticJournal.Event("cu_family_recovery_observed",
-                        "player="+player.StringId+
+                        "player="+recoveryPlayer.StringId+
                         "|status="+familyRecovery.Status+
                         "|no_native_actions_replayed=true");
             }
