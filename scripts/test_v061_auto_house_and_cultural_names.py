@@ -44,7 +44,8 @@ for key in ("SpouseName","SpouseAge","SpouseGender","SpouseBackground",
     # The new guided Lord requires a spouse, so the first spouse name
     # is a normal House step. Older life paths keep this field Advanced.
     if key=="SpouseName":
-        assert 'advanced:!profile.LordGuidedStart' in field,key
+        assert 'advanced:!(profile.LordGuidedStart ||' in field,key
+        assert 'profile.KingGuidedStart)' in field,key
     else:
         assert 'advanced:true' in field,key
 for culture in ("vlandia","sturgia","battania","empire","aserai","khuzait"):
