@@ -17,13 +17,13 @@ $ErrorActionPreference = "Stop"
 # This pinned candidate was verified by the Windows pipeline. It was NOT
 # play-tested in Bannerlord. Keep the historic module manifest version
 # separate from this source-development version for save compatibility.
-$latestLabel = "v0.69f"
+$latestLabel = "v0.69g"
 $latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
-$latestRun = "44864139228"
-$latestCommit = "eec666c252f468cd92475e8abc86731d16da3a4f"
+$latestRun = "44866582823"
+$latestCommit = "63a82b14bde2ccc07eea9a15a9745aa6ae3693fb"
 $latestManifest = "v0.38.0"
-$latestDllSha256 = "3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684"
-$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491"
+$latestDllSha256 = "2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071"
 
 function Write-LatestBuild {
     Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
