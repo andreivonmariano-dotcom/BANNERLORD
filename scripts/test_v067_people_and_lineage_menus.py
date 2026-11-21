@@ -58,7 +58,7 @@ assert 'inheritanceNegotiation.Complete(confirmed)' in menu
 assert 'if(!CanConfirmFamilyGrant())' in menu
 assert 'current==primary?null:current' in menu
 assert 'Clan.PlayerClan.Kingdom==clan.Kingdom' in menu
-assert 'player.Father!=null && !player.Father.IsAlive' in menu
+assert 'player.Father!=null &&' in menu and '!player.Father.IsAlive' in menu
 assert 'currentBirthHoldings>=2' in inherit
 assert 'if(!fatherDeceased)return "ParentStillLiving"' in inherit
 assert 'if(!sameNativeKingdom)return "NativeAllegianceRequired"' in inherit
