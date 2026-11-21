@@ -113,6 +113,18 @@ namespace CalradiaUnified
                 .FirstOrDefault();
         }
 
+        /// <summary>
+        /// Screen-only native-family existence check. The final phase-9
+        /// preflight still verifies the player's true native affiliation,
+        /// required older sons, and original parentage.
+        /// </summary>
+        public static bool HasProjectedNativeFather(
+            SandboxOriginProfile p,Hero player)
+        {
+            return p!=null && player!=null &&
+                FindFather(p,player,false)!=null;
+        }
+
         public static string Preflight(SandboxOriginProfile p,Hero player)
         {
             if(p==null || player==null)return "missing_origin_or_hero";
