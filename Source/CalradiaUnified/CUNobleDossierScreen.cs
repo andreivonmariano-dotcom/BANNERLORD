@@ -158,7 +158,7 @@ namespace CalradiaUnified
                             child,"CHILD",inspectAction));
                 }
             }
-            var clanOfPlayer=Clan.PlayerClan;
+            var clanOfPlayer=TaleWorlds.CampaignSystem.Clan.PlayerClan;
             if(clanOfPlayer!=null && clanOfPlayer.Companions!=null)
             {
                 foreach(var officer in clanOfPlayer.Companions
