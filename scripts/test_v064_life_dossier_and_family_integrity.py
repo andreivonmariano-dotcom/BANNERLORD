@@ -46,7 +46,8 @@ assert "SandboxStartingLifePreflight.Check(" in behavior
 assert behavior.index("SandboxStartingLifePreflight.Check(") < behavior.index(
     "SandboxRoleAffiliations.TryApply(")
 assert "CU_v064_living_persons" in behavior
-assert "SandboxLivingPersons.Capture(profile,hero,patron," in behavior
+assert "SandboxLivingPersons.Capture(" in behavior
+assert "profile,hero,patron,livingPersons" in behavior
 assert '"CU_LIFE_1"' in ledger
 assert "Uri.EscapeDataString" in ledger
 assert "VerifiedNativeParent" in adapter
