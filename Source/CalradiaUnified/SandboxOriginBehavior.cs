@@ -2208,6 +2208,8 @@ namespace CalradiaUnified
                                 "|independent_house=true"+
                                 "|native_vassalage=false");
                             if(oathStatus=="oath_recorded")
+                            {
+                                IntroduceKnightHouseholdAndArrive(patron);
                                 Notify("Sworn Knight: your personal oath "+
                                     "to Lord "+patron.Name+" of "+
                                     patron.Clan.Name+" is now active. "+
@@ -2217,6 +2219,7 @@ namespace CalradiaUnified
                                     "FIRST GOAL: find this lord in the "+
                                     "native Encyclopedia and speak to "+
                                     "him about your sworn service.");
+                            }
                         }
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)
@@ -2296,8 +2299,9 @@ namespace CalradiaUnified
                     }
                 }
 
-                // Relocation and direct face sliders remain disabled. The
-                // opt-in family helper uses native hero/marriage APIs.
+                // The verified Sworn Knight start attempts one guarded
+                // relocation to a real native field lord. Other starting
+                // roles and the direct face sliders remain unchanged.
                 DiagnosticJournal.Event("sandbox_origin_applied",
                     "role=" + profile.Role +
                     "|family_home=" + familyHome +
@@ -2307,7 +2311,11 @@ namespace CalradiaUnified
                     "|family_status=" + family +
                     "|start_contract_passed=" + (failures.Length == 0) +
                     "|appearance_template_lookup_only=true" +
-                    "|relocation_pending=true" +
+                    "|knight_patron_arrival_attempted=" +
+                        (profile.KnightGuidedStart &&
+                         profile.KnightOrigin=="SwornHouse" &&
+                         failures.Length==0) +
+                    "|other_relocations_pending=true" +
                     "|progression_mode=" + profile.ProgressionMode +
                     "|progression_requested=" + profile.Overrides.Count +
                     "|individual_items_requested=" + profile.ItemIds.Count);
