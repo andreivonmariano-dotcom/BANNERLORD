@@ -63,6 +63,8 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 - Historical parents exist only as preserved genealogy anchors where required. Newly generated parents must not become active court officials or replace the lord.
 - Residence and estate are distinct. A clan can be noble and landless if the native political model supports it. Never seize an unrelated fief to satisfy a character origin.
 - Starting court personnel are named, trained and culturally equipped Master of Arms and Knight. Their native Hero/party enrollment and removal of original wanderers must be verified.
+- Guided Lord marriage requires a spouse born into a genuine, different native noble clan, with **two verified married native parents**, not a decorative noble surname or clan-only fallback. A specific clan can be selected if native parents qualify.
+- Child inheritance customs are `EldestChild` (gender-neutral birth seniority) and `MalePreference` (sons first, then daughters). Only verified native biological children in the household clan enter the claim ranking. Minority never creates an untested regency. Claim rankings are save-backed and report native leadership, but cannot override native clan succession or transfer property without a tested native action.
 
 ### King
 
