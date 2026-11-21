@@ -165,7 +165,7 @@ namespace CalradiaUnified
                     "text",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "NobleBirthPosition","Your noble birth",
-                    "Lord may start landed. NobleCadet requires a real noble family and starts without land; both use native parent links.",
+                    "Younger brother or sister requires an existing native lord who leads a qualifying clan. A sibling created later in House does not count.",
                     choices:SandboxNobleStartPolicy.BirthPositions));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "NobleElderHeroId","Native family leader ID (optional)",
@@ -180,9 +180,9 @@ namespace CalradiaUnified
                 // losing the spouse, children or sibling draft.
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "NobleBirthPosition","Confirm your noble birth",
-                    "An older game-owned lord must have valid native "+
-                    "parents and be older than you. No match? Choose "+
-                    "Independent rather than lose your requested family.",
+                    "A younger-brother or sister origin needs an existing "+
+                    "native clan-leading lord. Creating an older sibling "+
+                    "below does NOT make that sibling your lord.",
                     choices:SandboxNobleStartPolicy.BirthPositions));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "NobleElderHeroId","Native elder Hero ID (optional)",
@@ -241,7 +241,7 @@ namespace CalradiaUnified
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SiblingCount",
                     "Brothers and sisters",
-                    "Choose 0 to 4 actual clan siblings. Native parents are generated if missing; relatives share both parents.",
+                    "Choose 0 to 4 family members. An older brother created here does not become an existing lord, receive a fief, or lead a separate clan.",
                     "number",min:0,max:SandboxOriginProfile.MaxSiblings));
                 for(int i=1;i<=SandboxOriginProfile.MaxSiblings;i++)
                 {
@@ -838,8 +838,9 @@ namespace CalradiaUnified
                         "Native lord standing stays native. You can "+
                         "keep your chosen spouse, children and siblings." :
                         "Eligible native family: "+projectedElderName+
-                        ". If none is found, choose Independent here "+
-                        "rather than finalizing a failed family start.";
+                        ". An older sibling created in House cannot "+
+                        "replace an existing native lord. If no lord "+
+                        "qualifies, choose Independent here.";
                 if(!preCampaign && Current.Key=="SpouseEnabled")
                     return "Proposed spouse: "+profile.SpouseName+
                         ", age "+profile.SpouseAge+
@@ -857,7 +858,9 @@ namespace CalradiaUnified
                         (profile.SiblingCount==0?"none":String.Join(", ",
                             profile.Siblings.Take(profile.SiblingCount)
                                 .Select(x=>x.Name+" ("+x.Age+")"))) +
-                        ". They may be older than you. Edit in Advanced.";
+                        ". They may be older than you, but none is "+
+                        "automatically your lord or a clan leader. "+
+                        "Edit names and ages in Advanced.";
                 if(IsChildAge)return "Allowed age: 0 to "+
                     EffectiveMaximum(Current)+" years. Your age: "+
                     ActualFounderAge+". Spouse age: "+profile.SpouseAge+
