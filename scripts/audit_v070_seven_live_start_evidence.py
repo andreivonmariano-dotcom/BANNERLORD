@@ -25,6 +25,11 @@ NATIVE_UI_FIELDS=(
  "ui_no_duplicate_settlement_actions",
  "ui_actions_match_native_context",
  "ui_legacy_new_game_editor_hidden",
+ "ui_butr_required_modules_loaded",
+ "ui_butr_no_patch_errors",
+ "ui_clan_native_extension_after_reload",
+ "ui_party_native_extension_after_reload",
+ "ui_mcm_mod_options_available",
 )
 ROLE_UI_SCREENSHOTS={
  "Knight":("knight_oath_ui.png","knight_household_ui.png",
@@ -245,6 +250,11 @@ def audit_role(role,rows,evidence_root):
                       "ui_gauntlet_dossier_back_escape"):
             if evidence.get(field) is not True:
                 problems.append("native_ui_unverified_"+field)
+    # Kingdom UI exists as a native management screen only for
+    # appropriate noble-political paths. Other roles do not fake it.
+    if role in ("Lord","King"):
+        if evidence.get("ui_kingdom_native_extension_after_reload") is not True:
+            problems.append("native_ui_unverified_ui_kingdom_native_extension_after_reload")
     # Every Knight, Lord and King player must ACTUALLY open the native
     # live-Hero household inquiry, proving the menu can be reached.
     if role in ROLE_UI_SCREENSHOTS:
