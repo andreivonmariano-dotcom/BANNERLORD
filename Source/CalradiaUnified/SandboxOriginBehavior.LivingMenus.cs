@@ -423,7 +423,8 @@ namespace CalradiaUnified
             int amount=SandboxInheritanceNegotiationPolicy
                 .FamilySettlementContribution(
                     successionInterest.CultureId);
-            int before=player.Gold;
+            int payerBefore=player.Gold;
+            int recipientBefore=leader.Gold;
             try
             {
                 GiveGoldAction.ApplyBetweenCharacters(
@@ -433,18 +434,43 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_family_mediation_native_payment_failed",error);
-                Notify("The native family mediation payment failed.");
-                return;
             }
-            if(player.Gold>before-amount)
+            int payerAfter=player.Gold;
+            int recipientAfter=leader.Gold;
+            string paymentProof=SandboxNativeEffectProof.GiftResult(
+                payerBefore,payerAfter,recipientBefore,recipientAfter,
+                amount);
+            if(paymentProof!="confirmed")
             {
-                Notify("The payment was not confirmed by native gold.");
+                // If any native funds changed, consume a mediation slot.
+                // The player must not be silently charged again.
+                if(paymentProof!="no_native_effect")
+                    inheritanceNegotiation.RecordMediation();
+                livingPersons.Remember("CulturalMediationPaymentUnverified",
+                    player.StringId,leader.StringId,
+                    "status="+paymentProof+
+                    "|payer_before="+payerBefore+
+                    "|payer_after="+payerAfter+
+                    "|recipient_before="+recipientBefore+
+                    "|recipient_after="+recipientAfter+
+                    "|native_fief_transferred=false");
+                Notify("The native transfer did not confirm both "+
+                    "the payer and recipient balances. "+
+                    "No relation benefit has been claimed.");
                 return;
             }
-            // The native gift occurred. Record it once even if relations
-            // subsequently refuse to update, to prevent double spending.
+            // The two native Hero balances confirm delivery. Record once
+            // even if relation change fails, preventing repeat payment.
             if(!inheritanceNegotiation.RecordMediation())
+            {
+                livingPersons.Remember("CulturalMediationNativePaymentOrphaned",
+                    player.StringId,leader.StringId,
+                    "verified_denars="+amount+
+                    "|mediation_slot_not_recorded=true");
+                Notify("Native funds moved, but the mediation limit "+
+                    "could not be updated. Do not pay again.");
                 return;
+            }
             int relationBefore=player.GetRelation(leader);
             try
             {
@@ -456,22 +482,31 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception(
                     "cu_family_mediation_relation_failed",error);
             }
+            int relationAfter=player.GetRelation(leader);
+            bool relationConfirmed=SandboxNativeEffectProof.RelationConfirmed(
+                relationBefore,relationAfter,4);
             livingPersons.Remember("CulturalClanMediationPaid",
                 player.StringId,leader.StringId,
-                "denars="+amount+
+                "verified_denars="+amount+
                 "|native_relation_before="+relationBefore+
-                "|native_relation_after="+player.GetRelation(leader)+
+                "|native_relation_after="+relationAfter+
+                "|actual_relation_delta="+
+                    SandboxNativeEffectProof.ObservedDelta(
+                        relationBefore,relationAfter)+
+                "|relation_confirmed="+relationConfirmed+
                 "|culture="+successionInterest.CustomaryModel+
                 "|native_estate_transferred=false");
             DiagnosticJournal.Event("cu_cultural_family_mediation",
                 "player="+player.StringId+"|head="+leader.StringId+
-                "|payment="+amount+
+                "|verified_payment="+amount+
                 "|mediations="+inheritanceNegotiation.Mediations+
+                "|relation_confirmed="+relationConfirmed+
                 "|native_fief_transferred=false");
-            Notify("Family mediation delivered: "+amount+
-                " native denars. The clan head's relation has been "+
-                "updated through the game. Petition again after "+
-                "checking the family council's terms.");
+            Notify(relationConfirmed?
+                "Native denar delivery and clan-head relation gain "+
+                    "confirmed. Review the family council terms.":
+                "Native denars were delivered. The intended clan-head "+
+                    "relation gain was not verified.");
         }
         private void WithdrawFamilyClaim()
         {
