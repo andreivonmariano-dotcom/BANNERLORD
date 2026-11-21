@@ -64,7 +64,7 @@ namespace CalradiaUnified
                     out officers) ||
                 !Int32.TryParse(parts[1].Substring(dismissedPrefix.Length),
                     out dismissed) ||
-                dismissed<0 || dismissed>1)
+                dismissed<0 || dismissed>16)
                 return false;
 
             if(mode=="FamilyOnly")
