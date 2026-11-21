@@ -148,7 +148,7 @@ namespace CalradiaUnified
                 Hero.MainHero!=null &&
                 Hero.MainHero.CurrentSettlement==null;
             float distance=parties?
-                lordParty.Position2D.Distance(playerParty.Position2D):
+                lordParty.GetPosition2D.Distance(playerParty.GetPosition2D):
                 99999f;
             bool near=parties && distance<=6f;
             int day=CurrentOathDay();
