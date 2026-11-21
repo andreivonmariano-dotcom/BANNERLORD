@@ -19,7 +19,8 @@ assert 'MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(' in overlay
 assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in roles
 assert 'case "Knight":' in role_matrix and 'case "Lord":return "vassal";' in role_matrix
 assert 'case "King":return "king";' in role_matrix
-assert 'case "Soldier":return "mercenary";' in role_matrix
+assert 'case "Soldier":' in role_matrix
+assert 'case "Mercenary":return "mercenary";' in role_matrix
 assert 'StartingKingdomId' in profile
 assert 'StartingKingdomId' in overlay
 assert 'KingdomId' in roles and 'StartType' in roles
