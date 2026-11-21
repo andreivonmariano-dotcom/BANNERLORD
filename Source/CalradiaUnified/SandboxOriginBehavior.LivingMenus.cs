@@ -648,6 +648,17 @@ namespace CalradiaUnified
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
+                // Visible even if a failed family never reached the
+                // successful Living Persons capture. No repair action
+                // is issued automatically on save/load or menu opening.
+                starter.AddGameMenuOption(from,
+                    "cu_partial_family_review_"+from,
+                    "CU: Review incomplete Starting Life",
+                    args=>familyRecovery.NeedsReview &&
+                        Hero.MainHero!=null,
+                    args=>ShowNativeDetail(
+                        "Starting Life | Native family review",
+                        familyRecovery.Describe()),false);
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
                     "CU: People & Lineage",
