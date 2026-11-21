@@ -31,6 +31,23 @@ namespace CalradiaUnified
                 after< -100 || after>100)return 0;
             return after-before;
         }
+        // Perks and engine modifiers can multiply a native
+        // relationship action. Keep exact matching for strict
+        // invariants, but accept a bounded same-direction observation
+        // when reporting a character's petition outcome.
+        public static bool RelationDirectionObserved(int before,
+            int after,int requested)
+        {
+            if(before< -100 || before>100 ||
+                after< -100 || after>100)return false;
+            int change=after-before;
+            if(requested==0)return change==0;
+            if(change==0 || Math.Sign(change)!=Math.Sign(requested))
+                return false;
+            int possible=Math.Min(100,Math.Abs(requested)*4);
+            return Math.Abs(change)<=possible;
+        }
+
         public static bool RelationConfirmed(int before,int after,
             int requested)
         {
