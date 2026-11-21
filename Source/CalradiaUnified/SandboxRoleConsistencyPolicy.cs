@@ -29,13 +29,29 @@ namespace CalradiaUnified
             }
         }
 
+        // Native Advanced Start stores changed options only. The default
+        // scenario can be represented by an absent StartType in the actual
+        // campaign. Treat it as the default ONLY with a verified independent,
+        // landless clan. Never infer King/Vassal/Mercenary from a missing ID.
+        public static bool NativeStartTypeMatches(string expected,
+            string observed,bool hasKingdom,bool rulingClan,int fiefs)
+        {
+            if(String.IsNullOrEmpty(expected))return false;
+            if(String.Equals(expected,observed,StringComparison.Ordinal))
+                return true;
+            return expected=="default" &&
+                String.IsNullOrEmpty(observed) &&
+                !hasKingdom && !rulingClan && fiefs==0;
+        }
+
         public static string CheckNativeStation(string role,
             string actualStartType,bool hasKingdom,bool rulingClan,
             int fiefs)
         {
             string expected=NativeType(role);
             if(expected.Length==0)return "unknown_medieval_role";
-            if(actualStartType!=expected)
+            if(!NativeStartTypeMatches(expected,actualStartType,
+                hasKingdom,rulingClan,fiefs))
                 return "native_start_type_mismatch";
             if(fiefs<0)return "invalid_native_fief_count";
             if(role=="King")
