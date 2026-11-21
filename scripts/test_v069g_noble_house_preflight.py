@@ -106,7 +106,8 @@ assert "SandboxHouseholdLineagePolicy.ValidateHousePlan(" in profile
 
 write = vm[vm.index("private bool TryWrite("):
            vm.index("public void ExecutePreviousChoice()")]
-assert '"SiblingCount" ||' in write
+# The count must remain editable to expose an older stored sibling for correction.
+assert 'key=="SiblingCount"' not in write
 assert 'key.StartsWith("Sibling.",StringComparison.Ordinal)' in write
 assert "FirstOlderBrotherInIndependentLordHouse(" in write
 assert '"Independent Lord: sibling "+olderBrother+' in write
@@ -115,6 +116,13 @@ assert "FirstOlderBrotherInIndependentLordHouse(" in house
 assert 'field.Key=="Sibling."+olderBrother+".Age"' in house
 assert 'if(siblingStep>=0)cursor=siblingStep;' in house
 assert 'advanced=true;' in house
+auto_house = read("SandboxAutoHousePlan.cs")
+assert 'plan.NobleBirthPosition=="Independent"' in auto_house
+assert 'sibling.Gender=="Male" && sibling.Age>founder' in auto_house
+assert 'sibling.Gender="Female";' in auto_house
+assert auto_house.index('sibling.Gender="Female";') < (
+    auto_house.index('bool female=sibling.Gender=="Female";'))
+
 assert 'An older sister is allowed, but a ' in vm
 assert 'Independent Lord starts cannot include an older brother.' in vm
 assert 'Independent Lord requires you to be the eldest ' in vm
