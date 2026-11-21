@@ -4,9 +4,9 @@
 
 ## Evidence classification and current baseline
 
-**Latest verified compiled candidate:** [Windows Actions 44861474752](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44861474752), compiled code SHA `1cab880bec1ddd1d98c942c34fe0234db01d09d5`, **899 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
+**Latest simulated-audit compiled candidate:** [Windows Actions 44862791276](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276), compiled code SHA `2b220bf94d15a98e94342bdb163f883c370615df`, **899 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
 
-[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44861474752/artifacts/14689912379). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **588,288 bytes**, SHA-256 `db5f6ee8ceb92bea7e512935d260a7f863b55bc558e5aafe209da0a2ff42cb63`. Inner runtime ZIP: **267,046 bytes**, SHA-256 `6279868adb24d40edb723d1512ab2936296e0b529ec63480ead2e98e035867c6`.
+[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276/artifacts/14691045274). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **588,288 bytes**, SHA-256 `4047d5eda6c4bc191a7a50345be4ef3bd8e67d1a073a1a64cd07d70b79d01461`. Inner runtime ZIP: **267,062 bytes**, SHA-256 `b0ae5826fb57380775de85a611405d7d7881f3ab890398cf46f8b27ad32f8350`.
 
 **Gate status:** A/B compiled and policy-tested. For THIS exact DLL, **C (installed startup), D (live feature interaction), E (game save/reload), F (extended game session) and G (release)** are not verified. Keep drafts unmerged. Older v0.18–v0.48 screenshots and game logs document historical regressions but cannot certify the new build.
 
@@ -48,13 +48,13 @@ Suggested evidence filenames: `A01_main_menu.png`, `A02_world.png`, `A03_culture
 
 ## Player-side pinned validation, PowerShell 5.1
 
-From [exact artifact 14689912379](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44861474752/artifacts/14689912379), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
+From [exact artifact 14691045274](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276/artifacts/14691045274), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
 
 ```powershell
 $GameRoot = 'D:\Steam\steamapps\common\Mount & Blade II Bannerlord'
-$SourceCommit = '1cab880bec1ddd1d98c942c34fe0234db01d09d5'
+$SourceCommit = '2b220bf94d15a98e94342bdb163f883c370615df'
 $ExpectedVersion = 'v0.38.0'
-$ExpectedHash = 'db5f6ee8ceb92bea7e512935d260a7f863b55bc558e5aafe209da0a2ff42cb63'
+$ExpectedHash = '4047d5eda6c4bc191a7a50345be4ef3bd8e67d1a073a1a64cd07d70b79d01461'
 $Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.38.0-compiled-untested.zip'
 if (-not (Test-Path -LiteralPath $Zip -PathType Leaf)) {
     throw "First download the pinned Actions artifact and set the actual ZIP path."
@@ -88,3 +88,10 @@ Log each case with: **case ID, exact DLL hash, native game version, active modul
 ## Audit outcome at creation
 
 **Source inventory completed. Compiled baseline grounded. IN-GAME VISUAL AND GAMEPLAY ACCEPTANCE STILL NOT RUN FOR v0.69d.** This is a test protocol and review record, not a claim that the player's installed Bannerlord currently runs and displays everything correctly. Previous screenshots prove defects in older versions; they cannot establish their presence or absence in the current code.
+
+
+## Simulated QA update, 21 November 2026
+
+User-directed Q1/Q2/Q3 stress tests now pass Windows CI without adding gameplay code. [Latest simulation details](V069E_SIMULATION_AUDIT_RESULTS.md): 24 logical creator hitbox/visibility cases across three declared viewports, 10,000 modeled navigation cycles, 96×730 campaign model days and 1,441,129 checks, plus 12×48×365 modeled role-days and 979,198 assertions with 7,488 multi-state serializer checkpoint groups. The 899 independent C# gameplay policy checks and pinned module compile passed with zero errors/warnings. The installed-game protocol above now identifies the **exact same-run CI artifact, scripts SHA and DLL SHA** from 44862791276. Previous run hashes remain correct only for their own artifacts.
+
+This simulation success does not advance the installed-game acceptance gate. Real screen rendering, actual UI click/drag focus, first game launch, native 30-day campaign and save/quit/reload remain unverified.
