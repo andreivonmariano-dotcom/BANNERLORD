@@ -376,6 +376,8 @@ namespace CalradiaUnified
         {
             if(field.Advanced && !advanced) return false;
             string key=field.Key;
+            if(key=="EarlyHousehold" && preCampaign &&
+                profile.Role=="Wanderer")return false;
             if(key=="WandererCompanionEnabled")
                 return preCampaign && profile.Role=="Wanderer";
             if(key.StartsWith("WandererCompanion",
@@ -778,6 +780,7 @@ namespace CalradiaUnified
             if(candidate.WandererNoHouseStart)
             {
                 // A new Wanderer never inherits a hidden old House.
+                candidate.EarlyHousehold="Auto";
                 candidate.SpouseEnabled=false;
                 candidate.ChildCount=0;
                 candidate.SiblingCount=0;
@@ -788,8 +791,14 @@ namespace CalradiaUnified
                 candidate.AllowStartingFiefTransfer=false;
                 candidate.FamilyHomeMode="OwnedFief";
                 candidate.FamilyHomeId="";
+                if(!candidate.WandererCompanionEnabled)
+                    candidate.WandererCompanionOverrides.Clear();
             }
-            else candidate.WandererCompanionEnabled=false;
+            else
+            {
+                candidate.WandererCompanionEnabled=false;
+                candidate.WandererCompanionOverrides.Clear();
+            }
             // Soldier begins without unrelated companions. Advanced House
             // can request a named Sergeant or retain the native roster.
             candidate.RetinueMode=candidate.WandererNoHouseStart?
