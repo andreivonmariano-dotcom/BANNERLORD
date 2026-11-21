@@ -12,7 +12,7 @@ namespace CalradiaUnified
         public const string NativeType="king";
         public const string Retinue="RoleBased";
         public static readonly string[] CourtOffices={
-            "Marshal","Chamberlain"
+            "Marshal","RoyalMinister","Kingsguard"
         };
         public static string ValidateRequest(string role,
             string kingdomId,string birth,string elderId,string patronId,
@@ -27,7 +27,7 @@ namespace CalradiaUnified
                 return "native_founder_ruling_house_required";
             if(!String.IsNullOrEmpty(patronId) || roleAffiliations)
                 return "native_sovereignty_is_authoritative";
-            if(retinue!=Retinue)return "two_native_court_officers_required";
+            if(retinue!=Retinue)return "three_native_court_officers_required";
             if(fiefMode!="Native" ||
                 !String.IsNullOrEmpty(fiefId) || fiefTransfer)
                 return "royal_native_estate_only";
@@ -58,20 +58,46 @@ namespace CalradiaUnified
             return "";
         }
 
+        public static string ValidateRequiredRoyalFamily(
+            bool spouseRequested,int children)
+        {
+            if(!spouseRequested)return "royal_spouse_required";
+            if(children<1)return "royal_child_required";
+            if(children>SandboxOriginProfile.MaxChildren)
+                return "royal_children_exceed_limit";
+            return "";
+        }
+
+        public static string ValidateNativeMinistry(bool ownNativeFief,
+            bool unoccupiedGovernorSeat,bool nativeActionVerified,
+            bool sameNativeClan)
+        {
+            if(!ownNativeFief)return "royal_owned_fief_required";
+            if(!unoccupiedGovernorSeat)
+                return "royal_governor_seat_occupied_or_missing";
+            if(!nativeActionVerified || !sameNativeClan)
+                return "native_royal_governor_not_verified";
+            return "";
+        }
+
         public static string ValidateCourt(string receipt,int count,
             bool sameCulture,bool validNativeMembership,
-            bool realNativeHeroes,bool bothInParty,
-            bool marshalVerified,bool chamberlainVerified)
+            bool realNativeHeroes,bool marshalInParty,
+            bool ministerNativeGovernor,bool kingsguardInParty,
+            bool marshalVerified,bool ministerVerified,
+            bool kingsguardVerified)
         {
             if(String.IsNullOrEmpty(receipt) ||
-                !receipt.StartsWith("officers=2|",
+                !receipt.StartsWith("officers=3|",
                     StringComparison.Ordinal) ||
                 !receipt.EndsWith("|same_culture=true",
                     StringComparison.Ordinal))
                 return "native_royal_court_receipt_missing";
-            if(count!=2 || !sameCulture || !validNativeMembership ||
-                !realNativeHeroes || !bothInParty ||
-                !marshalVerified || !chamberlainVerified)
+            if(count!=3 || !sameCulture || !validNativeMembership ||
+                !realNativeHeroes || !marshalInParty ||
+                !ministerNativeGovernor || !kingsguardInParty ||
+                !marshalVerified || !ministerVerified ||
+                !kingsguardVerified)
                 return "native_royal_court_unverified";
             return "";
         }
