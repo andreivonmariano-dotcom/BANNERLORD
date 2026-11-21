@@ -137,6 +137,9 @@ namespace CalradiaUnified
         public string SoldierEntryRank = "Recruit";
         public bool KnightGuidedStart;
         public string KnightOrigin = "SwornHouse";
+        // New Lord requires the real pinned native vassal start.
+        // Old Lord profiles keep their historical behavior.
+        public bool LordGuidedStart;
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -234,6 +237,7 @@ namespace CalradiaUnified
             SoldierEntryRank="Recruit";
             KnightGuidedStart=false;
             KnightOrigin="SwornHouse";
+            LordGuidedStart=false;
             if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)
                 Role="Wanderer";
             WandererCompanionEnabled=false;
@@ -507,6 +511,9 @@ namespace CalradiaUnified
                 case "KnightOrigin":
                     if(!SandboxKnightStartPolicy.IsOrigin(value))return false;
                     KnightOrigin=value;return true;
+                case "LordGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    LordGuidedStart=b;return true;
                 case "SoldierEntryRank":
                     if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
                         return false;
@@ -643,6 +650,23 @@ namespace CalradiaUnified
             {
                 error="Choose a supported early household and ambition.";
                 return false;
+            }
+            if(LordGuidedStart)
+            {
+                string lord=SandboxLordStartPolicy.ValidateRequest(
+                    Role,StartingKingdomId,NobleBirthPosition,
+                    RetinueMode,StartingFiefMode,StartingFiefId,
+                    AllowStartingFiefTransfer,Gold,Influence,Troops,
+                    RoleAffiliationsEnabled,NobleElderHeroId,
+                    ServicePatronHeroId);
+                if(lord.Length!=0 || KnightGuidedStart ||
+                   SoldierGuidedStart || MercenaryGuidedStart ||
+                   OutlawGuidedStart || WandererNoHouseStart)
+                {
+                    error="Guided Lord: "+(lord.Length==0?
+                        "cannot combine incompatible life starts":lord);
+                    return false;
+                }
             }
             if(KnightGuidedStart)
             {
@@ -845,6 +869,7 @@ namespace CalradiaUnified
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", knight_origin=" + (KnightGuidedStart?KnightOrigin:"legacy") +
+                ", guided_lord=" + LordGuidedStart +
                 ", noble_birth=" + NobleBirthPosition +
                 ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
@@ -940,6 +965,8 @@ namespace CalradiaUnified
                 "KnightGuidedStart=" +
                     KnightGuidedStart.ToString().ToLowerInvariant(),
                 "KnightOrigin=" + KnightOrigin,
+                "LordGuidedStart=" +
+                    LordGuidedStart.ToString().ToLowerInvariant(),
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
