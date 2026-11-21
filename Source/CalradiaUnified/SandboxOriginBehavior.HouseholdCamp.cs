@@ -75,6 +75,110 @@ namespace CalradiaUnified
                 "\n\nThe names above come from your actual party roster. "+
                 "No relatives or officers are summoned from elsewhere.";
         }
+        private string CampCorrespondenceText()
+        {
+            if(!agencyDecisions.HasPending)
+                return "No one has a pending private petition. "+
+                    "Speak to your actual companions and grown family "+
+                    "members to learn what matters to them.";
+            var person=ResolveCampaignHero(
+                agencyDecisions.PendingHeroId);
+            if(person==null || !person.IsAlive)
+                return "The recorded petitioner cannot presently "+
+                    "be found. No remote answer can be given.";
+            var place=person.StayingInSettlement ??
+                person.CurrentSettlement;
+            string where=place!=null?place.Name.ToString():
+                person.PartyBelongedTo!=null?
+                    person.PartyBelongedTo.Name.ToString():
+                    "location not verified";
+            var story=petitionStories.For(person.StringId);
+            return person.Name+" seeks "+agencyDecisions.PendingKind+
+                ".\nLast known location: "+where+
+                "\nPersonal history: "+(story==null?
+                    "no earlier outcome":story.Outcome)+
+                "\nAnswer only by speaking with this person.";
+        }
+        private string CampOfficerText()
+        {
+            var clan=Clan.PlayerClan;
+            string summary="";
+            foreach(var office in new[]{"Steward","Captain","Envoy"})
+            {
+                string id=householdDuties.AssignedId(office);
+                var person=ResolveCampaignHero(id);
+                bool verified=person!=null && person.IsAlive &&
+                    clan!=null && person.CompanionOf==clan &&
+                    person.Clan==clan;
+                summary+=office+": "+(id.Length==0?"vacant":
+                    verified?person.Name.ToString():
+                    "previous holder unavailable")+
+                    " | reports "+householdDuties.ReportCount(office)+
+                    "\n";
+            }
+            return summary+
+                "\nMeet your companion in person to grant "+
+                "a duty or hear a witnessed report.";
+        }
+        private string CampServiceText()
+        {
+            string overview=CareerChronicleDescription();
+            if(!knightOath.IsConfigured)return overview;
+            var patron=KnightOathPatron();
+            return "Sworn patron: "+NativePersonName(patron)+
+                "\nRelationship: "+(patron==null?
+                    "unavailable":Hero.MainHero.GetRelation(patron)
+                        .ToString())+
+                " | Escorts: "+knightEscort.CompletedEscorts+
+                "\nOrders completed: "+knightServiceOrders.CompletedOrders+
+                " | Order: "+knightServiceOrders.Status+
+                (knightServiceOrders.Active?
+                    " (due day "+knightServiceOrders.DueDay+")":"")+
+                "\nHousehold standing: "+
+                KnightVerifiedStanding()+
+                "\n\n"+overview;
+        }
+        private void InspectTravelingHouseholdMember(Hero person)
+        {
+            if(person==null || !PresentCampHeroes().Contains(person))
+                return;
+            var place=person.StayingInSettlement ??
+                person.CurrentSettlement;
+            ShowNativeDetail(person.Name+" | Traveling household",
+                "Age "+(int)person.Age+
+                "\nCurrent duty: "+DossierOfficerLabel(person)+
+                "\nNative party: "+MobileParty.MainParty.Name+
+                "\nStanding with you: "+
+                Hero.MainHero.GetRelation(person)+
+                "\nKnown settlement: "+(place==null?
+                    "not recorded":place.Name.ToString())+
+                "\nThis is an actual living companion in your "+
+                "party, not a summoned or fabricated NPC.");
+        }
+        private void OpenIllustratedHouseholdCamp()
+        {
+            if(!CanSetUpNativeCamp())return;
+            var clan=Clan.PlayerClan;
+            var people=PresentCampHeroes();
+            try
+            {
+                ScreenManager.PushScreen(new CUHouseholdCampScreen(
+                    people,
+                    clan==null?"Under your own banner":
+                        "Beneath the banner of "+clan.Name,
+                    CampRollText(),CampOfficerText(),
+                    CampCorrespondenceText(),CampServiceText(),
+                    InspectTravelingHouseholdMember));
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_household_camp_illustrated_fallback",error);
+                ShowNativeDetail("The traveling household",
+                    CampRollText()+"\n\n"+CampOfficerText());
+            }
+        }
+
         private void RegisterHouseholdCampMenus(
             CampaignGameStarter starter)
         {
@@ -87,10 +191,9 @@ namespace CalradiaUnified
                 args=>{});
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_roll",
-                "Who is traveling under my banner?",
+                "Open my illustrated household register",
                 args=>CanSetUpNativeCamp(),
-                args=>ShowNativeDetail("Camp | The traveling household",
-                    CampRollText()),false);
+                args=>OpenIllustratedHouseholdCamp(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_officers",
                 "Review the duties of my companions",
