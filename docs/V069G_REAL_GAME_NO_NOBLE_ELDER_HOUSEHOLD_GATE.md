@@ -36,3 +36,15 @@ The older-lord search in `SandboxDynasticStart` requires a real existing older n
 - **Actual in-game retest remains required:** same origin should stop at House with an honest message, not start an empty household. Select Independent, confirm spouse, two children and two siblings survive, verify all exact native Heroes, parents and clan references, and repeat save/quit/reload. True older-lord lineage still needs a native eligible elder. Game-overlap, click focus and UI-scale tests remain outstanding.
 
 **Gate status:** **D failure evidence received** for the old build. This is not a D pass for the repair. Do not merge or release based solely on policy-source and reference-compilation evidence.
+
+
+## Verified compiled repair and new-test contract
+
+[Successful Windows CI run 44866582823](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823) built exact revision `63a82b14bde2ccc07eea9a15a9745aa6ae3693fb` with **910 executable C# gameplay checks passed**, **1,159,203 audit policy assertions**, 70,080 modeled campaign days with **1,441,129 additional policy checks**, and **0 compiler warnings or errors**. The v0.69g House preflight source regression passed and the native Review XML model retained 24 logical visibility/hitbox cases.
+
+- [Exact new compiled game-untested ZIP](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071), inner runtime ZIP **267,668 bytes**, SHA-256 `0d6c1ed8882dc89457b85d2e9e17ecc2949b8691cd96b6498c93e1397a2c7368`.
+- DLL **590,848 bytes**, SHA-256 `2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0`.
+- Updated [PowerShell `-ShowLatest` / `-LatestVerified` installer](../scripts/Install-CU-From-Artifact.ps1) now pins **v0.69g** to this actual successful source+artifact SHA, retaining historical in-game manifest `v0.38.0`.
+- The earlier **v0.69f** session had different DLL SHA `80b6f6bc725d8855ad18adf2fabcddccb57ab2a13b59a5e7393558bc083e2740`, so do not mix files across CI runs.
+
+**Required direct game verification:** Create a disposable Vlandian Lord/YoungerBrotherOfLord start, select a spouse (38), children (9, 7), and two siblings. On an ineligible elder, verify native Review never begins and the House screen focuses the noble-birth choice with all selections retained. Explicitly choose **Independent**, then finish the same House plan and verify one actual native spouse, two actual children and two native siblings in the real game. Check individual parent links, clan, age, menu, real save/quit/reload and that no duplicates appear. **This v0.69g source repair is not a successful native-elder-binding test.** It makes an unsupported start recoverable rather than creating a false lord or quietly discarding family choices.
