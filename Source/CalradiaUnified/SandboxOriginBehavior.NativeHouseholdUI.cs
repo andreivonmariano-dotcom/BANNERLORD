@@ -158,43 +158,53 @@ namespace CalradiaUnified
             ScreenManager.PushScreen(new CUFamilyPortraitScreen());
         }
 
-        private void DeclineDossierPetition()
-        {
-            var actor=RequestedCharacter();
-            if(actor==null)return;
-            InformationManager.ShowInquiry(new InquiryData(
-                "Decline "+actor.Name,
-                "Decline this person's outstanding request? "+
-                "The native relationship change will be recorded.",
-                true,true,"Decline","Not now",
-                ()=>AnswerCharacterRequest(false),()=>{}),true);
-        }
-
+        // The campaign dossier is an index, not a remote way of
+        // ordering another person's finances or affection.
+        // The actual response is spoken to the real Hero in person.
         private void HearDossierPetition()
         {
-            OfferLocalCharacterRequest(Hero.MainHero);
-            var actor=RequestedCharacter();
-            if(actor==null)
+            if(!agencyDecisions.HasPending)
             {
-                ShowNativeDetail("Petitions",
-                    "No one currently present has a pending request. "+
-                    "Visit your household and companions in person.");
+                ShowNativeDetail("Private petitions",
+                    "No petition waits in your household ledger. "+
+                    "Speak to your companions and grown family "+
+                    "members in person to learn what concerns them.");
+                return;
+            }
+            var actor=ResolveCampaignHero(
+                agencyDecisions.PendingHeroId);
+            if(actor==null || !actor.IsAlive)
+            {
+                ShowNativeDetail("Private petitions",
+                    "The petitioner cannot currently be found. "+
+                    "No choice or money transfer will be made.");
                 return;
             }
             int denars=SandboxAgencyDecisionPolicy.Amount(
                 agencyDecisions.PendingKind);
-            string request=agencyDecisions.PendingKind=="Recognition"?
-                "asks you to recognize their work":
-                "asks for "+denars+" denars from your actual purse";
-            InformationManager.ShowInquiry(new InquiryData(
-                actor.Name+" | A private petition",
-                actor.Name+" "+request+
-                ". You may offer help or decline. "+
-                "Both choices follow the campaign's real "+
-                "gold and relationship rules.",
-                true,true,"Offer help","Decline",
-                ()=>ConfirmCharacterSupport(),
-                ()=>DeclineDossierPetition()),true);
+            string concern=agencyDecisions.PendingKind=="Recognition"?
+                "wishes their service to be acknowledged":
+                denars>0?
+                    "seeks "+denars+" denars of household help":
+                    "has a private matter to discuss";
+            var settlement=actor.StayingInSettlement ??
+                actor.CurrentSettlement;
+            string where=settlement!=null?
+                "Last recorded at "+settlement.Name+".":
+                actor.PartyBelongedTo!=null?
+                    "Traveling with "+actor.PartyBelongedTo.Name+".":
+                    "Their present location is not verified.";
+            ShowNativeDetail("Private petition | "+actor.Name,
+                actor.Name+" "+concern+".\n"+where+
+                "\nMeet this person and ask about their affairs "+
+                "through the game's normal conversation. "+
+                "Only the face-to-face answer can change "+
+                "real gold or relationships.");
+            DiagnosticJournal.Event("cu_petition_ledger_consulted",
+                "actor="+actor.StringId+
+                "|location_known="+(settlement!=null ||
+                   actor.PartyBelongedTo!=null)+
+                "|remote_payment_or_relation_action=false");
         }
 
         // Role briefings point to real native authorities. They do not
