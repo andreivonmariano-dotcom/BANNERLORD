@@ -4,6 +4,7 @@ This is source-only evidence. It does not launch Bannerlord or verify
 that a native action succeeded in a running game or a persisted save.
 """
 from pathlib import Path
+import re
 
 src = Path(__file__).resolve().parents[1] / "Source" / "CalradiaUnified"
 def read(name):
@@ -24,8 +25,8 @@ assert family.index("allocatedChildren.Add(child);") < family.index(
 assert "allocatedChildren.Count" in family
 assert "CleanupProvisionalHero(spouseHero,player)" in family
 assert "CleanupProvisionalHero(incompleteSibling,player)" in family
-assert "CleanupProvisionalHero(newFather,player)" in family
-assert "CleanupProvisionalHero(newMother,player)" in family
+assert re.search(r"CleanupProvisionalHero\\s*\\(\\s*newFather\\s*,\\s*player\\s*\\)", family)
+assert re.search(r"CleanupProvisionalHero\\s*\\(\\s*newMother\\s*,\\s*player\\s*\\)", family)
 assert "person.Children!=null && person.Children.Count>0" in family
 assert "person.PartyBelongedToAsPrisoner!=null" in family
 assert "person.StayingInSettlement!=null" in family
