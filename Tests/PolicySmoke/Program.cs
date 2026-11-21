@@ -95,44 +95,44 @@ internal static class Program
                 "officers=2|native_companions_dismissed=1|same_culture=true",
                 2,true,true,true,true,true,false)==
                     "native_royal_court_unverified");
-        var king=new SandboxOriginProfile();
-        king.Role="King";
-        king.KingGuidedStart=true;
-        king.StartingKingdomId="vlandia";
-        king.RetinueMode="RoleBased";
+        var guidedKing=new SandboxOriginProfile();
+        guidedKing.Role="King";
+        guidedKing.KingGuidedStart=true;
+        guidedKing.StartingKingdomId="vlandia";
+        guidedKing.RetinueMode="RoleBased";
         Check("guided King allows unmarried childless ruler",
-            king.IsValid(30,out _) &&
-            SandboxOriginProfile.Parse(king.Serialize())
+            guidedKing.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedKing.Serialize())
                 .KingGuidedStart &&
-            SandboxNativeTypeForPolicy("King")=="king");
-        king.StartingFiefMode="Castle";
-        king.AllowStartingFiefTransfer=true;
+            SandboxNativeTypeForPolicy("King")=="guidedKing");
+        guidedKing.StartingFiefMode="Castle";
+        guidedKing.AllowStartingFiefTransfer=true;
         Check("guided King refuses arbitrary donor castle",
-            !king.IsValid(30,out _));
-        king.StartingFiefMode="Native";
-        king.AllowStartingFiefTransfer=false;
-        king.Gold=500000;
+            !guidedKing.IsValid(30,out _));
+        guidedKing.StartingFiefMode="Native";
+        guidedKing.AllowStartingFiefTransfer=false;
+        guidedKing.Gold=500000;
         Check("guided King refuses invented royal treasury",
-            !king.IsValid(30,out _));
-        king.Gold=-1;
-        king.NobleBirthPosition="YoungerBrotherOfKing";
+            !guidedKing.IsValid(30,out _));
+        guidedKing.Gold=-1;
+        guidedKing.NobleBirthPosition="YoungerBrotherOfKing";
         Check("guided King refuses decorative royal elder lineage",
-            !king.IsValid(30,out _));
-        king.NobleBirthPosition="Independent";
-        king.SiblingCount=1;
-        king.Siblings[0].Age=36;
-        king.Siblings[0].Gender="Male";
+            !guidedKing.IsValid(30,out _));
+        guidedKing.NobleBirthPosition="Independent";
+        guidedKing.SiblingCount=1;
+        guidedKing.Siblings[0].Age=36;
+        guidedKing.Siblings[0].Gender="Male";
         Check("guided King rejects older founding brother",
-            !king.IsValid(30,out _) &&
+            !guidedKing.IsValid(30,out _) &&
             SandboxHouseholdLineagePolicy.ValidateHousePlan(
-                king,30)=="founding_king_older_brother");
-        king.Siblings[0].Gender="Female";
+                guidedKing,30)=="founding_king_older_brother");
+        guidedKing.Siblings[0].Gender="Female";
         Check("guided King permits older sister with actual family",
-            king.IsValid(30,out _));
+            guidedKing.IsValid(30,out _));
         Check("guided King supports two safe child priority customs",
-            king.TrySet("KingSuccessionRule","MalePreference") &&
-            king.IsValid(30,out _) &&
-            SandboxOriginProfile.Parse(king.Serialize())
+            guidedKing.TrySet("KingSuccessionRule","MalePreference") &&
+            guidedKing.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedKing.Serialize())
                 .KingSuccessionRule=="MalePreference" &&
             !SandboxKingStartPolicy.CanAppointNativeRuler() &&
             !SandboxKingStartPolicy.CanGrantNativeFief() &&
@@ -175,11 +175,11 @@ internal static class Program
                 "CU_KING_CLAIMS_1\ninvalid").IsRecorded &&
             kingClaims.Observe(1,false,"house","daughter",
                 new[]{son})=="invalid_observation_day");
-        king.ResetForNewCampaign();
+        guidedKing.ResetForNewCampaign();
         Check("new King profile clears new crown and succession settings",
-            !king.KingGuidedStart &&
-            king.KingSuccessionRule=="EldestChild" &&
-            king.Role=="King");
+            !guidedKing.KingGuidedStart &&
+            guidedKing.KingSuccessionRule=="EldestChild" &&
+            guidedKing.Role=="King");
         Check("historical King save keeps legacy no-crown-validation profile",
             !SandboxOriginProfile.Parse(
                 "Version=CU_ORIGIN_1\nRole=King\n"+
