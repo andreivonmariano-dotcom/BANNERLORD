@@ -4,7 +4,7 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#110D09F2"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#110D0999"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="1080"
@@ -45,7 +45,7 @@
             <ListPanel DataSource="{Members}"
                     WidthSizePolicy="Fixed" SuggestedWidth="1005"
                     HeightSizePolicy="Fixed" SuggestedHeight="432"
-                    StackLayout.LayoutMethod="VerticalBottomToTop"
+                    StackLayout.LayoutMethod="VerticalTopToBottom"
                     PositionXOffset="34" PositionYOffset="151">
               <ItemTemplate>
                 <ListPanel WidthSizePolicy="Fixed" SuggestedWidth="1005"
@@ -58,19 +58,19 @@
                         AdditionalArgs="@AdditionalArgs"
                         ImageId="@Id"
                         TextureProviderName="@TextureProviderName"/>
-                    <TextWidget Brush.FontSize="18" Text="@Name" Color="#FFE6B8FF"
+                    <TextWidget Brush.FontSize="18" Text="@Name"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center"Color="#FFE6B8FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="194"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
-                    <TextWidget Brush.FontSize="16" Text="@Relationship" Color="#D7B377FF"
+                    <TextWidget Brush.FontSize="16" Text="@Relationship"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center"Color="#D7B377FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="102"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
-                    <TextWidget Brush.FontSize="16" Text="@Age" Color="#E9E3D6FF"
+                    <TextWidget Brush.FontSize="16" Text="@Age"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center"Color="#E9E3D6FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="111"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
-                    <TextWidget Brush.FontSize="16" Text="@Home" Color="#E6D1B1FF"
+                    <TextWidget Brush.FontSize="16" Text="@Home"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center"Color="#E6D1B1FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="213"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
-                    <TextWidget Brush.FontSize="15" Text="@Presence" Color="#D5BC91FF"
+                    <TextWidget Brush.FontSize="15" Text="@Presence"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center"Color="#D5BC91FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="333"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                   </Children>
