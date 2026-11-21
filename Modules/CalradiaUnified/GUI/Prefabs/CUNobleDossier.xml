@@ -199,6 +199,22 @@
             <ButtonWidget Brush="ButtonBrush"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="218"
+                    HeightSizePolicy="Fixed" SuggestedHeight="44"
+                    PositionXOffset="502" PositionYOffset="562"
+                    Command.Click="ExecuteRoleAction">
+              <Children>
+                <TextWidget Text="@RoleActionLabel"
+                        Brush.FontSize="16" Color="#FFEED6FF"
+                        WidthSizePolicy="StretchToParent"
+                        HeightSizePolicy="StretchToParent"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="184"
                     HeightSizePolicy="Fixed" SuggestedHeight="44"
                     PositionXOffset="733" PositionYOffset="562"
