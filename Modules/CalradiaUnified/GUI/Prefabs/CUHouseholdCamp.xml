@@ -39,12 +39,12 @@
             <ButtonWidget Brush="ButtonBrush"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
-                WidthSizePolicy="Fixed" SuggestedWidth="202"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
                 HeightSizePolicy="Fixed" SuggestedHeight="43"
                 PositionXOffset="48" PositionYOffset="134"
                 Command.Click="ExecutePeople">
               <Children>
-                <TextWidget Text="People" Brush.FontSize="18"
+                <TextWidget Text="People" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -55,12 +55,12 @@
             <ButtonWidget Brush="ButtonBrush"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
-                WidthSizePolicy="Fixed" SuggestedWidth="202"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
                 HeightSizePolicy="Fixed" SuggestedHeight="43"
-                PositionXOffset="273" PositionYOffset="134"
+                PositionXOffset="231" PositionYOffset="134"
                 Command.Click="ExecuteOfficers">
               <Children>
-                <TextWidget Text="Officers" Brush.FontSize="18"
+                <TextWidget Text="Officers" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -71,12 +71,12 @@
             <ButtonWidget Brush="ButtonBrush"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
-                WidthSizePolicy="Fixed" SuggestedWidth="202"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
                 HeightSizePolicy="Fixed" SuggestedHeight="43"
-                PositionXOffset="498" PositionYOffset="134"
+                PositionXOffset="414" PositionYOffset="134"
                 Command.Click="ExecuteLetters">
               <Children>
-                <TextWidget Text="Letters" Brush.FontSize="18"
+                <TextWidget Text="Letters" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -87,12 +87,28 @@
             <ButtonWidget Brush="ButtonBrush"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
-                WidthSizePolicy="Fixed" SuggestedWidth="202"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
                 HeightSizePolicy="Fixed" SuggestedHeight="43"
-                PositionXOffset="723" PositionYOffset="134"
+                PositionXOffset="597" PositionYOffset="134"
                 Command.Click="ExecuteService">
               <Children>
-                <TextWidget Text="Service" Brush.FontSize="18"
+                <TextWidget Text="Service" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="780" PositionYOffset="134"
+                Command.Click="ExecuteChronicle">
+              <Children>
+                <TextWidget Text="Chronicle" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
