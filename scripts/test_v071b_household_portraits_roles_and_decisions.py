@@ -25,7 +25,7 @@ for name in ("{FamilyMembers}","{OfficerMembers}"):
     assert lists[name].find("ItemTemplate/"+
         "ButtonWidget[@Command.Click='ExecuteInspect']") is not None
 for action in ("ExecuteOpenFamily","ExecuteHearPetition",
-               "ExecuteClose"):
+               "ExecuteRoleAction","ExecuteClose"):
     assert any(e.get("Command.Click")==action for e in
                prefab.iter("ButtonWidget")),action
 assert 'MBBindingList<CUFamilyPortraitVM> FamilyMembers' in screen
@@ -57,6 +57,9 @@ for role in ("Wanderer","Outlaw","Mercenary",
 for role in ("Wanderer","Outlaw","Mercenary","Soldier"):
     assert 'case "'+role+'":' in house,role
 assert 'roleEconomy.CareerStatus' in house
+assert 'ReviewDossierCalling' in house
+assert 'RoleActionLabel' in screen
+assert 'ExecuteRoleAction()' in screen
 assert 'clan.IsUnderMercenaryService' in house
 assert 'serviceCareer.VerifiedExternalEnlistment' in house
 assert 'knightOath.LastMusterDay<0' in house
