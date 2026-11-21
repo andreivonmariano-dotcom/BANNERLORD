@@ -23,6 +23,94 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.73: native party casualties, own-clan injuries, and
+        // battle-based patron recognition with no automatic rewards.
+        var losses = new SandboxBattleHistoryState();
+        string woundKey=SandboxBattleHistoryState.EventKey(
+            "v073-test-native-wounded-party");
+        Check("native casualty ledger records actual party killed and wounded",
+            losses.RecordObserved(woundKey,21,"Field","Victory",
+                "PlayerParty","", "", "patron_a",3,8,
+                "hero_companion_a,hero_companion_b","hero_companion_c") &&
+            losses.Entries[0].PartyDead==3 &&
+            losses.Entries[0].PartyWounded==8 &&
+            losses.DescribeRecent(1).Contains("party fallen 3, wounded 8") &&
+            losses.DescribeRecent(1).Contains("hero_companion_a"));
+        Check("battle casualty evidence rejects impossible values and fake ids",
+            !losses.RecordObserved(
+                SandboxBattleHistoryState.EventKey("bad-negative"),22,
+                "Field","Victory","PlayerParty","","","",-2,2,"","") &&
+            !losses.RecordObserved(
+                SandboxBattleHistoryState.EventKey("bad-high"),22,
+                "Field","Victory","PlayerParty","","","",100001,0,"","") &&
+            !losses.RecordObserved(
+                SandboxBattleHistoryState.EventKey("bad-unsourced"),22,
+                "Field","Victory","PlayerParty","","","",-1,-1,
+                "hero_x","") &&
+            !losses.RecordObserved(
+                SandboxBattleHistoryState.EventKey("fake-hero"),22,
+                "Field","Victory","PlayerParty","","","",1,1,
+                "../hero","") &&
+            !losses.RecordObserved(
+                SandboxBattleHistoryState.EventKey("fake-witness"),22,
+                "Field","Victory","ServeAsSoldier","","lord_a",
+                "patron_a",0,1,"","") &&
+            losses.Entries.Count==1);
+        Check("party casualty counts and own-clan names survive save",
+            SandboxBattleHistoryState.Parse(losses.Serialize())
+                .Serialize()==losses.Serialize() &&
+            SandboxBattleHistoryState.Parse(losses.Serialize())
+                .Entries[0].WoundedHeroIds=="hero_companion_a,hero_companion_b");
+        string oldBattle="CU_BATTLE_HISTORY_1\n"+woundKey+
+            "|21|Field|Victory|PlayerParty|||";
+        var migrated=SandboxBattleHistoryState.Parse(oldBattle);
+        Check("v072 battle saves migrate with unknown casualty counts",
+            migrated.Entries.Count==0 || migrated.Entries[0].PartyDead==-1);
+        string validOld="CU_BATTLE_HISTORY_1\n"+woundKey+
+            "|21|Field|Victory|PlayerParty||";
+        migrated=SandboxBattleHistoryState.Parse(validOld);
+        Check("valid legacy saved battle migrates without false casualties",
+            migrated.Entries.Count==1 &&
+            migrated.Entries[0].PartyDead==-1 &&
+            migrated.Entries[0].PartyWounded==-1 &&
+            SandboxBattleHistoryState.Parse(migrated.Serialize())
+                .Entries.Count==1);
+        string secondKey=SandboxBattleHistoryState.EventKey(
+            "v073-two-victories");
+        losses.RecordObserved(secondKey,22,"Field","Victory",
+            "PlayerParty","","","patron_a",0,0,"","");
+        string defeatedKey=SandboxBattleHistoryState.EventKey(
+            "v073-not-a-victory");
+        losses.RecordObserved(defeatedKey,23,"Siege","Defeat",
+            "PlayerParty","","","patron_a",5,6,"","");
+        string enlistedKey=SandboxBattleHistoryState.EventKey(
+            "v073-sas-host-not-knight");
+        losses.RecordObserved(enlistedKey,23,"Field","Victory",
+            "ServeAsSoldier","","lord_a","",0,0,"","");
+        Check("knight credited only same-side native patron victories",
+            losses.WitnessedVictoriesWith("patron_a")==2 &&
+            losses.WitnessedVictoriesWith("lord_a")==0 &&
+            losses.WitnessedVictoriesWith("")==0);
+        var honors=new SandboxKnightBattleRecognitionState();
+        Check("battle reward needs two verified victories and real audience",
+            !honors.CanAcknowledge("patron_a",1,true,24) &&
+            !honors.CanAcknowledge("patron_a",2,false,24) &&
+            honors.CanAcknowledge("patron_a",2,true,24) &&
+            honors.MarkAcknowledged("patron_a",2,true,24));
+        Check("one report per stage, capped and no second grant on reload",
+            !honors.CanAcknowledge("patron_a",2,true,24) &&
+            !honors.CanAcknowledge("patron_a",4,true,25) &&
+            !honors.CanAcknowledge("other_lord",5,true,25) &&
+            honors.MarkAcknowledged("patron_a",5,true,25) &&
+            !honors.MarkAcknowledged("patron_a",8,true,26) &&
+            SandboxKnightBattleRecognitionState.Parse(
+                honors.Serialize()).Serialize()==honors.Serialize());
+        Check("recognition state refuses malformed save",
+            SandboxKnightBattleRecognitionState.Parse(
+                honors.Serialize()+"|tamper").Stage==0 &&
+            SandboxKnightBattleRecognitionState.Parse(
+                "bad-state").Stage==0);
+
         // v0.72: real campaign battle receipts are read-only and bounded.
         var history = new SandboxBattleHistoryState();
         string battleKey = SandboxBattleHistoryState.EventKey(

@@ -136,6 +136,7 @@ namespace CalradiaUnified
                     " (due day "+knightServiceOrders.DueDay+")":"")+
                 "\nHousehold standing: "+
                 KnightVerifiedStanding()+
+                "\n"+KnightBattleServiceSummary()+
                 "\n\n"+overview;
         }
         private void InspectTravelingHouseholdMember(Hero person)
