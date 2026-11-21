@@ -62,6 +62,8 @@ namespace CalradiaUnified
             var party=MobileParty.MainParty;
             var settlement=Settlement.CurrentSettlement;
             string office=HouseholdOfficeFor(speaker.StringId);
+            if(!householdDuties.CanReport(office,speaker.StringId,
+                CurrentHouseholdDay()))return false;
             if(office=="Steward")
                 return settlement!=null &&
                     settlement.OwnerClan==Clan.PlayerClan &&
