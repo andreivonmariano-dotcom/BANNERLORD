@@ -963,9 +963,7 @@ namespace CalradiaUnified
                 "RoleBased":candidate.MercenaryGuidedStart ||
                 candidate.KnightGuidedStart ?
                 "FamilyOnly":candidate.SoldierGuidedStart ?
-                "FamilyOnly":candidate.LordGuidedStart?
-                SandboxLordStartPolicy.GuidedRetinue:
-                SandboxServicePolicy.DefaultRetinue(
+                "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
                 candidate.ServicePatronHeroId="";
