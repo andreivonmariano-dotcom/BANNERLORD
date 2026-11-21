@@ -60,6 +60,9 @@ namespace CalradiaUnified
         private string dynasticOlderSons = "";
         private string servicePatronHeroId = "";
         private string servicePatronName = "";
+        // These belong to this campaign save, not an external profile.
+        private string wandererCompanionId = "";
+        private int wandererWageCreditDay = -1;
 
         public override void RegisterEvents()
         {
@@ -71,6 +74,8 @@ namespace CalradiaUnified
                 this, TryApplyOnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, AdvanceFamilyUpbringing);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, RefundWandererCompanionWage);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -328,6 +333,10 @@ namespace CalradiaUnified
                 ref servicePatronHeroId);
             store.SyncData("CU_v063_service_patron_name",
                 ref servicePatronName);
+            store.SyncData("CU_v070b_wanderer_companion",
+                ref wandererCompanionId);
+            store.SyncData("CU_v070b_wanderer_wage_credit_day",
+                ref wandererWageCreditDay);
             // Keep only our generated children's personal upbringing
             // records in the actual campaign save. A different player's
             // profile.ini cannot rewrite this campaign after creation.
@@ -926,6 +935,49 @@ namespace CalradiaUnified
             }
         }
 
+        private void RefundWandererCompanionWage()
+        {
+            if(!applied || !IsStandaloneSandbox() ||
+                String.IsNullOrEmpty(wandererCompanionId) ||
+                Campaign.Current==null || Hero.MainHero==null ||
+                MobileParty.MainParty==null)return;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            if(wandererWageCreditDay==day)return;
+            // Record the day before any native gold action, preventing a
+            // repeated payment on an exception, reload or second tick.
+            wandererWageCreditDay=day;
+            var companion=Hero.AllAliveHeroes.FirstOrDefault(h=>
+                h!=null && h.StringId==wandererCompanionId);
+            if(companion==null || !companion.IsActive ||
+                companion.Clan!=Clan.PlayerClan ||
+                companion.CompanionOf!=Clan.PlayerClan ||
+                MobileParty.MainParty.MemberRoster.GetTroopCount(
+                    companion.CharacterObject)!=1)return;
+            try
+            {
+                int listed=Campaign.Current.Models.PartyWageModel
+                    .GetCharacterWage(companion.CharacterObject);
+                if(listed<0 || listed>10000)
+                    throw new InvalidOperationException(
+                        "Companion native daily wage outside accepted bounds");
+                if(listed>0)
+                    GiveGoldAction.ApplyBetweenCharacters(
+                        null,Hero.MainHero,listed,false);
+                DiagnosticJournal.Event("cu_wanderer_wage_credit",
+                    "companion="+companion.StringId+
+                    "|day="+day+"|native_character_wage="+listed+
+                    "|player_reimbursement="+listed+
+                    "|source=native_party_wage_model"+
+                    "|not_global_wage_model_override=true"+
+                    "|companion_in_main_party=true");
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_wanderer_wage_credit_failed",error);
+            }
+        }
+
         private void AdvanceFamilyUpbringing()
         {
             if(familyGrowth==null || familyGrowth.Count==0 ||
@@ -1361,9 +1413,9 @@ namespace CalradiaUnified
                     return;
                 }
 
-                // Role-based officers use same-culture native noble donors.
-                // FamilyOnly removes native wanderers without adding
-                // unrelated officers. Native preserves the original roster.
+                // The optional named Wanderer friend is not a household
+                // officer. First dismiss native starter wanderers using
+                // the checked FamilyOnly path; only then register one Hero.
                 string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
                 DiagnosticJournal.Event("cu_cultural_retinue_status",
                     "role="+profile.Role+
@@ -1385,6 +1437,40 @@ namespace CalradiaUnified
                     Notify("The chosen retinue could not be verified. "+
                         "Optional Starting Life grants were withheld.");
                     return;
+                }
+
+                string wandererCompanionResult="not_applicable";
+                if(profile.WandererNoHouseStart && profile.Role=="Wanderer")
+                {
+                    Hero companion;
+                    wandererCompanionResult=
+                        SandboxWandererCompanion.TryCreate(
+                            profile,hero,out companion);
+                    bool good=profile.WandererCompanionEnabled ?
+                        companion!=null &&
+                        wandererCompanionResult.StartsWith("created:",
+                            StringComparison.Ordinal) :
+                        wandererCompanionResult=="not_requested" &&
+                        Clan.PlayerClan.Companions.Count==0;
+                    DiagnosticJournal.Event(
+                        "cu_wanderer_companion_start_contract",
+                        "requested="+profile.WandererCompanionEnabled+
+                        "|result="+(good?"PASS":"FAIL")+
+                        "|native_receipt="+wandererCompanionResult+
+                        "|roster_count="+Clan.PlayerClan.Companions.Count+
+                        "|native_stats_preserved=true");
+                    if(!good)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL"+
+                            "|reason=wanderer_companion_not_verified"+
+                            "|no_discretionary_grants_applied=true");
+                        Notify("The single Wanderer companion could not "+
+                            "be verified: "+wandererCompanionResult);
+                        return;
+                    }
+                    wandererCompanionId=companion==null ?
+                        "" : companion.StringId;
                 }
 
                 if (profile.Gold >= 0)
@@ -1550,7 +1636,13 @@ namespace CalradiaUnified
                     failures=failures.Concat(new[]{
                         "commanding_lord_not_bound"}).ToArray();
                 if(profile.RetinueMode=="FamilyOnly" &&
-                    Clan.PlayerClan.Companions.Count>0)
+                    (profile.WandererNoHouseStart && profile.Role=="Wanderer" ?
+                        (profile.WandererCompanionEnabled ?
+                            Clan.PlayerClan.Companions.Count!=1 ||
+                            Clan.PlayerClan.Companions[0].StringId!=
+                                wandererCompanionId :
+                            Clan.PlayerClan.Companions.Count!=0) :
+                        Clan.PlayerClan.Companions.Count>0))
                     failures=failures.Concat(new[]{
                         "family_only_has_unrelated_companions"}).ToArray();
                 if(SandboxCustomLifeRolePolicy.IsLandless(profile.Role) &&
@@ -1573,6 +1665,8 @@ namespace CalradiaUnified
                     "|requested_children=" + profile.ChildCount +
                     "|children=" + (hero.Children == null ?
                         0 : hero.Children.Count) +
+                    "|wanderer_companion="+wandererCompanionResult+
+                    "|wanderer_companion_id="+wandererCompanionId+
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
                 {
