@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
@@ -31,8 +32,20 @@ namespace CalradiaUnified
                 return false;
             }
 
+            // An outsider spouse must never be assigned to the native
+            // household that just became the player's own birth family.
+            // Exclude both current and origin clans of living parents.
+            var closeFamilyClans=new HashSet<Clan>();
+            foreach(var parent in new[]{player.Father,player.Mother})
+            {
+                if(parent==null)continue;
+                if(parent.Clan!=null)closeFamilyClans.Add(parent.Clan);
+                if(parent.OriginClan!=null)
+                    closeFamilyClans.Add(parent.OriginClan);
+            }
             var candidates = kingdom.Clans.Where(clan =>
                 clan != null && clan != Clan.PlayerClan &&
+                !closeFamilyClans.Contains(clan) &&
                 !clan.IsEliminated && !clan.IsBanditFaction &&
                 !clan.IsRebelClan && !clan.IsMinorFaction)
                 .OrderBy(clan => clan.StringId, StringComparer.Ordinal)
@@ -45,7 +58,10 @@ namespace CalradiaUnified
                         StringComparison.OrdinalIgnoreCase)).ToArray();
                 if (candidates.Length == 0)
                 {
-                    refusal = "chosen_noble_clan_not_in_starting_kingdom";
+                    refusal = closeFamilyClans.Any(c=>
+                        c.StringId==profile.SpouseBirthClanId)?
+                        "chosen_clan_is_player_close_family":
+                        "chosen_noble_clan_not_in_starting_kingdom";
                     return false;
                 }
             }
@@ -55,7 +71,10 @@ namespace CalradiaUnified
             var families = candidates.SelectMany(clan =>
                 clan.Heroes.Where(h =>
                     h != null && h.Clan == clan && h.IsAlive &&
-                    h.IsLord && !h.IsFemale && h.Spouse != null &&
+                    h.IsLord && !h.IsFemale &&
+                    h!=player.Father && h!=player.Mother &&
+                    h.Spouse != null && h.Spouse!=player.Father &&
+                    h.Spouse!=player.Mother &&
                     h.Spouse.IsAlive && h.Spouse.IsFemale &&
                     h.Spouse.Clan == clan &&
                     SandboxFamilyOriginPolicy.CanBeNobleParents(

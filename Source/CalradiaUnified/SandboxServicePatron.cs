@@ -49,6 +49,12 @@ namespace CalradiaUnified
                 .FirstOrDefault();
         }
 
+        public static bool HasNativePatron(SandboxOriginProfile p,
+            Hero player)
+        {
+            return Select(p,player,true)!=null;
+        }
+
         public static string Preview(SandboxOriginProfile p,Hero player)
         {
             if(p==null || !SandboxServicePolicy.NeedsPatron(p.Role))

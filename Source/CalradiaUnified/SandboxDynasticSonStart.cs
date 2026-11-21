@@ -96,6 +96,24 @@ namespace CalradiaUnified
                 .FirstOrDefault();
         }
 
+        public static string Preflight(SandboxOriginProfile p,Hero player)
+        {
+            if(p==null || player==null)return "missing_origin_or_hero";
+            var father=FindFather(p,player,true);
+            if(father==null)return "no_eligible_native_father";
+            int needed=SandboxNobleStartPolicy.RequiredOlderSons(
+                p.NobleBirthPosition);
+            int planned=SandboxHouseholdLineagePolicy.PlannedOlderBrothers(
+                p,(int)player.Age);
+            int existing=OlderSons(father,father.Spouse,player).Length;
+            int missing=SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                needed,existing,planned);
+            if(missing<0)return "inconsistent_older_brothers";
+            if(missing>0 && BrotherSource(player)==null)
+                return "no_native_older_brother_source";
+            return "";
+        }
+
         public static string Preview(SandboxOriginProfile p,Hero player)
         {
             if(player==null || player.Culture==null)

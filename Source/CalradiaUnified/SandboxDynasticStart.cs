@@ -80,6 +80,13 @@ namespace CalradiaUnified
         /// Advanced Start has not yet granted player kingdom allegiance.
         /// This is a read-only preview, not a family mutation.
         /// </summary>
+        public static bool HasNativeElder(SandboxOriginProfile profile,
+            Hero player)
+        {
+            return profile!=null && player!=null &&
+                FindElder(profile,player,true)!=null;
+        }
+
         public static string PreviewElderName(SandboxOriginProfile profile,
             Hero player)
         {
