@@ -37,6 +37,8 @@ namespace CalradiaUnified
             new SandboxServiceCareerState();
         private SandboxSuccessionInterestState successionInterest=
             new SandboxSuccessionInterestState();
+        private SandboxCharacterAgendaState characterAgendas=
+            new SandboxCharacterAgendaState();
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
@@ -335,6 +337,9 @@ namespace CalradiaUnified
             string claim=successionInterest.Serialize();
             store.SyncData("CU_v065_succession_interest",ref claim);
             successionInterest=SandboxSuccessionInterestState.Parse(claim);
+            string agenda=characterAgendas.Serialize();
+            store.SyncData("CU_v066_character_agendas",ref agenda);
+            characterAgendas=SandboxCharacterAgendaState.Parse(agenda);
         }
 
         private static void Notify(string text)
@@ -445,6 +450,7 @@ namespace CalradiaUnified
                         "Recorded people: "+livingPersons.People.Count+
                         "; native relationship bonds: "+livingPersons.Bonds.Count+
                         "; observed events: "+livingPersons.Events.Count+
+                        "; verified homes and goals: "+characterAgendas.Entries.Count+
                         ". Personal service: "+serviceCareer.Status+
                         (serviceCareer.IsConfigured?
                             " under "+servicePatronName+
@@ -731,7 +737,50 @@ namespace CalradiaUnified
             {
                 SandboxLivingPersons.ObserveDaily(livingPersons,
                     socialObservations,player);
-                if(serviceCareer.IsConfigured && Clan.PlayerClan!=null)
+                SandboxLivingPersons.ObserveAgenda(livingPersons,
+                    characterAgendas,player);
+                if(serviceCareer.IsConfigured)
+                {
+                    // Serve as Soldier owns every actual enlisted-party
+                    // transition, rank, wage and order. CU only observes
+                    // its public API v1. No private or guessed calls.
+                    var enlisted=SandboxSaSBridge.Read();
+                    if(enlisted.Available)
+                    {
+                        string externalResult=enlisted.Enlisted &&
+                            enlisted.LordId.Length>0?
+                            serviceCareer.ObserveExternal(
+                                enlisted.LordId,enlisted.RankId,
+                                enlisted.DutyId,enlisted.Wage,
+                                enlisted.Days,enlisted.TermDaysLeft,
+                                enlisted.InsideHostParty):
+                            serviceCareer.ObserveExternalAbsent();
+                        if(externalResult=="external_enlistment_verified" ||
+                           externalResult=="external_rank_changed_observed" ||
+                           externalResult=="external_duty_changed_observed" ||
+                           externalResult=="external_service_ended_observed")
+                        {
+                            livingPersons.Remember("VerifiedExternalService",
+                                player.StringId,
+                                enlisted.LordId,
+                                "event="+externalResult+
+                                "|rank="+enlisted.RankId+
+                                "|duty="+enlisted.DutyId+
+                                "|daily_wage="+enlisted.Wage+
+                                "|wage_authority=ServeAsSoldier");
+                            DiagnosticJournal.Event("cu_sas_service_observed",
+                                "result="+externalResult+
+                                "|lord="+enlisted.LordId+
+                                "|rank="+enlisted.RankId+
+                                "|days="+enlisted.Days+
+                                "|party_confirmed="+
+                                    enlisted.InsideHostParty);
+                        }
+                    }
+                }
+                if(serviceCareer.IsConfigured &&
+                    !serviceCareer.VerifiedExternalEnlistment &&
+                    Clan.PlayerClan!=null)
                 {
                     var patron=Hero.AllAliveHeroes.FirstOrDefault(h=>
                         h!=null && h.StringId==serviceCareer.PatronId);
@@ -740,14 +789,21 @@ namespace CalradiaUnified
                     // death/discharge event for an unloaded native Hero.
                     if(patron!=null)
                     {
-                        bool sameKingdom=Clan.PlayerClan.Kingdom!=null &&
-                            Clan.PlayerClan.Kingdom.StringId==
+                        bool sameKingdom=patron.Clan!=null &&
+                            patron.Clan.Kingdom!=null &&
+                            patron.Clan.Kingdom.StringId==
                                 serviceCareer.KingdomId &&
-                            patron.Clan!=null &&
-                            patron.Clan.Kingdom==Clan.PlayerClan.Kingdom;
+                            (SandboxCustomLifeRolePolicy.IsLandless(
+                                serviceCareer.Role)?
+                                Clan.PlayerClan.Kingdom==null:
+                                Clan.PlayerClan.Kingdom==
+                                    patron.Clan.Kingdom);
                         string result=serviceCareer.Observe(
                             patron.IsAlive,sameKingdom,player.Gold);
-                        if(result!="active" && result!=serviceCareer.Status)
+                        if(result=="thirty_days_service_recorded" ||
+                           result=="ninety_days_service_recorded" ||
+                           result=="native_contract_changed" ||
+                           result=="patron_deceased")
                         {
                             livingPersons.Remember(
                                 "NativeServiceStatusObserved",
@@ -1312,6 +1368,12 @@ namespace CalradiaUnified
                     Clan.PlayerClan.Companions.Count>0)
                     failures=failures.Concat(new[]{
                         "family_only_has_unrelated_companions"}).ToArray();
+                if(SandboxCustomLifeRolePolicy.IsLandless(profile.Role) &&
+                    !SandboxCustomLifeRolePolicy.NativeLandlessContract(
+                        Clan.PlayerClan.Kingdom!=null,
+                        Clan.PlayerClan.Settlements.Count))
+                    failures=failures.Concat(new[]{
+                        "landless_start_has_native_fief_or_kingdom"}).ToArray();
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
                     "|role=" + profile.Role +
@@ -1337,15 +1399,17 @@ namespace CalradiaUnified
                     {
                         SandboxLivingPersons.Capture(
                             profile,hero,patron,livingPersons);
+                        SandboxLivingPersons.CaptureAgenda(
+                            profile,livingPersons,characterAgendas,hero);
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
                             socialObservations,hero);
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
-                            patron!=null && Clan.PlayerClan.Kingdom!=null)
+                            patron!=null)
                         {
                             serviceCareer.Start(profile.Role,
                                 patron.StringId,
-                                Clan.PlayerClan.Kingdom.StringId);
+                                profile.StartingKingdomId);
                             DiagnosticJournal.Event(
                                 "cu_personal_service_career_started",
                                 "role="+profile.Role+
@@ -1354,7 +1418,8 @@ namespace CalradiaUnified
                                 "|enlisted_in_npc_party=false"+
                                 "|automatic_promotion=false");
                         }
-                        if(profile.Role=="Lord" &&
+                        if(SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
+                            profile.Role) &&
                             SandboxNobleStartPolicy.RequiresNobleElder(
                                 profile.NobleBirthPosition) &&
                             hero.Father!=null)
@@ -1375,6 +1440,11 @@ namespace CalradiaUnified
                                 "claimant="+hero.StringId+
                                 "|father="+hero.Father.StringId+
                                 "|preceding_sons="+preceding+
+                                "|regional_model="+
+                                    SandboxCulturalInheritancePolicy.Model(
+                                        hero.Culture.StringId)+
+                                "|landless_cadet="+
+                                    (profile.Role=="NobleCadet")+
                                 "|native_fiefs_transferred=0"+
                                 "|legal_right_not_assumed=true");
                         }
