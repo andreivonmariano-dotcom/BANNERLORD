@@ -17,11 +17,15 @@ assert 'cu_family_marriage_prerequisites' in family
 assert 'SandboxGeneratedMarriagePolicy.Check(' in family
 assert 'player_can_marry=' in family
 assert 'spouse_can_marry=' in family
-assert 'cu_family_orphan_cleanup' in family
-assert 'DisableHeroAction.Apply(spouse)' in family
-assert 'spouse.Clan = null;' in family
-assert 'spouse.Father.Children.Remove(spouse)' in family
-assert 'spouse.Mother.Children.Remove(spouse)' in family
+assert 'cu_family_provisional_cleanup' in family
+assert 'SandboxFamilyCreationSafetyPolicy.MayClearUnmarriedSpouse(' in family
+assert 'allocatedChildren.Add(child);' in family
+assert 'DisableHeroAction.Apply(person)' in family
+assert 'person.Clan=null;' in family
+assert 'person.Father.Children.Remove(person)' in family
+assert 'person.Mother.Children.Remove(person)' in family
+assert family.index('DisableHeroAction.Apply(person)') < family.index(
+    'person.Father.Children.Remove(person)')
 ix_create=family.index('spouseHero = Create(')
 ix_gate=family.index('IsCoupleSuitableForMarriage(player,spouseHero)')
 ix_marriage=family.index('MarriageAction.Apply(player,spouseHero,false)')
@@ -30,7 +34,8 @@ assert ix_create<ix_gate<ix_marriage<ix_child
 ix_state=family.index('result.ChangeState(Hero.CharacterStates.Active)')
 ix_return=family.index('return result;',ix_state)
 assert ix_state<ix_return
-assert 'player.Spouse != spouseHero && spouseHero.Spouse != player' in family
+assert 'player.Spouse == spouseHero ||' in family
+assert 'spouseHero.Spouse == player' in family
 assert 'GetStaticBodyProperties(child,true)' in family
 for c in ('generated_spouse_not_active','player_clan_invalid',
           'spouse_birth_clan_invalid','generated_spouse_not_eligible'):
