@@ -93,6 +93,11 @@ namespace CalradiaUnified
         {
             if(!Started || day<0 || day<=LastEvidenceDay)
                 return "not_new_native_day";
+            // Missed native days break a continuous contract/party
+            // streak. A load or an observer outage grants no backpay.
+            if(LastEvidenceDay>=0 &&
+                (long)day-LastEvidenceDay!=1)
+                ConsecutiveDays=0;
             LastEvidenceDay=day;
             if(Chapter>=3)return "career_chapters_complete";
             bool proof=Chapter==0?firstProof:
