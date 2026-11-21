@@ -1233,7 +1233,12 @@ namespace CalradiaUnified
             }
             if(editingSpouse)
             {
-                if(next==native)ChangesForTarget.Remove(key);
+                // Companion baseline is provisional, not the actual
+                // native donor's eventual values. An explicit zero is
+                // still an exact request, never a hidden reset.
+                if(EditingWandererCompanion)
+                    ChangesForTarget[key]=next;
+                else if(next==native)ChangesForTarget.Remove(key);
                 else ChangesForTarget[key]=next;
                 status=(EditingWandererCompanion?
                     "Companion":"Spouse")+
