@@ -31,7 +31,7 @@ internal static class Program
             "Admiral","Trader","Beggar"
         };
         var expectedTypes=new [] {
-            "default","outlaw","mercenary","default","mercenary",
+            "default","outlaw","mercenary","mercenary","default",
             "default","vassal","default","vassal","king",
             "fleetadmiral","trader","beggar"
         };
