@@ -54,16 +54,16 @@ namespace CalradiaUnified
             // commanders. Do not guess a location, relocate a party in an
             // encounter, or move the lord himself to fit a scripted scene.
             var host=patron.PartyBelongedTo;
+            var residence=patron.CurrentSettlement;
             var party=MobileParty.MainParty;
             string refused="";
-            if(host==null || host.LeaderHero!=patron)
-                refused="patron_has_no_self_led_field_party";
-            else if(patron.CurrentSettlement!=null)
-                refused="patron_inside_settlement";
-            else if(party==null || party.LeaderHero!=player)
+            if(party==null || party.LeaderHero!=player)
                 refused="player_party_not_ready";
             else if(player.CurrentSettlement!=null)
                 refused="player_in_settlement";
+            else if(residence==null &&
+                (host==null || host.LeaderHero!=patron))
+                refused="patron_has_no_self_led_field_party";
 
             if(refused.Length!=0)
             {
@@ -75,26 +75,42 @@ namespace CalradiaUnified
             }
             try
             {
+                // For a resident lord, begin outside the real settlement
+                // gate. A field commander is encountered at the real
+                // party position. No synthetic garrison or party is made.
                 float before=party.GetPosition2D.Distance(
-                    host.GetPosition2D);
-                // Both positions come from the current map's real parties.
-                // Never cross maps or send the lord a synthetic AI order.
-                party.SetPositionAfterMapChange(host.Position);
+                    residence==null ? host.GetPosition2D :
+                        residence.GetPosition2D);
+                if(residence==null)
+                    party.SetPositionAfterMapChange(host.Position);
+                else
+                    party.SetPositionAfterMapChange(
+                        residence.GatePosition);
                 float after=party.GetPosition2D.Distance(
-                    host.GetPosition2D);
+                    residence==null ? host.GetPosition2D :
+                        residence.GetPosition2D);
+                bool arrived=after <= (residence==null ? 0.5f : 6f);
                 DiagnosticJournal.Event("cu_knight_patron_arrival",
-                    "result="+(after<=0.5f?"ARRIVED":"NOT_VERIFIED")+
+                    "result="+(arrived?"ARRIVED":"NOT_VERIFIED")+
                     "|patron="+patron.StringId+
-                    "|native_host_party="+host.StringId+
+                    "|native_host_party="+(host==null?
+                        "none":host.StringId)+
+                    "|native_settlement="+(residence==null?
+                        "none":residence.StringId)+
                     "|distance_before="+before+
                     "|distance_after="+after+
                     "|player_party_only=true"+
                     "|one_shot_new_campaign=true");
-                if(after<=0.5f)
-                    Notify("Your service begins beside "+
-                        patron.Name+"'s banner. Find "+patron.Name+
-                        " on the campaign map and speak to your "+
-                        "lord for your first audience.");
+                if(arrived)
+                    Notify(residence==null?
+                        "Your service begins beside "+
+                        patron.Name+"'s banner. Speak to "+
+                        patron.Name+" on the campaign map for "+
+                        "your first audience.":
+                        "Your service begins outside "+
+                        residence.Name+". "+patron.Name+
+                        " is inside. Enter the settlement and "+
+                        "seek your first audience.");
             }
             catch(Exception error)
             {
