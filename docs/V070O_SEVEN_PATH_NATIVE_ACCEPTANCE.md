@@ -43,3 +43,16 @@ For strict release readiness, test all valid subtypes and negative cases separat
 This connected repository environment has source, policy tests, reference-assembly CI, diagnostic scripts and simulation reports. It does **not** have a running native Bannerlord process, real player screenshots, installed-game save/quit/reload records or seven separate live native playthroughs. The **live native acceptance gate remains BLOCKED**, even if the pinned compile succeeds. Do not merge PR #93, update the installed artifact pin, or call an unplayed test candidate a live-verified release.
 
 The King's bodyguard is deliberately **one real Kingsguard Hero companion**, not a troop unit.
+
+## Pinned v0.70n/o source-check result, 21 November 2026
+
+- **Successful Windows workflow:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44893625785
+- **Exact compiled source SHA:** `aead9f751e44d945c096a8eb2a085d0c8811ff28`
+- **Pure C# gameplay policy smoke:** **1,062 passed**
+- **Seven-path fail-closed audit regression:** PASS, proving that source-only success is never promoted to live native acceptance
+- **Kingsguard one-Hero, actual royal council and minister governor source regression:** PASS
+- **Deterministic audit simulator:** **210,240 modeled days, 1,159,206 assertions and 7,488 checkpoints**
+- **Bannerlord pinned reference build:** **0 warnings, 0 errors**
+- **Compiled DLL SHA-256:** `424dccba85b35f8ef798cc1829eae2ba4893be03e2005b27a160b5f90abbf870`
+- **Game-untested build candidate:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44893625785/artifacts/14703052915
+- **True native gameplay result:** **BLOCKED, 0 of 7 live starts verified.** Source/modeled acceptance is not an actual seven-start playthrough. Save/reload, all cultures, real diplomatic effects and native court presentation remain unverified.
