@@ -734,6 +734,9 @@ namespace CalradiaUnified
         private readonly IDictionary<string,int> baseline;
         private readonly IDictionary<string,int> spouseBaseline;
         private bool editingSpouse;
+        private bool EditingWandererCompanion
+            {get{return profile.Role=="Wanderer" &&
+                profile.WandererNoHouseStart;}}
         private readonly Action completed;
         private readonly Action back;
         // One short exact-age page follows the native story and precedes
@@ -769,7 +772,8 @@ namespace CalradiaUnified
             // native starting level. Manual entry is applied exactly later.
             spouseBaseline[SandboxFamilyLevelPolicy.Key]=
                 Math.Max(1,Math.Min(SandboxFamilyLevelPolicy.Maximum,
-                    8+(profile.SpouseAge-18)/3));
+                    8+((EditingWandererCompanion?
+                        profile.WandererCompanionAge:profile.SpouseAge)-18)/3));
             foreach(var name in SandboxOriginProfile.Attributes)
                 spouseBaseline["Attribute."+name]=3;
             foreach(var name in SandboxNativeSkillCatalog.AvailableNames())
@@ -788,7 +792,10 @@ namespace CalradiaUnified
         private IDictionary<string,int> BaseForTarget
             {get{return editingSpouse?spouseBaseline:baseline;}}
         private IDictionary<string,int> ChangesForTarget
-            {get{return editingSpouse?profile.SpouseOverrides:
+            {get{return editingSpouse?
+                (EditingWandererCompanion?
+                    profile.WandererCompanionOverrides:
+                    profile.SpouseOverrides):
                 profile.Overrides;}}
         // One logical All Stats screen with six active Gauntlet sliders
         // per page. Building >50 slider widgets in an unverified native
@@ -813,7 +820,9 @@ namespace CalradiaUnified
         {
             DiagnosticJournal.Event("cu_stats_page_refresh_enter",
                 "creator_page="+pageIndex+
-                "|target="+(editingSpouse?"spouse":"player")+
+                "|target="+(editingSpouse?
+                    (EditingWandererCompanion?"companion":"spouse"):
+                    "player")+
                 "|row_page="+statsRowPageIndex);
             rows.Clear();
             if(pageIndex>=0)
@@ -872,6 +881,12 @@ namespace CalradiaUnified
             OnPropertyChangedWithValue(IsUnrestrictedMode,"IsUnrestrictedMode");
             OnPropertyChangedWithValue(IsPlayerTarget,"IsPlayerTarget");
             OnPropertyChangedWithValue(IsSpouseTarget,"IsSpouseTarget");
+            OnPropertyChangedWithValue(
+                IsSecondaryStatsTargetVisible,
+                "IsSecondaryStatsTargetVisible");
+            OnPropertyChangedWithValue(
+                SecondaryStatsTargetLabel,
+                "SecondaryStatsTargetLabel");
             OnPropertyChangedWithValue(TargetHelp,"TargetHelp");
             OnPropertyChangedWithValue(NavalStatus,"NavalStatus");
             OnPropertyChangedWithValue(BonusSummary,"BonusSummary");
@@ -892,7 +907,9 @@ namespace CalradiaUnified
                 "page="+(pageIndex==CUNativeStatsNavigationPolicy.Age?
                     "Age":"All Stats")+
                 "|surface=stats_editor|phase=bindings_refreshed"+
-                "|target="+(editingSpouse?"spouse":"player")+
+                "|target="+(editingSpouse?
+                    (EditingWandererCompanion?"companion":"spouse"):
+                    "player")+
                 "|row_page="+(statsRowPageIndex+1));
         }
         private void RefreshRowValues()
@@ -1132,23 +1149,40 @@ namespace CalradiaUnified
         }
         public void ExecuteEditSpouse()
         {
+            if(EditingWandererCompanion &&
+                !profile.WandererCompanionEnabled)
+                return;
             editingSpouse=true;
             statsRowPageIndex=0;
-            status="Editing spouse before House generates a native Hero."+
+            status=EditingWandererCompanion?
+                "Editing the one Wanderer companion. Requested native "+
+                "stats are applied when the campaign begins.":
+                "Editing spouse before House generates a native Hero."+
                 " Manual values influence children's training.";
-            DiagnosticJournal.Event("cu_all_stats_target","target=spouse");
+            DiagnosticJournal.Event("cu_all_stats_target",
+                "target="+(EditingWandererCompanion?
+                    "wanderer_companion":"spouse"));
             Refresh();
         }
         [DataSourceProperty] public bool IsPlayerTarget
             {get{return !editingSpouse;}}
         [DataSourceProperty] public bool IsSpouseTarget
             {get{return editingSpouse;}}
+        [DataSourceProperty] public bool IsSecondaryStatsTargetVisible
+            {get{return IsStatsPage && (!EditingWandererCompanion ||
+                profile.WandererCompanionEnabled);}}
+        [DataSourceProperty] public string SecondaryStatsTargetLabel
+            {get{return EditingWandererCompanion?
+                "Edit companion stats":"Edit your spouse";}}
         [DataSourceProperty] public string NavalStatus
             {get{return SandboxNativeSkillCatalog.Status();}}
         [DataSourceProperty] public string TargetHelp
             {get{return editingSpouse ?
-                "SPOUSE | Edit with - / + / Exact. Native values stay"+
-                " unchanged until you choose an override." :
+                (EditingWandererCompanion?
+                    "COMPANION | Edit level, attributes, skills, focus "+
+                    "and traits. Changes are applied at start.":
+                    "SPOUSE | Edit with - / + / Exact. Native values stay"+
+                    " unchanged until you choose an override.") :
                 "PLAYER | Nine pages. Edit using - / + / Exact."+
                 " Naval skills appear with War Sails.";}}
 
@@ -1199,11 +1233,16 @@ namespace CalradiaUnified
             }
             if(editingSpouse)
             {
-                if(next==native)profile.SpouseOverrides.Remove(key);
-                else profile.SpouseOverrides[key]=next;
-                status="Spouse stat requested: "+key+" = "+next+
-                    ". Applied after native spouse generation.";
-                DiagnosticJournal.Event("cu_spouse_stat_slider_edit",
+                if(next==native)ChangesForTarget.Remove(key);
+                else ChangesForTarget[key]=next;
+                status=(EditingWandererCompanion?
+                    "Companion":"Spouse")+
+                    " stat requested: "+key+" = "+next+
+                    ". Applied after native Hero generation.";
+                DiagnosticJournal.Event(
+                    EditingWandererCompanion?
+                        "cu_wanderer_companion_stat_edit":
+                        "cu_spouse_stat_slider_edit",
                     "key="+key+"|requested="+next);
                 RefreshRowValues();
                 return;
@@ -1367,6 +1406,8 @@ namespace CalradiaUnified
                 "|native_story_bonuses_preserved=true");
             DiagnosticJournal.Event("cu_native_stats_committed",
                 "spouse_overrides="+profile.SpouseOverrides.Count+
+                "|companion_overrides="+
+                    profile.WandererCompanionOverrides.Count+
                 "|all_stats_one_page=true|mode="+profile.ProgressionMode+
                 "|spent="+spent+
                 "|budget="+SandboxStatBudgetPolicy.StartingBudget+
@@ -1493,7 +1534,9 @@ namespace CalradiaUnified
             get
             {
                 if(editingSpouse)return
-                    "SPOUSE | "+profile.SpouseOverrides.Count+
+                    (EditingWandererCompanion?"COMPANION | "+
+                        profile.WandererCompanionOverrides.Count:
+                        "SPOUSE | "+profile.SpouseOverrides.Count)+
                     " MANUAL VALUES | NATIVE AUTO FOR OTHERS";
                 if(Mode=="Native")return "NATIVE STATS | NO OVERRIDES";
                 if(Mode=="Unrestricted")
