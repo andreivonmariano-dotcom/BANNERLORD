@@ -24,8 +24,9 @@ namespace CalradiaUnified
             // Only the newly guided Soldier is a genuine individual
             // applicant, never a native mercenary-clan captain.
             // Legacy Soldier saves retain the old "mercenary" mapping.
-            return profile.SoldierGuidedStart &&
-                profile.Role=="Soldier" ?
+            return ((profile.SoldierGuidedStart &&
+                profile.Role=="Soldier") ||
+                (profile.KnightGuidedStart && profile.Role=="Knight")) ?
                 "default":StartTypeForRole(profile.Role);
         }
 
@@ -76,8 +77,8 @@ namespace CalradiaUnified
                 // engine's documented scenario value, not its locked selector.
                 types.SetValue(type);
 
-                if(SandboxCustomLifeRolePolicy.NeedsKingdomContext(
-                    profile.Role) &&
+                if((SandboxCustomLifeRolePolicy.NeedsKingdomContext(
+                    profile.Role) || profile.KnightGuidedStart) &&
                     String.IsNullOrEmpty(profile.StartingKingdomId))
                 {
                     error="Select your birth-family or patron's kingdom.";

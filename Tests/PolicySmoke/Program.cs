@@ -44,6 +44,62 @@ internal static class Program
                 SandboxNativeTypeForPolicy(nativeRoles[i])==
                     expectedTypes[i]);
 
+        Check("seven new-game paths retain historical role parsers",
+            SandboxStartingLifePolicy.SevenPaths.Length==7 &&
+            !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
+            SandboxOriginProfile.Roles.Contains("Trader"));
+        Check("guided sworn Knight refuses native vassal and mercenary",
+            SandboxKnightStartPolicy.ValidateRequest(
+                "SwornHouse","vlandia",0)=="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "default",false,0,false,true)=="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "vassal",true,1,false,true)!="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "default",false,0,true,true)!="");
+        Check("younger sibling blocked until verified native clan joining",
+            SandboxKnightStartPolicy.ValidateRequest(
+                "YoungerSibling","vlandia",0)==
+                    "native_same_clan_kinship_not_implemented" &&
+            SandboxKnightStartPolicy.ValidateRequest(
+                "YoungerSibling","vlandia",1)==
+                    "generated_siblings_not_allowed");
+        var knight=new SandboxOriginProfile();
+        knight.Role="Knight";
+        knight.KnightGuidedStart=true;
+        knight.StartingKingdomId="vlandia";
+        knight.RetinueMode="FamilyOnly";
+        knight.FamilyHomeMode="None";
+        Check("Knight guided profile is separate from landed legacy Knight",
+            SandboxRoleConsistencyPolicy.NativeType("Knight")=="vassal" &&
+            SandboxStartingLifePolicy.Station(knight)==
+                "UnlandedKnightRetainer" &&
+            knight.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(knight.Serialize()).KnightGuidedStart &&
+            SandboxOriginProfile.Parse(knight.Serialize())
+                .KnightOrigin=="SwornHouse");
+        knight.SiblingCount=1;
+        knight.Siblings[0].Age=35;
+        knight.Siblings[0].Gender="Male";
+        Check("sworn Knight founding house refuses older brother",
+            !knight.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                knight,30)=="sworn_knight_older_brother");
+        knight.Siblings[0].Gender="Female";
+        Check("sworn Knight accepts older sister",
+            knight.IsValid(30,out _));
+        knight.ResetForNewCampaign();
+        Check("Knight guided flag cleared for new campaign",
+            !knight.KnightGuidedStart &&
+            knight.KnightOrigin=="SwornHouse");
+        var soldierKin=new SandboxOriginProfile();
+        soldierKin.Role="Soldier";
+        soldierKin.SoldierGuidedStart=true;
+        soldierKin.StartingKingdomId="vlandia";
+        soldierKin.RetinueMode="FamilyOnly";
+        soldierKin.SiblingCount=1;
+        Check("guided Soldier refuses stale generated sibling",
+            !soldierKin.IsValid(30,out _));
         Check("missing changed-option native type is safe only for default",
             SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "default","",false,false,0) &&

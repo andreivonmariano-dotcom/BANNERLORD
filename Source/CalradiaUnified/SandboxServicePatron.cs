@@ -26,7 +26,8 @@ namespace CalradiaUnified
             if(kingdom==null)return null;
             if(requireExistingKingdom &&
                 (Clan.PlayerClan==null ||
-                 (SandboxCustomLifeRolePolicy.IsLandless(p.Role)?
+                 ((p.KnightGuidedStart && p.Role=="Knight") ||
+                   SandboxCustomLifeRolePolicy.IsLandless(p.Role)?
                     (Clan.PlayerClan.Kingdom!=null ||
                      Clan.PlayerClan.Settlements.Count>0):
                     Clan.PlayerClan.Kingdom!=kingdom)))
@@ -155,7 +156,8 @@ namespace CalradiaUnified
                     "|kingdom="+lord.Clan.Kingdom.StringId+
                     "|relation_before="+before+
                     "|relation_after="+player.GetRelation(lord)+
-                    "|native_contract=retained"+
+                    "|native_contract="+(p.KnightGuidedStart?
+                        "none_personal_patron_only":"retained")+
                     "|enlisted_troop=false|automatic_orders=false");
                 return "bound:"+lord.StringId;
             }

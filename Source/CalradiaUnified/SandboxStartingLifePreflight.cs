@@ -45,13 +45,18 @@ namespace CalradiaUnified
             var nativeErrors=SandboxStartContract.Validate(
                 expectedType,
                 actualType,
-                p.SoldierGuidedStart?"":p.StartingKingdomId,
+                (p.SoldierGuidedStart || p.KnightGuidedStart)?
+                    "":p.StartingKingdomId,
                 kingdom==null?"":kingdom.StringId,
                 ruling,fiefs,
                 false,false,0,0);
             if(nativeErrors.Length>0)
                 return "native_start:"+nativeErrors[0];
-            string stationError=p.SoldierGuidedStart?
+            string stationError=p.KnightGuidedStart?
+                SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                    actualType,kingdom!=null,fiefs,
+                    clan.IsUnderMercenaryService,clan.Leader==player):
+                p.SoldierGuidedStart?
                 SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
                     actualType,kingdom!=null,fiefs!=0,
                     clan.IsUnderMercenaryService):

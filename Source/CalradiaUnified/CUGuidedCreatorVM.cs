@@ -186,8 +186,14 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
-                    "Wanderer, Outlaw / Bandit, Mercenary and Soldier are the four reviewed starts. Soldier is true enlisted service through the native SaS provider, not a mercenary clan. Other roles are legacy selections.",
-                    choices:SandboxOriginProfile.Roles));
+                    "Seven life paths. Knight Sworn House is an independent native start. Younger Sibling is reserved pending real native clan membership.",
+                    choices:SandboxStartingLifePolicy.SevenPaths));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "KnightOrigin","Your knightly origin",
+                    "Sworn House: separate landless house with a real personal "+
+                    "patron. Younger Sibling: unavailable until joining "+
+                    "a genuine native lord clan can be verified.",
+                    choices:SandboxKnightStartPolicy.Origins));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "SoldierEntryRank","Requested service entry",
                     "Recruit (native private), Sergeant or Captain. "+
@@ -404,6 +410,14 @@ namespace CalradiaUnified
                  key=="Gold" || key=="Troops" ||
                  key=="FamilyHomeMode" || key=="FamilyHomeId"))
                 return false;
+            if(key=="SiblingCount" ||
+                key.StartsWith("Sibling.",StringComparison.Ordinal))
+                if(profile.SoldierGuidedStart ||
+                   (profile.KnightGuidedStart &&
+                    !SandboxKnightStartPolicy.CanCreateSiblings(
+                        profile.KnightOrigin)))return false;
+            if(key=="KnightOrigin")
+                return preCampaign && profile.Role=="Knight";
             if(key=="SoldierEntryRank")
                 return preCampaign && profile.Role=="Soldier";
             if(key=="WandererCompanionEnabled")
@@ -423,6 +437,7 @@ namespace CalradiaUnified
                 return profile.StartingScenario=="alternativecalradia";
             if(key=="StartingKingdomId")
                 return profile.Role=="Soldier" ||
+                    profile.Role=="Knight" ||
                     SandboxNativeStartOptions.RequiresKingdom(
                         SandboxNativeStartOptions.StartTypeForProfile(
                             profile)) ||
@@ -638,9 +653,13 @@ namespace CalradiaUnified
                 int olderBrother=SandboxHouseholdLineagePolicy
                     .FirstOlderBrotherInIndependentLordHouse(
                         copy,ActualFounderAge);
+                if(olderBrother==0)
+                    olderBrother=SandboxHouseholdLineagePolicy
+                        .FirstOlderBrotherInSwornKnightHouse(
+                            copy,ActualFounderAge);
                 if(olderBrother>0)
                 {
-                    Report("Independent Lord: sibling "+olderBrother+
+                    Report("Founding house: sibling "+olderBrother+
                         " cannot be an older brother. Set his age to "+
                         ActualFounderAge+" or younger, choose Female, or "+
                         "choose a different noble birth.");
@@ -811,6 +830,24 @@ namespace CalradiaUnified
             candidate.MercenaryGuidedStart=
                 candidate.Role=="Mercenary";
             candidate.SoldierGuidedStart=candidate.Role=="Soldier";
+            candidate.KnightGuidedStart=candidate.Role=="Knight";
+            if(candidate.KnightGuidedStart)
+            {
+                candidate.RoleAffiliationsEnabled=false;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.FamilyHomeMode="None";
+                candidate.FamilyHomeId="";
+                candidate.RetinueMode="FamilyOnly";
+                candidate.Gold=-1;
+                candidate.Influence=-1;
+                candidate.Troops=0;
+                if(!SandboxKnightStartPolicy.CanCreateSiblings(
+                    candidate.KnightOrigin))candidate.SiblingCount=0;
+            }
             if(candidate.SoldierGuidedStart)
             {
                 // Real SaS enlistment is controlled by its native creator
@@ -827,6 +864,7 @@ namespace CalradiaUnified
                 candidate.Gold=-1;
                 candidate.Influence=-1;
                 candidate.Troops=0;
+                candidate.SiblingCount=0;
             }
             if(candidate.MercenaryGuidedStart)
             {
@@ -890,7 +928,8 @@ namespace CalradiaUnified
             candidate.RetinueMode=candidate.WandererNoHouseStart?
                 "FamilyOnly":candidate.OutlawGuidedStart?
                 "RoleBased":candidate.MercenaryGuidedStart ||
-                candidate.SoldierGuidedStart ?
+                candidate.SoldierGuidedStart ||
+                candidate.KnightGuidedStart ?
                 "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
@@ -921,8 +960,7 @@ namespace CalradiaUnified
                 "|retinue_default="+candidate.RetinueMode+
                 "|early_household="+candidate.EarlyHousehold+
                 "|ambition="+candidate.PersonalAmbition+
-                "|station="+SandboxStartingLifePolicy.Station(
-                    candidate.Role,candidate.NobleBirthPosition)+
+                "|station="+SandboxStartingLifePolicy.Station(candidate)+
                 "|service_patron_request="+candidate.ServicePatronHeroId+
                 "|noble_birth="+candidate.NobleBirthPosition+
                 "|family_requested=false|native_state_next=true"+
@@ -984,13 +1022,18 @@ namespace CalradiaUnified
             int olderBrother=SandboxHouseholdLineagePolicy
                 .FirstOlderBrotherInIndependentLordHouse(
                     candidate,actualAge);
+            int knightOlderBrother=SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInSwornKnightHouse(
+                    candidate,actualAge);
+            if(olderBrother==0)olderBrother=knightOlderBrother;
             if(olderBrother>0)
             {
                 advanced=true;
                 int siblingStep=Array.FindIndex(Visible,
                     field=>field.Key=="Sibling."+olderBrother+".Age");
                 if(siblingStep>=0)cursor=siblingStep;
-                Report("Independent Lord: sibling "+olderBrother+
+                Report((knightOlderBrother>0?"Sworn Knight":"Independent Lord")+
+                    ": sibling "+olderBrother+
                     " is an older brother. Change his age to "+
                     actualAge+" or younger, or choose Female. "+
                     "The rest of your household stays unchanged.");
@@ -1265,6 +1308,12 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Knight")
+                    return "Knight | "+profile.KnightOrigin+"\n"+
+                        "Sworn House: landless independent house with a real "+
+                        "personal patron. No automatic castle or vassalage.\n"+
+                        "Younger Sibling: reserved pending genuine same-clan "+
+                        "entry. Spouse and children remain optional.";
                 if(preCampaign && profile.Role=="Soldier")
                     return "Soldier | sworn service under a real lord\n"+
                         "Requested entry: "+profile.SoldierEntryRank+
@@ -1329,8 +1378,7 @@ namespace CalradiaUnified
                     " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
                     "Social station: "+SandboxStartingLifePolicy.StationLabel(
-                        SandboxStartingLifePolicy.Station(
-                            profile.Role,profile.NobleBirthPosition))+"\n"+
+                        SandboxStartingLifePolicy.Station(profile))+"\n"+
                     "Obligations: "+SandboxStartingLifePolicy.ObligationLabel(
                         SandboxStartingLifePolicy.Obligation(
                             profile.Role,profile.NobleBirthPosition))+"\n"+
