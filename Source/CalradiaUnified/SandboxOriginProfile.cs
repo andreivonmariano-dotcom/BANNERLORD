@@ -140,6 +140,9 @@ namespace CalradiaUnified
         // New Lord requires the real pinned native vassal start.
         // Old Lord profiles keep their historical behavior.
         public bool LordGuidedStart;
+        // A saved family claim rule, not an action that changes the
+        // kingdom's native election, clan leader or settlement owners.
+        public string LordSuccessionRule="EldestChild";
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -238,6 +241,7 @@ namespace CalradiaUnified
             KnightGuidedStart=false;
             KnightOrigin="SwornHouse";
             LordGuidedStart=false;
+            LordSuccessionRule="EldestChild";
             if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)
                 Role="Wanderer";
             WandererCompanionEnabled=false;
@@ -514,6 +518,10 @@ namespace CalradiaUnified
                 case "LordGuidedStart":
                     if(!Boolean.TryParse(value,out b))return false;
                     LordGuidedStart=b;return true;
+                case "LordSuccessionRule":
+                    if(!SandboxLordSuccessionPolicy.IsRule(value))
+                        return false;
+                    LordSuccessionRule=value;return true;
                 case "SoldierEntryRank":
                     if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
                         return false;
@@ -662,6 +670,12 @@ namespace CalradiaUnified
                 if(lord.Length==0)
                     lord=SandboxLordStartPolicy.ValidateRequiredFamily(
                         SpouseEnabled,ChildCount);
+                if(lord.Length==0)
+                    lord=SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                        SpouseBackground,SpouseBirthClanId);
+                if(lord.Length==0 &&
+                    !SandboxLordSuccessionPolicy.IsRule(LordSuccessionRule))
+                    lord="unknown_lord_succession_custom";
                 if(lord.Length!=0 || KnightGuidedStart ||
                    SoldierGuidedStart || MercenaryGuidedStart ||
                    OutlawGuidedStart || WandererNoHouseStart)
@@ -873,6 +887,7 @@ namespace CalradiaUnified
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", knight_origin=" + (KnightGuidedStart?KnightOrigin:"legacy") +
                 ", guided_lord=" + LordGuidedStart +
+                ", lord_succession_rule=" + LordSuccessionRule +
                 ", noble_birth=" + NobleBirthPosition +
                 ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
@@ -970,6 +985,7 @@ namespace CalradiaUnified
                 "KnightOrigin=" + KnightOrigin,
                 "LordGuidedStart=" +
                     LordGuidedStart.ToString().ToLowerInvariant(),
+                "LordSuccessionRule=" + LordSuccessionRule,
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
