@@ -18,7 +18,12 @@ fields=vm.split("private List<Field> BuildFields()",1)[1]
 world=fields.split("if(preCampaign)",1)[1].split("\n            else\n            {",1)[0]
 house=fields.split("\n            else\n            {",1)[1].split("return list;",1)[0]
 assert '"NobleBirthPosition"' in world and '"NobleElderHeroId"' in world
-assert '"NobleBirthPosition"' not in house and '"SiblingCount"' in house
+# The source-only v0.61 assertion expected World-only noble birth.
+# A real v0.69f game session proved this can strand the player after native
+# Age/Culture discovery. House may now *correct the existing choice*.
+assert '"NobleBirthPosition"' in house and '"SiblingCount"' in house
+assert house.index('"NobleBirthPosition"') < house.index('"SpouseEnabled"')
+assert '"NobleElderHeroId"' in house
 assert 'candidate.RetinueMode=SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'SandboxAutoHousePlan.Prepare(profile' in vm
 assert 'if(!profile.AutoHouseNamesPrepared)' in vm
