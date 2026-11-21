@@ -16,7 +16,7 @@ namespace CalradiaUnified
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
         public static readonly string[] Roles =
-            { "Wanderer", "Recruit", "Soldier", "HouseholdKnight",
+            { "Wanderer", "Recruit", "Soldier", "Mercenary", "HouseholdKnight",
               "Knight", "NobleCadet", "Lord", "King", "Admiral",
               "Trader", "Outlaw", "Beggar" };
         public static readonly string[] Kits =
@@ -126,6 +126,9 @@ namespace CalradiaUnified
         public bool WandererNoHouseStart;
         // New guided Outlaw only. Keep legacy Outlaw save semantics intact.
         public bool OutlawGuidedStart;
+        // v0.70d is a new, kingdom-contracted company. Old Soldier
+        // profiles retain their historical native mercenary meaning.
+        public bool MercenaryGuidedStart;
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -218,6 +221,7 @@ namespace CalradiaUnified
             RetinueMode="Native";
             WandererNoHouseStart=false;
             OutlawGuidedStart=false;
+            MercenaryGuidedStart=false;
             WandererCompanionEnabled=false;
             WandererCompanionName="Taran";
             WandererCompanionAge=25;
@@ -477,6 +481,9 @@ namespace CalradiaUnified
                 case "OutlawGuidedStart":
                     if(!Boolean.TryParse(value,out b))return false;
                     OutlawGuidedStart=b;return true;
+                case "MercenaryGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    MercenaryGuidedStart=b;return true;
                 case "WandererCompanionEnabled":
                     if(!Boolean.TryParse(value,out b))return false;
                     WandererCompanionEnabled=b;return true;
@@ -608,6 +615,25 @@ namespace CalradiaUnified
                 !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
             {
                 error="Choose a supported early household and ambition.";
+                return false;
+            }
+            if(MercenaryGuidedStart &&
+                (Role!="Mercenary" || WandererNoHouseStart ||
+                 OutlawGuidedStart || RoleAffiliationsEnabled ||
+                 String.IsNullOrEmpty(StartingKingdomId) ||
+                 NobleBirthPosition!="Independent" ||
+                 !String.IsNullOrEmpty(NobleElderHeroId) ||
+                 !String.IsNullOrEmpty(ServicePatronHeroId) ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native" ||
+                 !String.IsNullOrEmpty(StartingFiefId) ||
+                 AllowStartingFiefTransfer ||
+                 Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Mercenary needs a named kingdom, genuine "+
+                    "native paid-company contract, no fief or custom "+
+                    "troop subsidy, and no invented noble residence.";
                 return false;
             }
             if(OutlawGuidedStart &&
@@ -833,6 +859,8 @@ namespace CalradiaUnified
                     WandererNoHouseStart.ToString().ToLowerInvariant(),
                 "OutlawGuidedStart=" +
                     OutlawGuidedStart.ToString().ToLowerInvariant(),
+                "MercenaryGuidedStart=" +
+                    MercenaryGuidedStart.ToString().ToLowerInvariant(),
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
