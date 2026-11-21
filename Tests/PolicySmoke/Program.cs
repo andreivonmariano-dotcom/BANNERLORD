@@ -413,6 +413,115 @@ internal static class Program
             medievalStress.SaveReloads>5000 &&
             medievalStress.NativeWagesGranted==0 &&
             medievalStress.NativeFiefsTransferred==0);
+        var npcRequests=new SandboxAgencyDecisionState();
+        for(int i=0;i<15;i++)npcRequests.Tick();
+        Check("autonomous NPC invitations need real adult and physical access",
+            SandboxAgencyDecisionPolicy.Choose("ProtectSharedHousehold",
+                true,true,25,0,90)=="HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.Choose("EstablishLivelihood",
+                true,false,25,0,90)=="" &&
+            SandboxAgencyDecisionPolicy.Choose("MaintainHousehold",
+                false,true,25,0,90)=="" &&
+            SandboxAgencyDecisionPolicy.Choose("PreserveFamilyPosition",
+                true,true,25,0,90)=="Recognition");
+        Check("character-generated household requests have native costs",
+            npcRequests.Propose("brother","HouseholdAid") &&
+            npcRequests.HasPending &&
+            SandboxAgencyDecisionPolicy.Amount(
+                npcRequests.PendingKind)==150 &&
+            !npcRequests.Propose("factor","LivelihoodAid") &&
+            SandboxAgencyDecisionPolicy.NativeTransferPermitted(
+                "HouseholdAid",true,300,true) &&
+            !SandboxAgencyDecisionPolicy.NativeTransferPermitted(
+                "HouseholdAid",true,100,true) &&
+            SandboxAgencyDecisionPolicy.RelationDelta(
+                "HouseholdAid",false)==-1);
+        string originalRequest=npcRequests.Serialize();
+        var reloadedRequest=SandboxAgencyDecisionState.Parse(
+            originalRequest);
+        Check("active character requests survive native campaign saves",
+            reloadedRequest.Serialize()==originalRequest &&
+            reloadedRequest.PendingHeroId=="brother" &&
+            reloadedRequest.Dismiss("Accepted")=="Accepted" &&
+            !reloadedRequest.HasPending);
+        for(int i=0;i<36;i++)npcRequests.Tick();
+        Check("unanswered local NPC requests expire without gold transfer",
+            !npcRequests.HasPending &&
+            !npcRequests.Propose("brother","HouseholdAid") &&
+            npcRequests.Records[0].RequestsMade==1);
+        var inheritanceCourt=new SandboxInheritanceNegotiationState();
+        Check("six cultural court thresholds remain distinct",
+            new[]{"vlandia","sturgia","battania","empire",
+                "aserai","khuzait"}
+                .Select(c=>SandboxInheritanceNegotiationPolicy
+                    .ConsentThreshold(c,1)).Distinct().Count()>=5 &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,true,2,1,90,
+                "vlandia")=="ClanHeadConsents" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,false,true,true,true,2,1,90,
+                "vlandia")=="ParentStillLiving" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,false,2,1,90,
+                "vlandia")=="NativeAllegianceRequired" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,true,1,1,90,
+                "vlandia")=="NoSecondaryEstate");
+        Check("contested family claim cannot transfer before clan approval",
+            inheritanceCourt.Petition("ClaimContested",
+                "castle_b","lord","clan_a","HouseholdSeniority",120)==
+                "ClaimContested" &&
+            !inheritanceCourt.Authorized &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,false,"clan_a","clan_a",true,true,2));
+        Check("consented secondary family grant needs explicit native choice",
+            inheritanceCourt.Petition("ClanHeadConsents",
+                "castle_b","lord","clan_a","HouseholdSeniority",200)==
+                "ClanHeadConsents" &&
+            inheritanceCourt.Authorized &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                false,true,"clan_a","clan_a",true,true,2) &&
+            SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_a",true,true,2) &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_b",true,true,2) &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_a",false,true,2));
+        string oldPetition=inheritanceCourt.Serialize();
+        var newPetition=SandboxInheritanceNegotiationState.Parse(
+            oldPetition);
+        Check("saved family-consent record cannot invent native ownership",
+            newPetition.Serialize()==oldPetition &&
+            newPetition.Authorized &&
+            newPetition.Complete(false)=="native_owner_not_changed" &&
+            newPetition.Status=="ClanHeadConsents" &&
+            newPetition.Complete(true)=="native_grant_confirmed" &&
+            newPetition.Status=="NativeGrantCompleted");
+        var affairsStress=SandboxLivingAffairsSimulation.Run(120,730);
+        Console.WriteLine("LIVING AFFAIRS SIMULATION "+
+            (affairsStress.Failures==0?"PASS":"FAIL")+
+            " | seeds="+affairsStress.Seeds+
+            " | days_per_seed="+affairsStress.Days+
+            " | checks="+affairsStress.Checks+
+            " | requests="+affairsStress.Requests+
+            " | accepted="+affairsStress.Accepted+
+            " | declined="+affairsStress.Declined+
+            " | cultural_grants_authorized="+
+                affairsStress.AuthorizedClaims+
+            " | contested="+affairsStress.ContestedClaims+
+            " | petition_refusals="+affairsStress.RefusedClaims+
+            " | reloads="+affairsStress.Reloads+
+            " | first_failure="+affairsStress.FirstFailure);
+        Check("120 campaign seeds for two years preserve agency and estate gates",
+            affairsStress.Failures==0 &&
+            affairsStress.Seeds==120 &&
+            affairsStress.Checks>100000 &&
+            affairsStress.Requests>=200 &&
+            affairsStress.AuthorizedClaims>0 &&
+            affairsStress.ContestedClaims>0 &&
+            affairsStress.Reloads>1000 &&
+            affairsStress.NativeTransferCalls==0 &&
+            affairsStress.UnguardedTransfers==0);
         var autoHouse=new SandboxOriginProfile();
         autoHouse.Role="Lord";
         SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");

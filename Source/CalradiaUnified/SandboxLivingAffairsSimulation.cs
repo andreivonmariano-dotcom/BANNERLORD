@@ -88,7 +88,9 @@ namespace CalradiaUnified
                     Check(r,gold==1500+earnedNative-aidTotal,
                         "gold duplicated by request");
                     Check(r,requests.Records.Count<=64 &&
-                        !requests.HasPending || requests.Records.Count<=64,
+                        (!requests.HasPending ||
+                         SandboxAgencyDecisionPolicy.Amount(
+                            requests.PendingKind)>=0),
                         "agency overflow");
                     if(d==Math.Min(days-1,120))
                     {
