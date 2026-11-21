@@ -102,29 +102,29 @@ namespace CalradiaUnified
             }
             {
                 string menu="cu_civic_stores";
-                starter.AddGameMenuOption(menu, "cu_depot_deposit", "CU: Deposit 5 grain in depot",
+                starter.AddGameMenuOption(menu, "cu_depot_deposit", "Store five sacks of grain",
                     x => CanVisit() && DepotLedgerPolicy.CanDeposit(settings.EnableCivicSystems, Owned(),
                         GrainOnHand(), 5, Stock(), settings.DepotCapacity),
                     x => Safe(Deposit), false);
-                starter.AddGameMenuOption(menu, "cu_depot_withdraw", "CU: Withdraw 5 grain from depot",
+                starter.AddGameMenuOption(menu, "cu_depot_withdraw", "Withdraw five sacks of grain",
                     x => CanVisit() && DepotLedgerPolicy.CanWithdraw(settings.EnableCivicSystems, Owned(), Stock(), 5),
                     x => Safe(Withdraw), false);
-                starter.AddGameMenuOption(menu, "cu_depot_invest", "CU: Fund grain production (300 gold)",
+                starter.AddGameMenuOption(menu, "cu_depot_invest", "Fund the granaries (300 denars)",
                     x => CanVisit() && CivicPolicy.CanInvest(settings.EnableEconomy, Owned(), PlayerGold(), 300,
                         CurrentDepot() == null ? 0 : CurrentDepot().Investment, settings.MaxDepotInvestment),
                     x => Safe(Invest), false);
-                starter.AddGameMenuOption(menu, "cu_depot_ship", "CU: Send 5 grain to lowest-stock fief (3 days)",
+                starter.AddGameMenuOption(menu, "cu_depot_ship", "Supply another holding with grain",
                     x => CanVisit() && CivicPolicy.CanSendShipment(settings.EnableAbstractShipments, Owned(), Stock(), 5,
                         Destination() != null && DepotLedgerPolicy.FreeCapacity(state.Stock(Destination().StringId),
                             settings.DepotCapacity) >= 5, state.HasShipment(CurrentId())),
                     x => Safe(Ship), false);
                 string defenseMenu="cu_civic_garrison";
                 starter.AddGameMenuOption(defenseMenu, "cu_local_levy",
-                    "Hire one local levy (200 gold)",
+                    "Recruit a local levy (200 denars)",
                     x => CanVisit() && CanLocalRecruit(),
                     x => Safe(Recruit), false);
                 starter.AddGameMenuOption(menu, "cu_grain_aid",
-                    "Donate 5 grain for local goodwill",
+                    "Provide five grain to local notables",
                     x => CanVisit() && CivicPolicy.CanAid(settings.EnableLocalDiplomacy, Owned(), GrainOnHand(), 5,
                         LocalNotable() != null),
                     x => Safe(Aid), false);

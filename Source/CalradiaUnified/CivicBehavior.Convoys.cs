@@ -16,7 +16,7 @@ namespace CalradiaUnified
     {
         private void RegisterPhysicalConvoyMenu(CampaignGameStarter starter, string menu)
         {
-            starter.AddGameMenuOption(menu, "cu_guarded_convoy", "CU: Dispatch guarded grain convoy",
+            starter.AddGameMenuOption(menu, "cu_guarded_convoy", "Dispatch guarded grain convoy",
                 x => CanVisit() && PhysicalConvoyEligible(), x => Safe(DispatchPhysicalConvoy), false);
         }
         private int CountActiveConvoys()

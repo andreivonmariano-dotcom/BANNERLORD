@@ -12,17 +12,17 @@ namespace CalradiaUnified
         private void RegisterKingdomMenu(CampaignGameStarter starter, string menu)
         {
             starter.AddGameMenuOption(menu, "cu_kingdom_council_briefing",
-                "CU: Hear the kingdom council briefing",
+                "Request a kingdom briefing",
                 x => CanVisit() && settings.EnableNpcAdvisory && CurrentSettlementInKingdom(),
                 x => Safe(ShowKingdomCouncilBriefing), false);
             starter.AddGameMenuOption(menu, "cu_kingdom_levy",
-                "CU: Recruit a kingdom levy (gold + influence)",
+                "Recruit a levy for the kingdom",
                 x => CanVisit() && CanKingdomLevy(), x => Safe(RecruitKingdomLevy), false);
             starter.AddGameMenuOption(menu, "cu_kingdom_levy_pair",
-                "CU: Recruit two kingdom levies (gold + influence)",
+                "Recruit two levies for the kingdom",
                 x => CanVisit() && CanKingdomLevyPair(), x => Safe(RecruitKingdomLevyPair), false);
             starter.AddGameMenuOption(menu, "cu_kingdom_mission",
-                "CU: Send goodwill mission to ruling clan",
+                "Send an envoy to the ruling house",
                 x => CanVisit() && CanKingdomMission(), x => Safe(PerformKingdomMission), false);
         }
         private void ShowKingdomCouncilBriefing()
