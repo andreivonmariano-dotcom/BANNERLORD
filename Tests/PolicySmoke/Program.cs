@@ -251,6 +251,31 @@ internal static class Program
         // For an Independent Lord, the player is eldest brother.
         // Native clan leadership remains a separate game-owned role.
         var eldestBrotherPlan=new SandboxOriginProfile();
+        var suggestedLordHouse=new SandboxOriginProfile();
+        Check("automatic independent noble household has valid seniority",
+            suggestedLordHouse.TrySet("Role","Lord") &&
+            suggestedLordHouse.TrySet("NobleBirthPosition","Independent") &&
+            suggestedLordHouse.TrySet("SiblingCount","2"));
+        SandboxAutoHousePlan.Prepare(suggestedLordHouse,
+            "vlandia",40,false,"Founder");
+        Check("automatic older sibling is a sister, not an older brother",
+            suggestedLordHouse.Siblings[1].Age>40 &&
+            suggestedLordHouse.Siblings[1].Gender=="Female" &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                suggestedLordHouse,40)=="" &&
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    suggestedLordHouse,40)==0);
+        // Other origins do not receive Independent Lord seniority edits.
+        var cadetHouse=new SandboxOriginProfile();
+        cadetHouse.TrySet("Role","Lord");
+        cadetHouse.TrySet("NobleBirthPosition","YoungerBrotherOfLord");
+        cadetHouse.TrySet("SiblingCount","2");
+        SandboxAutoHousePlan.Prepare(cadetHouse,
+            "vlandia",40,false,"Cadet");
+        Check("automatic non-independent cadet can retain older brother",
+            cadetHouse.Siblings[1].Age>40 &&
+            cadetHouse.Siblings[1].Gender=="Male");
         Check("independent lord eldest-brother fixture",
             eldestBrotherPlan.TrySet("Role","Lord") &&
             eldestBrotherPlan.TrySet("StartingKingdomId","vlandia") &&
