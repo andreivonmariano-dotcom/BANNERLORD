@@ -11,6 +11,11 @@ internal static class Program
         passed++;
         Console.WriteLine("PASS " + name);
     }
+    private static string SandboxNativeTypeForPolicy(string role)
+    {
+        return SandboxRoleConsistencyPolicy.NativeType(role);
+    }
+
     private static bool ResetAndCheck(SandboxOriginProfile plan)
     {
         plan.ResetForNewCampaign();
@@ -18,6 +23,94 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.69h source/model matrix audit. A passing assertion does not
+        // prove a Bannerlord campaign start or saved native Hero state.
+        var nativeRoles=new [] {
+            "Wanderer","Recruit","Soldier","HouseholdKnight",
+            "Knight","NobleCadet","Lord","King","Admiral",
+            "Trader","Outlaw","Beggar"
+        };
+        var expectedTypes=new [] {
+            "default","default","mercenary","default",
+            "vassal","default","vassal","king","fleetadmiral",
+            "trader","outlaw","beggar"
+        };
+        Check("all twelve role options have unique native mappings",
+            SandboxOriginProfile.Roles.Length==12 &&
+            SandboxOriginProfile.Roles.Distinct().Count()==12);
+        for(int i=0;i<nativeRoles.Length;i++)
+            Check("native role matrix "+nativeRoles[i],
+                SandboxOriginProfile.Roles.Contains(nativeRoles[i]) &&
+                SandboxNativeTypeForPolicy(nativeRoles[i])==
+                    expectedTypes[i]);
+
+        Check("missing changed-option native type is safe only for default",
+            SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",false,false,0) &&
+            SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default",null,false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","mercenary",false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",true,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",false,false,1) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "vassal","",false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "king","",false,false,0));
+        Check("native status validation accepts empty default only if landless",
+            SandboxStartContract.Validate("default","",
+                "vlandia","",false,0,false,false,0,0).Length==0 &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "HouseholdKnight","",false,false,0)=="" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "NobleCadet",null,false,false,0)=="" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Wanderer","",false,false,0)=="" &&
+            SandboxStartContract.Validate("default","",
+                "vlandia","vlandia",false,0,
+                false,false,0,0).Contains("native_start_type_mismatch") &&
+            SandboxStartContract.Validate("default","",
+                "vlandia","",false,1,
+                false,false,0,0).Contains("native_start_type_mismatch"));
+        Check("nondefault native starts still need exact source IDs",
+            SandboxStartContract.Validate("vassal","default",
+                "vlandia","vlandia",false,1,
+                false,false,0,0).Contains("native_start_type_mismatch") &&
+            SandboxStartContract.Validate("king","",
+                "vlandia","vlandia",true,1,
+                false,false,0,0).Contains("native_start_type_mismatch"));
+        Check("all six world scenario names are unique and parseable",
+            SandboxOriginProfile.Scenarios.Length==6 &&
+            SandboxOriginProfile.Scenarios.Distinct().Count()==6);
+        foreach(string scenario in SandboxOriginProfile.Scenarios)
+        {
+            var p=new SandboxOriginProfile();
+            Check("world scenario plan parses "+scenario,
+                p.TrySet("StartingScenario",scenario) &&
+                SandboxOriginProfile.Parse(p.Serialize())
+                    .StartingScenario==scenario);
+        }
+        Check("all nine noble birth positions are distinct",
+            SandboxNobleStartPolicy.BirthPositions.Length==9 &&
+            SandboxNobleStartPolicy.BirthPositions.Distinct().Count()==9);
+        Check("starting kingdoms present and unique",
+            SandboxOriginProfile.KingdomIds.Length==9 &&
+            SandboxOriginProfile.KingdomIds.Distinct().Count()==9);
+        Check("four explicit fief modes include native default",
+            SandboxFiefPolicy.Modes.Length==4 &&
+            SandboxFiefPolicy.Modes.Contains("Native") &&
+            SandboxFiefPolicy.Modes.Contains("Specific") &&
+            SandboxFiefPolicy.ValidateRequest(
+                "HouseholdKnight","Castle","",true)==
+                    "fief_role_ineligible" &&
+            SandboxFiefPolicy.ValidateRequest(
+                "Lord","Specific","",true)=="fief_id_required");
+        Check("retinue modes include compatibility alias",
+            SandboxNobleStartPolicy.RetinueModes.Length==4 &&
+            SandboxNobleStartPolicy.RetinueModes.Contains("Native") &&
+            SandboxNobleStartPolicy.RetinueModes.Contains("FamilyOnly"));
         Check("native gift proof confirms BOTH payer debit and recipient credit",
             SandboxNativeEffectProof.GiftResult(500,350,20,170,150)==
                 "confirmed" &&
