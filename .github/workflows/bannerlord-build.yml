@@ -58,6 +58,9 @@ jobs:
       - name: Regress v067 vanilla-compatible character agency and native estate petitions
         shell: pwsh
         run: python scripts/test_v067_people_and_lineage_menus.py
+      - name: Regress v069 native phase-9 family, fief and award ordering
+        shell: pwsh
+        run: python scripts/test_v069b_family_fief_commit_order.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |
