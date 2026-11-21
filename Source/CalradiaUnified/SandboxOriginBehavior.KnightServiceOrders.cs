@@ -104,6 +104,23 @@ namespace CalradiaUnified
                 "|no_fief_or_royal_promotion_granted=true");
         }
 
+        private bool KnightCanDiscussNativeVassalage()
+        {
+            var clan=Clan.PlayerClan;
+            var patron=ResolveCampaignHero(
+                knightServiceOrders.PatronId);
+            var speaker=Hero.OneToOneConversationHero;
+            if(!applied || clan==null || clan.Kingdom!=null ||
+                patron==null || patron.Clan==null ||
+                patron.Clan.Kingdom==null ||
+                knightServiceOrders.RoyalHearingDay<0 ||
+                speaker==null || !speaker.IsAlive ||
+                !speaker.IsActive || speaker.IsPrisoner)
+                return false;
+            var ruler=patron.Clan.Kingdom.RulingClan;
+            return ruler!=null && ruler.Leader==speaker;
+        }
+
         private bool KnightCanRequestOrder()
         {
             var patron=KnightOathPatron();
@@ -368,6 +385,21 @@ namespace CalradiaUnified
                 "Any formal entry into this kingdom must follow "+
                 "the law of the crown and its existing clans.",
                 null,null,110);
+
+            starter.AddPlayerLine(
+                "cu_knight_lawful_vassalage_inquiry",
+                "hero_main_options",
+                "cu_knight_lawful_vassalage_reply",
+                "I would petition for formal entry into your kingdom.",
+                ()=>KnightCanDiscussNativeVassalage(),null,80);
+            starter.AddDialogLine(
+                "cu_knight_lawful_vassalage_reply",
+                "cu_knight_lawful_vassalage_reply",
+                "hero_main_options",
+                "Your personal service is acknowledged, but "+
+                "the crown's ordinary terms for joining the realm "+
+                "remain in force. A hearing grants no land or title.",
+                null,null,80);
 
             foreach(var source in new[]{"town"})
                 starter.AddGameMenuOption(source,
