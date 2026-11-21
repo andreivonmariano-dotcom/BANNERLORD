@@ -1,3 +1,15 @@
+# Calradia Unified | Latest development build: v0.69f
+
+**Latest compiled candidate: v0.69f**. The current development build has passed **907 C# policy checks** and compiled against **Bannerlord 1.5.7.125802** with zero warnings or errors. **It is not yet game-tested or merged into `main`.**
+
+**[Download the latest pinned compiled artifact (Windows CI 44864139228)](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491)**
+
+For PowerShell, the [v0.69f installer](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/42238c276cea8c9e6519ea83c2f520663dcaf18f/scripts/Install-CU-From-Artifact.ps1) supports `-ShowLatest` and hash-verified `-LatestVerified` installation. See the [current installation guide](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/audit/v069e-current-gameplay-and-visual-acceptance/docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md) and [draft development PR #93](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/93).
+
+The compiled development build uses the historical **`v0.38.0`** game-module manifest. The actual code on the `main` branch is still **v0.12.0**. This top-of-page notice points to the newer **v0.69f candidate**, not a published or game-verified `main` release.
+
+---
+
 # Calradia Unified v0.12.0: exportable finance and crash diagnostics
 
 **Target:** Mount & Blade II: Bannerlord PC v1.5.7. **Verified build:** [run 44236922635](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44236922635). **Product:** one `Modules/CalradiaUnified` folder with no installer or historical third-party DLLs.
