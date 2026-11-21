@@ -344,7 +344,7 @@ namespace CalradiaUnified
                 ". Living strongholds: "+NativeBirthHoldings(clan)+
                 ". Current clan head: "+leader+
                 ". Claim: "+inheritanceNegotiation.Status+
-                ". Clan-head consent threshold: "+
+                ". Negotiation readiness relation threshold: "+
                 SandboxInheritanceNegotiationPolicy.ConsentThreshold(
                     successionInterest.CultureId,
                     successionInterest.EarlierSonsAtStart)+
@@ -353,10 +353,10 @@ namespace CalradiaUnified
                     .FamilySettlementContribution(
                         successionInterest.CultureId)+
                 " denars (maximum two, made at a native family court)."+
-                " A cadet must first join the same native kingdom "+
-                "through normal game politics. Family grants require "+
-                "death, clan-head consent, a secondary estate, and "+
-                "your explicit confirmation.");
+                " A cadet must join the native kingdom through normal "+
+                "politics. Favorable relations alone are NOT game-backed "+
+                "clan-head consent. Property transfer is disabled until "+
+                "an actual native clan-head decision can be observed.");
         }
         private void PetitionFamilyCouncil()
         {
@@ -397,9 +397,9 @@ namespace CalradiaUnified
                 "|native_transfer=false");
             Notify("Family petition: "+status+
                 ". "+(status=="ClanHeadConsents"?
-                    "The modeled clan-head decision permits a secondary "+
-                    "family grant. Review and explicitly confirm the "+
-                    "native transfer at this same estate.":
+                    "The family model finds this claim negotiable. "+
+                    "This is NOT observed consent from the native clan "+
+                    "head. No estate transfer is authorized.":
                     "No property has changed. The native kingdom and "+
                     "clan rules remain in force."));
         }
@@ -535,6 +535,7 @@ namespace CalradiaUnified
             var estate=Settlement.CurrentSettlement;
             if(player==null || clan==null || estate==null ||
                 !inheritanceNegotiation.Authorized ||
+                !inheritanceNegotiation.NativeHeadConsentObserved ||
                 estate.StringId!=inheritanceNegotiation.SettlementId ||
                 clan.StringId!=inheritanceNegotiation.BirthClanId ||
                 clan.Leader==null ||
@@ -676,6 +677,13 @@ namespace CalradiaUnified
                         GameMenu.SwitchToMenu("cu_people_lineage");
                     },false);
             }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_role_economy_observed",
+                "Livelihood, duties and native denar evidence",
+                args=>roleEconomy.Started,
+                args=>ShowNativeDetail(
+                    "Starting Role | Verified livelihood record",
+                    roleEconomy.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "Household register and character ambitions",
