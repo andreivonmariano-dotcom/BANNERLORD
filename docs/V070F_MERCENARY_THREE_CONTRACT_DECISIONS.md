@@ -52,3 +52,12 @@ No automatic replacement of existing signed terms. The player must confirm the n
 - **Not implemented:** native independent pre-contract game start, actual offer screen, consenting UI, employer financial authority, funded escrow/ledger, contractual daily pay/reconciliation, native change-in-term action, once-only exit transfer, live headcount/wage observation and in-game acceptance. No claim of a working playable negotiation mechanic.
 - **Next engineering stage:** inspect pinned v1.5.7 API, implement independent initial company and 30-day starting runway, offer/accept/decline with native kingdom transitions, then save-backed funded money flows and automatic change-detection prompts. Test normal expiry, betrayal, bankruptcy, loss acceptance, wage-upgrade-only renegotiation, signed revision, refusal, employer switching and repeated save/reload.
 - **Release:** the candidate stays in draft PR #93. Do not merge, repoint installer, call escrow secured or mark gameplay PASS before a real game session verifies all payment and contract claims.
+
+
+## Verified automated source-policy build
+
+Windows [CI run 44876663366](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44876663366) completed **SUCCESS** for source commit `7d9c3296ad5f3128e682cae2d155dbe2ec2090ab`. The pinned Bannerlord v1.5.7.125802 reference compiler reported **0 errors and 0 warnings**. **981 independent C# gameplay policy tests passed**, including the five new consent, escrow-eligibility and renegotiation rules. **1,441,129** modeled campaign checks and **1,159,206** modeled audit assertions passed. The source regression deliberately prints **NATIVE PAYMENT AND NEGOTIATION GAMEPLAY NOT IMPLEMENTED**.
+
+[Compiled but untested artifact 14696405620](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44876663366/artifacts/14696405620): DLL 631,296 bytes, SHA-256 `4c0566083be6e9e0f12bf2cb0fd1cd0d753a6080d579667d47c07623a235c99f`. Inner runtime module ZIP 280,721 bytes, SHA-256 `acb87bd1f97f21fecc056475d5ed539913abea3b0eb5f91ea101b324994f3895`.
+
+This verifies **policy math and static wiring only**. No contract UI, funded native escrow, native pay integration, or in-game start transition was claimed or exercised. Draft PR #93 remains unmerged, and the default installer pin remains unchanged.
