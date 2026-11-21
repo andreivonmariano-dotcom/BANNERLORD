@@ -8,6 +8,8 @@
 **Scope:** Dedicated ChatGPT project and companion GitHub repository  
 **Canonical repository:** https://github.com/andreivonmariano-dotcom/BANNERLORD
 
+> **Current priority addendum, 21 November 2026:** The user directs Q1 → Q2 → Q3 in order: first native Starting Life integrity, transaction safety, and game-verified acceptance (v0.69), then believable medieval social roles and obligations (v0.70+), then persistent NPC personality, independent choices, relationships and memory (v0.71+). Read [the living project decisions and chat handoff](docs/PROJECT_DECISIONS_AND_CHAT_HANDOFF.md) and the CURRENT MASTER PRIORITY section of the [canonical source Google Doc](https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit). This priority temporarily supersedes the historical suggested development order. Continue from the most recent verified branch, CI and test record rather than assuming main is current.
+
 > **Purpose.** This document governs work conducted inside the BANNERLORD project. Its aim is to turn requests into functioning, verified Bannerlord mods and reliable technical records. It takes the source-and-evidence discipline and editorial principles of the user's reference document, *ChatGPT_Comprehensive_Source_Instructions_Updated_2026-11-11*, and applies them to game mod engineering. A short companion file supplies text suitable for the ChatGPT Project Instructions field.
 
 ## Project charter and scope
