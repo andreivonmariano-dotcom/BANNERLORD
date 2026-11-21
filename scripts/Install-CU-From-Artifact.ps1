@@ -19,11 +19,11 @@ $ErrorActionPreference = "Stop"
 # separate from this source-development version for save compatibility.
 $latestLabel = "v0.69g"
 $latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
-$latestRun = "44866582823"
-$latestCommit = "63a82b14bde2ccc07eea9a15a9745aa6ae3693fb"
+$latestRun = "44867186334"
+$latestCommit = "8c2382461522907db63d5890e2204864a336e056"
 $latestManifest = "v0.38.0"
-$latestDllSha256 = "2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0"
-$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071"
+$latestDllSha256 = "d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274"
 
 function Write-LatestBuild {
     Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
