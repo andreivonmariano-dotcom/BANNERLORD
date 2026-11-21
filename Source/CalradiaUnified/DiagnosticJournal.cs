@@ -23,6 +23,9 @@ namespace CalradiaUnified
             "utc,session_id,context,exception_type,message,stack_trace";
         public static string OverrideRootForTests;
         public static bool Enabled = true;
+        // One immutable ID joins all finance, creator, fault and
+        // heartbeat events in the same automatically archived session.
+        public static string CurrentSessionId {get{return SessionId;}}
         private static readonly object Gate = new object();
         private static readonly string SessionId = DateTime.UtcNow.ToString(
             "yyyyMMddTHHmmss", CultureInfo.InvariantCulture) + "_" +
@@ -68,35 +71,48 @@ namespace CalradiaUnified
             return withMetadata;
         }
 
-        private static void Append(string name, string header, string[] cells)
+        private static void AppendOne(string path,string header,
+            string line,long limit)
         {
-            if (!Enabled) return;
+            Directory.CreateDirectory(Path.GetDirectoryName(path));
+            if(File.Exists(path) &&
+                new FileInfo(path).Length>limit)
+            {
+                string previous=path+".previous";
+                if(File.Exists(previous))File.Delete(previous);
+                File.Move(path,previous);
+            }
+            bool first=!File.Exists(path);
+            using(var stream=new FileStream(path,FileMode.Append,
+                FileAccess.Write,FileShare.ReadWrite))
+            using(var writer=new StreamWriter(stream,
+                new UTF8Encoding(false)))
+            {
+                if(first)writer.WriteLine(header);
+                writer.WriteLine(line);
+            }
+        }
+        private static void Append(string name,string header,string[] cells)
+        {
+            if(!Enabled)return;
             try
             {
-                lock (Gate)
+                string line=String.Join(",",cells.Select(CsvField));
+                lock(Gate)
                 {
-                    Directory.CreateDirectory(Root);
-                    string path = Path.Combine(Root, name);
-                    // Rotate rather than grow forever. Keep latest and one predecessor.
-                    if (File.Exists(path) && new FileInfo(path).Length > MaxCsvBytes)
-                    {
-                        string previous = path + ".previous";
-                        if (File.Exists(previous)) File.Delete(previous);
-                        File.Move(path, previous);
-                    }
-                    bool newFile = !File.Exists(path);
-                    using (var stream = new FileStream(path, FileMode.Append,
-                        FileAccess.Write, FileShare.ReadWrite))
-                    using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
-                    {
-                        if (newFile) writer.WriteLine(header);
-                        writer.WriteLine(String.Join(",", cells.Select(CsvField)));
-                    }
+                    // Retain the existing legacy diagnostic path for
+                    // independent manual collectors and older scripts.
+                    AppendOne(Path.Combine(Root,name),header,line,
+                        MaxCsvBytes);
+                    // Record each event *during* play. A native process
+                    // termination cannot erase records already flushed.
+                    AppendOne(Path.Combine(Root,"Sessions",SessionId,name),
+                        header,line,16L*1024L*1024L);
                 }
             }
             catch
             {
-                // A log I/O problem cannot crash Bannerlord.
+                // Diagnostic disk failures must not crash gameplay.
             }
         }
 

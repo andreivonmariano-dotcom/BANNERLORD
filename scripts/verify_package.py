@@ -19,8 +19,18 @@ def verify(filename, version):
         exporter = prefix + "ModuleData/Export-CU-Diagnostics.ps1"
         assert len(names) == len(set(names)), "Duplicate ZIP entries"
         assert all(n.startswith(prefix) and ".." not in n.split("/") for n in names), "Unexpected path"
-        assert all(n in (base, manifest) or n.startswith(prefix+"ModuleData/")
-                   or n.startswith(prefix+"GUI/Prefabs/") for n in names), "Non-runtime file"
+        sprite_config=prefix+"GUI/SpriteParts/Config.xml"
+        assert all(n in (base, manifest, sprite_config) or
+                   n.startswith(prefix+"ModuleData/") or
+                   n.startswith(prefix+"GUI/Prefabs/")
+                   for n in names), "Non-runtime file"
+        if sprite_config in names:
+            config=ET.fromstring(archive.read(sprite_config))
+            assert config.tag=="Config"
+            category=config.find("SpriteCategory")
+            assert category is not None
+            assert category.attrib.get("Name")=="ui_calradiaunified"
+            assert category.find("AlwaysLoad") is not None
         gauntlet_prefab = prefix + "GUI/Prefabs/CUSettingsPanel.xml"
         assert gauntlet_prefab in names, "Native UI prefab missing"
         assert ET.fromstring(archive.read(gauntlet_prefab)).tag == "Prefab", "Invalid prefab XML"
@@ -31,6 +41,26 @@ def verify(filename, version):
         new_creator = prefix + "GUI/Prefabs/CUSandboxCreator.xml"
         assert new_creator in names, "New Sandbox creator movie missing"
         assert ET.fromstring(archive.read(new_creator)).tag == "Prefab", "Invalid Sandbox creator XML"
+        # The v0.59f movies share the exact pinned Native Review
+        # stone panel, title brush and native green Next/Back footer.
+        # Do not ship a DLL that requests them without packaging both.
+        for name in ("CUGuidedCreatorNativeReview.xml",
+                     "CUNativeStatsEditorNativeReview.xml"):
+            path=prefix+"GUI/Prefabs/"+name
+            assert path in names, "Generated native Review shell missing: "+name
+            xml=ET.fromstring(archive.read(path))
+            assert xml.tag=="Prefab"
+            panel=[w for w in xml.iter("Widget")
+                   if w.get("Id")=="RightPanel"]
+            assert len(panel)==1
+            assert panel[0].get("SuggestedWidth")=="694"
+            assert panel[0].get("SuggestedHeight")=="1080"
+            assert panel[0].get("Sprite")==r"General\CharacterCreation\character_creation_panel"
+            buttons=list(xml.iter("ButtonWidget"))
+            assert any(b.get("Brush")=="Standard.BackButton" and
+                       b.get("Command.Click")=="ExecuteBack" for b in buttons)
+            assert any(b.get("Brush")=="Popup.Done.Button.NineGrid" and
+                       b.get("Command.Click")=="ExecuteContinue" for b in buttons)
         # The opt-in stage has a UNIQUE type; native FaceGen remains intact.
         for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml","CUNativeCultureChooser.xml"):
             path = prefix + "GUI/Prefabs/" + name

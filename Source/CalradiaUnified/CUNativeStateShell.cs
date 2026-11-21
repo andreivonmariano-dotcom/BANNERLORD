@@ -425,9 +425,13 @@ namespace CalradiaUnified
                     faceStatus=observed;
                     OnPropertyChangedWithValue(faceStatus,"FaceStatus");
                     if(observed=="REAL 3D FACE SCENE + NATIVE SLIDERS ACTIVE")
+                    {
+                        DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                            "page=Face|surface=native_creator|phase=visual_probe_verified");
                         DiagnosticJournal.Event("cu_native_face_layers_verified",
                             "native_scene=true|native_body_generator=true"+
                             "|native_gauntlet_controls=true|relocated=false");
+                    }
                 }
             }
         }

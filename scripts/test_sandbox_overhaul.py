@@ -71,7 +71,11 @@ assert "new CUSandboxNoIntroGameManager(" in src
 assert "public override void OnLoadFinished()" in (
     ROOT/"Source/CalradiaUnified/CUSandboxNoIntroGameManager.cs").read_text(encoding="utf-8")
 assert "MBGameManager.StartNewGame(" in src
-assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" in src
+# A separately pushed ScreenBase deactivates the animated main menu.
+# World is now mounted as a GauntletLayer on its existing screen.
+assert "ScreenManager.PushScreen(new SandboxCreatorScreen())" not in src
+assert "SandboxCreatorMenuLayer.Open(" in src
+assert "SandboxCreatorMenuLayer.Tick();" in src
 assert "SandboxCreatorOverlay.Arm(manager)" not in origin
 assert "new NativeSandboxStageObserver()" in origin
 assert "Arm(native.CharacterCreationManager)" not in src

@@ -88,7 +88,13 @@ assert "CUNativeChapterPolicy.ActiveChapter(name)" in visual
 # all use dark/slate/gold, stable widths, legible text and native buttons.
 for name,doc in (("guided",world),("stats",stat),("native_chrome",ui)):
     text=ET.tostring(doc,encoding="unicode")
-    if name!="native_chrome":
+    if name=="guided":
+        assert '#A68B61' in text
+        assert '#EAD8BB' in text
+        assert any(w.get("SuggestedWidth")=="604" and
+                   w.get("HorizontalAlignment")=="Right"
+                   for w in doc.iter("Widget"))
+    elif name=="stats":
         for color in ("#261C14","#BC9153","#EDD1A4"):
             assert color in text,(name,color)
     else:

@@ -101,8 +101,12 @@ assert clicks.count("ExecuteBalanced")==1
 assert clicks.count("ExecuteUnrestricted")==1
 assert not any("Experimental" in (node.get("Text","")) for node in ui.iter())
 assert not list(ui.iter("ListPanel"))
-assert len([n for n in ui.iter("SliderWidget")
-    if (n.get("Id") or "").startswith("CUFixedStatSlider")])==6
+assert not [n for n in ui.iter("SliderWidget")
+    if (n.get("Id") or "").startswith("CUFixedStatSlider")]
+assert any(x.get("Text")=="CURRENT VALUE"
+    for x in ui.iter("TextWidget"))
+assert any(x.get("Text")=="ADJUST"
+    for x in ui.iter("TextWidget"))
 for key in ("Slot1Name","Slot1Native","Slot1Selected",
             "Title","Subtitle","Page","PageProgress","ModeDescription",
             "BonusSummary","BudgetStatus","NextLabel","Status","SkillGroup"):

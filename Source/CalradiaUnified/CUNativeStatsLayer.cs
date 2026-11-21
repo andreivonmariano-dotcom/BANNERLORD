@@ -29,6 +29,8 @@ namespace CalradiaUnified
         private static CharacterCreationScreen failedHost;
         private static GauntletLayer layer;
         private static GauntletMovieIdentifier movie;
+        private static readonly CUNativeCreatorUiIsolation nativeUi=
+            new CUNativeCreatorUiIsolation();
         private static CUNativeStatsVM activeVM;
         private static bool sliderWarningLogged;
         private static bool sliderProbeUnavailable;
@@ -210,29 +212,98 @@ namespace CalradiaUnified
                 next.InputRestrictions.SetInputRestrictions();
                 try
                 {
-                    nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
-                    DiagnosticJournal.Event("cu_native_creator_assets",
-                        "screen=stats|source=installed_game|art=native");
-                }
-                catch(Exception nativeArtFailure)
-                {
-                    DiagnosticJournal.Exception(
-                        "cu_native_stats_art_fallback",nativeArtFailure);
+                    // Right-side native-style v0.59b composition leaves
+                    // the actual Bannerlord character preview visible.
+                    // It retains the original input-owning Age slider
+                    // and the six verified button-only stat rows.
+                    bool customLoaded=false;
                     try
                     {
-                        // Original flat assets retain the same working
-                        // one-year SliderWidget and all game-affecting
-                        // callbacks, no missing vanilla texture required.
                         nextMovie=next.LoadMovie(
-                            "CUNativeStatsEditorPlainFallback",vm);
+                            "CUNativeStatsEditorNativeReview",vm);
+                        customLoaded=true;
+                        DiagnosticJournal.Event(
+                            "cu_native_creator_assets",
+                            "screen=Age_and_Stats"+
+                            "|layout=review_shell_v059f"+
+                            "|art=installed_game"+
+                            "|native_age_slider=retained|stat_sliders=0");
                     }
-                    catch(Exception sliderFailure)
+                    catch(Exception reviewShellError)
                     {
                         DiagnosticJournal.Exception(
-                            "cu_native_age_slider_fallback",sliderFailure);
-                        nextMovie=next.LoadMovie(
-                            "CUNativeStatsEditorSafe",vm);
+                            "cu_stats_review_shell_fallback",
+                            reviewShellError);
                     }
+                    if(!customLoaded && CUCreatorArtRegistry.IsAvailable())
+                    {
+                        try
+                        {
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorV059Art",vm);
+                            customLoaded=true;
+                            DiagnosticJournal.Event(
+                                "cu_native_creator_assets",
+                                "screen=stats|layout=v059b_right_panel"+
+                                "|source=cu_imported_atlas|stat_sliders=0");
+                        }
+                        catch(Exception customArtFailure)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_stats_v059_custom_art_fallback",
+                                customArtFailure);
+                        }
+                    }
+                    if(!customLoaded)
+                    {
+                        nextMovie=next.LoadMovie("CUNativeStatsEditorV059",vm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=stats|layout=v059b_right_panel"+
+                            "|source=installed_game|age_slider=retained"+
+                            "|stat_sliders=0");
+                    }
+                }
+                catch(Exception newLayoutFailure)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_native_v059_layout_fallback",newLayoutFailure);
+                    try
+                    {
+                        nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                        DiagnosticJournal.Event("cu_native_creator_assets",
+                            "screen=stats|layout=legacy_fallback"+
+                            "|age_slider=retained|stat_sliders=0");
+                    }
+                    catch(Exception nativeArtFailure)
+                    {
+                        DiagnosticJournal.Exception(
+                            "cu_native_stats_art_fallback",nativeArtFailure);
+                        try
+                        {
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorPlainFallback",vm);
+                        }
+                        catch(Exception sliderFailure)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_native_age_slider_fallback",sliderFailure);
+                            nextMovie=next.LoadMovie(
+                                "CUNativeStatsEditorSafe",vm);
+                        }
+                    }
+                }
+                // Isolate only the game-owned Gauntlet widget roots.
+                // The native 3D character scene layer is never changed.
+                // If the pinned engine cannot expose those roots,
+                // preserve edit functionality through the fully opaque
+                // known-working editor rather than stacking two UIs.
+                if(!nativeUi.Hide(screen,next))
+                {
+                    if(nextMovie!=null)next.ReleaseMovie(nextMovie);
+                    nextMovie=next.LoadMovie("CUNativeStatsEditor",vm);
+                    DiagnosticJournal.Event("cu_native_creator_safe_fallback",
+                        "screen=Age_and_Stats|native_ui_isolation=false"+
+                        "|layout=opaque_legacy|gameplay_commands=retained");
                 }
                 screen.AddLayer(next);
                 ScreenManager.TrySetFocus(next);
@@ -258,9 +329,13 @@ namespace CalradiaUnified
                     "|default_mode=Native|no_experimental_toggle=true"+
                     "|entry_page="+
                     (returningFromNativeBanner?"Traits":"Age"));
+                DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                    "page="+(returningFromNativeBanner?"All Stats":"Age")+
+                    "|surface=stats_editor|phase=layer_attached");
             }
             catch(Exception e)
             {
+                nativeUi.Restore();
                 failedHost=screen;
                 DiagnosticJournal.Exception("cu_native_stats_attach_failed",e);
                 try
@@ -298,6 +373,7 @@ namespace CalradiaUnified
             lastModelValue=-1;
             previousMouseDown=false;
             ageHitWarningLogged=false;
+            nativeUi.Restore();
             if(oldHost==null || oldLayer==null) return;
             try
             {
@@ -669,10 +745,9 @@ namespace CalradiaUnified
         private readonly string[] bonusLines;
         private int bonusIndex;
 
-        // The user's 1.5.7 game exited directly after row generation
-        // in both v0.54 and v0.55. The dynamic ListPanel ItemTemplate
-        // is no longer attached to Gauntlet. Use six static slot widgets
-        // backed by ordinary ViewModel values and callbacks instead.
+        // The user's 1.5.7 game exited again after v0.56 generated
+        // all six static stat bindings. v0.58 keeps six rows with
+        // +/- and exact-entry commands but avoids stat SliderWidgets.
         private readonly List<CUNativeStatRowVM> rows =
             new List<CUNativeStatRowVM>();
 
@@ -806,6 +881,19 @@ namespace CalradiaUnified
                 "visible="+rows.Count+
                 "|template=false|static_widgets=6"+
                 "|row_page="+(statsRowPageIndex+1));
+            if(pageIndex>=0)
+                DiagnosticJournal.Event(
+                    "cu_stats_button_only_bindings_refreshed",
+                    "visible="+rows.Count+
+                    "|stat_sliders=0|input=plus_minus_exact"+
+                    "|age_slider_unchanged=true"+
+                    "|row_page="+(statsRowPageIndex+1));
+            DiagnosticJournal.Event("cu_creator_page_checkpoint",
+                "page="+(pageIndex==CUNativeStatsNavigationPolicy.Age?
+                    "Age":"All Stats")+
+                "|surface=stats_editor|phase=bindings_refreshed"+
+                "|target="+(editingSpouse?"spouse":"player")+
+                "|row_page="+(statsRowPageIndex+1));
         }
         private void RefreshRowValues()
         {
@@ -890,56 +978,58 @@ namespace CalradiaUnified
         }
         private void NotifyStaticSlots()
         {
-            // The static widget tree holds six permanently named slots.
-            // These events update the existing widgets, not ItemTemplates.
+            // All Stats uses six named rows and button-only editors.
+            // Native stat sliders are isolated after the user's repeated
+            // Age->All Stats process exit. Notify only visible text fields.
+            // The original Age slider remains unchanged.
             OnPropertyChangedWithValue(Slot1Visible,"Slot1Visible");
             OnPropertyChangedWithValue(Slot1Name,"Slot1Name");
             OnPropertyChangedWithValue(Slot1Native,"Slot1Native");
             OnPropertyChangedWithValue(Slot1Selected,"Slot1Selected");
-            OnPropertyChangedWithValue(Slot1Value,"Slot1Value");
-            OnPropertyChangedWithValue(Slot1Min,"Slot1Min");
-            OnPropertyChangedWithValue(Slot1Max,"Slot1Max");
-            OnPropertyChangedWithValue(Slot1Increment,"Slot1Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot2Visible,"Slot2Visible");
             OnPropertyChangedWithValue(Slot2Name,"Slot2Name");
             OnPropertyChangedWithValue(Slot2Native,"Slot2Native");
             OnPropertyChangedWithValue(Slot2Selected,"Slot2Selected");
-            OnPropertyChangedWithValue(Slot2Value,"Slot2Value");
-            OnPropertyChangedWithValue(Slot2Min,"Slot2Min");
-            OnPropertyChangedWithValue(Slot2Max,"Slot2Max");
-            OnPropertyChangedWithValue(Slot2Increment,"Slot2Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot3Visible,"Slot3Visible");
             OnPropertyChangedWithValue(Slot3Name,"Slot3Name");
             OnPropertyChangedWithValue(Slot3Native,"Slot3Native");
             OnPropertyChangedWithValue(Slot3Selected,"Slot3Selected");
-            OnPropertyChangedWithValue(Slot3Value,"Slot3Value");
-            OnPropertyChangedWithValue(Slot3Min,"Slot3Min");
-            OnPropertyChangedWithValue(Slot3Max,"Slot3Max");
-            OnPropertyChangedWithValue(Slot3Increment,"Slot3Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot4Visible,"Slot4Visible");
             OnPropertyChangedWithValue(Slot4Name,"Slot4Name");
             OnPropertyChangedWithValue(Slot4Native,"Slot4Native");
             OnPropertyChangedWithValue(Slot4Selected,"Slot4Selected");
-            OnPropertyChangedWithValue(Slot4Value,"Slot4Value");
-            OnPropertyChangedWithValue(Slot4Min,"Slot4Min");
-            OnPropertyChangedWithValue(Slot4Max,"Slot4Max");
-            OnPropertyChangedWithValue(Slot4Increment,"Slot4Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot5Visible,"Slot5Visible");
             OnPropertyChangedWithValue(Slot5Name,"Slot5Name");
             OnPropertyChangedWithValue(Slot5Native,"Slot5Native");
             OnPropertyChangedWithValue(Slot5Selected,"Slot5Selected");
-            OnPropertyChangedWithValue(Slot5Value,"Slot5Value");
-            OnPropertyChangedWithValue(Slot5Min,"Slot5Min");
-            OnPropertyChangedWithValue(Slot5Max,"Slot5Max");
-            OnPropertyChangedWithValue(Slot5Increment,"Slot5Increment");
+
+
+
+
             OnPropertyChangedWithValue(Slot6Visible,"Slot6Visible");
             OnPropertyChangedWithValue(Slot6Name,"Slot6Name");
             OnPropertyChangedWithValue(Slot6Native,"Slot6Native");
             OnPropertyChangedWithValue(Slot6Selected,"Slot6Selected");
-            OnPropertyChangedWithValue(Slot6Value,"Slot6Value");
-            OnPropertyChangedWithValue(Slot6Min,"Slot6Min");
-            OnPropertyChangedWithValue(Slot6Max,"Slot6Max");
-            OnPropertyChangedWithValue(Slot6Increment,"Slot6Increment");
+
+
+
+
         }
         [DataSourceProperty] public bool Slot1Visible {get{return VisibleSlot(0);}}
         [DataSourceProperty] public string Slot1Name {get{return NameSlot(0);}}
@@ -1057,13 +1147,10 @@ namespace CalradiaUnified
             {get{return SandboxNativeSkillCatalog.Status();}}
         [DataSourceProperty] public string TargetHelp
             {get{return editingSpouse ?
-                "SPOUSE | AUTO keeps native values. Drag a slider to set an"+
-                " exact requested starting value, including level and"+
-                " registered naval skills. Children inherit training"+
-                " from both parents after House creation." :
-                "PLAYER | All native attributes, skills, focus and traits"+
-                " and level in one scrollable page. Choose Balanced or"+
-                " Unrestricted to edit. Naval skills appear with War Sails.";}}
+                "SPOUSE | Edit with - / + / Exact. Native values stay"+
+                " unchanged until you choose an override." :
+                "PLAYER | Nine pages. Edit using - / + / Exact."+
+                " Naval skills appear with War Sails.";}}
 
         private void AddRow(string key,string help)
         {

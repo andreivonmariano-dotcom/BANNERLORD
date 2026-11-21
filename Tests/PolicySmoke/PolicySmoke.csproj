@@ -20,13 +20,37 @@
     <Compile Include="../../Source/CalradiaUnified/FeudalBudgetPolicy.cs" Link="FeudalBudgetPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CastleManagementPolicy.cs" Link="CastleManagementPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/DiagnosticJournal.cs" Link="DiagnosticJournal.cs" />
+    <Compile Include="../../Source/CalradiaUnified/DiagnosticSessionReporter.cs" Link="DiagnosticSessionReporter.cs" />
+    <Compile Include="../../Source/CalradiaUnified/DiagnosticSummaryPolicy.cs" Link="DiagnosticSummaryPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/Log.cs" Link="Log.cs" />
     <Compile Include="../../Source/CalradiaUnified/Settings.cs" Link="Settings.cs" />
     <Compile Include="../../Source/CalradiaUnified/SettingsMenuPolicy.cs" Link="SettingsMenuPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SettingsCatalog.cs" Link="SettingsCatalog.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxOriginProfile.cs" Link="SandboxOriginProfile.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxStartingLifePolicy.cs" Link="SandboxStartingLifePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxHouseholdLineagePolicy.cs" Link="SandboxHouseholdLineagePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxLifeHistoryState.cs" Link="SandboxLifeHistoryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxServiceCareerState.cs" Link="SandboxServiceCareerState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxSocialObservationState.cs" Link="SandboxSocialObservationState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxSuccessionInterestState.cs" Link="SandboxSuccessionInterestState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxCustomLifeRolePolicy.cs" Link="SandboxCustomLifeRolePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxCulturalInheritancePolicy.cs" Link="SandboxCulturalInheritancePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxGeneratedCharacterGoalPolicy.cs" Link="SandboxGeneratedCharacterGoalPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxCharacterAgendaState.cs" Link="SandboxCharacterAgendaState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxMedievalLifeSimulation.cs" Link="SandboxMedievalLifeSimulation.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionPolicy.cs" Link="SandboxAgencyDecisionPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionState.cs" Link="SandboxAgencyDecisionState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxInheritanceNegotiationPolicy.cs" Link="SandboxInheritanceNegotiationPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxInheritanceNegotiationState.cs" Link="SandboxInheritanceNegotiationState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxLivingAffairsSimulation.cs" Link="SandboxLivingAffairsSimulation.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStatBudgetPolicy.cs" Link="SandboxStatBudgetPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRolePolicy.cs" Link="SandboxRolePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxNobleStartPolicy.cs" Link="SandboxNobleStartPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxServicePolicy.cs" Link="SandboxServicePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxCulturalNames.cs" Link="SandboxCulturalNames.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAutoHousePlan.cs" Link="SandboxAutoHousePlan.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRetinueOfficePolicy.cs" Link="SandboxRetinueOfficePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRetinueCulturePolicy.cs" Link="SandboxRetinueCulturePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStartContract.cs" Link="SandboxStartContract.cs" />
     <Compile Include="../../Source/CalradiaUnified/NativeCreatorParityPolicy.cs" Link="NativeCreatorParityPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/NativeStateShellPolicy.cs" Link="NativeStateShellPolicy.cs" />
@@ -35,6 +59,7 @@
     <Compile Include="../../Source/CalradiaUnified/CUNativeWidgetSkinPolicy.cs" Link="CUNativeWidgetSkinPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeLayoutPolicy.cs" Link="CUNativeLayoutPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/CUNativeStatsNavigationPolicy.cs" Link="CUNativeStatsNavigationPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CUNativeHouseNavigationPolicy.cs" Link="CUNativeHouseNavigationPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFiefPolicy.cs" Link="SandboxFiefPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyPolicy.cs" Link="SandboxFamilyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="SandboxFamilyAgePolicy.cs" />

@@ -11,7 +11,7 @@ declared = dict((key, kind) for kind, key in re.findall(
 metadata = re.findall(
     r'new SettingDescriptor\("([^"]+)",\s*"[^"]+",\s*"[^"]+",\s*'
     r'(true|false),\s*(\d+),\s*(\d+),\s*(\d+),\s*(true|false)\)', catalog)
-assert len(metadata) == len(declared) == 64, (len(metadata), len(declared))
+assert len(metadata) == len(declared) == 65, (len(metadata), len(declared))
 unique_keys = [row[0] for row in metadata]
 assert len(unique_keys) == len(set(unique_keys))
 assert set(unique_keys) == set(declared)
@@ -25,4 +25,4 @@ for key, isbool, lo, hi, step, experimental in metadata:
         assert (int(lo), int(hi)) == bounds[key], (key, lo, hi, bounds.get(key))
         assert int(step) >= 1 and int(lo) < int(hi), key
     assert experimental in ("true", "false")
-print("PASS: 64 settings, parser field types, numeric clamp bounds and unique catalog keys")
+print("PASS: 65 settings, parser field types, numeric clamp bounds and unique catalog keys")

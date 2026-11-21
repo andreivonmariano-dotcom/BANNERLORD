@@ -41,7 +41,7 @@
               WidthSizePolicy="StretchToParent" HeightSizePolicy="Fixed"
               SuggestedHeight="2" VerticalAlignment="Bottom"
               PositionYOffset="-81"/>
-            <TextWidget Brush.FontSize="25" Text="@Title" Color="#EDD1A4FF"
+            <TextWidget Brush.FontSize="30" Text="@Title" Color="#EDD1A4FF"
               WidthSizePolicy="Fixed" SuggestedWidth="780"
               HeightSizePolicy="Fixed" SuggestedHeight="39"
               PositionXOffset="22" PositionYOffset="21"/>
@@ -49,7 +49,7 @@
               WidthSizePolicy="Fixed" SuggestedWidth="700"
               HeightSizePolicy="Fixed" SuggestedHeight="30"
               PositionXOffset="28" PositionYOffset="59"/>
-            <TextWidget Brush.FontSize="19" Text="YOUR PROGRESSION" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="21" Text="YOUR PROGRESSION" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="220"
               HeightSizePolicy="Fixed" SuggestedHeight="36"
               PositionXOffset="22" PositionYOffset="121"/>
@@ -67,11 +67,11 @@
               WidthSizePolicy="Fixed" SuggestedWidth="198"
               HeightSizePolicy="Fixed" SuggestedHeight="103"
               PositionXOffset="24" PositionYOffset="231"/>
-            <TextWidget Brush.FontSize="14" Text="@BudgetStatus" Color="#E6BE80FF"
+            <TextWidget Brush.FontSize="17" Text="@BudgetStatus" Color="#E6BE80FF"
               WidthSizePolicy="Fixed" SuggestedWidth="214"
               HeightSizePolicy="Fixed" SuggestedHeight="70"
               PositionXOffset="22" PositionYOffset="353"/>
-            <TextWidget Brush.FontSize="13" Text="@NavalStatus"
+            <TextWidget Brush.FontSize="16" Text="@NavalStatus"
               Color="#D8B884FF" IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="214"
               HeightSizePolicy="Fixed" SuggestedHeight="70"
@@ -110,24 +110,24 @@
                 HorizontalAlignment="Center"
                 VerticalAlignment="Center"/></Children>
             </ButtonWidget>
-            <TextWidget Brush.FontSize="15" Text="@TargetHelp"
+            <TextWidget Brush.FontSize="18" Text="@TargetHelp"
               Color="#E3C49CFF" IsVisible="@IsStatsPage"
-              WidthSizePolicy="Fixed" SuggestedWidth="684"
-              HeightSizePolicy="Fixed" SuggestedHeight="47"
-              PositionXOffset="257" PositionYOffset="215"/>
+              WidthSizePolicy="Fixed" SuggestedWidth="880"
+              HeightSizePolicy="Fixed" SuggestedHeight="40"
+              PositionXOffset="255" PositionYOffset="226"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#B7935BFF"
-              WidthSizePolicy="Fixed" SuggestedWidth="690"
+              WidthSizePolicy="Fixed" SuggestedWidth="925"
               HeightSizePolicy="Fixed" SuggestedHeight="2"
-              PositionXOffset="251" PositionYOffset="262"
+              PositionXOffset="251" PositionYOffset="313"
               IsVisible="@IsStatsPage"/>
-            <TextWidget Brush.FontSize="23" Text="@Page" Color="#F2DFC0FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="370"
-              HeightSizePolicy="Fixed" SuggestedHeight="33"
-              PositionXOffset="254" PositionYOffset="108"/>
-            <TextWidget Brush.FontSize="16" Text="@PageProgress" Color="#E4B86DFF"
+            <TextWidget Brush.FontSize="28" Text="@Page" Color="#F2DFC0FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="780"
+              HeightSizePolicy="Fixed" SuggestedHeight="43"
+              PositionXOffset="254" PositionYOffset="105"/>
+            <TextWidget Brush.FontSize="19" Text="@PageProgress" Color="#E4B86DFF"
               WidthSizePolicy="Fixed" SuggestedWidth="115"
               HeightSizePolicy="Fixed" SuggestedHeight="31"
-              PositionXOffset="809" PositionYOffset="110"/>
+              PositionXOffset="1050" PositionYOffset="112"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="215"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="254"
@@ -199,6 +199,21 @@
 
               </Children>
             </Widget>
+            <TextWidget Brush.FontSize="16" Text="STAT / NATIVE"
+              Color="#D6AA69FF" IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="285"
+              HeightSizePolicy="Fixed" SuggestedHeight="24"
+              PositionXOffset="270" PositionYOffset="288"/>
+            <TextWidget Brush.FontSize="16" Text="CURRENT VALUE"
+              Color="#D6AA69FF" IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="250"
+              HeightSizePolicy="Fixed" SuggestedHeight="24"
+              PositionXOffset="570" PositionYOffset="288"/>
+            <TextWidget Brush.FontSize="16" Text="ADJUST"
+              Color="#D6AA69FF" IsVisible="@IsStatsPage"
+              WidthSizePolicy="Fixed" SuggestedWidth="200"
+              HeightSizePolicy="Fixed" SuggestedHeight="24"
+              PositionXOffset="860" PositionYOffset="288"/>
             <!-- Native-only bounded stats viewport.
                  Only six SliderWidget rows exist at any moment. The
                  unverified ScrollablePanel/Standard.VerticalScrollbar
@@ -206,79 +221,52 @@
                  Navigate the same editor with Previous/Next Stats. -->
             <Widget Id="CUStatsPageViewport"
               IsVisible="@IsStatsPage"
-              WidthSizePolicy="Fixed" SuggestedWidth="718"
-              HeightSizePolicy="Fixed" SuggestedHeight="342"
-              PositionXOffset="251" PositionYOffset="276"
+              WidthSizePolicy="Fixed" SuggestedWidth="925"
+              HeightSizePolicy="Fixed" SuggestedHeight="410"
+              PositionXOffset="251" PositionYOffset="317"
               ClipContents="true"
               DoNotAcceptEvents="true"
               DoNotPassEventsToChildren="false">
               <Children>
-                <!-- Six fixed native sliders. No ItemTemplate,
-                     no scoped row DataSource and no dynamic UI cloning. -->
+                <!-- Native framed, button-only All Stats editing region. -->
+                <Widget Sprite="BlankWhiteSquare_9" Color="#201811A0"
+                  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
+                <!-- Six fixed rows. No numeric SliderWidgets. -->
                 <Widget Id="CUFixedStatRow1" IsVisible="@Slot1Visible"
                                           PositionYOffset="0"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot1Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot1Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot1Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot1Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot1Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot1Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider1" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot1Value" MinValueInt="@Slot1Min"
-                                              MaxValueInt="@Slot1Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot1Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack1" Handle="CUStatHandle1">
-                                              <Children>
-                                                <Widget Id="CUStatTrack1"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle1"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot1Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -288,11 +276,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot1Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -302,11 +290,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot1Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -316,69 +304,40 @@
                                           </Children>
                                         </Widget>
                 <Widget Id="CUFixedStatRow2" IsVisible="@Slot2Visible"
-                                          PositionYOffset="55"
+                                          PositionYOffset="68"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot2Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot2Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot2Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot2Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot2Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot2Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider2" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot2Value" MinValueInt="@Slot2Min"
-                                              MaxValueInt="@Slot2Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot2Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack2" Handle="CUStatHandle2">
-                                              <Children>
-                                                <Widget Id="CUStatTrack2"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle2"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot2Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -388,11 +347,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot2Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -402,11 +361,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot2Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -416,69 +375,40 @@
                                           </Children>
                                         </Widget>
                 <Widget Id="CUFixedStatRow3" IsVisible="@Slot3Visible"
-                                          PositionYOffset="110"
+                                          PositionYOffset="136"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot3Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot3Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot3Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot3Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot3Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot3Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider3" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot3Value" MinValueInt="@Slot3Min"
-                                              MaxValueInt="@Slot3Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot3Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack3" Handle="CUStatHandle3">
-                                              <Children>
-                                                <Widget Id="CUStatTrack3"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle3"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot3Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -488,11 +418,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot3Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -502,11 +432,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot3Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -516,69 +446,40 @@
                                           </Children>
                                         </Widget>
                 <Widget Id="CUFixedStatRow4" IsVisible="@Slot4Visible"
-                                          PositionYOffset="165"
+                                          PositionYOffset="204"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot4Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot4Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot4Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot4Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot4Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot4Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider4" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot4Value" MinValueInt="@Slot4Min"
-                                              MaxValueInt="@Slot4Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot4Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack4" Handle="CUStatHandle4">
-                                              <Children>
-                                                <Widget Id="CUStatTrack4"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle4"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot4Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -588,11 +489,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot4Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -602,11 +503,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot4Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -616,69 +517,40 @@
                                           </Children>
                                         </Widget>
                 <Widget Id="CUFixedStatRow5" IsVisible="@Slot5Visible"
-                                          PositionYOffset="220"
+                                          PositionYOffset="272"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot5Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot5Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot5Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot5Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot5Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot5Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider5" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot5Value" MinValueInt="@Slot5Min"
-                                              MaxValueInt="@Slot5Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot5Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack5" Handle="CUStatHandle5">
-                                              <Children>
-                                                <Widget Id="CUStatTrack5"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle5"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot5Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -688,11 +560,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot5Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -702,11 +574,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot5Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -716,69 +588,40 @@
                                           </Children>
                                         </Widget>
                 <Widget Id="CUFixedStatRow6" IsVisible="@Slot6Visible"
-                                          PositionYOffset="275"
+                                          PositionYOffset="340"
                                           DoNotAcceptEvents="true"
                                           DoNotPassEventsToChildren="false"
-                                          WidthSizePolicy="Fixed" SuggestedWidth="700"
-                                          HeightSizePolicy="Fixed" SuggestedHeight="55">
+                                          WidthSizePolicy="Fixed" SuggestedWidth="905"
+                                          HeightSizePolicy="Fixed" SuggestedHeight="66">
                                           <Children>
                                             <Widget Sprite="BlankWhiteSquare_9"
-                                              Color="#37281DEB" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="696" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="53"/>
-                                            <TextWidget Brush.FontSize="15" Text="@Slot6Name"
+                                              Color="#37281DAA" WidthSizePolicy="Fixed"
+                                              SuggestedWidth="902" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="64"/>
+                                            <TextWidget Brush.FontSize="20" Text="@Slot6Name"
                                               Color="#EAD2AEFF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="176" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="27" PositionXOffset="8"
-                                              PositionYOffset="3"/>
-                                            <TextWidget Brush.FontSize="13" Text="@Slot6Native"
+                                              SuggestedWidth="292" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="33" PositionXOffset="18"
+                                              PositionYOffset="5"/>
+                                            <TextWidget Brush.FontSize="16" Text="@Slot6Native"
                                               Color="#C2A582FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="160" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="18" PositionXOffset="10"
-                                              PositionYOffset="31"/>
-                                            <TextWidget Brush.FontSize="16" Text="@Slot6Selected"
+                                              SuggestedWidth="285" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="24" PositionXOffset="19"
+                                              PositionYOffset="38"/>
+                                            <TextWidget Brush.FontSize="22" Text="@Slot6Selected"
                                               Color="#F7DFC0FF" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="110" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="26" PositionXOffset="177"
-                                              PositionYOffset="10"/>
-                                            <SliderWidget Id="CUFixedStatSlider6" WidthSizePolicy="Fixed"
-                                              SuggestedWidth="270" HeightSizePolicy="Fixed"
-                                              SuggestedHeight="44"
-                                              PositionXOffset="285" PositionYOffset="4"
-                                              ValueInt="@Slot6Value" MinValueInt="@Slot6Min"
-                                              MaxValueInt="@Slot6Max" IsDiscrete="true"
-                                              DiscreteIncrementInterval="@Slot6Increment"
-                                              UpdateValueContinuously="true"
-                                              UpdateValueOnRelease="false"
-                                              AlignmentAxis="Horizontal"
-                                              DoNotUpdateHandleSize="true"
-                                              SliderArea="CUStatTrack6" Handle="CUStatHandle6">
-                                              <Children>
-                                                <Widget Id="CUStatTrack6"
-                                                  Sprite="BlankWhiteSquare_9"
-                                                  Color="#785938FF"
-                                                  WidthSizePolicy="StretchToParent"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="10"
-                                                  VerticalAlignment="Center"/>
-                                                <ButtonWidget Id="CUStatHandle6"
-                                                  Brush="ButtonBrush"
-                                                  UpdateChildrenStates="true"
-                                                  WidthSizePolicy="Fixed"
-                                                  SuggestedWidth="31"
-                                                  HeightSizePolicy="Fixed"
-                                                  SuggestedHeight="40"
-                                                  VerticalAlignment="Center"/>
-                                              </Children>
-                                            </SliderWidget>
+                                              SuggestedWidth="240" HeightSizePolicy="Fixed"
+                                              SuggestedHeight="40" PositionXOffset="319"
+                                              PositionYOffset="14"/>
+                                            
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="559" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="590" PositionYOffset="7"
                                               Command.Click="ExecuteSlot6Decrease">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="−" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -788,11 +631,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="41"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="603" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="76"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="674" PositionYOffset="7"
                                               Command.Click="ExecuteSlot6Increase">
-                                              <Children><TextWidget Brush.FontSize="18"
+                                              <Children><TextWidget Brush.FontSize="24"
                                                 Text="+" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -802,11 +645,11 @@
                                             <ButtonWidget Brush="ButtonBrush"
                                               DoNotPassEventsToChildren="true"
                                               UpdateChildrenStates="true"
-                                              WidthSizePolicy="Fixed" SuggestedWidth="49"
-                                              HeightSizePolicy="Fixed" SuggestedHeight="39"
-                                              PositionXOffset="648" PositionYOffset="6"
+                                              WidthSizePolicy="Fixed" SuggestedWidth="132"
+                                              HeightSizePolicy="Fixed" SuggestedHeight="52"
+                                              PositionXOffset="758" PositionYOffset="7"
                                               Command.Click="ExecuteSlot6Exact">
-                                              <Children><TextWidget Brush.FontSize="13"
+                                              <Children><TextWidget Brush.FontSize="19"
                                                 Text="Exact" Color="#F6E4C4FF"
                                                 WidthSizePolicy="StretchToParent"
                                                 HeightSizePolicy="StretchToParent"
@@ -819,23 +662,23 @@
             </Widget>
 
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="265"
- PositionYOffset="633" Command.Click="ExecutePreviousGroup" IsVisible="@IsStatsPage">
- <Children><TextWidget Brush.FontSize="15" Text="Previous stats" Color="#F6E4C4FF"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="225"
+ HeightSizePolicy="Fixed" SuggestedHeight="55" PositionXOffset="263"
+ PositionYOffset="743" Command.Click="ExecutePreviousGroup" IsVisible="@IsStatsPage">
+ <Children><TextWidget Brush.FontSize="19" Text="Previous stats" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
-            <TextWidget Brush.FontSize="16" Text="@SkillGroup" Color="#E6BE80FF"
+            <TextWidget Brush.FontSize="20" Text="@SkillGroup" Color="#E6BE80FF"
               IsVisible="@IsStatsPage" WidthSizePolicy="Fixed"
               SuggestedWidth="205" HeightSizePolicy="Fixed"
-              SuggestedHeight="34" PositionXOffset="455"
-              PositionYOffset="643"/>
+              SuggestedHeight="34" PositionXOffset="586"
+              PositionYOffset="751"/>
             <ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
- UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="179"
- HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="680"
- PositionYOffset="633" Command.Click="ExecuteNextGroup" IsVisible="@IsStatsPage">
- <Children><TextWidget Brush.FontSize="15" Text="Next stats" Color="#F6E4C4FF"
+ UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="225"
+ HeightSizePolicy="Fixed" SuggestedHeight="55" PositionXOffset="886"
+ PositionYOffset="743" Command.Click="ExecuteNextGroup" IsVisible="@IsStatsPage">
+ <Children><TextWidget Brush.FontSize="19" Text="Next stats" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
@@ -847,12 +690,12 @@
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
-            <TextWidget Brush.FontSize="19" Text="YOUR NATIVE BACKGROUND" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="21" Text="YOUR NATIVE BACKGROUND" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="315"
               HeightSizePolicy="Fixed" SuggestedHeight="38"
               HorizontalAlignment="Right" PositionXOffset="-24"
               PositionYOffset="121"/>
-            <TextWidget Brush.FontSize="18" Brush.TextVerticalAlignment="Top" Text="@BonusSummary" Color="#E8D7BCFF"
+            <TextWidget Brush.FontSize="19" Brush.TextVerticalAlignment="Top" Brush.TextHorizontalAlignment="Left" Text="@BonusSummary" Color="#E8D7BCFF"
               WidthSizePolicy="Fixed" SuggestedWidth="308"
               HeightSizePolicy="Fixed" SuggestedHeight="268"
               HorizontalAlignment="Right" PositionXOffset="-24"
@@ -884,10 +727,10 @@
               SuggestedWidth="298" HeightSizePolicy="Fixed"
               SuggestedHeight="76" HorizontalAlignment="Right"
               PositionXOffset="-25" PositionYOffset="490"/>
-            <TextWidget Brush.FontSize="16" Text="@Status" Color="#D6AA69FF"
-              WidthSizePolicy="Fixed" SuggestedWidth="690"
-              HeightSizePolicy="Fixed" SuggestedHeight="31"
-              PositionXOffset="257" PositionYOffset="239"/>
+            <TextWidget Brush.FontSize="17" Text="@Status" Color="#D6AA69FF"
+              WidthSizePolicy="Fixed" SuggestedWidth="880"
+              HeightSizePolicy="Fixed" SuggestedHeight="28"
+              PositionXOffset="255" PositionYOffset="263"/>
             <Widget Sprite="BlankWhiteSquare_9" Color="#34261BFF"
               WidthSizePolicy="StretchToParent" MarginLeft="12"
               MarginRight="12" HeightSizePolicy="Fixed"
@@ -908,7 +751,7 @@
               PositionXOffset="-31" VerticalAlignment="Bottom"
               PositionYOffset="-24" Command.Click="ExecuteContinue">
               <Children>
-                <TextWidget Brush.FontSize="16" Text="@NextLabel" Color="#F6D9AAFF"
+                <TextWidget Brush.FontSize="19" Text="@NextLabel" Color="#F6D9AAFF"
                   WidthSizePolicy="StretchToParent"
                   HeightSizePolicy="StretchToParent"
                   HorizontalAlignment="Center" VerticalAlignment="Center"/>

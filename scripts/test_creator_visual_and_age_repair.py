@@ -38,12 +38,13 @@ for name,root_node in files.items():
     x=ET.tostring(root_node,encoding="unicode")
     for old in retired_blue:
         assert old not in x,(name,old)
-    assert "#BC9153FF" in x or "#BD9155FF" in x
+    assert any(c in x for c in ("#BC9153FF","#BD9155FF","#A68B61FF"))
     labels=list(root_node.iter("TextWidget"))
     assert labels and all("Brush.FontSize" in label.attrib
                           for label in labels),name
+    # The right-side creator rail needs legible 34-unit chapter headers.
     assert max(int(label.attrib["Brush.FontSize"])
-               for label in labels)<=29
+               for label in labels)<=36
 assert not any(x.get("Text")=="OPTIONAL CHOICES"
                for x in guided.iter("TextWidget"))
 assert not any(x.get("Text")=="@CultureId"
@@ -51,16 +52,19 @@ assert not any(x.get("Text")=="@CultureId"
 assert not any("The campaign engine owns all native"
                in x.get("Text","")
                for x in guided.iter("TextWidget"))
-# The compact center frame is measured separately from responsive
-# sidebars, with original native ButtonBrush command bindings inside.
-assert any(w.get("SuggestedWidth")=="610" and
-           w.get("SuggestedHeight")=="369"
+# The native-like guided creator has one right-aligned question rail.
+assert any(w.get("SuggestedWidth")=="604" and
+           w.get("HorizontalAlignment")=="Right"
            for w in guided.iter("Widget"))
 assert any(w.get("Sprite")==r"SPGeneral\EscapeMenu\escape_panel"
            for w in guided.iter("Widget"))
-assert any(w.get("Sprite")==
+# The native animated main-menu scene must remain uncovered.
+assert not any(w.get("Sprite")==
     r"General\CharacterCreation\character_creation_background_gradient"
     for w in guided.iter("Widget"))
+assert any(w.get("SuggestedWidth")=="704" and
+           w.get("IsVisible")=="@IsWorldSetup"
+           for w in guided.iter("Widget"))
 assert any(w.get("Text")=="@SelectedValue" and
            w.get("Brush.TextHorizontalAlignment")=="Center"
            for w in guided.iter("TextWidget"))
@@ -89,7 +93,7 @@ assert 'SandboxStatBudgetPolicy.Step(key)' in text_stats
 # One-year slider is a real native Gauntlet SliderWidget bound to a
 # writeable VM property, not a cosmetic bar with a guessed percentage.
 sliders=list(stats.iter("SliderWidget"))
-assert len(sliders)==7
+assert len(sliders)==1
 sl=next(w for w in sliders if w.get("Id")=="CUPlayerAgeSlider")
 assert sl.get("ValueInt")=="@PlayerAge"
 assert sl.get("MinValueInt")=="18" and sl.get("MaxValueInt")=="80"
@@ -102,8 +106,8 @@ assert {"CUPlayerAgeHandle","CUPlayerAgeTrack"} <= ids
 assert any(w.get("IsVisible")=="@IsAgePage"
            for w in stats.iter("Widget"))
 assert not list(stats.iter("ListPanel"))
-assert len([w for w in stats.iter("SliderWidget")
-            if (w.get("Id") or "").startswith("CUFixedStatSlider")])==6
+assert not [w for w in stats.iter("SliderWidget")
+            if (w.get("Id") or "").startswith("CUFixedStatSlider")]
 # The v0.55 crash guard deliberately eliminates the old
 # ScrollablePanel and keeps the six-row native stats viewport visible.
 assert any(w.get("Id")=="CUStatsPageViewport" and
@@ -127,7 +131,7 @@ assert any(w.get("Id")=="CUPlayerAgeHandle"
            for w in sl.iter("ButtonWidget"))
 assert '"CUNativeStatsEditorSafe",vm' in text_stats
 assert '"CUNativeStatsEditorPlainFallback",vm' in text_stats
-assert len(list(safe_stats.iter("SliderWidget")))==6
+assert len(list(safe_stats.iter("SliderWidget")))==0
 assert any(x.get("Command.Click")=="ExecuteAgeIncrease"
            for x in safe_stats.iter("ButtonWidget"))
 assert any(x.get("Command.Click")=="ExecuteAgeDecrease"
@@ -146,21 +150,24 @@ assert 'EffectiveMaximum(field)' in text_guided
 assert 'if(IsChildAge)return "Allowed age:' in text_guided
 assert "actualAge" in text_guided and "SaveForPlayer(" in text_guided
 
-# Six native stat sliders are fixed widgets, not an ItemTemplate.
-# The user's actual game exited after ListPanel generated its rows.
+# Six static native stat rows remain, but their numeric slider binding
+# is isolated after a further in-game hard exit at Age -> All Stats.
 assert not list(stats.iter("ItemTemplate"))
 for i in range(1,7):
     item=next(x for x in stats.iter("Widget")
         if x.get("Id")==f"CUFixedStatRow{i}")
-    assert item.get("SuggestedHeight")=="55"
+    assert item.get("SuggestedHeight")=="66"
     assert item.get("IsVisible")==f"@Slot{i}Visible"
     name=next(x for x in item.iter("TextWidget")
         if x.get("Text")==f"@Slot{i}Name")
     selected=next(x for x in item.iter("TextWidget")
         if x.get("Text")==f"@Slot{i}Selected")
-    assert name.get("PositionYOffset")=="3"
-    assert selected.get("PositionYOffset")=="10"
-    assert any(x.get("ValueInt")==f"@Slot{i}Value"
-        for x in item.iter("SliderWidget"))
+    assert name.get("PositionYOffset")=="5"
+    assert selected.get("PositionYOffset")=="14"
+    assert not list(item.iter("SliderWidget"))
+    assert not any(x.get("Text")=="EDIT WITH - / + OR EXACT"
+        for x in item.iter("TextWidget"))
+    assert any(x.get("Text")=="STAT / NATIVE"
+        for x in stats.iter("TextWidget"))
 
 print("PASS: warm native-style custom creator, compact text, native original stages unobscured, age slider, child-age cap and skill-vs-focus labels (STATIC ONLY)")

@@ -37,18 +37,24 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert viewport.get("ClipContents")=="true",name
     assert viewport.get("DoNotAcceptEvents")=="true",name
     assert viewport.get("DoNotPassEventsToChildren")=="false",name
-    assert viewport.get("SuggestedHeight")=="342"
+    assert viewport.get("SuggestedHeight")=="410"
+    assert viewport.get("SuggestedWidth")=="925"
     assert not list(viewport.iter("ListPanel"))
     assert not list(viewport.iter("ItemTemplate"))
-    stat_sliders=[x for x in viewport.iter("SliderWidget")
-        if (x.get("Id") or "").startswith("CUFixedStatSlider")]
-    assert len(stat_sliders)==6,name
-    for i,slider in enumerate(stat_sliders,1):
-        assert slider.get("ValueInt")==f"@Slot{i}Value",name
-        assert slider.get("MinValueInt")==f"@Slot{i}Min",name
-        assert slider.get("MaxValueInt")==f"@Slot{i}Max",name
+    # Repeated native hard exit after six stat rows were prepared.
+    # Treat numeric stat bindings as an isolated input path.
+    assert not list(viewport.iter("SliderWidget")),name
+    for i in range(1,7):
+        row=next(x for x in viewport.iter("Widget")
+            if x.get("Id")==f"CUFixedStatRow{i}")
+        assert any(x.get("Command.Click")==f"ExecuteSlot{i}Exact"
+            for x in row.iter("ButtonWidget"))
+        assert any(x.get("Command.Click")==f"ExecuteSlot{i}Increase"
+            for x in row.iter("ButtonWidget"))
+        assert any(x.get("Command.Click")==f"ExecuteSlot{i}Decrease"
+            for x in row.iter("ButtonWidget"))
     assert len(list(document.iter("SliderWidget")))==(
-        6 if name.endswith("Safe") else 7),name
+        0 if name.endswith("Safe") else 1),name
     btns=list(document.iter("ButtonWidget"))
     for command in ("ExecutePreviousGroup","ExecuteNextGroup"):
         candidates=[w for w in btns if w.get("Command.Click")==command]

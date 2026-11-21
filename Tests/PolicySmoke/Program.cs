@@ -18,6 +18,587 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("native Review Back to Clan Name restores House/Fortune",
+            CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,true,true));
+        Check("native Review Back directly to Banner restores House/Fortune",
+            CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.BannerStage,true,true));
+        Check("House overlay Back stays native without recursive reentry",
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,true,false) &&
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.ClanStage,false,true));
+        Check("native Review Next is not mistaken for Back",
+            !CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(
+                CUNativeHouseNavigationPolicy.ReviewStage,
+                CUNativeHouseNavigationPolicy.OptionsStage,true,true) &&
+            CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.ClanStage) &&
+            CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.BannerStage) &&
+            !CUNativeHouseNavigationPolicy.CanReplayNativeNext(
+                CUNativeHouseNavigationPolicy.ReviewStage));
+        Check("younger brother of a king requires real old king lineage",
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,true,
+                true,true,true,true,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,false,
+                true,true,true,true,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfKing","Lord",false,true,true,
+                true,true,true,false,0));
+        Check("second and third sons need older native sons",
+            SandboxNobleStartPolicy.RequiredOlderSons(
+                "SecondSonOfLord")==1 &&
+            SandboxNobleStartPolicy.RequiredOlderSons(
+                "ThirdSonOfKing")==2 &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "ThirdSonOfKing","Lord",false,true,true,
+                true,true,true,true,1) &&
+            SandboxNobleStartPolicy.CanBindElder(
+                "ThirdSonOfKing","Lord",false,true,true,
+                true,true,true,true,2));
+        Check("younger noble sister respects character sex",
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerSisterOfLord","Lord",true,true,true,
+                true,true,true,false,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerSisterOfLord","Lord",false,true,true,
+                true,true,true,false,0));
+        Check("lineage cannot fabricate a royal king rank",
+            !SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfKing","King") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfKing","Lord") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "Independent","Wanderer"));
+        Check("noble retinue uses office names instead of wanderer class",
+            SandboxNobleStartPolicy.RetinueOffices("Lord",false)
+                .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Lord",true)
+                .SequenceEqual(new[]{"Knight","HouseholdSteward"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Admiral",false)
+                .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
+            SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
+                .Length==0);
+        Check("native second and third sons identify a lord as father",
+            SandboxNobleStartPolicy.IsSonOrigin("SecondSonOfLord") &&
+            SandboxNobleStartPolicy.IsSonOrigin("ThirdSonOfKing") &&
+            !SandboxNobleStartPolicy.IsSonOrigin("YoungerBrotherOfLord") &&
+            SandboxNobleStartPolicy.RequiredOlderSons("SecondSonOfLord")==1 &&
+            SandboxNobleStartPolicy.RequiredOlderSons("ThirdSonOfLord")==2);
+        Check("soldier starts with family only and a native lord patron",
+            SandboxServicePolicy.NeedsPatron("Soldier") &&
+            SandboxServicePolicy.NeedsPatron("Knight") &&
+            !SandboxServicePolicy.NeedsPatron("Lord") &&
+            SandboxServicePolicy.DefaultRetinue("Soldier")=="FamilyOnly" &&
+            SandboxServicePolicy.DefaultRetinue("Knight")=="RoleBased" &&
+            SandboxServicePolicy.CanSelectPatron("Soldier","vlandia") &&
+            !SandboxServicePolicy.CanSelectPatron("Soldier","") &&
+            SandboxNobleStartPolicy.IsRetinueMode("FamilyOnly"));
+        var nobleProfile=new SandboxOriginProfile();
+        Check("noble line and role retinue survive profile roundtrip",
+            nobleProfile.TrySet("Role","Lord") &&
+            nobleProfile.TrySet("StartingKingdomId","vlandia") &&
+            nobleProfile.TrySet("NobleBirthPosition",
+                "YoungerBrotherOfKing") &&
+            nobleProfile.TrySet("NobleElderHeroId","lord_1_1") &&
+            nobleProfile.TrySet("RetinueMode","RoleBased") &&
+            nobleProfile.TrySet("ServicePatronHeroId","lord_1_1") &&
+            nobleProfile.TrySet("SiblingCount","2") &&
+            nobleProfile.TrySet("Sibling.1.Name","Andric") &&
+            nobleProfile.TrySet("Sibling.2.Gender","Female") &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .NobleBirthPosition=="YoungerBrotherOfKing" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .NobleElderHeroId=="lord_1_1" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .RetinueMode=="RoleBased" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .ServicePatronHeroId=="lord_1_1" &&
+            SandboxOriginProfile.Parse(nobleProfile.Serialize())
+                .Siblings[1].Gender=="Female");
+        Check("unsafe invented royal identity rejected in profile",
+            !nobleProfile.TrySet("NobleBirthPosition","FakeRoyal") &&
+            !nobleProfile.TrySet("RetinueMode","RandomWanderers") &&
+            !nobleProfile.TrySet("ServicePatronHeroId","../../../file") &&
+            !nobleProfile.TrySet("NobleElderHeroId","../../../file"));
+        nobleProfile.ResetForNewCampaign();
+        Check("fresh Sandbox forgets prior royal and retinue grants",
+            nobleProfile.NobleBirthPosition=="Independent" &&
+            nobleProfile.NobleElderHeroId=="" &&
+            nobleProfile.ServicePatronHeroId=="" &&
+            nobleProfile.RetinueMode=="Native" &&
+            nobleProfile.SiblingCount==0);
+        Check("medieval Starting Life uses native rank not invented enlistment",
+            SandboxStartingLifePolicy.Station("Soldier","Independent")==
+                "MercenaryCompany" &&
+            SandboxStartingLifePolicy.Station("Lord","SecondSonOfLord")==
+                "LandedVassalCadet" &&
+            SandboxStartingLifePolicy.Obligation("Soldier","Independent")==
+                "NativeMercenaryContract" &&
+            SandboxStartingLifePolicy.Occupation("Knight")==
+                "KnightInVassalService" &&
+            SandboxStartingLifePolicy.Dossier("Knight","Independent",
+                "Auto","Auto").Contains("Knight holding") &&
+            SandboxStartingLifePolicy.Dossier("Soldier","Independent",
+                "Auto","Auto").Contains("not an enlisted soldier"));
+        var revisedLife=new SandboxOriginProfile();
+        Check("Advanced life history choices persist with valid defaults",
+            revisedLife.TrySet("EarlyHousehold","Town") &&
+            revisedLife.TrySet("PersonalAmbition","Security") &&
+            SandboxOriginProfile.Parse(revisedLife.Serialize())
+                .EarlyHousehold=="Town" &&
+            SandboxOriginProfile.Parse(revisedLife.Serialize())
+                .PersonalAmbition=="Security" &&
+            !revisedLife.TrySet("EarlyHousehold","FictionalTitle") &&
+            !revisedLife.TrySet("PersonalAmbition","InfiniteGold"));
+        revisedLife.ResetForNewCampaign();
+        Check("new campaigns discard previous detailed life choices",
+            revisedLife.EarlyHousehold=="Auto" &&
+            revisedLife.PersonalAmbition=="Auto");
+        var birthPlan=new SandboxOriginProfile();
+        birthPlan.Role="Lord";
+        birthPlan.NobleBirthPosition="SecondSonOfLord";
+        birthPlan.SiblingCount=2;
+        birthPlan.Siblings[0].Gender="Male";
+        birthPlan.Siblings[0].Age=24;
+        birthPlan.Siblings[1].Gender="Female";
+        birthPlan.Siblings[1].Age=27;
+        Check("older named House brother occupies the second-son slot",
+            SandboxHouseholdLineagePolicy.PlannedOlderBrothers(
+                birthPlan,20)==1 &&
+            SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                1,0,1)==0 &&
+            birthPlan.IsValid(20,out var lineageGood));
+        birthPlan.Siblings[1].Gender="Male";
+        Check("second-son plan cannot generate two older male siblings",
+            !birthPlan.IsValid(20,out var lineageIssue) &&
+            lineageIssue.Contains("too_many_older_male_siblings") &&
+            SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                1,0,2)==-1);
+        var chronicles=new SandboxLifeHistoryState();
+        Check("living persons records true IDs and relationship bonds",
+            chronicles.Record(new SandboxLifeHistoryState.Person{
+                Id="heroA",Name="Élodie | daughter",Culture="vlandia",
+                Age=22,Station="RecordedOffspring",Occupation="FamilyChild",
+                HouseholdId="clan_a",Origin="PriorHistoryNotEstablished",
+                Ambition="NotYetModeled",Biography="A native Hero."}) &&
+            chronicles.Record(new SandboxLifeHistoryState.Person{
+                Id="heroB",Name="Alric",Age=55}) &&
+            chronicles.Tie("heroA","heroB","Father",
+                "VerifiedNativeParent") &&
+            chronicles.Tie("heroA","heroB","Father",
+                "VerifiedNativeParent") &&
+            chronicles.Remember("StartingLifeRecorded","heroA","heroB",
+                "real source|not an invented past") &&
+            chronicles.People.Count==2 &&
+            chronicles.Bonds.Count==1);
+        var packedChronicle=chronicles.Serialize();
+        var replayedChronicle=SandboxLifeHistoryState.Parse(packedChronicle);
+        Check("save-backed biographies retain unicode and escaped content",
+            replayedChronicle.People.Count==2 &&
+            replayedChronicle.People[0].Name=="Élodie | daughter" &&
+            replayedChronicle.Bonds.Count==1 &&
+            replayedChronicle.Events.Count==1 &&
+            replayedChronicle.Events[0].Detail.Contains("|") &&
+            replayedChronicle.Serialize()==packedChronicle &&
+            SandboxLifeHistoryState.Parse("invalid version")
+                .People.Count==0);
+        var career=new SandboxServiceCareerState();
+        career.Start("Soldier","lord_vlandia","vlandia");
+        string careerMilestone="";
+        for(int d=0;d<30;d++)
+            careerMilestone=career.Observe(true,true,100+d*5);
+        Check("native service contract records tenure, never invents wages",
+            career.Status=="Active" &&
+            career.DaysInService==30 &&
+            careerMilestone=="thirty_days_service_recorded" &&
+            career.Milestone==30 &&
+            career.PayAuthority=="NativeGame" &&
+            career.LastObservedGoldChange==5);
+        var careerSaved=SandboxServiceCareerState.Parse(
+            career.Serialize());
+        Check("service tenure survives save and detects lost native patronage",
+            careerSaved.PatronId=="lord_vlandia" &&
+            careerSaved.DaysInService==30 &&
+            careerSaved.Observe(true,false,120)=="native_contract_changed" &&
+            careerSaved.Status=="NativeContractChanged" &&
+            SandboxServiceCareerState.Parse("wrong").IsConfigured==false);
+        var observed=new SandboxSocialObservationState();
+        var firstObservation=observed.Observe("family_sibling",42);
+        var changedRelation=observed.Observe("family_sibling",55);
+        Check("social memory records observed native changes only",
+            firstObservation==null &&
+            changedRelation!=null &&
+            changedRelation.Before==42 &&
+            changedRelation.After==55 &&
+            observed.Observe("family_sibling",55)==null &&
+            SandboxSocialObservationState.Parse(observed.Serialize())
+                .NativeRelations["family_sibling"]==55);
+        var potentialClaim=new SandboxSuccessionInterestState();
+        potentialClaim.Record("younger_son","native_father",
+            "native_mother","father_clan",1,true);
+        Check("succession stays an expectation, never transfers estates",
+            potentialClaim.IsRecorded &&
+            potentialClaim.Status=="PotentialFamilyInterest" &&
+            potentialClaim.Observe(false)==
+                "parent_death_observed_native_ownership_unchanged" &&
+            potentialClaim.Status=="ReviewNativeSuccession" &&
+            SandboxSuccessionInterestState.Parse(
+                potentialClaim.Serialize()).Status=="ReviewNativeSuccession");
+        var recentlyObserved=new SandboxLifeHistoryState();
+        for(int e=0;e<SandboxLifeHistoryState.MaxEvents+7;e++)
+            recentlyObserved.Remember("Observed"+e,"hero","lord","native");
+        Check("long campaigns keep recent memories instead of freezing",
+            recentlyObserved.Events.Count==SandboxLifeHistoryState.MaxEvents &&
+            recentlyObserved.Events[0].Kind=="Observed7" &&
+            recentlyObserved.Events[
+                SandboxLifeHistoryState.MaxEvents-1].Kind==
+                    "Observed"+(SandboxLifeHistoryState.MaxEvents+6));
+        Check("native landless beginnings never confer a fief or kingdom",
+            SandboxCustomLifeRolePolicy.IsLandless("NobleCadet") &&
+            SandboxCustomLifeRolePolicy.IsLandless("Recruit") &&
+            SandboxCustomLifeRolePolicy.IsLandless("HouseholdKnight") &&
+            !SandboxCustomLifeRolePolicy.IsLandless("Lord") &&
+            SandboxCustomLifeRolePolicy.NativeLandlessContract(false,0) &&
+            !SandboxCustomLifeRolePolicy.NativeLandlessContract(true,0) &&
+            !SandboxCustomLifeRolePolicy.NativeLandlessContract(false,1) &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfLord","NobleCadet") &&
+            !SandboxNobleStartPolicy.ValidForRole(
+                "Independent","NobleCadet"));
+        var landlessPlan=new SandboxOriginProfile();
+        landlessPlan.TrySet("Role","NobleCadet");
+        landlessPlan.TrySet("StartingKingdomId","vlandia");
+        landlessPlan.TrySet("NobleBirthPosition","SecondSonOfLord");
+        Check("native landless cadet keeps valid birth without a fief",
+            landlessPlan.IsValid(20,out var landlessError) &&
+            SandboxOriginProfile.Parse(landlessPlan.Serialize())
+                .Role=="NobleCadet" &&
+            SandboxStartingLifePolicy.Station("NobleCadet",
+                "SecondSonOfLord")=="UnlandedDynasticCadet" &&
+            SandboxStartingLifePolicy.Dossier("NobleCadet",
+                "SecondSonOfLord","Auto","Auto").Contains("Landless"));
+        var recruitPlan=new SandboxOriginProfile();
+        recruitPlan.TrySet("Role","Recruit");
+        recruitPlan.TrySet("StartingKingdomId","vlandia");
+        Check("recruit and household knight are independent applicants",
+            recruitPlan.IsValid(20,out var recruitError) &&
+            SandboxServicePolicy.NeedsPatron("Recruit") &&
+            SandboxServicePolicy.NeedsPatron("HouseholdKnight") &&
+            SandboxServicePolicy.DefaultRetinue("Recruit")=="FamilyOnly" &&
+            SandboxServicePolicy.DefaultRetinue("HouseholdKnight")==
+                "FamilyOnly" &&
+            SandboxStartingLifePolicy.Station("Recruit","Independent")==
+                "ProspectiveEnlistedRecruit");
+        var pending=new SandboxServiceCareerState();
+        pending.Start("Recruit","native_lord","vlandia");
+        Check("pending recruit receives no fake wages tenure or rank",
+            pending.IsConfigured &&
+            pending.Status=="PendingEnlistment" &&
+            pending.Observe(true,true,500)=="pending_enlistment" &&
+            pending.DaysInService==0 &&
+            pending.Milestone==0);
+        Check("external API alone verifies actual enlisted rank and wage",
+            pending.ObserveExternal("native_lord","private",
+                "guard_duty",12,7,83,true)==
+                "external_enlistment_verified" &&
+            pending.Status=="EnlistedActive" &&
+            pending.VerifiedExternalEnlistment &&
+            pending.PayAuthority=="ServeAsSoldier" &&
+            pending.ExternalDailyWage==12 &&
+            pending.DaysInService==7 &&
+            pending.ExternalInsideHostParty);
+        var lostProvider=SandboxServiceCareerState.Parse(
+            pending.Serialize());
+        Check("missing service provider suspends saved enlistment proof",
+            lostProvider.SuspendUnverifiedExternal()==
+                "external_provider_unavailable" &&
+            !lostProvider.VerifiedExternalEnlistment &&
+            lostProvider.Status=="ExternalStatusUnverified" &&
+            lostProvider.ExternalDailyWage==-1 &&
+            SandboxServiceCareerState.Parse(lostProvider.Serialize())
+                .Status=="ExternalStatusUnverified");
+        var afterEnlist=SandboxServiceCareerState.Parse(
+            pending.Serialize());
+        Check("verified external service survives saved dossier",
+            afterEnlist.IsConfigured &&
+            afterEnlist.ExternalRank=="private" &&
+            afterEnlist.ExternalDuty=="guard_duty" &&
+            afterEnlist.ExternalDailyWage==12 &&
+            afterEnlist.Serialize()==pending.Serialize() &&
+            afterEnlist.ObserveExternalAbsent()==
+                "external_service_ended_observed" &&
+            !afterEnlist.VerifiedExternalEnlistment);
+        var firstKinGoal=SandboxGeneratedCharacterGoalPolicy.Goal(
+            "vlandia","RecordedSibling","HouseholdSoldier",true,true);
+        var siblingAgenda=new SandboxCharacterAgendaState();
+        siblingAgenda.Register("brother","ProtectSharedHousehold","",
+            "Unverified","HouseholdSoldier","vlandia","clanA");
+        int friendship=0;
+        for(int day=0;day<150;day++)
+            friendship+=siblingAgenda.ObserveComradeship(
+                "brother",true,true,true,10+friendship);
+        Check("family companionship influences bounded native relations",
+            firstKinGoal=="ProtectSharedHousehold" &&
+            friendship==5 &&
+            siblingAgenda.Get("brother").ComradeshipAwards==5 &&
+            SandboxCharacterAgendaState.Parse(
+                siblingAgenda.Serialize()).Get("brother")
+                    .ComradeshipAwards==5);
+        var fixedHomes=new SandboxCharacterAgendaState();
+        fixedHomes.Register("sister","PreserveFamilyPosition",
+            "castle_a","NativeHomeSettlement",
+            "HouseholdNoble","vlandia","birth_clan");
+        Check("real household homes update from native location",
+            fixedHomes.ObserveHome("sister","castle_b",
+                "NativeCurrentSettlement")=="native_home_changed" &&
+            SandboxCharacterAgendaState.Parse(
+                fixedHomes.Serialize()).Get("sister")
+                    .HomeId=="castle_b" &&
+            fixedHomes.ObserveComradeship(
+                "sister",true,true,true,10)==0);
+        Check("six cultures use distinct succession expectations without transfer",
+            new[]{"vlandia","sturgia","battania","empire",
+                "aserai","khuzait"}
+                .Select(SandboxCulturalInheritancePolicy.Model)
+                .Distinct().Count()==6 &&
+            !SandboxCulturalInheritancePolicy
+                .CanTransferEstateWithoutNativeAction() &&
+            SandboxCulturalInheritancePolicy.ClaimPriority(
+                "vlandia",0,true,true,50,30) >
+            SandboxCulturalInheritancePolicy.ClaimPriority(
+                "vlandia",2,true,true,50,30));
+        var culturalClaim=new SandboxSuccessionInterestState();
+        culturalClaim.Record("cadet","father","mother",
+            "birth_clan",1,true);
+        culturalClaim.SetCulture("khuzait",3);
+        Check("culture-specific claim survives save and legacy migration",
+            culturalClaim.CustomaryModel=="ClanCoalition" &&
+            culturalClaim.PriorityScore==-1 &&
+            SandboxSuccessionInterestState.Parse(
+                culturalClaim.Serialize()).CustomaryModel==
+                    "ClanCoalition" &&
+            SandboxSuccessionInterestState.Parse(
+                "CU_SUCCESSION_1\ncadet|father|mother|clan|1|True|PotentialFamilyInterest")
+                .IsRecorded);
+        var medievalStress=SandboxMedievalLifeSimulation.Run(96,3650);
+        Console.WriteLine("MEDIEVAL LIFE SIMULATION "+
+            (medievalStress.Failures==0?"PASS":"FAIL")+
+            " | seeds="+medievalStress.Seeds+
+            " | days_per_seed="+medievalStress.Days+
+            " | checks="+medievalStress.Checks+
+            " | landless_cases="+medievalStress.LandlessCases+
+            " | regions="+medievalStress.RegionCases+
+            " | external_enlistments="+medievalStress.ExternalEnlistments+
+            " | shared_service_awards="+medievalStress.ComradeshipAwards+
+            " | parent_deaths="+medievalStress.ParentDeaths+
+            " | reloads="+medievalStress.SaveReloads+
+            " | first_failure="+medievalStress.FirstFailure);
+        Check("96 seeds through 3650 days satisfy medieval start invariants",
+            medievalStress.Failures==0 &&
+            medievalStress.Checks>600000 &&
+            medievalStress.LandlessCases==72 &&
+            medievalStress.RegionCases==96 &&
+            medievalStress.ExternalEnlistments==24 &&
+            medievalStress.ParentDeaths==96 &&
+            medievalStress.ComradeshipAwards>0 &&
+            medievalStress.SaveReloads>5000 &&
+            medievalStress.NativeWagesGranted==0 &&
+            medievalStress.NativeFiefsTransferred==0);
+        var npcRequests=new SandboxAgencyDecisionState();
+        for(int i=0;i<15;i++)npcRequests.Tick();
+        Check("autonomous NPC invitations need real adult and physical access",
+            SandboxAgencyDecisionPolicy.Choose("ProtectSharedHousehold",
+                true,true,25,0,90)=="HouseholdAid" &&
+            SandboxAgencyDecisionPolicy.Choose("EstablishLivelihood",
+                true,false,25,0,90)=="" &&
+            SandboxAgencyDecisionPolicy.Choose("MaintainHousehold",
+                false,true,25,0,90)=="" &&
+            SandboxAgencyDecisionPolicy.Choose("PreserveFamilyPosition",
+                true,true,25,0,90)=="Recognition");
+        Check("character-generated household requests have native costs",
+            npcRequests.Propose("brother","HouseholdAid") &&
+            npcRequests.HasPending &&
+            SandboxAgencyDecisionPolicy.Amount(
+                npcRequests.PendingKind)==150 &&
+            !npcRequests.Propose("factor","LivelihoodAid") &&
+            SandboxAgencyDecisionPolicy.NativeTransferPermitted(
+                "HouseholdAid",true,300,true) &&
+            !SandboxAgencyDecisionPolicy.NativeTransferPermitted(
+                "HouseholdAid",true,100,true) &&
+            SandboxAgencyDecisionPolicy.RelationDelta(
+                "HouseholdAid",false)==-1);
+        string originalRequest=npcRequests.Serialize();
+        var reloadedRequest=SandboxAgencyDecisionState.Parse(
+            originalRequest);
+        Check("active character requests survive native campaign saves",
+            reloadedRequest.Serialize()==originalRequest &&
+            reloadedRequest.PendingHeroId=="brother" &&
+            reloadedRequest.Dismiss("Accepted")=="Accepted" &&
+            !reloadedRequest.HasPending);
+        for(int i=0;i<36;i++)npcRequests.Tick();
+        Check("unanswered local NPC requests expire without gold transfer",
+            !npcRequests.HasPending &&
+            !npcRequests.Propose("brother","HouseholdAid") &&
+            npcRequests.Records[0].RequestsMade==1);
+        var inheritanceCourt=new SandboxInheritanceNegotiationState();
+        Check("six cultural court thresholds remain distinct",
+            new[]{"vlandia","sturgia","battania","empire",
+                "aserai","khuzait"}
+                .Select(c=>SandboxInheritanceNegotiationPolicy
+                    .ConsentThreshold(c,1)).Distinct().Count()>=5 &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,true,2,1,90,
+                "vlandia")=="ClanHeadConsents" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,false,true,true,true,2,1,90,
+                "vlandia")=="ParentStillLiving" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,false,2,1,90,
+                "vlandia")=="NativeAllegianceRequired" &&
+            SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,true,true,true,true,1,1,90,
+                "vlandia")=="NoSecondaryEstate");
+        Check("contested family claim cannot transfer before clan approval",
+            inheritanceCourt.Petition("ClaimContested",
+                "castle_b","lord","clan_a","HouseholdSeniority",120)==
+                "ClaimContested" &&
+            !inheritanceCourt.Authorized &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,false,"clan_a","clan_a",true,true,2));
+        Check("consented secondary family grant needs explicit native choice",
+            inheritanceCourt.Petition("ClanHeadConsents",
+                "castle_b","lord","clan_a","HouseholdSeniority",200)==
+                "ClanHeadConsents" &&
+            inheritanceCourt.Authorized &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                false,true,"clan_a","clan_a",true,true,2) &&
+            SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_a",true,true,2) &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_b",true,true,2) &&
+            !SandboxInheritanceNegotiationPolicy.TransferGate(
+                true,true,"clan_a","clan_a",false,true,2));
+        string oldPetition=inheritanceCourt.Serialize();
+        var newPetition=SandboxInheritanceNegotiationState.Parse(
+            oldPetition);
+        Check("saved family-consent record cannot invent native ownership",
+            newPetition.Serialize()==oldPetition &&
+            newPetition.Authorized &&
+            newPetition.Complete(false)=="native_owner_not_changed" &&
+            newPetition.Status=="ClanHeadConsents" &&
+            newPetition.Complete(true)=="native_grant_confirmed" &&
+            newPetition.Status=="NativeGrantCompleted");
+        var mediationState=new SandboxInheritanceNegotiationState();
+        mediationState.Petition("ClaimContested",
+            "castle_s","head","clan","KindredCouncil",100);
+        Check("real cultural family mediation needs native money and court",
+            SandboxInheritanceNegotiationPolicy
+                .FamilySettlementContribution("empire")==700 &&
+            SandboxInheritanceNegotiationPolicy
+                .FamilySettlementContribution("battania")==250 &&
+            SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",0,true,true,true,500,"battania") &&
+            !SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",0,false,true,true,500,"battania") &&
+            !SandboxInheritanceNegotiationPolicy.MediationGate(
+                "ClaimContested",2,true,true,true,500,"battania") &&
+            mediationState.RecordMediation() &&
+            mediationState.Mediations==1 &&
+            SandboxInheritanceNegotiationState.Parse(
+                mediationState.Serialize()).Mediations==1);
+        Check("withdrawal closes a disputed family grant permanently",
+            mediationState.Withdraw()=="ClaimWithdrawn" &&
+            !mediationState.Authorized &&
+            mediationState.Petition("ClanHeadConsents",
+                "castle_s","head","clan","KindredCouncil",110)==
+                "PetitionLimitReached" &&
+            SandboxInheritanceNegotiationState.Parse(
+                mediationState.Serialize()).Status=="ClaimWithdrawn");
+        var affairsStress=SandboxLivingAffairsSimulation.Run(120,730);
+        Console.WriteLine("LIVING AFFAIRS SIMULATION "+
+            (affairsStress.Failures==0?"PASS":"FAIL")+
+            " | seeds="+affairsStress.Seeds+
+            " | days_per_seed="+affairsStress.Days+
+            " | checks="+affairsStress.Checks+
+            " | requests="+affairsStress.Requests+
+            " | accepted="+affairsStress.Accepted+
+            " | declined="+affairsStress.Declined+
+            " | cultural_grants_authorized="+
+                affairsStress.AuthorizedClaims+
+            " | contested="+affairsStress.ContestedClaims+
+            " | petition_refusals="+affairsStress.RefusedClaims+
+            " | reloads="+affairsStress.Reloads+
+            " | first_failure="+affairsStress.FirstFailure);
+        Check("120 campaign seeds for two years preserve agency and estate gates",
+            affairsStress.Failures==0 &&
+            affairsStress.Seeds==120 &&
+            affairsStress.Checks>100000 &&
+            affairsStress.Requests>=200 &&
+            affairsStress.AuthorizedClaims>0 &&
+            affairsStress.ContestedClaims>0 &&
+            affairsStress.Reloads>1000 &&
+            affairsStress.NativeTransferCalls==0 &&
+            affairsStress.UnguardedTransfers==0);
+        var autoHouse=new SandboxOriginProfile();
+        autoHouse.Role="Lord";
+        SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");
+        Check("automatic House uses Vlandian names and valid child ages",
+            autoHouse.AutoHouseNamesPrepared &&
+            autoHouse.SpouseBackground=="NobleRandom" &&
+            autoHouse.FamilyScenario=="Natural" &&
+            autoHouse.SpouseName=="Aveline" &&
+            autoHouse.Children.All(ch=>ch.Age>=0 &&
+                ch.Age<=autoHouse.SpouseAge-16) &&
+            autoHouse.Siblings.All(s=>s.Age>=18 && s.Age<=80) &&
+            SandboxOriginProfile.Parse(autoHouse.Serialize())
+                .AutoHouseNamesPrepared);
+        Check("culture-specific names avoid duplicate household suggestions",
+            SandboxCulturalNames.Suggest("sturgia",false,0,
+                new string[0])=="Mstislav" &&
+            SandboxCulturalNames.Suggest("aserai",true,0,
+                new string[0])=="Zahra" &&
+            SandboxCulturalNames.Suggest("vlandia",true,0,
+                new[]{"Aveline"})=="Ysabel");
+        Check("court and military retinues have distinct native roles",
+            SandboxRetinueOfficePolicy.Skills("Knight")[0]=="Riding" &&
+            SandboxRetinueOfficePolicy.Skills("HouseholdSteward")[0]=="Steward" &&
+            SandboxRetinueOfficePolicy.PartyDuty("Navigator")=="Scout" &&
+            SandboxRetinueOfficePolicy.PartyDuty("HouseholdSteward")=="Quartermaster" &&
+            SandboxRetinueOfficePolicy.PartyDuty("Knight")=="None");
+        Check("retinue cultures have distinct native outfit goals",
+            SandboxRetinueCulturePolicy.GearStyle("vlandia","Knight")=="Lancer" &&
+            SandboxRetinueCulturePolicy.GearStyle("khuzait","Knight")=="HorseArcher" &&
+            SandboxRetinueCulturePolicy.GearStyle("battania","Knight")=="Longbow" &&
+            SandboxRetinueCulturePolicy.GearStyle("sturgia","Knight")=="Axeguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("empire","Knight")=="Shieldguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("aserai","Knight")=="Skirmisher");
+        Check("native equipment scorer rewards mounted archery, no fake item IDs",
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",
+                new[]{"Horse","Bow","Arrows","BodyArmor"}) >
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",
+                new[]{"Shield","OneHandedWeapon","BodyArmor"}) &&
+            SandboxRetinueCulturePolicy.EquipmentScore("Shieldguard",
+                new[]{"Shield","OneHandedWeapon","BodyArmor"}) >
+            SandboxRetinueCulturePolicy.EquipmentScore("Shieldguard",
+                new[]{"Horse","Bow","Arrows"}));
+        Check("culture modifies officers' skills and personality",
+            SandboxRetinueCulturePolicy.Training("khuzait","Knight")
+                .Contains("Bow") &&
+            SandboxRetinueCulturePolicy.Training("sturgia","Knight")
+                .Contains("TwoHanded") &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Knight")=="Honor" &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("aserai","Knight")=="Generosity" &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("khuzait","Knight")=="Calculating" &&
+            SandboxRetinueCulturePolicy.SecondaryTrait("aserai","Factor")=="Calculating");
         var family=new SandboxOriginProfile();
         Check("family starts natural and no old preset leaks",
             family.FamilyScenario=="Natural" &&
@@ -1292,7 +1873,7 @@ internal static class Program
             }
         }
         Check("catalog covers every public configurable value",
-            catalogKeys.Count == 64);
+            catalogKeys.Count == 65);
         var origin = new SandboxOriginProfile();
         Check("roles cannot forge king or lord titles",
             !SandboxRolePolicy.MatchesNativeStatus("King", false, false) &&
@@ -1582,6 +2163,19 @@ internal static class Program
         {
             DiagnosticJournal.OverrideRootForTests = tempDiagnostic;
             DiagnosticJournal.Enabled = true;
+            string fakeDesktop=System.IO.Path.Combine(
+                tempDiagnostic,"MockDesktop");
+            DiagnosticSessionReporter.OverrideDesktopDirectoryForTests=fakeDesktop;
+            Check("missing Desktop falls back to local diagnostic folder",
+                DiagnosticSessionReporter.ReportsDirectory==
+                    System.IO.Path.Combine(tempDiagnostic,"Reports"));
+            System.IO.Directory.CreateDirectory(fakeDesktop);
+            string desktopReportFolder=System.IO.Path.Combine(
+                fakeDesktop,"Calradia Unified Reports");
+            Check("automatic reports use a dedicated Desktop folder",
+                DiagnosticSessionReporter.ReportsDirectory==
+                    desktopReportFolder &&
+                System.IO.Directory.Exists(desktopReportFolder));
             var cells = new string[19];
             for (int i = 0; i < cells.Length; i++) cells[i] = "0";
             cells[0] = "castle";
@@ -1599,6 +2193,313 @@ internal static class Program
             Check("diagnostic exception CSV preserves escaped commas",
                 System.IO.File.ReadAllText(System.IO.Path.Combine(tempDiagnostic, "exceptions.csv"))
                     .Contains("Mock crash with comma, and quotes"));
+            // The report for a native hard crash is recovered on next
+            // launch from its active.marker and already-flushed CSV.
+            string previousSession = System.IO.Path.Combine(
+                tempDiagnostic,"Sessions","20261118T100000_deadbeef");
+            System.IO.Directory.CreateDirectory(previousSession);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"active.marker"),"0");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"events.csv"),
+                "utc,session_id,context,detail\n"+
+                "2026-11-18,prior,creator_page,age_to_stats_crashed\n");
+            // More recent completed sessions must not conceal an old crash.
+            for(int n=0;n<26;n++)
+            {
+                string completed=System.IO.Path.Combine(
+                    tempDiagnostic,"Sessions",
+                    "20261118T1001"+n.ToString("D2")+"_completed");
+                System.IO.Directory.CreateDirectory(completed);
+                System.IO.File.WriteAllText(System.IO.Path.Combine(
+                    completed,"completed.marker"),"normal_shutdown");
+            }
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"unexpected-private.sav"),"DO NOT EXPORT");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                previousSession,"unexpected-dump.dmp"),"DO NOT EXPORT");
+            // The report must distinguish a known last action from an
+            // unproven crash cause. A multiline CSV detail is valid.
+            System.IO.File.AppendAllText(System.IO.Path.Combine(
+                previousSession,"events.csv"),
+                "2026-11-18,prior,cu_stats_page_rows_built,"+
+                "\"page=1/9, visible=6\""+"\n");
+            string fakeGame=System.IO.Path.Combine(
+                tempDiagnostic,"mock-game-root");
+            DiagnosticSessionReporter.OverrideGameRootForTests=fakeGame;
+            Check("known game path can be set for session report",
+                DiagnosticSessionReporter.ResolveGameRoot()==fakeGame);
+            DiagnosticSessionReporter.Start();
+            string reports=DiagnosticSessionReporter.ReportsDirectory;
+            string recoveredZipPath=System.IO.Path.Combine(reports,
+                "CU-Session-20261118T100000_deadbeef-INTERRUPTED.zip");
+            Check("recovery is not starved by 26 newer completed folders",
+                System.IO.File.Exists(recoveredZipPath));
+            Check("next launch creates ZIP for interrupted prior session",
+                System.IO.File.Exists(recoveredZipPath) &&
+                !System.IO.File.Exists(System.IO.Path.Combine(
+                    previousSession,"active.marker")) &&
+                (System.IO.File.Exists(System.IO.Path.Combine(
+                    previousSession,"recovered.marker")) ||
+                 !System.IO.Directory.Exists(previousSession)));
+            using(var archive=System.IO.Compression.ZipFile.OpenRead(
+                recoveredZipPath))
+            {
+                Check("recovery report contains the prior session journal",
+                    archive.Entries.Any(e=>e.FullName=="events.csv") &&
+                    archive.Entries.Any(e=>e.FullName=="recovery-info.txt"));
+                Check("recovery excludes unexpected saves and dumps",
+                    !archive.Entries.Any(e=>e.FullName.EndsWith(".sav") ||
+                        e.FullName.EndsWith(".dmp")));
+                var summaryEntry=archive.GetEntry("READ_ME_FIRST.txt");
+                Check("interrupted report has readable summary in ZIP",
+                    summaryEntry!=null);
+                using(var reader=new System.IO.StreamReader(
+                    summaryEntry.Open()))
+                {
+                    string summaryText=reader.ReadToEnd();
+                    Check("recovery summary identifies last observed stats event",
+                        summaryText.Contains("cu_stats_page_rows_built") &&
+                        summaryText.Contains("page=1/9, visible=6") &&
+                        summaryText.Contains("INTERRUPTED"));
+                    Check("recovery summary does not infer native crash cause",
+                        summaryText.Contains("A native crash cause is NOT") &&
+                        summaryText.Contains("No managed exception recorded."));
+                    Check("legacy creator event is identified without claiming cause",
+                        summaryText.Contains("Page: All Stats") &&
+                        summaryText.Contains("RECORDED ERROR AREA") &&
+                        summaryText.Contains("Interruption is unclassified."));
+                }
+            }
+            DiagnosticJournal.Event("gameplay_test_event",
+                "after_age_screen=stats_page");
+            DiagnosticJournal.Event("creator_csv_quoted_test",
+                "field=\"All Stats\", step=1\ncontinuation");
+            DiagnosticSessionReporter.Heartbeat(
+                "campaign_active=true|test_heartbeat=true");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                DiagnosticSessionReporter.SessionDirectory,
+                "unexpected-private.sav"),"DO NOT EXPORT");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                DiagnosticSessionReporter.SessionDirectory,
+                "unexpected-screenshot.png"),"DO NOT EXPORT");
+            DiagnosticSessionReporter.Complete("unit_test_normal_exit");
+            string current=System.IO.Path.Combine(reports,
+                "CU-Session-"+DiagnosticJournal.CurrentSessionId+
+                "-CLOSED.zip");
+            Check("normal exit packages current session to private ZIP",
+                System.IO.File.Exists(current) &&
+                !System.IO.File.Exists(System.IO.Path.Combine(
+                    DiagnosticSessionReporter.SessionDirectory,
+                    "active.marker")) &&
+                System.IO.File.Exists(System.IO.Path.Combine(
+                    DiagnosticSessionReporter.SessionDirectory,
+                    "completed.marker")));
+            using(var archive=System.IO.Compression.ZipFile.OpenRead(
+                current))
+            {
+                Check("normal report includes session events and metadata",
+                    archive.Entries.Any(e=>e.FullName=="events.csv") &&
+                    archive.Entries.Any(e=>e.FullName=="runtime-info.txt") &&
+                    archive.Entries.Any(e=>e.FullName=="README.txt") &&
+                    archive.Entries.Any(e=>e.FullName=="READ_ME_FIRST.txt"));
+                using(var reader=new System.IO.StreamReader(
+                    archive.GetEntry("READ_ME_FIRST.txt").Open()))
+                {
+                    string summaryText=reader.ReadToEnd();
+                    Check("normal summary parses multiline quoted CSV and exception",
+                        summaryText.Contains("creator_csv_quoted_test") &&
+                        summaryText.Contains("field=\"All Stats\", step=1") &&
+                        summaryText.Contains("InvalidOperationException") &&
+                        summaryText.Contains("CLOSED"));
+                }
+                Check("normal report excludes raw memory and saves",
+                    !archive.Entries.Any(e=>
+                        e.FullName.EndsWith(".dmp",
+                            StringComparison.OrdinalIgnoreCase) ||
+                        e.FullName.EndsWith(".sav",
+                            StringComparison.OrdinalIgnoreCase) ||
+                        e.FullName.EndsWith(".png",
+                            StringComparison.OrdinalIgnoreCase)));
+            }
+            Check("local latest report pointer refers to Desktop ZIP",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(
+                    tempDiagnostic,"latest-report.txt"))==current &&
+                System.IO.Path.GetDirectoryName(current)==desktopReportFolder);
+            Check("Desktop latest summary opens without extracting ZIP",
+                System.IO.File.ReadAllText(System.IO.Path.Combine(
+                    desktopReportFolder,"LATEST-REPORT-SUMMARY.txt"))
+                    .Contains("creator_csv_quoted_test"));
+            // Explicit checkpoints are separate from the requested next
+            // page, and error categories derive from real CU contexts.
+            string classifier=System.IO.Path.Combine(
+                tempDiagnostic,"area-fixtures");
+            System.IO.Directory.CreateDirectory(classifier);
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"events.csv"),
+                "utc,session_id,context,detail\n"+
+                "2026-11-20T01:00:00Z,fixture,cu_creator_page_checkpoint,"+
+                "\"page=Age|surface=stats_editor|phase=layer_attached\"\n"+
+                "2026-11-20T01:00:01Z,fixture,cu_stats_navigation,"+
+                "\"direction=next|from=-1|to=0\"\n"+
+                // We saw row construction, not that the next page rendered.
+                "2026-11-20T01:00:02Z,fixture,cu_stats_page_rows_built,"+
+                "\"page=1/9|visible=6\"\n");
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "utc,session_id,context,exception_type,message,stack_trace\n"+
+                "2026-11-20T01:00:03Z,fixture,cu_native_stats_attach_failed,"+
+                "System.InvalidOperationException,UI error,stack\n");
+            string classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("reports confirmed Age and requested All Stats separately",
+                classified.Contains("Page: Age") &&
+                classified.Contains("Later requested transition: Age -> All Stats") &&
+                classified.Contains("destination not confirmed visible"));
+            Check("distinguishes UI exception evidence from crash causality",
+                classified.Contains("Creator / UI=1") &&
+                classified.Contains("Campaign / family=0") &&
+                classified.Contains("Most recent exception area: Creator / UI") &&
+                classified.Contains("NOT A CRASH CAUSE"));
+            System.IO.File.AppendAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "2026-11-20T01:00:04Z,fixture,campaign_registration,"+
+                "System.Exception,Campaign error,stack\n");
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "normal_shutdown:unit_test",false);
+            Check("mixed UI and campaign errors remain separately classified",
+                classified.Contains("Creator / UI=1") &&
+                classified.Contains("Campaign / family=1") &&
+                classified.Contains("Both UI and campaign exception contexts"));
+            System.IO.File.WriteAllText(System.IO.Path.Combine(
+                classifier,"exceptions.csv"),
+                "utc,session_id,context,exception_type,message,stack_trace\n"+
+                "2026-11-20T01:00:05Z,fixture,unhandled_managed_exception,"+
+                "System.Exception,Unknown fault,stack\n");
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("unhandled exception without subsystem context stays unknown",
+                classified.Contains("Other / unknown=1") &&
+                classified.Contains("Most recent exception area: Other / unknown"));
+            // Exact frame extraction comes from the saved exception
+            // trace, not the last game event or a guessed UI method.
+            string stackFixture=System.IO.Path.Combine(
+                tempDiagnostic,"managed-stack-fixtures");
+            System.IO.Directory.CreateDirectory(stackFixture);
+            string stackFile=System.IO.Path.Combine(
+                stackFixture,"exceptions.csv");
+            string sourcePath=@"C:\Users\PrivatePlayer\Source\CUNativeStatsLayer.cs";
+            string normalTrace="System.InvalidOperationException: slider error\n"+
+                "   at CalradiaUnified.CUNativeStatsVM.Refresh() in "+
+                sourcePath+":line 749\n"+
+                "   at CalradiaUnified.CUNativeStatsVM.ExecuteContinue()";
+            string frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:00Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.InvalidOperationException","slider error",
+                normalTrace}.Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            string frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("managed exception summary reports the first method",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CUNativeStatsVM.Refresh") &&
+                frameSummary.Contains(
+                    "Source (filename only): CUNativeStatsLayer.cs:line 749") &&
+                !frameSummary.Contains("PrivatePlayer"));
+            Check("managed frame is not presented as proven root cause",
+                frameSummary.Contains(
+                    "It does not prove the method caused the session to end."));
+            string innerTrace="System.Exception: outer ---> "+
+                "System.ArgumentException: inner\n"+
+                "   at CalradiaUnified.SandboxFamilyCreator.BuildChild()\n"+
+                "   --- End of inner exception stack trace ---\n"+
+                "   at CalradiaUnified.SandboxFamilyCreator.CreateFamily()";
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:01Z","fixture",
+                "cu_family_partial_creation",
+                "System.Exception","nested",innerTrace}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("nested exception reports first inner frame with caveat",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.SandboxFamilyCreator.BuildChild") &&
+                frameSummary.Contains("inner exception"));
+            string asyncTrace="System.Exception: async exception\n"+
+                "   at CalradiaUnified.CreatorRuntime+"+
+                "<NextPageAsync>d__18.MoveNext()";
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:02Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.Exception","async",asyncTrace}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("async state machine receives compiler-frame caveat",
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CreatorRuntime+") &&
+                frameSummary.Contains("async or iterator state-machine frame"));
+            frameRow=String.Join(",",new[]{
+                "2026-11-20T01:01:03Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.Exception","no frames",
+                "not a parseable managed stack"}
+                .Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+frameRow+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("missing managed frame stays unknown",
+                frameSummary.Contains(
+                    "No parseable managed method in the saved exception stack.") &&
+                !frameSummary.Contains("Method:"));
+            // A newer handled exception without a usable stack must not
+            // conceal the earlier exception that reported a method.
+            string firstWithFrame=String.Join(",",new[]{
+                "2026-11-20T01:01:04Z","fixture",
+                "cu_native_stats_attach_failed",
+                "System.InvalidOperationException","frame available",
+                normalTrace}.Select(DiagnosticJournal.CsvField));
+            string newerWithoutFrame=String.Join(",",new[]{
+                "2026-11-20T01:01:05Z","fixture",
+                "campaign_registration",
+                "System.Exception","no stack here",
+                "no stack available"}.Select(DiagnosticJournal.CsvField));
+            System.IO.File.WriteAllText(stackFile,
+                DiagnosticJournal.ExceptionHeader+"\n"+
+                firstWithFrame+"\n"+newerWithoutFrame+"\n");
+            frameSummary=DiagnosticSummaryPolicy.Build(
+                stackFixture,"normal_shutdown:unit_test",false);
+            Check("later stackless exception retains last parseable frame",
+                frameSummary.Contains(
+                    "Frame source context: cu_native_stats_attach_failed") &&
+                frameSummary.Contains(
+                    "Method: CalradiaUnified.CUNativeStatsVM.Refresh") &&
+                frameSummary.Contains("Context: campaign_registration"));
+            System.IO.File.Delete(System.IO.Path.Combine(
+                classifier,"exceptions.csv"));
+            classified=DiagnosticSummaryPolicy.Build(classifier,
+                "interrupted_previous_process",true);
+            Check("interrupted process without exception remains unclassified",
+                classified.Contains("Interruption is unclassified.") &&
+                classified.Contains("Page: Age") &&
+                classified.Contains("Later requested transition: Age -> All Stats"));
+            DiagnosticSessionReporter.OverrideGameRootForTests=null;
+            string autoConfig=System.IO.Path.Combine(tempDiagnostic,
+                "auto-report-test.ini");
+            System.IO.File.WriteAllText(autoConfig,
+                "EnableDiagnostics=true\nAutoSessionReports=false\n");
+            Check("automatic session reports default on but can be disabled",
+                new Settings().AutoSessionReports &&
+                !Settings.LoadFromPaths(
+                    System.IO.Path.Combine(tempDiagnostic,"not-there.ini"),
+                    autoConfig).AutoSessionReports);
             string exported = DiagnosticJournal.ExportSnapshot();
             Check("diagnostic export contains finance and crash evidence",
                 System.IO.File.Exists(System.IO.Path.Combine(exported, "finance.csv")) &&
@@ -1614,6 +2515,7 @@ internal static class Program
         {
             DiagnosticJournal.Enabled = true;
             DiagnosticJournal.OverrideRootForTests = null;
+            DiagnosticSessionReporter.OverrideDesktopDirectoryForTests = null;
             if (System.IO.Directory.Exists(tempDiagnostic))
                 System.IO.Directory.Delete(tempDiagnostic, true);
         }

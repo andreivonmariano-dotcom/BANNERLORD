@@ -16,8 +16,9 @@ namespace CalradiaUnified
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
         public static readonly string[] Roles =
-            { "Wanderer", "Soldier", "Knight", "Lord", "King", "Admiral",
-      "Trader", "Outlaw", "Beggar" };
+            { "Wanderer", "Recruit", "Soldier", "HouseholdKnight",
+              "Knight", "NobleCadet", "Lord", "King", "Admiral",
+              "Trader", "Outlaw", "Beggar" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
@@ -56,6 +57,8 @@ namespace CalradiaUnified
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
+        public string EarlyHousehold = "Auto";
+        public string PersonalAmbition = "Auto";
         // Native Advanced Start IDs, not culture IDs.
         public static readonly string[] KingdomIds =
             { "", "vlandia", "sturgia", "battania", "empire",
@@ -106,6 +109,19 @@ namespace CalradiaUnified
         public string SpouseEquipmentKit = "Vanilla";
         public int ChildCount;
         public int SiblingCount;
+        // Seed new-family names after the actual native culture is known.
+        public bool AutoHouseNamesPrepared;
+        // Opt-in noble-lineage start. A real, older game-owned lord/king
+        // must share real mother and father links with the player.
+        public string NobleBirthPosition = "Independent";
+        // Blank chooses a deterministic verified elder in the native kingdom.
+        public string NobleElderHeroId = "";
+        // Optional exact native commanding lord for Soldier/Knight.
+        // Blank automatically selects an eligible leader after the game starts.
+        public string ServicePatronHeroId = "";
+        // Native keeps original companions. RoleBased replaces them with
+        // same-culture officers. ReplaceNative remains a legacy saved alias.
+        public string RetinueMode = "Native";
 
         // Explicit overrides only; absent entry means retain the game's value.
         // Native is the safe default. The dedicated post-origins editor
@@ -179,6 +195,13 @@ namespace CalradiaUnified
             SpouseEnabled=false;
             ChildCount=0;
             SiblingCount=0;
+            AutoHouseNamesPrepared=false;
+            NobleBirthPosition="Independent";
+            EarlyHousehold="Auto";
+            PersonalAmbition="Auto";
+            NobleElderHeroId="";
+            ServicePatronHeroId="";
+            RetinueMode="Native";
             FamilyScenario="Natural";
             foreach(var child in Children)
                 child.Upbringing="FamilyTradition";
@@ -290,6 +313,14 @@ namespace CalradiaUnified
                 case "Role":
                     if (!Allowed(value, Roles)) return false;
                     Role = value; return true;
+                case "EarlyHousehold":
+                    if (!SandboxStartingLifePolicy.ValidHousehold(value))
+                        return false;
+                    EarlyHousehold=value;return true;
+                case "PersonalAmbition":
+                    if (!SandboxStartingLifePolicy.ValidAmbition(value))
+                        return false;
+                    PersonalAmbition=value;return true;
                 case "StartingKingdomId":
                     if (!Allowed(value, KingdomIds)) return false;
                     StartingKingdomId = value; return true;
@@ -402,6 +433,21 @@ namespace CalradiaUnified
                 case "SiblingCount":
                     if (!Number(value, 0, MaxSiblings, out n)) return false;
                     SiblingCount = n; return true;
+                case "AutoHouseNamesPrepared":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    AutoHouseNamesPrepared=b;return true;
+                case "NobleBirthPosition":
+                    if(!SandboxNobleStartPolicy.IsPosition(value))return false;
+                    NobleBirthPosition=value;return true;
+                case "NobleElderHeroId":
+                    if(!Identifier(value,80))return false;
+                    NobleElderHeroId=value;return true;
+                case "ServicePatronHeroId":
+                    if(!Identifier(value,80))return false;
+                    ServicePatronHeroId=value;return true;
+                case "RetinueMode":
+                    if(!SandboxNobleStartPolicy.IsRetinueMode(value))return false;
+                    RetinueMode=value;return true;
             }
             if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
             {
@@ -497,10 +543,32 @@ namespace CalradiaUnified
                 error = "Unknown starting-stats mode.";
                 return false;
             }
+            if(!SandboxStartingLifePolicy.ValidHousehold(EarlyHousehold) ||
+                !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
+            {
+                error="Choose a supported early household and ambition.";
+                return false;
+            }
             int playerAge = PlayerAge >= 18 ? PlayerAge : actualPlayerAge;
             if (playerAge < 18 || playerAge > 100)
             {
                 error = "Player must be an adult.";
+                return false;
+            }
+            if(!SandboxNobleStartPolicy.IsPosition(NobleBirthPosition) ||
+                !SandboxNobleStartPolicy.IsRetinueMode(RetinueMode) ||
+                !SandboxNobleStartPolicy.ValidForRole(
+                    NobleBirthPosition,Role) ||
+                !SandboxCustomLifeRolePolicy.ValidBirth(Role,
+                    NobleBirthPosition))
+            {
+                error="Noble origin requires Lord or NobleCadet; NobleCadet needs native relatives.";
+                return false;
+            }
+            if(SandboxCustomLifeRolePolicy.NeedsKingdomContext(Role) &&
+                String.IsNullOrEmpty(StartingKingdomId))
+            {
+                error="Select the kingdom of your family or service patron.";
                 return false;
             }
             if (SpouseOverrides.Any(kv=>
@@ -548,6 +616,13 @@ namespace CalradiaUnified
                     error = "Sibling needs a valid name.";
                     return false;
                 }
+            string lineageError=SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                this,playerAge);
+            if(lineageError.Length>0)
+            {
+                error="Noble birth and sibling ages conflict: "+lineageError;
+                return false;
+            }
             return true;
         }
 
@@ -558,8 +633,13 @@ namespace CalradiaUnified
                 ", " + Troops + " additional troops, kit=" + EquipmentKit +
                 ", family=" + (SpouseEnabled ?
                     SpouseBackground + " spouse " + SpouseName : "none") +
+                ", early_household=" + EarlyHousehold +
+                ", ambition=" + PersonalAmbition +
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
+                ", noble_birth=" + NobleBirthPosition +
+                ", commanding_lord=" + ServicePatronHeroId +
+                ", retinue=" + RetinueMode +
                 ", kingdom=" + (StartingKingdomId.Length == 0 ? "not selected" : StartingKingdomId) +
                 ", scenario=" + StartingScenario +
                 ", fief=" + (StartingFiefMode == "Native" ? "native" :
@@ -596,6 +676,8 @@ namespace CalradiaUnified
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,
+                "EarlyHousehold=" + EarlyHousehold,
+                "PersonalAmbition=" + PersonalAmbition,
                 "StartingKingdomId=" + StartingKingdomId,
                 "StartingScenario=" + StartingScenario,
                 "ScenarioFaction1=" + ScenarioFaction1,
@@ -631,7 +713,13 @@ namespace CalradiaUnified
                 "SpouseFaceSeed=" + SpouseFaceSeed,
                 "SpouseEquipmentKit=" + SpouseEquipmentKit,
                 "ChildCount=" + ChildCount,
-                "SiblingCount=" + SiblingCount
+                "SiblingCount=" + SiblingCount,
+                "AutoHouseNamesPrepared=" +
+                    AutoHouseNamesPrepared.ToString().ToLowerInvariant(),
+                "NobleBirthPosition=" + NobleBirthPosition,
+                "NobleElderHeroId=" + NobleElderHeroId,
+                "ServicePatronHeroId=" + ServicePatronHeroId,
+                "RetinueMode=" + RetinueMode
             };
             foreach (var pair in Overrides)
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));

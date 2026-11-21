@@ -26,8 +26,8 @@ assert "public int SelectedInt" in code
 for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
           "CUNativeStatsEditorSafe"):
     root=ET.parse(ui/(n+".xml")).getroot()
-    # v055 replaces the crashing unverified full ScrollablePanel with
-    # a six-row native viewport and retained row SliderWidget.
+    # v0.58 retains all six rows with +/- and exact entry.
+    # Numeric slider bindings are absent pending a game-safe diagnosis.
     assert len(list(root.iter("ScrollablePanel")))==0,n
     assert len(list(root.iter("ScrollbarWidget")))==0,n
     viewport=next(w for w in root.iter("Widget")
@@ -36,16 +36,18 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert viewport.get("IsVisible")=="@IsStatsPage"
     assert not list(viewport.iter("ListPanel"))
     assert not list(viewport.iter("ItemTemplate"))
-    sliders=[w for w in viewport.iter("SliderWidget")
-        if (w.get("Id") or "").startswith("CUFixedStatSlider")]
-    assert len(sliders)==6
-    for i,slider in enumerate(sliders,1):
-        assert slider.get("ValueInt")==f"@Slot{i}Value"
-        assert slider.get("MinValueInt")==f"@Slot{i}Min"
-        assert slider.get("MaxValueInt")==f"@Slot{i}Max"
+    assert not list(viewport.iter("SliderWidget"))
+    for i in range(1,7):
+        row=next(w for w in viewport.iter("Widget")
+            if w.get("Id")==f"CUFixedStatRow{i}")
+        assert row.get("IsVisible")==f"@Slot{i}Visible"
+        assert not any(w.get("Text")=="EDIT WITH - / + OR EXACT"
+            for w in row.iter("TextWidget"))
+        assert any(w.get("Text")=="ADJUST"
+            for w in root.iter("TextWidget"))
     assert len(list(root.iter("SliderWidget")))==(
-        6 if n=="CUNativeStatsEditorSafe" else 7)
+        0 if n=="CUNativeStatsEditorSafe" else 1)
     actions={b.get("Command.Click") for b in root.iter("ButtonWidget")}
     assert {"ExecuteEditSpouse","ExecuteEditPlayer",
             "ExecuteSlot1Exact","ExecuteContinue"}<=actions
-print("PASS: v053 all-stats native bounded paging, spouse sliders, parent inheritance and young face hooks (STATIC ONLY)")
+print("PASS: native all-stats paging, spouse exact/+/- editors, inheritance and young face hooks (STATIC ONLY)")

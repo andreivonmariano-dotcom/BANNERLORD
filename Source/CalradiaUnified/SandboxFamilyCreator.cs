@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
 using TaleWorlds.ObjectSystem;
@@ -43,8 +44,12 @@ namespace CalradiaUnified
             string guard = SandboxFamilyPolicy.Guard(profile.SpouseEnabled,
                 player.Spouse != null, profile.ChildCount,
                 player.Children != null && player.Children.Count > 0,
-                profile.SiblingCount, player.Father != null ||
-                    player.Mother != null,
+                profile.SiblingCount,
+                player.Father != null || player.Mother != null ||
+                    // Native Sandbox often has no registered parents.
+                    // We preflight suitable native templates and create
+                    // real shared parents before new sibling heroes.
+                    profile.SiblingCount > 0,
                 spouseFemale == player.IsFemale, true);
             if (guard.Length > 0) return guard;
             for (int i = 0; i < profile.ChildCount; i++)
@@ -96,6 +101,14 @@ namespace CalradiaUnified
                     return "sibling_template_missing:" + (i+1);
                 siblingTemplates.Add(source);
             }
+
+            // Siblings must have actual parents, not invented relation
+            // labels. Generate missing shared parent Heroes from genuine
+            // same-culture noble templates before creating any siblings.
+            string lineage=EnsureSiblingParents(profile,player);
+            if(lineage.StartsWith("refused:",StringComparison.Ordinal) ||
+               lineage.StartsWith("failed:",StringComparison.Ordinal))
+                return lineage;
 
             Hero spouseHero = null;
             int madeChildren=0;
@@ -314,19 +327,116 @@ namespace CalradiaUnified
                 for (int i = 0; i < profile.SiblingCount; i++)
                 {
                     var siblingProfile=profile.Siblings[i];
+                    bool birthHouseholdResident=
+                        SandboxNobleStartPolicy.IsSonOrigin(
+                            profile.NobleBirthPosition) &&
+                        siblingProfile.Age>player.Age &&
+                        player.Father!=null &&
+                        player.Father.Clan!=null &&
+                        player.Father.Clan!=Clan.PlayerClan;
+                    bool birthHouseholdHeir=birthHouseholdResident &&
+                        siblingProfile.Gender=="Male";
+                    // An older native noble heir belongs to the father's
+                    // house. He does not automatically enlist in a younger
+                    // son's party or move into the junior clan.
                     Hero sibling=Create(siblingTemplates[i],siblingProfile.Name,
-                        siblingProfile.Age);
+                        siblingProfile.Age,birthHouseholdResident?
+                        player.Father.Clan:null);
                     sibling.Father=player.Father;
                     sibling.Mother=player.Mother;
+                    var siblingCulture=ResolveCulture(player,
+                        siblingProfile.Culture);
+                    if(siblingCulture==null)
+                        throw new InvalidOperationException(
+                            "Sibling culture not found");
+                    sibling.Culture=siblingCulture;
+                    // Merchant, soldier and wandering families do not
+                    // automatically become titled lords. Native spouse
+                    // marriage setup separately retains game requirements.
+                    if(!birthHouseholdHeir &&
+                        profile.Role!="King" &&
+                        profile.Role!="Lord" &&
+                        profile.Role!="Knight" &&
+                        profile.Role!="NobleCadet")
+                        sibling.SetNewOccupation(Occupation.Wanderer);
                     if (sibling.Father != null &&
                         !sibling.Father.Children.Contains(sibling))
                         sibling.Father.Children.Add(sibling);
                     if (sibling.Mother != null &&
                         !sibling.Mother.Children.Contains(sibling))
                         sibling.Mother.Children.Add(sibling);
+                    if(birthHouseholdResident)
+                    {
+                        if(sibling.Clan!=player.Father.Clan)
+                            throw new InvalidOperationException(
+                                "Older noble sibling left birth clan");
+                        var placement=SandboxBirthHouseholdPlacement.Place(
+                            sibling,player.Father);
+                        if(placement.StartsWith("refused:",
+                            StringComparison.Ordinal) ||
+                           placement.StartsWith("failed:",
+                            StringComparison.Ordinal))
+                            throw new InvalidOperationException(
+                                "Older noble sibling has no native home: "+
+                                placement);
+                        DiagnosticJournal.Event(
+                            "cu_family_older_heir_stays_with_father",
+                            "hero="+sibling.StringId+
+                            "|father="+player.Father.StringId+
+                            "|birth_clan="+sibling.Clan.StringId+
+                            "|male_heir="+birthHouseholdHeir+
+                            "|residence="+placement+
+                            "|player_party_member=false");
+                    }
+                    else
+                    {
+                        // The explicitly chosen sibling accompanies the
+                        // player as a real adult, not a random wanderer.
+                        if(MobileParty.MainParty==null)
+                            throw new InvalidOperationException(
+                                "Player party missing for sibling");
+                        AddHeroToPartyAction.Apply(
+                            sibling,MobileParty.MainParty,true);
+                        if(MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            sibling.CharacterObject)<1)
+                            throw new InvalidOperationException(
+                                "Sibling absent from native player party");
+                    }
+                    if(sibling.Father==null || sibling.Mother==null ||
+                        sibling.Father!=player.Father ||
+                        sibling.Mother!=player.Mother ||
+                        !player.Father.Children.Contains(sibling) ||
+                        !player.Mother.Children.Contains(sibling))
+                        throw new InvalidOperationException(
+                            "Sibling missing shared native parent references");
                     madeSiblings++;
                     DiagnosticJournal.Event("cu_family_sibling_created",
-                        "id=" + sibling.StringId);
+                        "id="+sibling.StringId+
+                        "|father="+sibling.Father.StringId+
+                        "|mother="+sibling.Mother.StringId+
+                        "|culture="+sibling.Culture.StringId+
+                        "|party_member="+(!birthHouseholdResident)+
+                        "|birth_household_resident="+birthHouseholdResident+
+                        "|birth_household_heir="+birthHouseholdHeir+
+                        "|clan="+(sibling.Clan==null?
+                            "none":sibling.Clan.StringId));
+                }
+                if(SandboxNobleStartPolicy.IsSonOrigin(
+                    profile.NobleBirthPosition))
+                {
+                    int older=player.Father.Children.Count(h=>h!=null &&
+                        h!=player && h.IsAlive && !h.IsFemale &&
+                        h.Mother==player.Mother && h.Age>player.Age);
+                    int expected=SandboxNobleStartPolicy.RequiredOlderSons(
+                        profile.NobleBirthPosition);
+                    if(!SandboxHouseholdLineagePolicy.ExactFinalRank(
+                        expected,older))
+                        throw new InvalidOperationException(
+                            "House siblings altered the native noble birth order");
+                    DiagnosticJournal.Event("cu_final_son_birth_rank",
+                        "expected_older_sons="+expected+
+                        "|actual_older_sons="+older+
+                        "|house_siblings_created="+madeSiblings);
                 }
             }
             catch (Exception e)
@@ -371,6 +481,97 @@ namespace CalradiaUnified
                 "spouse=" + (spouseHero == null ? "none" : spouseHero.StringId) +
                     "|children=" + madeChildren + "|siblings=" + madeSiblings :
                 "failed:family_reference_mismatch";
+        }
+
+        /// <summary>
+        /// Native Sandbox commonly initializes a player without parents.
+        /// For explicit sibling starts, create missing parents as real
+        /// same-culture clan Heroes and link the player to both. No
+        /// pre-existing Hero, spouse or donor is rewritten.
+        /// </summary>
+        private static string EnsureSiblingParents(
+            SandboxOriginProfile profile,Hero player)
+        {
+            if(profile.SiblingCount==0)return "not_requested";
+            Hero father=player.Father;
+            Hero mother=player.Mother;
+            var eldest=Enumerable.Range(0,profile.SiblingCount)
+                .Select(i=>profile.Siblings[i].Age)
+                .Concat(new[]{(int)player.Age}).Max();
+            if((father!=null && father.Age<eldest+16) ||
+               (mother!=null && mother.Age<eldest+16))
+                return "refused:native_parent_too_young";
+            // Native parentage requires an age gap of at least sixteen.
+            // Allow older founders without generating an impossible age 104 parent.
+            int fatherAge=Math.Max(55,eldest+20);
+            int motherAge=Math.Max(51,eldest+18);
+            if((father==null && fatherAge>100) ||
+               (mother==null && motherAge>100))
+                return "refused:parent_age_over_100";
+            CharacterObject fatherTemplate=father==null ?
+                FindTemplate(player,"",false,"") : null;
+            CharacterObject motherTemplate=mother==null ?
+                FindTemplate(player,"",true,"") : null;
+            if(father==null && fatherTemplate==null)
+                return "refused:father_native_template_missing";
+            if(mother==null && motherTemplate==null)
+                return "refused:mother_native_template_missing";
+            // Reserve the complete planned household before inventing
+            // parent names. A generated mother must not share the name
+            // of her daughter or the founder's spouse.
+            var reservedNames=profile.Siblings.Take(profile.SiblingCount)
+                .Select(x=>x.Name)
+                .Concat(profile.Children.Take(profile.ChildCount)
+                    .Select(x=>x.Name))
+                .Concat(new[]{player.Name.ToString(),profile.SpouseName})
+                .ToList();
+            if(father!=null)reservedNames.Add(father.Name.ToString());
+            if(mother!=null)reservedNames.Add(mother.Name.ToString());
+            try
+            {
+                if(father==null)
+                {
+                    father=Create(fatherTemplate,SandboxCulturalNames.Suggest(
+                        player.Culture.StringId,false,7,
+                        reservedNames),fatherAge);
+                    father.Culture=player.Culture;
+                    reservedNames.Add(father.Name.ToString());
+                }
+                if(mother==null)
+                {
+                    mother=Create(motherTemplate,SandboxCulturalNames.Suggest(
+                        player.Culture.StringId,true,7,reservedNames),
+                        motherAge);
+                    mother.Culture=player.Culture;
+                }
+                if(father==mother)
+                    return "refused:identical_native_parents";
+                if(player.Father==null)player.Father=father;
+                if(player.Mother==null)player.Mother=mother;
+                if(!father.Children.Contains(player))
+                    father.Children.Add(player);
+                if(!mother.Children.Contains(player))
+                    mother.Children.Add(player);
+                if(player.Father!=father || player.Mother!=mother ||
+                   !father.Children.Contains(player) ||
+                   !mother.Children.Contains(player))
+                    return "failed:player_parent_links_incomplete";
+                DiagnosticJournal.Event("cu_sibling_parents_created",
+                    "father="+father.StringId+
+                    "|mother="+mother.StringId+
+                    "|father_age="+father.Age+
+                    "|mother_age="+mother.Age+
+                    "|player_linked=true|same_culture="+
+                    (father.Culture==player.Culture &&
+                     mother.Culture==player.Culture));
+                return "parents_verified";
+            }
+            catch(Exception e)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_sibling_native_parents_failed",e);
+                return "failed:parent_creation_"+e.GetType().Name;
+            }
         }
 
         private static Hero Create(CharacterObject source,string name,int age,

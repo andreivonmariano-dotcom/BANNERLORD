@@ -22,6 +22,47 @@ jobs:
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: 8.0.x
+      - name: Probe exact native Review prefab data for v1.5.7.125802
+        shell: pwsh
+        continue-on-error: true
+        run: python scripts/probe_native_review_gui_v157.py
+      - name: Generate two creator movies from the exact native Review shell
+        shell: pwsh
+        run: |
+          python scripts/generate_v059f_native_review_shell.py
+          python scripts/test_v059f_shared_native_review_shell.py
+      - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
+        shell: pwsh
+        run: python scripts/test_v060_noble_start_and_retinue.py
+      - name: Regress v060b World noble-birth flow and native companion replacement
+        shell: pwsh
+        run: python scripts/test_v060b_world_birth_retinue_replacement.py
+      - name: Regress v061 cultural names and simplified House advanced editing
+        shell: pwsh
+        run: python scripts/test_v061_auto_house_and_cultural_names.py
+      - name: Regress v062 named noble relatives and culturally equipped officers
+        shell: pwsh
+        run: python scripts/test_v062_named_dynasty_and_officer_gear.py
+      - name: Regress v063 actual son lineage and Soldier Knight named patron starts
+        shell: pwsh
+        run: python scripts/test_v063_dynasty_and_service_starts.py
+      - name: Regress v064 Starting Life dossier, genealogy preflight and Living Persons
+        shell: pwsh
+        run: python scripts/test_v064_life_dossier_and_family_integrity.py
+      - name: Regress v065 starting flow, native career, relationship memory and succession
+        shell: pwsh
+        run: python scripts/test_v065_service_relationship_succession_audit.py
+      - name: Regress v066 native landless careers, external enlistment and simulated culture contracts
+        shell: pwsh
+        run: python scripts/test_v066_realistic_life_paths.py
+      - name: Regress v067 vanilla-compatible character agency and native estate petitions
+        shell: pwsh
+        run: python scripts/test_v067_people_and_lineage_menus.py
+      - name: Self-test native Review screenshot chrome comparison
+        shell: pwsh
+        run: |
+          python -m pip install --disable-pip-version-check --quiet Pillow
+          python scripts/compare_native_creator_screens.py --self-test
       - name: Validate source and manifest
         shell: pwsh
         run: python verify_source.py
@@ -213,6 +254,33 @@ jobs:
               throw 'Diagnostic ZIP missing manifest.json'
             }
           } finally { $zip.Dispose() }
+      - name: Audit automatic local diagnostics and crash-recovery contracts
+        shell: pwsh
+        run: python scripts/test_v057_automatic_session_reports.py
+      - name: Verify v059b native-right-pane creator and age/stats fallback
+        run: python scripts/test_v059b_native_screen_integration.py
+      - name: Audit v059c native 1650x927 UI geometry
+        run: python scripts/test_v059c_layout_1650.py
+      - name: Check v059c native Review Back to House restoration
+        run: python scripts/test_v059c_review_back_to_house.py
+      - name: Verify animated main menu continues under World creator
+        run: python scripts/test_v059d_animated_main_menu.py
+      - name: Verify v059e native Gauntlet isolation and scene-safe creator
+        run: python scripts/test_v059e_native_scene_isolation.py
+      - name: Validate UI art installer PowerShell syntax
+        shell: pwsh
+        run: |
+          $tokens=$null
+          $issues=$null
+          $ast=[System.Management.Automation.Language.Parser]::ParseFile(
+            (Resolve-Path -LiteralPath scripts/Install-CU-UI-SpriteSources.ps1).Path,
+            [ref]$tokens,[ref]$issues)
+          if($issues.Count -gt 0) {
+            $issues | ForEach-Object { Write-Error $_.Message }
+            throw 'UI atlas installer PowerShell parser failed.'
+          }
+          Write-Output 'PASS: sprite import installer parses cleanly (no Modding Kit runtime in CI)'
+
       - name: Restore .NET tests
         shell: pwsh
         run: |
@@ -359,6 +427,7 @@ jobs:
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
+            BuildResults/policy-tests.log
           if-no-files-found: ignore
       - name: Upload build diagnostics
         if: always()
