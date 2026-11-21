@@ -50,6 +50,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightStandingPolicy.cs" Link="SandboxKnightStandingPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSocialBondState.cs" Link="SandboxSocialBondState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxNativeMilitaryWitnessState.cs" Link="SandboxNativeMilitaryWitnessState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxBattleHistoryState.cs" Link="SandboxBattleHistoryState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenaryStartPolicy.cs" Link="SandboxMercenaryStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenarySolvencyPolicy.cs" Link="SandboxMercenarySolvencyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyPolicy.cs" Link="SandboxRoleEconomyPolicy.cs" />
