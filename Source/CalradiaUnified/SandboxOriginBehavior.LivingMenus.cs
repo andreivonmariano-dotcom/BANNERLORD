@@ -4,6 +4,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Library;
 
 namespace CalradiaUnified
 {
@@ -14,6 +15,55 @@ namespace CalradiaUnified
     /// </summary>
     public sealed partial class SandboxOriginBehavior
     {
+        private static void ShowNativeDetail(string heading,string detail)
+        {
+            try
+            {
+                InformationManager.ShowInquiry(new InquiryData(
+                    heading,detail,true,false,"Continue",null,
+                    ()=>{},null),true);
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_native_people_inquiry_failed",error);
+                Notify(detail);
+            }
+        }
+        private void ConfirmCharacterSupport()
+        {
+            var actor=RequestedCharacter();
+            if(actor==null)return;
+            int fee=SandboxAgencyDecisionPolicy.Amount(
+                agencyDecisions.PendingKind);
+            if(fee<0)return;
+            InformationManager.ShowInquiry(new InquiryData(
+                "Support "+actor.Name.ToString(),
+                fee==0?
+                    "Acknowledge this person's work? The response "+
+                    "affects their real native relationship with you.":
+                    "Give "+fee+" of your actual denars to "+
+                    actor.Name.ToString()+
+                    "? This gift is processed by Bannerlord's "+
+                    "native gold-transfer action.",
+                true,true,"Confirm","Cancel",
+                ()=>AnswerCharacterRequest(true),()=>{}),true);
+        }
+        private void ConfirmEstateInNativeDialog()
+        {
+            if(!CanConfirmFamilyGrant())return;
+            var estate=Settlement.CurrentSettlement;
+            InformationManager.ShowInquiry(new InquiryData(
+                "Confirm family estate grant",
+                "Transfer "+estate.Name.ToString()+
+                " from the recorded birth clan to your native clan? "+
+                "This change is permanent in the campaign and uses "+
+                "Bannerlord's own settlement-ownership action. "+
+                "The live family, clan leader, kingdom and remaining "+
+                "family estates will be checked again.",
+                true,true,"Confirm grant","Cancel",
+                ()=>ConfirmFamilyGrant(),()=>{}),true);
+        }
         private Hero FindLivingPerson(string id)
         {
             if(String.IsNullOrEmpty(id))return null;
@@ -102,7 +152,8 @@ namespace CalradiaUnified
             }
             int amount=SandboxAgencyDecisionPolicy.Amount(
                 agencyDecisions.PendingKind);
-            Notify(actor.Name.ToString()+" asks for "+
+            ShowNativeDetail(actor.Name.ToString()+" | Personal Matter",
+                actor.Name.ToString()+" asks for 
                 (agencyDecisions.PendingKind=="Recognition"?
                     "public acknowledgment of their work":
                     amount+" denars of household support")+
@@ -232,7 +283,8 @@ namespace CalradiaUnified
             }
             string leader=clan.Leader==null?"none":
                 clan.Leader.Name.ToString();
-            Notify("Your native birth clan: "+clan.Name.ToString()+
+            ShowNativeDetail("Family Council | "+clan.Name.ToString(),
+                "Your native birth clan: "+clan.Name.ToString()+
                 ". Family custom: "+successionInterest.CustomaryModel+
                 ". Older sons at origin: "+
                 successionInterest.EarlierSonsAtStart+
@@ -476,7 +528,8 @@ namespace CalradiaUnified
             var person=livingPersons.People[selectedLivingPerson];
             var agenda=characterAgendas.Get(person.Id);
             var hero=FindLivingPerson(person.Id);
-            Notify(person.Name+" | "+person.Occupation+
+            ShowNativeDetail("Household Register | "+person.Name,
+                person.Name+" | "+person.Occupation+
                 ", "+person.Station+". Native culture: "+person.Culture+
                 ", recorded clan: "+person.HouseholdId+
                 ". Personal ambition: "+(agenda==null?
@@ -568,7 +621,7 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_accept","Provide the requested support",
                 args=>HasRequest(),
-                args=>AnswerCharacterRequest(true),false);
+                args=>ConfirmCharacterSupport(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_decline","Decline the request",
                 args=>HasRequest(),
@@ -613,7 +666,7 @@ namespace CalradiaUnified
                 "cu_family_grant",
                 "Confirm negotiated native family estate grant",
                 args=>CanConfirmFamilyGrant(),
-                args=>ConfirmFamilyGrant(),false);
+                args=>ConfirmEstateInNativeDialog(),false);
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_back","Return to People & Lineage",
                 args=>true,
