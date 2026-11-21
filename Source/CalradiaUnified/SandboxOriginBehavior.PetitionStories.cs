@@ -24,6 +24,15 @@ namespace CalradiaUnified
             int relationDelta,bool relationVerified)
         {
             if(person==null || !relationVerified)return;
+            int decisionDay=(int)Math.Floor(CampaignTime.Now.ToDays);
+            bool socialRecorded=socialBonds.RecordPetition(
+                person.StringId,accepted,relationDelta,decisionDay);
+            DiagnosticJournal.Event("cu_social_native_decision",
+                "hero="+person.StringId+
+                "|verified_relation_delta="+relationDelta+
+                "|accepted="+accepted+
+                "|social_receipt="+socialRecorded+
+                "|native_relation_not_overridden=true");
             RememberPetitionStory(person,kind);
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
             if(petitionStories.Resolve(person.StringId,accepted,
@@ -76,6 +85,8 @@ namespace CalradiaUnified
                 }
             }
             int after=Hero.MainHero.GetRelation(person);
+            socialBonds.RecordFollowUp(person.StringId,
+                after-before,day);
             DiagnosticJournal.Event("cu_petition_story_personal_followup",
                 "person="+person.StringId+
                 "|story="+story.Kind+
