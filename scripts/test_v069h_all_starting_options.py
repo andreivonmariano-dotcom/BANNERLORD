@@ -24,7 +24,7 @@ house = read("SandboxHouseholdLineagePolicy.cs")
 patron = read("SandboxServicePatron.cs")
 family = read("SandboxFamilyCreator.cs")
 
-roles = ("Wanderer", "Outlaw", "Mercenary", "Recruit", "Soldier",
+roles = ("Wanderer", "Outlaw", "Mercenary", "Soldier", "Recruit",
          "HouseholdKnight", "Knight", "NobleCadet", "Lord", "King",
          "Admiral", "Trader", "Beggar")
 scenarios = ("none", "unitedempire", "LastStand", "twofactionwar",
