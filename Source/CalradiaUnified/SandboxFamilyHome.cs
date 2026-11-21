@@ -17,6 +17,13 @@ namespace CalradiaUnified
         internal static string TryPlace(SandboxOriginProfile profile,Hero player,
             string startingFiefOutcome)
         {
+            if(profile!=null && profile.FamilyHomeMode=="None")
+            {
+                DiagnosticJournal.Event("cu_family_home_result",
+                    "result=NOT_REQUESTED|mode=None"+
+                    "|no_fixed_residence_promised=true");
+                return "not_requested:no_fixed_home";
+            }
             if (profile == null || player == null || player.Spouse == null ||
                 Clan.PlayerClan == null)
                 return "skipped:no_registered_player_family";
