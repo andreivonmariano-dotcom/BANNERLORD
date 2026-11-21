@@ -53,3 +53,12 @@ The public interface has **no exposed enlist-at-named-lord / grant-rank command*
 ## Versioned test boundary
 
 Unit tests cover exact rank mapping, genuine lord and host-party checks, independent status, requested-vs-observed rank, promotion receipts and profile serialization/reset. CI only proves source and pinned reference compilation. Native Gate C/D/E tests are still required. No default installer pin change and no merge before the live tests pass.
+
+
+## Automated v0.70g build evidence
+
+[Windows CI run 44878232541](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44878232541) completed **SUCCESS** on source SHA `8afb0dba40d0633dbc808353bb9eed7042143030`. Pinned Bannerlord **v1.5.7.125802** reference compiler: **0 warnings, 0 errors**. Independent C# policy tests: **991 passed**. Modeled 96-seed campaign checks: **1,441,129 passed**. Modeled native-activity audit assertions: **1,159,206 passed**. The source gate prints **GAMEPLAY ENLISTMENT UNTESTED**, and the test suite did not simulate an installed Serve as Soldier native interface.
+
+[Compiled but untested v0.70g artifact ID 14696887882](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44878232541/artifacts/14696887882). DLL size **643,072 bytes**, SHA-256 `709641d8ecdabda8aa84b12bcfc34aa8583e95c7a2b857789f9934db5899941e`. Inner module ZIP size **284,319 bytes**, SHA-256 `d8985deffb4a025c15649a21f6507dd0f5f250e74815261086850b5e54b01b6d`.
+
+**Important release boundary:** code and pinned compiler PASS do not prove in-game enlistment, Sergeant/Captain selection, lord host-party control, promotions or the SaS menu's timing. The existing installed SaS mod and real-game save/reload are required for acceptance. This is a compiled development candidate only. The module's historical manifest still uses v0.38.0. Do not change the default verified installer pin or merge draft PR #93.
