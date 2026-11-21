@@ -122,6 +122,14 @@ namespace CalradiaUnified
         // Native keeps original companions. RoleBased replaces them with
         // same-culture officers. ReplaceNative remains a legacy saved alias.
         public string RetinueMode = "Native";
+        // New guided Wanderer only. Legacy profiles keep their House flow.
+        public bool WandererNoHouseStart;
+        public bool WandererCompanionEnabled;
+        public string WandererCompanionName = "Taran";
+        public int WandererCompanionAge = 25;
+        public string WandererCompanionGender = "Male";
+        public string WandererCompanionSpecialty = "Guard";
+        public int WandererCompanionSkill = 100;
 
         // Explicit overrides only; absent entry means retain the game's value.
         // Native is the safe default. The dedicated post-origins editor
@@ -202,6 +210,13 @@ namespace CalradiaUnified
             NobleElderHeroId="";
             ServicePatronHeroId="";
             RetinueMode="Native";
+            WandererNoHouseStart=false;
+            WandererCompanionEnabled=false;
+            WandererCompanionName="Taran";
+            WandererCompanionAge=25;
+            WandererCompanionGender="Male";
+            WandererCompanionSpecialty="Guard";
+            WandererCompanionSkill=100;
             FamilyScenario="Natural";
             foreach(var child in Children)
                 child.Upbringing="FamilyTradition";
@@ -448,6 +463,28 @@ namespace CalradiaUnified
                 case "RetinueMode":
                     if(!SandboxNobleStartPolicy.IsRetinueMode(value))return false;
                     RetinueMode=value;return true;
+                case "WandererNoHouseStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    WandererNoHouseStart=b;return true;
+                case "WandererCompanionEnabled":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    WandererCompanionEnabled=b;return true;
+                case "WandererCompanionName":
+                    if(!PersonName(value))return false;
+                    WandererCompanionName=value;return true;
+                case "WandererCompanionAge":
+                    if(!Number(value,18,70,out n))return false;
+                    WandererCompanionAge=n;return true;
+                case "WandererCompanionGender":
+                    if(value!="Male" && value!="Female")return false;
+                    WandererCompanionGender=value;return true;
+                case "WandererCompanionSpecialty":
+                    if(!new[]{"Guard","Scout","Healer","Steward","Trader"}
+                        .Contains(value,StringComparer.Ordinal))return false;
+                    WandererCompanionSpecialty=value;return true;
+                case "WandererCompanionSkill":
+                    if(!Number(value,0,220,out n))return false;
+                    WandererCompanionSkill=n;return true;
             }
             if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
             {
@@ -547,6 +584,25 @@ namespace CalradiaUnified
                 !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
             {
                 error="Choose a supported early household and ambition.";
+                return false;
+            }
+            if(WandererNoHouseStart &&
+                (Role!="Wanderer" || RealFamilyEnabled ||
+                 SpouseEnabled || ChildCount!=0 || SiblingCount!=0 ||
+                 NobleBirthPosition!="Independent" ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native"))
+            {
+                error="Wanderer-only start cannot request a House, "+
+                    "noble lineage, fief or native court.";
+                return false;
+            }
+            if(WandererCompanionEnabled &&
+                (!WandererNoHouseStart || Role!="Wanderer" ||
+                 !PersonName(WandererCompanionName)))
+            {
+                error="Optional Wanderer companion needs the new "+
+                    "Wanderer start and a valid name.";
                 return false;
             }
             int playerAge = PlayerAge >= 18 ? PlayerAge : actualPlayerAge;
@@ -726,7 +782,16 @@ namespace CalradiaUnified
                 "NobleBirthPosition=" + NobleBirthPosition,
                 "NobleElderHeroId=" + NobleElderHeroId,
                 "ServicePatronHeroId=" + ServicePatronHeroId,
-                "RetinueMode=" + RetinueMode
+                "RetinueMode=" + RetinueMode,
+                "WandererNoHouseStart=" +
+                    WandererNoHouseStart.ToString().ToLowerInvariant(),
+                "WandererCompanionEnabled=" +
+                    WandererCompanionEnabled.ToString().ToLowerInvariant(),
+                "WandererCompanionName=" + WandererCompanionName,
+                "WandererCompanionAge=" + WandererCompanionAge,
+                "WandererCompanionGender=" + WandererCompanionGender,
+                "WandererCompanionSpecialty=" + WandererCompanionSpecialty,
+                "WandererCompanionSkill=" + WandererCompanionSkill
             };
             foreach (var pair in Overrides)
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
