@@ -34,6 +34,9 @@ jobs:
       - name: Audit current creator Back state and NPC save provenance
         shell: pwsh
         run: python scripts/test_v069f_creator_back_state_and_agency_save.py
+      - name: Regress live-reported missing noble elder and House family recovery
+        shell: pwsh
+        run: python scripts/test_v069g_noble_house_preflight.py
       - name: Simulate active creator controls and hit boxes at three viewports
         shell: pwsh
         run: python scripts/simulate_v069e_creator_hitboxes.py
