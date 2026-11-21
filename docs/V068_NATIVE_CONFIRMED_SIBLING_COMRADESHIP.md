@@ -30,4 +30,19 @@ Previously `SandboxCharacterAgendaState.ObserveComradeship` increased `Comradesh
 4. Save, quit and reload after confirmed awards. Inspect diagnostics and verify no duplicate point or reset of the lifetime counter.
 5. Test a player under 18 or a sibling under 18 to confirm that service awards are refused. Keep draft status until the game observations pass.
 
-**Highest gate at source authoring:** implementation and test assertions written. Compilation and live-game status are not assumed.
+## Verified Windows CI
+
+**Run:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44856889654
+
+**Exact compiled source commit:** `caa897e645001afff2bdb3db81d5265b2f5b3574`. The subsequent document-only commit does not alter runtime source.
+
+- 867 executed C# gameplay policy checks passed, including the new failed-action and duplicate-confirmation tests.
+- Medieval life: 96 seeds × 3,650 modeled days, 1,062,792 checks, no reported invariant failures.
+- Living affairs: 120 seeds × 730 modeled days, 180,425 checks, no reported invariant failures.
+- Existing campaign policy simulation: 40 seeds, 14,600 modeled days, 303,098 checks.
+- Bannerlord 1.5.7.125802 module compilation: **zero warnings, zero errors**. Runtime ZIP structure, CRC, DLL hash, and installer test passed.
+- Compiled DLL: 563,200 bytes, SHA-256 `a7a42fe8490dbb5b26ff53e6d2e57cb63b2eb5d97732b6cc9b3a3b6d6c11a200`.
+- Inner runtime module ZIP: 260,171 bytes, SHA-256 `88a711e035b50e3390f8ce8ed6badf0ab2f9e7999c92c09d73e1275617535562`.
+- [Compiled, **game-untested** GitHub artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44856889654/artifacts/14688157069). The legacy `v0.38.0` package label is historical. Identify this candidate by CI run and DLL hash.
+
+**Highest completed gate: B (Compiled).** Live Bannerlord campaign, native relations, save/reload and game-regression gates C–G remain unverified.
