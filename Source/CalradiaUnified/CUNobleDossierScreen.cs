@@ -25,6 +25,7 @@ namespace CalradiaUnified
         private readonly Action<Hero> inspectPerson;
         private readonly Action openFamily;
         private readonly Action hearPetition;
+        private readonly Action reviewCalling;
         private GauntletLayer layer;
         private CUNobleDossierVM viewModel;
 
@@ -32,7 +33,8 @@ namespace CalradiaUnified
             string clanTitle,string familyDetails,
             string officerDetails,string dutyDetails,string note,
             Action<Hero> inspectPersonAction,
-            Action openFamilyAction,Action petitionAction)
+            Action openFamilyAction,Action petitionAction,
+            Action reviewCallingAction)
         {
             role=originRole??"";
             heading=title??"";
@@ -44,13 +46,15 @@ namespace CalradiaUnified
             inspectPerson=inspectPersonAction;
             openFamily=openFamilyAction;
             hearPetition=petitionAction;
+            reviewCalling=reviewCallingAction;
         }
         protected override void OnInitialize()
         {
             base.OnInitialize();
             viewModel=new CUNobleDossierVM(
                 role,heading,clan,family,officers,duty,footnote,
-                ()=>CloseSafely(),inspectPerson,openFamily,hearPetition);
+                ()=>CloseSafely(),inspectPerson,openFamily,hearPetition,
+                reviewCalling);
             layer=new GauntletLayer("CUNobleDossier",130,false)
             {
                 IsFocusLayer=true
@@ -106,6 +110,7 @@ namespace CalradiaUnified
         private readonly Action close;
         private readonly Action openFamily;
         private readonly Action hearPetition;
+        private readonly Action reviewCalling;
 
         [DataSourceProperty]
         public MBBindingList<CUFamilyPortraitVM> FamilyMembers
@@ -117,7 +122,8 @@ namespace CalradiaUnified
         public CUNobleDossierVM(string role,string title,string clan,
             string family,string officers,string duty,string note,
             Action closeAction,Action<Hero> inspectAction,
-            Action openFamilyAction,Action petitionAction)
+            Action openFamilyAction,Action petitionAction,
+            Action reviewCallingAction)
         {
             Title=title;
             Clan=clan;
@@ -128,6 +134,7 @@ namespace CalradiaUnified
             close=closeAction;
             openFamily=openFamilyAction;
             hearPetition=petitionAction;
+            reviewCalling=reviewCallingAction;
             FamilyMembers=new MBBindingList<CUFamilyPortraitVM>();
             OfficerMembers=new MBBindingList<CUFamilyPortraitVM>();
             var player=Hero.MainHero;
@@ -163,6 +170,13 @@ namespace CalradiaUnified
                         officer,"OFFICER",inspectAction));
             }
 
+            RoleActionLabel=role=="Wanderer"?"My road":
+                role=="Outlaw"?"My band":
+                role=="Mercenary"?"My contract":
+                role=="Soldier"?"My enlistment":
+                role=="Knight"?"My sworn lord":
+                role=="Lord"?"My estates":
+                role=="King"?"My council":"My duties";
             switch(role)
             {
                 case "Wanderer":
@@ -220,6 +234,7 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Officers {get;private set;}
         [DataSourceProperty] public string Duty {get;private set;}
         [DataSourceProperty] public string Footer {get;private set;}
+        [DataSourceProperty] public string RoleActionLabel {get;private set;}
 
         public void ExecuteClose()
         {
@@ -232,6 +247,10 @@ namespace CalradiaUnified
         public void ExecuteHearPetition()
         {
             if(hearPetition!=null)hearPetition();
+        }
+        public void ExecuteRoleAction()
+        {
+            if(reviewCalling!=null)reviewCalling();
         }
     }
 }
