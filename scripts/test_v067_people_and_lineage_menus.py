@@ -56,7 +56,7 @@ assert 'ScreenManager.PushScreen' not in menu
 assert 'Gauntlet' not in menu
 assert '"CU: Review my service, relatives and recorded history"' not in behavior
 assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in menu
-assert 'SandboxAgencyDecisionPolicy.Choose(' in policy
+assert 'public static string Choose(' in policy
 assert 'SamePlace(player,hero)' in menu
 assert 'other.StayingInSettlement==settlement' in menu
 assert "other.HomeSettlement==settlement" not in menu
