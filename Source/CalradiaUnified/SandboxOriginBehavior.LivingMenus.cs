@@ -702,6 +702,32 @@ namespace CalradiaUnified
                      roleEconomy.Started),
                 args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
+                "cu_household_duty_ledger",
+                "My household officers and their duties",
+                args=>Hero.MainHero!=null &&
+                    Clan.PlayerClan!=null &&
+                    Clan.PlayerClan.Companions!=null &&
+                    Clan.PlayerClan.Companions.Count>0,
+                args=>ShowHouseholdDutyLedger(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_native_audiences",
+                "Arrange a family audience",
+                args=>Hero.MainHero!=null &&
+                    (Hero.MainHero.Spouse!=null ||
+                     (Hero.MainHero.Children!=null &&
+                      Hero.MainHero.Children.Any(x=>x!=null &&
+                          x.IsAlive && x.Age>=18f))),
+                args=>ShowNativeDetail(
+                    "Household | Family audiences",
+                    "Meet your living spouse or grown child in "+
+                    "the game's actual conversation. "+
+                    "A witnessed family audience can improve "+
+                    "your real relationship once per thirty "+
+                    "days. Gifts of 100 native denars are "+
+                    "separate voluntary decisions. Children "+
+                    "under eighteen are not adult courtiers."),
+                false);
+            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "People of my household",
                 args=>livingPersons.People.Count>0,
