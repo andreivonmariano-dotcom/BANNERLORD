@@ -384,10 +384,10 @@ jobs:
         run: |
           $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
           foreach ($required in @(
-            'Development version: v0.69f',
-            'Windows CI run: 44864139228',
-            'eec666c252f468cd92475e8abc86731d16da3a4f',
-            '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684',
+            'Development version: v0.69g',
+            'Windows CI run: 44866582823',
+            '63a82b14bde2ccc07eea9a15a9745aa6ae3693fb',
+            '2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0',
             'Internal Bannerlord manifest version: v0.38.0',
             'game-tested build')) {
             if (-not $listing.Contains($required)) {
@@ -427,7 +427,7 @@ jobs:
               throw 'Wrong latest artifact changed an installed DLL or backup.'
             }
           }
-          Write-Output 'PASS: Latest v0.69f candidate visible, pinned identity and no-modification guard'
+          Write-Output 'PASS: Latest v0.69g candidate visible, pinned identity and no-modification guard'
       - name: Test pinned CI SHA-256 before install and latest-session playthrough report
         shell: pwsh
         run: |
