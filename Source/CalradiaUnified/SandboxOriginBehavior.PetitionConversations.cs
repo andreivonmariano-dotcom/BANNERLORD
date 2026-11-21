@@ -144,7 +144,7 @@ namespace CalradiaUnified
                 null,null,110);
             starter.AddPlayerLine(
                 "cu_petition_no_coin","cu_petition_answers",
-                "cu_petition_answers",
+                "hero_main_options",
                 "I have not the silver to offer you.",
                 ()=>CannotAffordPetitionInConversation(),
                 null,80);
