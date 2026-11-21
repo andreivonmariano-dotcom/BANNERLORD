@@ -15,6 +15,8 @@ Requested `Recruit` maps to native `private` (rank 1), `Sergeant` to native `ser
 - Official developer contract: https://www.nexusmods.com/mountandblade2bannerlord/articles/1764
 - Supported v1.5.7 SaS mod page: https://www.nexusmods.com/mountandblade2bannerlord/mods/3242
 
+The integer `Rank` field's 0-based versus 1-based indexing is not established by the public v1 documentation. The stable `RankId` string is the authoritative rank identity. Do not reject a true enlistment on a guessed numeric index.
+
 The SaS API v1 is **read-only** for starting or changing service. It exposes `IsPlayerEnlisted`, `CurrentLord`, `HostParty`, `GetSnapshot()`, `RankId`, `Rank`, `DailyWage`, `DaysServed`, `DutyId`, `TermDaysLeft`, `IsPlayerInsideHostParty`. Its own **start-enlisted screen** at the end of character creation lets the player select a kingdom and a troop grade, leading to real service under a native lord. SaS confirms rank, wage, lord, host and term, and controls the actual party, battles, training, equipment, pay, promotions and discharge. CU does **not** infer these from role labels or from a political mercenary contract.
 
 The public interface has **no exposed enlist-at-named-lord / grant-rank command**. CU may ask for an optional exact native lord Hero ID, but the SaS start-enlisted or lord dialogue is the actual authoritative action. CU verifies the actual resulting lord. An empty preferred lord ID accepts an eligible real service commander in the selected kingdom. A nonempty exact ID requires that **same** native Hero, not merely another lord from the same kingdom.
