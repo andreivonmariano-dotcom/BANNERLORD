@@ -427,6 +427,73 @@ internal static class Program
                 .GuaranteedCoveragePercent(150,130)==86 &&
             SandboxMercenarySolvencyPolicy
                 .GuaranteedCoveragePercent(0,188)==-1);
+        Check("loss-making offers need a separate explicit confirmation",
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,false,false)=="declined" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,true,false)==
+                    "explicit_loss_confirmation_required" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,true,true)==
+                    "player_confirmed_loss_making_offer" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1049,3150,25,true,true)==
+                    "refused_unfunded_security" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3149,25,true,true)==
+                    "refused_unfunded_security");
+        Check("profitable contracts may still miss preferred margin",
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,170,1050,3150,25,true,false)==
+                    "accepted_below_preferred_margin" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,188,1050,3150,25,true,false)==
+                    "accepted_financially_eligible_offer" &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,130,30)==600 &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,188,30)==0 &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,130,-1)==-1);
+        Check("headcount and native wage ceilings each trigger renegotiation",
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,10,150)=="within_agreed_coverage" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,11,150)=="renegotiate_headcount" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,10,151)=="renegotiate_wages" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,11,151)=="renegotiate_headcount_and_wages" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,-1,151)=="invalid_coverage");
+        Check("renegotiation can never silently bind player or employer",
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                false,false,false,false)=="no_revision_required" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,false,true,true)==
+                    "renegotiation_pending_both_consents" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,false,true)==
+                    "renegotiation_pending_both_consents" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,true,false)=="revision_refused_unfunded" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,true,true)=="revision_ready_for_native_commit");
+        Check("verified exit escrow stays unspendable until rightful exit",
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,false,false,false,false)=="protected_not_spendable" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,false,false)=="eligible_once_on_native_exit" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,false,true,false,false)=="eligible_once_on_native_exit" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,true,false)=="forfeit_unearned_bond" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                false,true,false,false,false)=="no_verified_escrow" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,false,true)=="already_released_no_repeat" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,true,false,false)=="invalid_termination_state");
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
