@@ -15,6 +15,20 @@ import sys
 from collections import Counter
 
 ROLES=("Wanderer","Outlaw","Mercenary","Soldier","Knight","Lord","King")
+# Native UI acceptance is an independent release gate, not an optional
+# consequence of valid policy or compiling a Gauntlet view.
+NATIVE_UI_FIELDS=(
+ "ui_native_screen_visible_after_reload",
+ "ui_no_overlap_or_clipping",
+ "ui_native_back_navigation",
+ "ui_matches_real_game_state",
+)
+ROLE_UI_SCREENSHOTS={
+ "Knight":("knight_oath_ui.png","knight_household_ui.png"),
+ "Lord":("lord_inheritance_ui.png","lord_household_ui.png"),
+ "King":("king_council_ui.png","king_governor_ui.png",
+         "king_household_ui.png"),
+}
 REQUIRED={
  "Wanderer":("cu_starting_life_preflight",
              "cu_wanderer_companion_start_contract"),
@@ -193,6 +207,24 @@ def audit_role(role,rows,evidence_root):
             problems.append("invalid_post_reload_proof")
     if not screenshot_ok(screenshot):
         problems.append("missing_live_native_ui_screenshot")
+    # These are manual post-reload observations, not results inferred
+    # from a compiled UI, a synthetic screen or raw image file existence.
+    for field in NATIVE_UI_FIELDS:
+        if evidence.get(field) is not True:
+            problems.append("native_ui_unverified_"+field)
+    for filename in ROLE_UI_SCREENSHOTS.get(role,()):
+        if not screenshot_ok(evidence_root/filename):
+            problems.append("missing_native_ui_"+filename)
+    # Every Knight, Lord and King player must ACTUALLY open the native
+    # live-Hero household inquiry, proving the menu can be reached.
+    if role in ROLE_UI_SCREENSHOTS:
+        hits=[x for x in group
+              if x.get("context")=="cu_native_household_display_opened"]
+        if not hits or not all((
+            detail(hits[-1]).get("result")=="OPENED",
+            detail(hits[-1]).get("role")==role,
+            detail(hits[-1]).get("native_read_only")=="true")):
+            problems.append("native_household_menu_not_opened")
     if any(x.get("context")=="exception_detected" for x in group):
         problems.append("native_session_exception_needs_review")
     if role=="King":

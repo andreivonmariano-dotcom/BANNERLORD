@@ -88,3 +88,26 @@ The regression suite creates synthetic fixtures to test both acceptance and reje
 **King governor seat:** If the preferred royal seat has an existing governor, select another unbesieged and vacant player-owned fief. Do not evict or replace an incumbent. If none exists, native ministry remains blocked. A court seat is not an official Bannerlord capital rewrite.
 
 **Acceptance status:** This is a repair candidate, not a claim that the user's three failing starts now pass in the actual game. To close the issue, the next exact compiled candidate must show `cu_starting_life_preflight result=PASS` for both Lord and King, successful actual marriage/children/companion events, and the same people after save/quit/reload. The Knight House editor must show its new visible defaults and create a real Squire and the chosen family. The existing gate C through E remains required, and PR #93 stays draft.
+
+
+## v0.70s | Native user-interface and real-state release gate
+
+The previous v0.70n–r playthroughs demonstrated a gap between successful policy compilation and playable UI. An action may create Hero objects yet leave the player unable to inspect them, or a native menu option may disappear without explaining why.
+
+**Game-facing work:** The existing vanilla settlement **People & Lineage** submenu now includes **My starting household and service**, a native Bannerlord inquiry. It reads the current player's actual native spouse, living children, companion roster, clan, sworn Knight patron, Lord inheritance state, or King's Marshal, one Kingsguard Hero, Royal Minister and real governor. It does not use a stale new-game profile, create new Heroes, or rewrite native kingdom relationships. The Lord and King succession menus now show Hero names rather than unhelpful object IDs. King's royal council menu entry remains discoverable in towns/castles after royal commission. Outside the seat, or without the real officers, it shows the verified destination and missing attendance requirements rather than silently vanishing or pretending a meeting occurred. Native return and the canonical Clan/Party/Kingdom/settlement governor screens remain the source of authority.
+
+**Source contract:** `scripts/test_v070s_native_household_integration.py` verifies registration, native inquiry use, real-Hero names, the Kingsguard single-Hero invariant, the council location fallback, and the existing creator ViewModel notifications. This is a *static* regression, not a rendered gameplay test.
+
+**Live UI release contract:** Every one of the seven new starts must now explicitly record **boolean true** for these four `<role>.json` fields *after actual save, quit and reload*:
+`ui_native_screen_visible_after_reload`, `ui_no_overlap_or_clipping`, `ui_native_back_navigation`, and `ui_matches_real_game_state`. These represent manual observations. The audit rejects missing values, strings such as `"True"`, and false status. Each role still needs `<role>.png` showing its normal native UI.
+
+For the three noble paths, add captured **actual in-game** screenshots, not generated mockups:
+- Knight: `knight_oath_ui.png` showing native personal patron/oath and `knight_household_ui.png` showing actual spouse, child and Squire.
+- Lord: `lord_inheritance_ui.png` showing named children and `lord_household_ui.png` showing native spouse, children, Master of Arms and Knight.
+- King: `king_council_ui.png` showing in-person council, `king_governor_ui.png` showing the actual Minister on the native settlement governor screen, and `king_household_ui.png` showing Marshal, one Kingsguard Hero and family. Existing `king_kingsguard_battle.png` remains mandatory.
+
+The gate requires a real `cu_native_household_display_opened` event for Knight, Lord and King. It checks that a playable native menu action occurred in the recorded campaign session. Screenshot dimensions and PNG headers are structural checks only. A human must inspect actual image contents for clipping, readability, scene ownership, native UI state and interactions. These automated tests **cannot** prove Gauntlet rendering, clicking or TaleWorlds save/load by themselves.
+
+**Minimum three display sizes:** 1280×720, 1650×927 and 1920×1080, matching the existing creator visual tests, plus the player's active UI scale. Each viewport must show readable names, Back/Return, correct enabling of action choices, and no overlapping, clipped or duplicate Gauntlet/native panels. A blocked or partial start is not a success, even when a screenshot looks attractive.
+
+The seven-path audit remains **blocked** without real session evidence. PR #93 stays draft and the existing default installer pin stays unchanged.

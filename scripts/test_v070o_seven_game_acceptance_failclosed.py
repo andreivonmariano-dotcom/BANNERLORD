@@ -83,6 +83,10 @@ def fixtures(role):
         events.append(row(role,context,receipt+extras))
     events.append(row(role,"sandbox_start_contract",
                       "result=PASS|role="+role))
+    if role in module.ROLE_UI_SCREENSHOTS:
+        events.append(row(role,"cu_native_household_display_opened",
+                          "result=OPENED|role="+role+
+                          "|native_read_only=true"))
     return events
 
 def proof_for(role):
@@ -90,7 +94,11 @@ def proof_for(role):
         native_reloaded_after_quit=True,same_player_hero_id="player",
         same_clan_id="clan",observed_native_role_after_reload=role,
         verified_family_after_reload=True,
-        verified_service_or_authority_after_reload=True)
+        verified_service_or_authority_after_reload=True,
+        ui_native_screen_visible_after_reload=True,
+        ui_no_overlap_or_clipping=True,
+        ui_native_back_navigation=True,
+        ui_matches_real_game_state=True)
     if role=="King":
         proof.update(
             royal_seat_id_after_reload="royal_fief",
@@ -114,6 +122,9 @@ with tempfile.TemporaryDirectory() as folder:
             json.dumps(proof_for(role)),encoding="utf-8")
         (native/(role.lower()+".png")).write_bytes(native_png())
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
+    for screenshots in module.ROLE_UI_SCREENSHOTS.values():
+        for filename in screenshots:
+            (native/filename).write_bytes(native_png())
     cases=[x for role in module.ROLES for x in fixtures(role)]
     good=module.audit_all(cases,native)
     assert len(good)==7 and all(x["result"]=="PASS" for x in good)
@@ -183,6 +194,22 @@ with tempfile.TemporaryDirectory() as folder:
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
     assert module.audit_role("King",cases+[row("King",
         "exception_detected","context=king_critical")],native)["result"]=="BLOCKED"
-print("PASS v0.70p: exact native receipts, unique sessions, terminal "
-      "status, real governor/one-Hero King identity, battle/reload "
-      "evidence contract and fail-closed corruption checks.")
+    king_screens=native/"king_council_ui.png"
+    king_screens.unlink()
+    assert "missing_native_ui_king_council_ui.png" in (
+        module.audit_role("King",cases,native)["missing"])
+    king_screens.write_bytes(native_png())
+    missing_ui=proof_for("Lord")
+    missing_ui["ui_native_back_navigation"]="True"
+    (native/"lord.json").write_text(json.dumps(missing_ui),encoding="utf-8")
+    assert "native_ui_unverified_ui_native_back_navigation" in (
+        module.audit_role("Lord",cases,native)["missing"])
+    (native/"lord.json").write_text(json.dumps(proof_for("Lord")),encoding="utf-8")
+    missing_entry=[x for x in cases
+        if not (x["context"]=="cu_native_household_display_opened"
+                and x["session_id"]=="session_Knight")]
+    assert "native_household_menu_not_opened" in (
+        module.audit_role("Knight",missing_entry,native)["missing"])
+print("PASS v0.70s: exact native receipts, unique sessions, terminal "
+      "status, governor/one-Hero King identity, readable native UI "
+      "interaction, viewport/Back evidence and fail-closed checks.")
