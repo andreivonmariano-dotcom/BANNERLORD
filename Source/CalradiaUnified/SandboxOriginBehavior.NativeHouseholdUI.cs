@@ -47,6 +47,38 @@ namespace CalradiaUnified
                 hero.Name.ToString();
         }
 
+        // Entry shared by the required UIExtenderEx mixin buttons in the
+        // native Clan, Party and Kingdom views. The actual campaign
+        // behavior owns all role facts and save-backed identities.
+        public static bool OpenFromNativeBUTRScreen()
+        {
+            var campaign=Campaign.Current;
+            var b=campaign==null?null:
+                campaign.GetCampaignBehavior<SandboxOriginBehavior>();
+            if(b==null || Hero.MainHero==null ||
+                Clan.PlayerClan==null)return false;
+            b.ShowStartingHouseholdStatus();
+            return true;
+        }
+        public static string NativeBUTRStatus(string context)
+        {
+            if(Campaign.Current==null || Hero.MainHero==null ||
+                Clan.PlayerClan==null)return "No active household";
+            var clan=Clan.PlayerClan;
+            var hero=Hero.MainHero;
+            if(context=="Party")
+                return "Household: "+(clan.Companions==null?0:
+                    clan.Companions.Count)+" native companions";
+            if(context=="Kingdom")
+                return clan.Kingdom==null?
+                    "Independent house: no native kingdom allegiance":
+                    clan.Kingdom.RulingClan==clan?
+                    "Crown: your clan holds native ruling authority":
+                    "Kingdom: your clan serves "+clan.Kingdom.Name;
+            return "House of "+clan.Name+" | spouse: "+
+                NativePersonName(hero.Spouse)+" | children: "+
+                (hero.Children==null?0:hero.Children.Count);
+        }
         private void ShowStartingHouseholdStatus()
         {
             var player=Hero.MainHero;
