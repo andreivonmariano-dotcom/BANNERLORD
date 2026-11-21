@@ -33,6 +33,9 @@ assert 'knightOath.RecordMuster(' in native
 assert 'CanKnightMuster()' in native
 assert 'KnightOathInPerson(' in native
 assert 'knightOath.Release(true);' in native
+assert 'patron.IsPrisoner' in native
+assert 'patron_captivity_pause' in state
+assert 'patron_returned_muster_reset' in state
 assert '"cu_knight_oath_confirm_break"' in native
 assert 'KnightOrigin","Your knightly origin"' in vm
 assert '30-day muster' in vm
