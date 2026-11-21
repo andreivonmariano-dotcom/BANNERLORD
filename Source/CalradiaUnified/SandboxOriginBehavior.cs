@@ -86,6 +86,8 @@ namespace CalradiaUnified
                 this, RefundWandererCompanionWage);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightOathDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveLordInheritanceDaily);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -372,6 +374,9 @@ namespace CalradiaUnified
             string oath=knightOath.Serialize();
             store.SyncData("CU_v070i_knight_personal_oath",ref oath);
             knightOath=SandboxKnightOathState.Parse(oath);
+            string heirs=lordInheritance.Serialize();
+            store.SyncData("CU_v070k_lord_native_heir_claims",ref heirs);
+            lordInheritance=SandboxLordInheritanceState.Parse(heirs);
             string economy=roleEconomy.Serialize();
             store.SyncData("CU_v069d_role_economy",ref economy);
             roleEconomy=SandboxRoleEconomyState.Parse(economy);
@@ -409,6 +414,7 @@ namespace CalradiaUnified
             if (starter == null || !IsStandaloneSandbox()) return;
             RegisterPeopleAndLineageMenus(starter);
             RegisterKnightOathMenus(starter);
+            RegisterLordInheritanceMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -1994,6 +2000,17 @@ namespace CalradiaUnified
                             profile,hero,patron,livingPersons);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
+                        if(profile.LordGuidedStart)
+                        {
+                            string heirRecorded=BeginGuidedLordInheritance(
+                                profile,hero);
+                            if(heirRecorded!="native_household_heirs_recorded")
+                                DiagnosticJournal.Event(
+                                    "cu_lord_heir_record_refused",
+                                    "result="+heirRecorded+
+                                    "|native_owner_unchanged=true"+
+                                    "|no_false_succession_result=true");
+                        }
                         roleEconomy.Start(
                             profile.KnightGuidedStart?
                                 "HouseholdKnight":profile.SoldierGuidedStart?
