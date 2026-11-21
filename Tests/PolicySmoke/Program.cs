@@ -48,6 +48,112 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
+        Check("guided Lord true native vassal contract only",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,false,1)=="" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "king","vlandia","vlandia",
+                true,true,false,false,true,false,1)==
+                    "not_native_vassal_start" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","battania",
+                true,true,false,false,true,false,1)==
+                    "wrong_native_kingdom");
+        Check("guided Lord is own clan head, not king or mercenary",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                false,true,false,false,true,false,1)==
+                    "player_not_native_clan_head" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,false,false,false,true,false,1)==
+                    "player_not_main_party_leader" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,true,false,true,false,1)==
+                    "king_not_lord" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,true,true,false,1)==
+                    "mercenary_not_vassal");
+        Check("guided Lord requires actual native noble estate",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,false,0)==
+                    "native_vassal_holding_missing" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,false,false,1)==
+                    "not_active_noble_house" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,true,1)==
+                    "not_active_noble_house");
+        Check("guided Lord has two verified native martial officers",
+            SandboxLordStartPolicy.Officers.SequenceEqual(
+                new[]{"MasterOfArms","Knight"}) &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=1|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,true,true)==
+                    "two_native_officers_unverified" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,true)==
+                    "native_retinue_roster_mismatch" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,false,true)==
+                    "native_retinue_identity_or_assignment_mismatch");
+        var guidedLord=new SandboxOriginProfile();
+        guidedLord.Role="Lord";
+        guidedLord.LordGuidedStart=true;
+        guidedLord.StartingKingdomId="vlandia";
+        guidedLord.RetinueMode="RoleBased";
+        Check("guided Lord profile is independently valid and save-backed",
+            guidedLord.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .LordGuidedStart &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .RetinueMode=="RoleBased" &&
+            SandboxRoleConsistencyPolicy.NativeType("Lord")=="vassal");
+        guidedLord.StartingFiefMode="Castle";
+        guidedLord.AllowStartingFiefTransfer=true;
+        Check("guided Lord forbids donor-fief reassignment",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.StartingFiefMode="Native";
+        guidedLord.AllowStartingFiefTransfer=false;
+        guidedLord.Gold=50000;
+        Check("guided Lord forbids arbitrary starter treasury",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.Gold=-1;
+        guidedLord.NobleBirthPosition="YoungerBrotherOfLord";
+        Check("guided Lord refuses borrowed NPC-house founding claim",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.NobleBirthPosition="Independent";
+        guidedLord.SiblingCount=1;
+        guidedLord.Siblings[0].Age=35;
+        guidedLord.Siblings[0].Gender="Male";
+        Check("guided Lord founding older brother refused",
+            !guidedLord.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                guidedLord,30)=="independent_lord_older_brother");
+        guidedLord.Siblings[0].Gender="Female";
+        Check("guided Lord permits older sister and preserves family",
+            guidedLord.IsValid(30,out _));
+        guidedLord.ResetForNewCampaign();
+        Check("guided Lord flags reset but legacy Lord ID retained",
+            !guidedLord.LordGuidedStart &&
+            guidedLord.Role=="Lord" &&
+            SandboxOriginProfile.Roles.Contains("Lord"));
+        Check("legacy Lord still reads without guided restrictions",
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=Lord\nStartingFiefMode=Castle\n"+
+                "AllowStartingFiefTransfer=true\nGold=50000\n")
+                .LordGuidedStart);
         Check("guided sworn Knight refuses native vassal and mercenary",
             SandboxKnightStartPolicy.ValidateRequest(
                 "SwornHouse","vlandia",0)=="" &&
