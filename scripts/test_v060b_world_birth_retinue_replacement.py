@@ -22,7 +22,8 @@ assert '"NobleBirthPosition"' not in house
 assert '"NobleElderHeroId"' not in house
 assert '"SiblingCount"' in house
 assert '"RetinueMode"' in house
-assert 'return preCampaign && profile.Role=="Lord"' in vm
+assert 'SandboxCustomLifeRolePolicy.IsNobleFamilyRole(' in vm
+assert 'profile.Role' in vm
 assert 'candidate.NobleBirthPosition,candidate.Role' in vm
 assert 'Birth: "+DisplayChoice("NobleBirthPosition"' in vm
 assert 'Noble origin: "+DisplayChoice("NobleBirthPosition"' in vm
