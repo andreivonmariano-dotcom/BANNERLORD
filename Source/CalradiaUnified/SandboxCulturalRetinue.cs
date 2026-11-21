@@ -254,10 +254,12 @@ namespace CalradiaUnified
                         "|reason="+ex.GetType().Name;
                 }
             }
-            string[] offices=profile.KingGuidedStart?
-                SandboxKingStartPolicy.CourtOffices:
-                SandboxNobleStartPolicy.RetinueOffices(
-                    profile.Role,HasBrother(player));
+            string[] offices=SandboxNobleStartPolicy.RetinueOffices(
+                profile.Role,HasBrother(player));
+            // Keep the original native court for historical King saves.
+            // Only the new guided King fixes its two royal officers.
+            if(profile.KingGuidedStart)
+                offices=SandboxKingStartPolicy.CourtOffices;
             if(offices.Length==0)
                 return "refused:no_retinue_for_role";
             // RoleBased is an actual replacement, not an additive court.
