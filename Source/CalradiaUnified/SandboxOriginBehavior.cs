@@ -427,6 +427,9 @@ namespace CalradiaUnified
             store.SyncData("CU_v071e_native_knight_orders",ref orders);
             knightServiceOrders=SandboxKnightServiceOrderState.Parse(
                 orders);
+            string bonds=socialBonds.Serialize();
+            store.SyncData("CU_v071g_social_bonds",ref bonds);
+            socialBonds=SandboxSocialBondState.Parse(bonds);
         }
 
         private static void Notify(string text)
