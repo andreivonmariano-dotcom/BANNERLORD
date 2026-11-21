@@ -5,6 +5,7 @@ src=Path(__file__).resolve().parents[1]/"Source"/"CalradiaUnified"
 def text(name):return (src/name).read_text(encoding="utf-8")
 vm=text("CUGuidedCreatorVM.cs")
 native=text("SandboxNativeStartOptions.cs")
+role_matrix=text("SandboxRoleConsistencyPolicy.cs")
 profile=text("SandboxOriginProfile.cs")
 bh=text("SandboxOriginBehavior.cs")
 people=text("SandboxLivingPersons.cs")
@@ -16,8 +17,9 @@ social=text("SandboxSocialObservationState.cs")
 succession=text("SandboxSuccessionInterestState.cs")
 start=text("SandboxStartingLifePolicy.cs")
 assert 'profile.StartingScenario=="twofactionwar"' in vm
-assert 'return "mercenary";' in native
-assert 'case "Knight":' in native and 'case "Lord": return "vassal";' in native
+assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
+assert 'case "Soldier":return "mercenary";' in role_matrix
+assert 'case "Knight":' in role_matrix and 'case "Lord":return "vassal";' in role_matrix
 assert '"Independent mercenary captain, not an enlisted soldier"' in start
 assert '"Knight holding a native vassal fief"' in start
 assert "Occupation.Wanderer" in retinue
