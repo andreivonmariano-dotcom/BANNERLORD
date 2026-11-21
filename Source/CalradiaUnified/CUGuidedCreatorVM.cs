@@ -922,10 +922,12 @@ namespace CalradiaUnified
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
-                    "Social station: "+SandboxStartingLifePolicy.Station(
-                        profile.Role,profile.NobleBirthPosition)+"\n"+
-                    "Obligations: "+SandboxStartingLifePolicy.Obligation(
-                        profile.Role,profile.NobleBirthPosition)+"\n"+
+                    "Social station: "+SandboxStartingLifePolicy.StationLabel(
+                        SandboxStartingLifePolicy.Station(
+                            profile.Role,profile.NobleBirthPosition))+"\n"+
+                    "Obligations: "+SandboxStartingLifePolicy.ObligationLabel(
+                        SandboxStartingLifePolicy.Obligation(
+                            profile.Role,profile.NobleBirthPosition))+"\n"+
                     "Early household: "+SandboxStartingLifePolicy.Household(
                         profile.Role,profile.EarlyHousehold)+"\n"+
                     "Personal ambition: "+SandboxStartingLifePolicy.Ambition(

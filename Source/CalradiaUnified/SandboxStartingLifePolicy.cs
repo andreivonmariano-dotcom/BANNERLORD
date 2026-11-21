@@ -108,15 +108,79 @@ namespace CalradiaUnified
             if(role=="Beggar")return "LivelihoodUnmodeled";
             return "NoFormalService";
         }
+        public static string BirthLabel(string value)
+        {
+            if(value=="Independent")return "No specified noble lineage";
+            if(value=="SecondSonOfLord")return "Second son of a lord";
+            if(value=="ThirdSonOfLord")return "Third son of a lord";
+            if(value=="SecondSonOfKing")return "Second son of a king";
+            if(value=="ThirdSonOfKing")return "Third son of a king";
+            if(value=="YoungerBrotherOfLord")return "Younger brother of a lord";
+            if(value=="YoungerSisterOfLord")return "Younger sister of a lord";
+            if(value=="YoungerBrotherOfKing")return "Younger brother of a king";
+            if(value=="YoungerSisterOfKing")return "Younger sister of a king";
+            return "Unrecognized origin";
+        }
+        public static string StationLabel(string value)
+        {
+            switch(value)
+            {
+                case "RulingClan":return "Ruling monarch";
+                case "LandedVassalCadet":
+                    return "Cadet noble with a separate native vassal holding";
+                case "LandedVassal":return "Landed vassal";
+                case "LandedKnightVassal":return "Knight holding a native vassal fief";
+                case "MercenaryCompany":
+                    return "Independent mercenary captain, not an enlisted soldier";
+                case "NativeFleetCommander":return "Fleet commander";
+                case "IndependentMerchant":return "Independent merchant";
+                case "OutlawBand":return "Outlaw band leader";
+                case "UnprotectedTraveler":return "Person without formal protection";
+                default:return "Free traveler";
+            }
+        }
+        public static string OccupationLabel(string value)
+        {
+            switch(value)
+            {
+                case "Ruler":return "Monarch";
+                case "VassalLord":return "Vassal lord";
+                case "KnightInVassalService":return "Knight in vassal service";
+                case "MercenaryCaptain":return "Mercenary captain";
+                case "FleetCommander":return "Fleet commander";
+                case "Merchant":return "Merchant";
+                case "Outlaw":return "Outlaw";
+                case "Beggar":return "Beggar";
+                default:return "Wanderer";
+            }
+        }
+        public static string ObligationLabel(string value)
+        {
+            switch(value)
+            {
+                case "RuleAndProtectKingdom":return "Rule and protect the kingdom";
+                case "NativeVassalService":
+                    return "Kingdom vassal duties under native Bannerlord";
+                case "NativeMercenaryContract":
+                    return "Kingdom mercenary contract, no NPC-party enlistment";
+                case "NativeFleetService":return "Native fleet command";
+                case "TradeAndHouseholdDebtsUnmodeled":
+                    return "Trading obligations not yet simulated";
+                case "BandLoyaltyUnmodeled":
+                    return "Band loyalty not yet simulated";
+                case "LivelihoodUnmodeled":
+                    return "Personal livelihood not yet simulated";
+                default:return "No formal service";
+            }
+        }
         public static string Dossier(string role,string birth,
             string earlyHousehold,string ambition)
         {
-            return "Birth: "+(birth=="Independent"?
-                "No specified noble lineage":birth)+"\n"+
-                "Social station: "+Station(role,birth)+"\n"+
-                "Occupation: "+Occupation(role)+"\n"+
+            return "Birth: "+BirthLabel(birth)+"\n"+
+                "Social station: "+StationLabel(Station(role,birth))+"\n"+
+                "Occupation: "+OccupationLabel(Occupation(role))+"\n"+
                 "Early household: "+Household(role,earlyHousehold)+"\n"+
-                "Obligations: "+Obligation(role,birth)+"\n"+
+                "Obligations: "+ObligationLabel(Obligation(role,birth))+"\n"+
                 "Personal ambition: "+Ambition(role,birth,ambition);
         }
         public static string FamilyScenario(string role,
@@ -125,8 +189,9 @@ namespace CalradiaUnified
             string home=Household(role,earlyHousehold);
             if(home=="TradingHouse")return "Mercantile";
             if(home=="Garrison")return "Martial";
-            if(home=="Court")return "Honorable";
-            if(home=="Displaced")return "Strained";
+            // Court upbringing does not automatically imply moral
+            // excellence, and displacement does not imply family conflict.
+            // Only relevant vocational household traditions are inferred.
             return "Natural";
         }
     }

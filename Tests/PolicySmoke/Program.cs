@@ -146,7 +146,9 @@ internal static class Program
             SandboxStartingLifePolicy.Occupation("Knight")==
                 "KnightInVassalService" &&
             SandboxStartingLifePolicy.Dossier("Knight","Independent",
-                "Auto","Auto").Contains("Social station:"));
+                "Auto","Auto").Contains("Knight holding") &&
+            SandboxStartingLifePolicy.Dossier("Soldier","Independent",
+                "Auto","Auto").Contains("not an enlisted soldier"));
         var revisedLife=new SandboxOriginProfile();
         Check("Advanced life history choices persist with valid defaults",
             revisedLife.TrySet("EarlyHousehold","Town") &&
@@ -215,7 +217,7 @@ internal static class Program
         Check("automatic House uses Vlandian names and valid child ages",
             autoHouse.AutoHouseNamesPrepared &&
             autoHouse.SpouseBackground=="NobleRandom" &&
-            autoHouse.FamilyScenario=="Honorable" &&
+            autoHouse.FamilyScenario=="Natural" &&
             autoHouse.SpouseName=="Aveline" &&
             autoHouse.Children.All(ch=>ch.Age>=0 &&
                 ch.Age<=autoHouse.SpouseAge-16) &&
