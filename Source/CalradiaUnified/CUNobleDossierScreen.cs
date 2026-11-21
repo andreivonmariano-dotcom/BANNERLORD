@@ -26,6 +26,7 @@ namespace CalradiaUnified
         private readonly Action openFamily;
         private readonly Action hearPetition;
         private readonly Action reviewCalling;
+        private readonly Func<Hero,string> officerLabel;
         private GauntletLayer layer;
         private CUNobleDossierVM viewModel;
 
@@ -34,7 +35,8 @@ namespace CalradiaUnified
             string officerDetails,string dutyDetails,string note,
             Action<Hero> inspectPersonAction,
             Action openFamilyAction,Action petitionAction,
-            Action reviewCallingAction)
+            Action reviewCallingAction,
+            Func<Hero,string> officerLabelAction)
         {
             role=originRole??"";
             heading=title??"";
@@ -47,6 +49,7 @@ namespace CalradiaUnified
             openFamily=openFamilyAction;
             hearPetition=petitionAction;
             reviewCalling=reviewCallingAction;
+            officerLabel=officerLabelAction;
         }
         protected override void OnInitialize()
         {
@@ -54,7 +57,7 @@ namespace CalradiaUnified
             viewModel=new CUNobleDossierVM(
                 role,heading,clan,family,officers,duty,footnote,
                 ()=>CloseSafely(),inspectPerson,openFamily,hearPetition,
-                reviewCalling);
+                reviewCalling,officerLabel);
             layer=new GauntletLayer("CUNobleDossier",130,false)
             {
                 IsFocusLayer=true
@@ -123,7 +126,8 @@ namespace CalradiaUnified
             string family,string officers,string duty,string note,
             Action closeAction,Action<Hero> inspectAction,
             Action openFamilyAction,Action petitionAction,
-            Action reviewCallingAction)
+            Action reviewCallingAction,
+            Func<Hero,string> officerLabelAction)
         {
             Title=title;
             Clan=clan;
@@ -167,7 +171,8 @@ namespace CalradiaUnified
                     .OrderBy(h=>h.StringId,StringComparer.Ordinal)
                     .Take(3))
                     OfficerMembers.Add(new CUFamilyPortraitVM(
-                        officer,"OFFICER",inspectAction));
+                        officer,officerLabelAction==null?"COMPANION":
+                            officerLabelAction(officer),inspectAction));
             }
 
             RoleActionLabel=role=="Wanderer"?"My road":
