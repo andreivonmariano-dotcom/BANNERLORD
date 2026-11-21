@@ -1,6 +1,7 @@
 using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Extensions;
+using TaleWorlds.CampaignSystem.Party;
 
 namespace CalradiaUnified
 {
@@ -57,6 +58,36 @@ namespace CalradiaUnified
                 clan.Settlements==null?0:clan.Settlements.Count);
             if(stationError.Length>0)
                 return "native_station:"+stationError;
+            // The native mercenary START ID alone is insufficient:
+            // verify genuine mercenary-clan service, own commander,
+            // correct employer and no landed lord status.
+            if(p.MercenaryGuidedStart)
+            {
+                string contract=SandboxMercenaryStartPolicy.Validate(
+                    p.Role,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.IsUnderMercenaryService,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                    MobileParty.MainParty.LeaderHero==player,
+                    ruling,fiefs);
+                DiagnosticJournal.Event("cu_mercenary_native_preflight",
+                    "result="+(contract.Length==0?"PASS":"FAIL")+
+                    "|reason="+contract+
+                    "|native_type="+actualType+
+                    "|contract_kingdom="+
+                        (kingdom==null?"none":kingdom.StringId)+
+                    "|mercenary_service="+
+                        clan.IsUnderMercenaryService+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|fiefs="+fiefs+
+                    "|native_salary_not_invented=true");
+                if(contract.Length>0)
+                    return "mercenary:"+contract;
+            }
             if(SandboxCustomLifeRolePolicy.IsLandless(p.Role) &&
                 (Clan.PlayerClan==null ||
                  !SandboxCustomLifeRolePolicy.NativeLandlessContract(
