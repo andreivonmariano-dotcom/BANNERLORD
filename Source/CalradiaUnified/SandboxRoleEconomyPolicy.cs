@@ -16,6 +16,8 @@ namespace CalradiaUnified
                 case "Knight":return "NativeFiefAndClanEconomy";
                 case "Soldier":case "Mercenary":
                     return "NativeMercenaryContract";
+                case "EnlistedSoldier":
+                    return "ExternalEnlistedSoldierWage";
                 case "Admiral":return "NativeFleetAndKingdomEconomy";
                 case "Trader":return "NativeTradeTransactions";
                 case "Outlaw":return "NativeLootAndCommerce";
