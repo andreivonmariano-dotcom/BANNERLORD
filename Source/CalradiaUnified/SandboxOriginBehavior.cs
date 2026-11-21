@@ -455,29 +455,8 @@ namespace CalradiaUnified
                         SandboxFamilyHome.PlaceExistingFamilyAt(
                             Hero.MainHero, Settlement.CurrentSettlement)),
                     false);
-                starter.AddGameMenuOption(from,
-                    "cu_living_status_"+from,
-                    "CU: Review my service, relatives and recorded history",
-                    args=>livingPersons.People.Count>0,
-                    args=>Notify(
-                        "Recorded people: "+livingPersons.People.Count+
-                        "; native relationship bonds: "+livingPersons.Bonds.Count+
-                        "; observed events: "+livingPersons.Events.Count+
-                        "; verified homes and goals: "+characterAgendas.Entries.Count+
-                        ". Personal service: "+serviceCareer.Status+
-                        (serviceCareer.IsConfigured?
-                            " under "+servicePatronName+
-                            ", "+serviceCareer.DaysInService+
-                            " daily observations; pay controlled by "+serviceCareer.PayAuthority+
-                            (serviceCareer.VerifiedExternalEnlistment?
-                                ", verified rank "+serviceCareer.ExternalRank+
-                                ", duty "+serviceCareer.ExternalDuty+
-                                ", daily wage "+serviceCareer.ExternalDailyWage:
-                                ", no verified NPC-party enlistment")+".":"")+
-                        ". Family succession: "+successionInterest.Status+
-                        " under "+successionInterest.CustomaryModel+
-                        " (no estate transfer by CU)."),
-                    false);
+                // v0.67 consolidates older status buttons into one
+                // native People & Lineage entry rather than duplicate menus.
             }
             starter.AddGameMenuOption("cu_origin_main", "cu_origin_preview",
                 "Preview my next-game setup", args => true,

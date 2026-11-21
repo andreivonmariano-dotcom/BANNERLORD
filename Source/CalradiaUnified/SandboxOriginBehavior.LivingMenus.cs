@@ -27,10 +27,9 @@ namespace CalradiaUnified
                 player.PartyBelongedTo==other.PartyBelongedTo)
                 return true;
             var settlement=Settlement.CurrentSettlement;
+            // HomeSettlement is not evidence of physical presence.
             return settlement!=null &&
-                (other.StayingInSettlement==settlement ||
-                 other.HomeSettlement==settlement &&
-                    other.StayingInSettlement==null);
+                other.StayingInSettlement==settlement;
         }
         private Hero RequestedCharacter()
         {
@@ -365,21 +364,60 @@ namespace CalradiaUnified
                     "estate was not recorded as inherited.");
             }
         }
+        private int selectedLivingPerson;
+        private void DescribeSelectedPerson()
+        {
+            if(livingPersons.People.Count==0)
+            {
+                Notify("No campaign household dossier has been recorded.");
+                return;
+            }
+            selectedLivingPerson=(selectedLivingPerson+
+                livingPersons.People.Count)%livingPersons.People.Count;
+            var person=livingPersons.People[selectedLivingPerson];
+            var agenda=characterAgendas.Get(person.Id);
+            var hero=FindLivingPerson(person.Id);
+            Notify(person.Name+" | "+person.Occupation+
+                ", "+person.Station+". Native culture: "+person.Culture+
+                ", recorded clan: "+person.HouseholdId+
+                ". Personal ambition: "+(agenda==null?
+                    person.Ambition:agenda.Goal)+
+                ". Home: "+(agenda==null ||
+                    agenda.HomeId.Length==0?
+                    "unverified":agenda.HomeId)+" ("+
+                    (agenda==null?"unknown":agenda.HomeEvidence)+"). "+
+                (hero==null?"No current live-Hero observation. ":
+                    "Current native relation to you: "+
+                    Hero.MainHero.GetRelation(hero)+". ")+
+                "See the vanilla Clan screen for full native family "+
+                "membership and military status.");
+        }
         private void RegisterPeopleAndLineageMenus(
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
                 "Calradia Unified | People & Lineage. "+
-                "Your clan, relationships and holdings remain native "+
-                "Bannerlord records. Requests and claims appear here "+
-                "only after a starting life is established.",
+                "This uses the vanilla settlement menu. The vanilla Clan "+
+                "and Kingdom screens retain political and family authority.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+            starter.AddGameMenu("cu_people_household",
+                "Household Register | Actual Hero records, observed homes, "+
+                "occupations, personal goals and native relationships.",
+                args=>{});
+            starter.AddGameMenu("cu_people_requests",
+                "Personal Matters | Character-initiated requests. "+
+                "Gold and relationships change only through native actions.",
+                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+            starter.AddGameMenu("cu_people_claim",
+                "Family Council | Cultural claim review, contested "+
+                "petitions and conditional native estate grants.",
+                args=>{});
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "CU: People, households and family claims",
+                    "CU: People & Lineage",
                     args=>livingPersons.People.Count>0 &&
                         Hero.MainHero!=null,
                     args=>{
@@ -388,36 +426,68 @@ namespace CalradiaUnified
                     },false);
             }
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_review",
-                "Review my household and character goals",
+                "cu_people_open_household",
+                "Household register and character ambitions",
                 args=>livingPersons.People.Count>0,
-                args=>{
-                    Notify("Known people: "+livingPersons.People.Count+
-                        ". Verified native bonds: "+
-                        livingPersons.Bonds.Count+
-                        ". Personal goals: "+
-                        characterAgendas.Entries.Count+
-                        ". Observed events: "+
-                        livingPersons.Events.Count+".");
-                    DescribeCharacterRequest();
-                },false);
+                args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_request","Hear a character's request",
+                "cu_people_open_requests",
+                "Personal matters and character requests",
+                args=>characterAgendas.Entries.Count>0,
+                args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_open_claim",
+                "Family council and native estate claims",
+                args=>successionInterest.IsRecorded,
+                args=>GameMenu.SwitchToMenu("cu_people_claim"),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_exit","Return to vanilla settlement menu",
+                args=>true,
+                args=>GameMenu.SwitchToMenu(affairsReturnMenu),false);
+
+            starter.AddGameMenuOption("cu_people_household",
+                "cu_household_view","Review selected household member",
+                args=>livingPersons.People.Count>0,
+                args=>DescribeSelectedPerson(),false);
+            starter.AddGameMenuOption("cu_people_household",
+                "cu_household_next","Next household member",
+                args=>livingPersons.People.Count>1,
+                args=>{
+                    selectedLivingPerson=(selectedLivingPerson+1)%
+                        livingPersons.People.Count;
+                    DescribeSelectedPerson();
+                },false);
+            starter.AddGameMenuOption("cu_people_household",
+                "cu_household_back","Return to People & Lineage",
+                args=>true,
+                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
+
+            starter.AddGameMenuOption("cu_people_requests",
+                "cu_people_request","Hear the pending request",
                 args=>HasRequest(),
                 args=>DescribeCharacterRequest(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_accept","Accept this person's request",
+            starter.AddGameMenuOption("cu_people_requests",
+                "cu_people_accept","Provide the requested support",
                 args=>HasRequest(),
                 args=>AnswerCharacterRequest(true),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_decline","Decline this person's request",
+            starter.AddGameMenuOption("cu_people_requests",
+                "cu_people_decline","Decline the request",
                 args=>HasRequest(),
                 args=>AnswerCharacterRequest(false),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_people_requests",
+                "cu_people_no_requests","Check for local requests",
+                args=>!HasRequest(),
+                args=>DescribeCharacterRequest(),false);
+            starter.AddGameMenuOption("cu_people_requests",
+                "cu_people_requests_back","Return to People & Lineage",
+                args=>true,
+                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
+
+            starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_review","Review native family claim",
                 args=>successionInterest.IsRecorded,
                 args=>DescribeFamilyClaim(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_petition",
                 "Petition clan head for a secondary family holding",
                 args=>successionInterest.IsRecorded &&
@@ -427,15 +497,15 @@ namespace CalradiaUnified
                         "NativeGrantCompleted" &&
                     CandidateClanGrant()!=null,
                 args=>PetitionFamilyCouncil(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_grant",
                 "Confirm negotiated native family estate grant",
                 args=>CanConfirmFamilyGrant(),
                 args=>ConfirmFamilyGrant(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_back","Return to the settlement",
+            starter.AddGameMenuOption("cu_people_claim",
+                "cu_family_claim_back","Return to People & Lineage",
                 args=>true,
-                args=>GameMenu.SwitchToMenu(affairsReturnMenu),false);
+                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
         }
     }
 }
