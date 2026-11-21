@@ -48,14 +48,14 @@ namespace CalradiaUnified
                         chapter==2?"Visit a third distinct town":
                         "Your three roads are recorded";
                 case "Outlaw":
-                    return chapter==0?"Gather five real party troops":
-                        chapter==1?"Keep five troops for three days":
-                        chapter==2?"Keep ten troops for seven days":
+                    return chapter==0?"Gather five native party members":
+                        chapter==1?"Keep five party members for three days":
+                        chapter==2?"Keep ten party members for seven days":
                         "Your band has earned its history";
                 case "Mercenary":
                     return chapter==0?"Take a native mercenary contract":
                         chapter==1?"Serve seven days under contract":
-                        chapter==2?"Keep a contract for 21 more days":
+                        chapter==2?"Remain hired for 21 further days":
                         "Your paid service is recorded";
                 case "Soldier":
                     return chapter==0?"Complete real enlistment":
@@ -69,7 +69,7 @@ namespace CalradiaUnified
                         "Your sworn service is recorded";
                 case "Lord":
                     return chapter==0?"Hold your first native fief":
-                        chapter==1?"Hold the fief for seven days":
+                        chapter==1?"Hold native land across seven days":
                         chapter==2?"Hold two native settlements":
                         "Your house has established its estates";
                 case "King":
