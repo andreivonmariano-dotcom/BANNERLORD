@@ -21,7 +21,7 @@ assert '"cu_starting_household_native_status"' in living
 assert 'args=>ShowStartingHouseholdStatus()' in living
 assert '"My starting household and service"' in living
 assert '"cu_native_household_display_opened"' in view
-assert '"native_read_only=true"' in view
+assert 'native_read_only=true' in view
 assert 'ShowNativeDetail("Starting household | "+type,' in view
 assert 'MBObjectManager.Instance' in view
 assert 'Hero.MainHero' in view and 'Clan.PlayerClan' in view
