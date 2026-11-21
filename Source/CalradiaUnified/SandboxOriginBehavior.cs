@@ -1533,7 +1533,11 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Kingdom != null,
                         Clan.PlayerClan.Kingdom != null &&
                         Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
-                int troops = profile.RoleAffiliationsEnabled && realRank
+                // Outlaw gets genuine Bandit-occupation regulars through
+                // the bounded native roster grant below. Never add
+                // culturally ordinary recruits on top of that band.
+                int troops = profile.OutlawGuidedStart ? 0 :
+                    profile.RoleAffiliationsEnabled && realRank
                     ? Math.Max(profile.Troops,
                         SandboxRolePolicy.BonusRecruits(profile.Role))
                     : profile.Troops;
@@ -1548,6 +1552,32 @@ namespace CalradiaUnified
                 else if (profile.RoleAffiliationsEnabled)
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
+
+                string outlawBand="not_applicable";
+                if(profile.OutlawGuidedStart)
+                {
+                    outlawBand=SandboxOutlawStartingBand.TryGrant(
+                        profile,hero);
+                    bool accepted=outlawBand.StartsWith("bandits=",
+                        StringComparison.Ordinal) &&
+                        outlawBand.EndsWith("|native_verified=true",
+                            StringComparison.Ordinal);
+                    DiagnosticJournal.Event("cu_outlaw_band_start_contract",
+                        "result="+(accepted?"PASS":"FAIL")+
+                        "|receipt="+outlawBand+
+                        "|native_outlaw_start=true"+
+                        "|payroll_not_permanently_free=true");
+                    if(!accepted)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL|reason=outlaw_band_not_verified"+
+                            "|receipt="+outlawBand+
+                            "|no_extra_item_or_renown_grants=true");
+                        Notify("The Outlaw's native bandit band or "+
+                            "opening wage reserve failed: "+outlawBand);
+                        return;
+                    }
+                }
 
                 ApplyExistingItems(profile);
 
@@ -1709,6 +1739,7 @@ namespace CalradiaUnified
                         0 : hero.Children.Count) +
                     "|wanderer_companion="+wandererCompanionResult+
                     "|wanderer_companion_id="+wandererCompanionId+
+                    "|outlaw_band="+outlawBand+
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
                 {
