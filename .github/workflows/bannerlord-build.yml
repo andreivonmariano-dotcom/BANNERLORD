@@ -376,6 +376,55 @@ jobs:
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
           if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
           Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
+      - name: Show latest verified PowerShell installer candidate and fail-closed selection
+        shell: pwsh
+        run: |
+          $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
+          foreach ($required in @(
+            'Development version: v0.69f',
+            'Windows CI run: 44864139228',
+            'eec666c252f468cd92475e8abc86731d16da3a4f',
+            '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684',
+            'Internal Bannerlord manifest version: v0.38.0',
+            'game-tested build')) {
+            if (-not $listing.Contains($required)) {
+              throw "Latest installer listing did not include $required"
+            }
+          }
+          $noArgs = @(./scripts/Install-CU-From-Artifact.ps1) -join "`n"
+          if ($noArgs -ne $listing) {
+            throw "Installer without arguments must display the latest verified candidate."
+          }
+          $fake = Join-Path (Get-Location) "BuildResults/FakeBannerlord"
+          $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
+          $dll = Join-Path $fake "Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll"
+          $beforeHash = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          $beforeBackups = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
+          $conflictBlocked = $false
+          try {
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
+          } catch {
+            $conflictBlocked = $_.Exception.Message -match 'conflicts with the latest pinned CI candidate'
+          }
+          if (-not $conflictBlocked) { throw 'Conflicting latest selection was not rejected.' }
+          if ((Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $beforeHash -or
+              @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
+            throw 'Conflicting latest selection changed an installed DLL or backup.'
+          }
+          if ($beforeHash -ne '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684') {
+            $wrongBuildBlocked = $false
+            try {
+              ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ReplaceExisting
+            } catch {
+              $wrongBuildBlocked = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
+            }
+            if (-not $wrongBuildBlocked) { throw 'Latest verified pin accepted an unrelated compiled DLL.' }
+            if ((Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $beforeHash -or
+                @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
+              throw 'Wrong latest artifact changed an installed DLL or backup.'
+            }
+          }
+          Write-Output 'PASS: Latest v0.69f candidate visible, pinned identity and no-modification guard'
       - name: Test pinned CI SHA-256 before install and latest-session playthrough report
         shell: pwsh
         run: |
