@@ -46,6 +46,9 @@ jobs:
       - name: Regress v063 actual son lineage and Soldier Knight named patron starts
         shell: pwsh
         run: python scripts/test_v063_dynasty_and_service_starts.py
+      - name: Regress v064 Starting Life dossier, genealogy preflight and Living Persons
+        shell: pwsh
+        run: python scripts/test_v064_life_dossier_and_family_integrity.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |

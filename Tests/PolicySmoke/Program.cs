@@ -136,13 +136,86 @@ internal static class Program
             nobleProfile.ServicePatronHeroId=="" &&
             nobleProfile.RetinueMode=="Native" &&
             nobleProfile.SiblingCount==0);
+        Check("medieval Starting Life uses native rank not invented enlistment",
+            SandboxStartingLifePolicy.Station("Soldier","Independent")==
+                "MercenaryCompany" &&
+            SandboxStartingLifePolicy.Station("Lord","SecondSonOfLord")==
+                "LandedVassalCadet" &&
+            SandboxStartingLifePolicy.Obligation("Soldier","Independent")==
+                "NativeMercenaryContract" &&
+            SandboxStartingLifePolicy.Occupation("Knight")==
+                "KnightInVassalService" &&
+            SandboxStartingLifePolicy.Dossier("Knight","Independent",
+                "Auto","Auto").Contains("Social station:"));
+        var revisedLife=new SandboxOriginProfile();
+        Check("Advanced life history choices persist with valid defaults",
+            revisedLife.TrySet("EarlyHousehold","Town") &&
+            revisedLife.TrySet("PersonalAmbition","Security") &&
+            SandboxOriginProfile.Parse(revisedLife.Serialize())
+                .EarlyHousehold=="Town" &&
+            SandboxOriginProfile.Parse(revisedLife.Serialize())
+                .PersonalAmbition=="Security" &&
+            !revisedLife.TrySet("EarlyHousehold","FictionalTitle") &&
+            !revisedLife.TrySet("PersonalAmbition","InfiniteGold"));
+        revisedLife.ResetForNewCampaign();
+        Check("new campaigns discard previous detailed life choices",
+            revisedLife.EarlyHousehold=="Auto" &&
+            revisedLife.PersonalAmbition=="Auto");
+        var birthPlan=new SandboxOriginProfile();
+        birthPlan.Role="Lord";
+        birthPlan.NobleBirthPosition="SecondSonOfLord";
+        birthPlan.SiblingCount=2;
+        birthPlan.Siblings[0].Gender="Male";
+        birthPlan.Siblings[0].Age=24;
+        birthPlan.Siblings[1].Gender="Female";
+        birthPlan.Siblings[1].Age=27;
+        Check("older named House brother occupies the second-son slot",
+            SandboxHouseholdLineagePolicy.PlannedOlderBrothers(
+                birthPlan,20)==1 &&
+            SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                1,0,1)==0 &&
+            birthPlan.IsValid(20,out var lineageGood));
+        birthPlan.Siblings[1].Gender="Male";
+        Check("second-son plan cannot generate two older male siblings",
+            !birthPlan.IsValid(20,out var lineageIssue) &&
+            lineageIssue.Contains("too_many_older_male_siblings") &&
+            SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                1,0,2)==-1);
+        var chronicles=new SandboxLifeHistoryState();
+        Check("living persons records true IDs and relationship bonds",
+            chronicles.Record(new SandboxLifeHistoryState.Person{
+                Id="heroA",Name="Élodie | daughter",Culture="vlandia",
+                Age=22,Station="RecordedOffspring",Occupation="FamilyChild",
+                HouseholdId="clan_a",Origin="PriorHistoryNotEstablished",
+                Ambition="NotYetModeled",Biography="A native Hero."}) &&
+            chronicles.Record(new SandboxLifeHistoryState.Person{
+                Id="heroB",Name="Alric",Age=55}) &&
+            chronicles.Tie("heroA","heroB","Father",
+                "VerifiedNativeParent") &&
+            chronicles.Tie("heroA","heroB","Father",
+                "VerifiedNativeParent") &&
+            chronicles.Remember("StartingLifeRecorded","heroA","heroB",
+                "real source|not an invented past") &&
+            chronicles.People.Count==2 &&
+            chronicles.Bonds.Count==1);
+        var packedChronicle=chronicles.Serialize();
+        var replayedChronicle=SandboxLifeHistoryState.Parse(packedChronicle);
+        Check("save-backed biographies retain unicode and escaped content",
+            replayedChronicle.People.Count==2 &&
+            replayedChronicle.People[0].Name=="Élodie | daughter" &&
+            replayedChronicle.Bonds.Count==1 &&
+            replayedChronicle.Events.Count==1 &&
+            replayedChronicle.Events[0].Detail.Contains("|") &&
+            replayedChronicle.Serialize()==packedChronicle &&
+            SandboxLifeHistoryState.Parse("invalid version")
+                .People.Count==0);
         var autoHouse=new SandboxOriginProfile();
         autoHouse.Role="Lord";
         SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");
         Check("automatic House uses Vlandian names and valid child ages",
             autoHouse.AutoHouseNamesPrepared &&
             autoHouse.SpouseBackground=="NobleRandom" &&
-            autoHouse.FamilyScenario=="Martial" &&
+            autoHouse.FamilyScenario=="Honorable" &&
             autoHouse.SpouseName=="Aveline" &&
             autoHouse.Children.All(ch=>ch.Age>=0 &&
                 ch.Age<=autoHouse.SpouseAge-16) &&
