@@ -327,8 +327,20 @@ namespace CalradiaUnified
                 for (int i = 0; i < profile.SiblingCount; i++)
                 {
                     var siblingProfile=profile.Siblings[i];
+                    bool birthHouseholdHeir=
+                        SandboxNobleStartPolicy.IsSonOrigin(
+                            profile.NobleBirthPosition) &&
+                        siblingProfile.Gender=="Male" &&
+                        siblingProfile.Age>player.Age &&
+                        player.Father!=null &&
+                        player.Father.Clan!=null &&
+                        player.Father.Clan!=Clan.PlayerClan;
+                    // An older native noble heir belongs to the father's
+                    // house. He does not automatically enlist in a younger
+                    // son's party or move into the junior clan.
                     Hero sibling=Create(siblingTemplates[i],siblingProfile.Name,
-                        siblingProfile.Age);
+                        siblingProfile.Age,birthHouseholdHeir?
+                        player.Father.Clan:null);
                     sibling.Father=player.Father;
                     sibling.Mother=player.Mother;
                     var siblingCulture=ResolveCulture(player,
@@ -343,18 +355,32 @@ namespace CalradiaUnified
                     if (sibling.Mother != null &&
                         !sibling.Mother.Children.Contains(sibling))
                         sibling.Mother.Children.Add(sibling);
-                    // A requested adult brother or sister must be
-                    // playable as an actual household party member,
-                    // not a stranded NotSpawned Hero in the clan.
-                    if(MobileParty.MainParty==null)
-                        throw new InvalidOperationException(
-                            "Player party missing for sibling");
-                    AddHeroToPartyAction.Apply(
-                        sibling,MobileParty.MainParty,true);
-                    if(MobileParty.MainParty.MemberRoster.GetTroopCount(
-                        sibling.CharacterObject)<1)
-                        throw new InvalidOperationException(
-                            "Sibling absent from native player party");
+                    if(birthHouseholdHeir)
+                    {
+                        if(sibling.Clan!=player.Father.Clan)
+                            throw new InvalidOperationException(
+                                "Older heir was not retained by birth clan");
+                        DiagnosticJournal.Event(
+                            "cu_family_older_heir_stays_with_father",
+                            "hero="+sibling.StringId+
+                            "|father="+player.Father.StringId+
+                            "|birth_clan="+sibling.Clan.StringId+
+                            "|player_party_member=false");
+                    }
+                    else
+                    {
+                        // The explicitly chosen sibling accompanies the
+                        // player as a real adult, not a random wanderer.
+                        if(MobileParty.MainParty==null)
+                            throw new InvalidOperationException(
+                                "Player party missing for sibling");
+                        AddHeroToPartyAction.Apply(
+                            sibling,MobileParty.MainParty,true);
+                        if(MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            sibling.CharacterObject)<1)
+                            throw new InvalidOperationException(
+                                "Sibling absent from native player party");
+                    }
                     if(sibling.Father==null || sibling.Mother==null ||
                         sibling.Father!=player.Father ||
                         sibling.Mother!=player.Mother ||
@@ -368,7 +394,8 @@ namespace CalradiaUnified
                         "|father="+sibling.Father.StringId+
                         "|mother="+sibling.Mother.StringId+
                         "|culture="+sibling.Culture.StringId+
-                        "|party_member=true"+
+                        "|party_member="+(!birthHouseholdHeir)+
+                        "|birth_household_heir="+birthHouseholdHeir+
                         "|clan="+(sibling.Clan==null?
                             "none":sibling.Clan.StringId));
                 }
