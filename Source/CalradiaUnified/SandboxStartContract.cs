@@ -36,6 +36,24 @@ namespace CalradiaUnified
             return "";
         }
 
+        public static bool RetinueReadyForOtherGrants(
+            string mode,string observedResult)
+        {
+            if(mode=="Native")
+                return observedResult=="native_companions_preserved";
+            if(mode=="FamilyOnly")
+                return observedResult!=null &&
+                    observedResult.StartsWith("officers=0|",
+                        StringComparison.Ordinal);
+            if(mode=="RoleBased" || mode=="ReplaceNative")
+                return observedResult!=null &&
+                    observedResult.StartsWith("officers=",
+                        StringComparison.Ordinal) &&
+                    !observedResult.StartsWith("officers=0|",
+                        StringComparison.Ordinal);
+            return false;
+        }
+
         public static string[] Validate(
             string desiredNativeStartType,
             string actualNativeStartType,
