@@ -52,13 +52,21 @@ namespace CalradiaUnified
             for(int i=0;i<plan.Siblings.Count;i++)
             {
                 var sibling=plan.Siblings[i];
+                int delta=(i+1)*2;
+                sibling.Age=Math.Max(18,Math.Min(80,
+                    founder+(i%2==0?-delta:delta)));
+                // An Independent Lord is the eldest brother of the
+                // newly founded player house. Keep an older relative
+                // as a sister rather than generating a forbidden older
+                // brother, and choose a matching cultural name.
+                if(plan.Role=="Lord" &&
+                    plan.NobleBirthPosition=="Independent" &&
+                    sibling.Gender=="Male" && sibling.Age>founder)
+                    sibling.Gender="Female";
                 bool female=sibling.Gender=="Female";
                 sibling.Name=SandboxCulturalNames.Suggest(
                     culture,female,i+4,used);
                 used.Add(sibling.Name);
-                int delta=(i+1)*2;
-                sibling.Age=Math.Max(18,Math.Min(80,
-                    founder+(i%2==0?-delta:delta)));
                 sibling.Culture="";
             }
             plan.AutoHouseNamesPrepared=true;
