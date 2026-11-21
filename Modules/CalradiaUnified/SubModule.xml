@@ -15,6 +15,12 @@
     <DependedModule Id="Bannerlord.UIExtenderEx" />
     <DependedModule Id="Bannerlord.MBOptionScreen" />
   </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.ButterLib" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.UIExtenderEx" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" />
+  </DependedModuleMetadatas>
   <SubModules>
     <SubModule>
       <Name value="Calradia Unified Core" />
