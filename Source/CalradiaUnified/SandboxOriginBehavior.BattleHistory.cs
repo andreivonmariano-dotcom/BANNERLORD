@@ -30,6 +30,9 @@ namespace CalradiaUnified
                 var service = SandboxSaSBridge.Read();
                 bool enrolledHost = service.Available &&
                     service.Enlisted && service.InsideHostParty &&
+                    service.LordIsNativeLord &&
+                    service.NativeHostPartyLedByLord &&
+                    !String.IsNullOrEmpty(service.LordId) &&
                     service.HostParty != null &&
                     parties.Any(p => p != null &&
                         p.MobileParty == service.HostParty);
@@ -73,10 +76,7 @@ namespace CalradiaUnified
                 // event callback reentry or campaign save/reload.
                 string participants = String.Join(",",
                     parties.Where(p => p != null)
-                    .Select(p => p.MobileParty != null &&
-                        p.MobileParty.LeaderHero != null ?
-                        p.MobileParty.LeaderHero.StringId :
-                        p.Name == null ? "unknown" : p.Name.ToString())
+                    .Select(p => p.Id ?? "unknown")
                     .OrderBy(s => s, StringComparer.Ordinal));
                 string canonical = battle.BattleStartTime.ToHours
                     .ToString("R", CultureInfo.InvariantCulture) +
