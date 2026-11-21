@@ -83,6 +83,9 @@ namespace CalradiaUnified
         }
         private int RequiredDays()
         {
+            // The opening deed is earned immediately. Only the
+            // later survival/service chapters require a full streak.
+            if(Chapter==0)return 1;
             if(Role=="Outlaw")return Chapter==1?3:7;
             if(Role=="Mercenary")return Chapter==1?7:21;
             if(Role=="Lord" && Chapter==1)return 7;
