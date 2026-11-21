@@ -680,6 +680,9 @@ namespace CalradiaUnified
                     RoleAffiliationsEnabled,RetinueMode,StartingFiefMode,
                     StartingFiefId,AllowStartingFiefTransfer,Gold,
                     Influence,Troops,KingSuccessionRule);
+                if(king.Length==0)
+                    king=SandboxKingStartPolicy.ValidateRequiredRoyalFamily(
+                        SpouseEnabled,ChildCount);
                 if(king.Length!=0 || LordGuidedStart ||
                    KnightGuidedStart || SoldierGuidedStart ||
                    MercenaryGuidedStart || OutlawGuidedStart ||
