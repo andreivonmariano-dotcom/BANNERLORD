@@ -50,7 +50,7 @@ assert '"qualifies, choose Independent here."' in hint
 
 # Names and ages added to the House sibling list do not make a new
 # clan leader or an existing titled noble for YoungerBrotherOfLord.
-assert '"None automatically becomes your clan leader. "' in hint
+assert '". None automatically becomes your clan leader. "' in hint
 assert 'An older brother created here does not become an existing lord,' in vm
 assert '"native clan-leading lord. Creating an older sibling "' in vm
 
