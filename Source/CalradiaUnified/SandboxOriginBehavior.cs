@@ -1772,7 +1772,8 @@ namespace CalradiaUnified
                             soldier.Enlisted,profile.StartingKingdomId,
                             profile.ServicePatronHeroId,soldier.LordId,
                             soldier.LordKingdomId,soldier.RankId,
-                            soldier.NativeHostPartyLedByLord,
+                            soldier.LordIsNativeLord &&
+                                soldier.NativeHostPartyLedByLord,
                             observedClan.IsUnderMercenaryService,
                             observedClan.Settlements!=null &&
                                 observedClan.Settlements.Count>0);
