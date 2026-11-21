@@ -33,7 +33,7 @@ assert 'NativeHeroDisplayName(royalCouncil.MinisterId)' in council
 assert 'NativeHeroDisplayName(royalCouncil.MarshalId)' in council
 assert '"CU: Royal court and council"' in council
 assert 'args=>royalCouncil.IsRecorded' in council
-assert 'args=>NativeRoyalCouncilPresent(true),' not in council
+assert '"CU: Royal court and council",\n                    args=>royalCouncil.IsRecorded' in council
 assert '"cu_royal_council_ui_location"' in council
 assert 'ShowNativeDetail(' in council
 assert 'NativeRoyalCouncilPresent(true)' in council
