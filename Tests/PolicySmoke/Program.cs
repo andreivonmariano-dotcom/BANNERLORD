@@ -60,6 +60,23 @@ internal static class Program
             failedFamily.Observe("player",true,2,1)=="same" &&
             SandboxFamilyRecoveryState.Parse(failedFamily.Serialize())
                 .Status=="NativeCountsMatchReviewStillRequired");
+        Check("no optional grants follow failed native retinue",
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "Native","native_companions_preserved") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=0|family_only=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=0") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","partial:native_companions_dismissed=1") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","refused:no_retinue_for_role") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=0|no_valid_officer=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "UnsupportedMode","native_companions_preserved"));
         var nativeEconomyRoles=SandboxOriginProfile.Roles;
         Check("all 12 medieval roles declare accurate income authority and duty",
             nativeEconomyRoles.Length==12 &&
