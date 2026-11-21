@@ -219,6 +219,69 @@ internal static class Program
             soloWanderer.WandererCompanionName=="Taran" &&
             soloWanderer.WandererCompanionOverrides.Count==0 &&
             soloWanderer.RetinueMode=="Native");
+        var guidedOutlaw=new SandboxOriginProfile();
+        Check("new Outlaw keeps native bandit start without old save migration",
+            guidedOutlaw.TrySet("Role","Outlaw") &&
+            guidedOutlaw.TrySet("OutlawGuidedStart","true") &&
+            guidedOutlaw.TrySet("RetinueMode","RoleBased") &&
+            guidedOutlaw.TrySet("FamilyHomeMode","None") &&
+            guidedOutlaw.IsValid(30,out _) &&
+            SandboxRoleConsistencyPolicy.NativeType("Outlaw")=="outlaw" &&
+            SandboxNobleStartPolicy.RetinueOffices("Outlaw",false)
+                .SequenceEqual(new[]{"SecondInCommand"}) &&
+            SandboxNobleStartPolicy.CultureTitle(
+                "vlandia","SecondInCommand")=="Band Lieutenant");
+        Check("guided Outlaw household and tenure preserve landlessness",
+            guidedOutlaw.TrySet("SpouseEnabled","true") &&
+            guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("FamilyHomeMode","OwnedFief") &&
+            !guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("FamilyHomeMode","None") &&
+            guidedOutlaw.TrySet("Troops","6") &&
+            !guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("Troops","0") &&
+            guidedOutlaw.IsValid(30,out _));
+        Check("six native bandits and cultural bandit mapping",
+            SandboxOutlawBandPolicy.TargetBandits==6 &&
+            SandboxOutlawBandPolicy.MissingBandits(0)==6 &&
+            SandboxOutlawBandPolicy.MissingBandits(3)==3 &&
+            SandboxOutlawBandPolicy.MissingBandits(6)==0 &&
+            SandboxOutlawBandPolicy.MissingBandits(13)==-1 &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("vlandia")==
+                "mountain_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("battania")==
+                "forest_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("sturgia")==
+                "sea_raiders" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("khuzait")==
+                "steppe_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("aserai")==
+                "desert_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("empire")==
+                "looters");
+        Check("bandit payroll is fourteen real native wage days",
+            SandboxOutlawBandPolicy.PayrollDays==14 &&
+            SandboxOutlawBandPolicy.StartingGrain==12 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(0)==750 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(50)==900 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(250)==3700 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(251)==-1);
+        Check("small band respects actual native roster and party limit",
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(6,6,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(7,6,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(9,0,25,40)==
+                "oversized_native_party" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,7,40)==
+                "party_size_limit_too_small" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,25,251)==
+                "native_wage_outside_starter_band");
+        Check("new guided Outlaw profile roundtrips without old save leak",
+            SandboxOriginProfile.Parse(guidedOutlaw.Serialize())
+                .OutlawGuidedStart);
+        guidedOutlaw.ResetForNewCampaign();
+        Check("Outlaw starter grants do not bleed into next campaign",
+            !guidedOutlaw.OutlawGuidedStart);
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
