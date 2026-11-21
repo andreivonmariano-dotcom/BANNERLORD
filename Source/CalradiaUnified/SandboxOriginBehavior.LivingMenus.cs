@@ -174,8 +174,9 @@ namespace CalradiaUnified
             string kind=agencyDecisions.PendingKind;
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             if(amount<0)return;
-            int relation=SandboxAgencyDecisionPolicy.RelationDelta(
+            int requestedRelation=SandboxAgencyDecisionPolicy.RelationDelta(
                 kind,accept);
+            string giftProof="not_requested";
             if(accept && amount>0)
             {
                 if(!SandboxAgencyDecisionPolicy.NativeTransferPermitted(
@@ -184,7 +185,8 @@ namespace CalradiaUnified
                     Notify("You lack the denars for this support request.");
                     return;
                 }
-                int goldBefore=player.Gold;
+                int payerBefore=player.Gold;
+                int recipientBefore=actor.Gold;
                 try
                 {
                     GiveGoldAction.ApplyBetweenCharacters(
@@ -194,21 +196,44 @@ namespace CalradiaUnified
                 {
                     DiagnosticJournal.Exception(
                         "cu_character_native_gift_failed",error);
-                    Notify("The native gold transfer did not complete.");
-                    return;
                 }
-                if(player.Gold>goldBefore-amount)
+                int payerAfter=player.Gold;
+                int recipientAfter=actor.Gold;
+                giftProof=SandboxNativeEffectProof.GiftResult(
+                    payerBefore,payerAfter,recipientBefore,recipientAfter,
+                    amount);
+                if(giftProof!="confirmed")
                 {
-                    Notify("The native gold transfer could not be verified.");
+                    livingPersons.Remember("CharacterGiftUnverified",
+                        actor.StringId,player.StringId,
+                        "gift_status="+giftProof+
+                        "|payer_before="+payerBefore+
+                        "|payer_after="+payerAfter+
+                        "|recipient_before="+recipientBefore+
+                        "|recipient_after="+recipientAfter+
+                        "|no_accepted_request_claim=true");
+                    DiagnosticJournal.Event("cu_character_native_gift_unverified",
+                        "actor="+actor.StringId+
+                        "|status="+giftProof+
+                        "|payer_delta="+(payerBefore-payerAfter)+
+                        "|recipient_delta="+(recipientAfter-recipientBefore));
+                    // Never take another payment for an uncertain native
+                    // transfer. An entirely unchanged transfer can be
+                    // attempted later at the player's choice.
+                    if(giftProof!="no_native_effect")
+                        agencyDecisions.Dismiss("UnverifiedNativeGift");
+                    Notify("Both native gold balances did not confirm "+
+                        "the intended gift. No acceptance was recorded.");
                     return;
                 }
             }
-            if(relation!=0)
+            int relationBefore=player.GetRelation(actor);
+            if(requestedRelation!=0)
             {
                 try
                 {
                     ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
-                        player,actor,relation,false);
+                        player,actor,requestedRelation,false);
                 }
                 catch(Exception error)
                 {
@@ -216,21 +241,42 @@ namespace CalradiaUnified
                         "cu_character_request_relation_failed",error);
                 }
             }
+            int relationAfter=player.GetRelation(actor);
+            bool relationProof=SandboxNativeEffectProof.RelationConfirmed(
+                relationBefore,relationAfter,requestedRelation);
+            int actualRelation=SandboxNativeEffectProof.ObservedDelta(
+                relationBefore,relationAfter);
             livingPersons.Remember(
-                accept?"CharacterRequestAccepted":"CharacterRequestDeclined",
+                relationProof?
+                    (accept?"CharacterRequestAccepted":
+                        "CharacterRequestDeclined"):
+                    "CharacterRequestRelationUnverified",
                 actor.StringId,player.StringId,
-                "kind="+kind+"|real_gold_transferred="+
-                    (accept?amount:0)+"|native_relation_delta="+relation);
+                "kind="+kind+
+                "|choice="+(accept?"accept":"decline")+
+                "|native_gift_status="+giftProof+
+                "|verified_denars="+(giftProof=="confirmed"?amount:0)+
+                "|relation_before="+relationBefore+
+                "|relation_after="+relationAfter+
+                "|actual_relation_delta="+actualRelation+
+                "|relation_confirmed="+relationProof);
             DiagnosticJournal.Event("cu_character_request_resolved",
                 "actor="+actor.StringId+
                 "|choice="+(accept?"accepted":"declined")+
                 "|type="+kind+
-                "|gold="+(accept?amount:0));
-            agencyDecisions.Dismiss(accept?"Accepted":"Declined");
-            Notify(actor.Name.ToString()+": request "+
-                (accept?"accepted.":"declined.")+
-                (accept && amount>0?
-                    " A native gold transfer was confirmed.":""));
+                "|gift_proof="+giftProof+
+                "|relation_proof="+relationProof+
+                "|actual_relation_delta="+actualRelation);
+            // A confirmed payment must never be duplicated if a following
+            // native relation action fails. The choice is terminal.
+            agencyDecisions.Dismiss(relationProof?
+                (accept?"Accepted":"Declined"):
+                "NativeRelationUnverified");
+            Notify(actor.Name.ToString()+": "+
+                (relationProof?"the native relationship was verified.":
+                "the intended relation change was not verified.")+
+                (giftProof=="confirmed"?
+                    " Both native gold balances confirmed the gift.":""));
         }
         private Clan RecordedBirthClan()
         {
