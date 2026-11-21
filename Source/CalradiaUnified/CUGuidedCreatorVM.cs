@@ -667,8 +667,7 @@ namespace CalradiaUnified
             }
             if(!preCampaign && copy.LordGuidedStart &&
                 key=="SpouseBackground" &&
-                SandboxLordStartPolicy.ValidateNobleSpouseRequest(
-                    copy.SpouseBackground,copy.SpouseBirthClanId).Length>0)
+                copy.SpouseBackground=="Commoner")
             {
                 Report("A Lord's spouse must have a native noble "+
                     "birth clan. Select a genuine noble origin.");
