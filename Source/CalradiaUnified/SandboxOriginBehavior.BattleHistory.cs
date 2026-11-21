@@ -43,10 +43,12 @@ namespace CalradiaUnified
                 {
                     bool attacker = battle.PartiesOnSide(
                         BattleSideEnum.Attacker).Any(p => p != null &&
-                            p.MobileParty == service.HostParty);
+                            p.Party != null &&
+                            p.Party.MobileParty == service.HostParty);
                     bool defender = battle.PartiesOnSide(
                         BattleSideEnum.Defender).Any(p => p != null &&
-                            p.MobileParty == service.HostParty);
+                            p.Party != null &&
+                            p.Party.MobileParty == service.HostParty);
                     if (attacker == defender) return;
                     side = attacker ? BattleSideEnum.Attacker :
                         BattleSideEnum.Defender;
