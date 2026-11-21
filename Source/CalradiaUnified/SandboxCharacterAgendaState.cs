@@ -59,8 +59,9 @@ namespace CalradiaUnified
         {
             var e=Get(id);
             if(e==null)return 0;
-            if(!SandboxGeneratedCharacterGoalPolicy.CanShareMilitaryService(
-                adult,verifiedSharedParents,sameRealParty))
+            if(e.Goal!="ProtectSharedHousehold" ||
+                !SandboxGeneratedCharacterGoalPolicy.CanShareMilitaryService(
+                    adult,verifiedSharedParents,sameRealParty))
             {
                 e.ConsecutiveDaysTogether=0;
                 return 0;

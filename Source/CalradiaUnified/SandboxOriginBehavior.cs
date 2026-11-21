@@ -455,8 +455,14 @@ namespace CalradiaUnified
                         (serviceCareer.IsConfigured?
                             " under "+servicePatronName+
                             ", "+serviceCareer.DaysInService+
-                            " daily observations; wages follow native game rules.":"")+
+                            " daily observations; pay controlled by "+serviceCareer.PayAuthority+
+                            (serviceCareer.VerifiedExternalEnlistment?
+                                ", verified rank "+serviceCareer.ExternalRank+
+                                ", duty "+serviceCareer.ExternalDuty+
+                                ", daily wage "+serviceCareer.ExternalDailyWage:
+                                ", no verified NPC-party enlistment")+".":"")+
                         ". Family succession: "+successionInterest.Status+
+                        " under "+successionInterest.CustomaryModel+
                         " (no estate transfer by CU)."),
                     false);
             }
@@ -1435,6 +1441,10 @@ namespace CalradiaUnified
                                 hero.Father.Clan==null?"":
                                     hero.Father.Clan.StringId,
                                 preceding,hero.Father.IsAlive);
+                            successionInterest.SetCulture(
+                                hero.Culture.StringId,
+                                hero.Father.Clan==null?0:
+                                    hero.Father.Clan.Settlements.Count);
                             DiagnosticJournal.Event(
                                 "cu_native_succession_interest_recorded",
                                 "claimant="+hero.StringId+
