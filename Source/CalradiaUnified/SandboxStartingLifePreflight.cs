@@ -80,10 +80,9 @@ namespace CalradiaUnified
                         p.SoldierEntryRank,native.RankId);
                 if(service.Length==0 && rank.Length>0)
                     service=rank;
-                if(service.Length==0 &&
-                   native.RankNumber!=SandboxSoldierEnlistmentPolicy
-                       .NativeRankNumber(native.RankId))
-                    service="native_rank_number_mismatch";
+                // RankId is the stable SaS public proof. Integer Rank
+                // indexing is not yet verified for installed v1.5.7,
+                // so never reject a genuine rank on a 0/1-base guess.
                 DiagnosticJournal.Event("cu_soldier_real_enlistment_preflight",
                     "result="+(service.Length==0?"PASS":"FAIL")+
                     "|reason="+service+
