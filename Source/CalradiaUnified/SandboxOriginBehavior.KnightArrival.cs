@@ -61,6 +61,11 @@ namespace CalradiaUnified
                 refused="player_party_not_ready";
             else if(player.CurrentSettlement!=null)
                 refused="player_in_settlement";
+            else if(party.IsCurrentlyAtSea)
+                refused="player_naval_start_not_supported";
+            else if(residence==null && host!=null &&
+                host.IsCurrentlyAtSea)
+                refused="patron_naval_party_not_supported";
             else if(residence==null &&
                 (host==null || host.LeaderHero!=patron))
                 refused="patron_has_no_self_led_field_party";
