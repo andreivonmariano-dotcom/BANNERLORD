@@ -9,7 +9,7 @@ namespace CalradiaUnified
     public static class SandboxFamilyHomePolicy
     {
         public static readonly string[] Modes =
-            { "OwnedFief", "ClanHome", "SpecificOwned" };
+            { "None", "OwnedFief", "ClanHome", "SpecificOwned" };
 
         public static string ValidateRequest(string mode, string settlementId,
             bool spouseRequested)
@@ -21,6 +21,25 @@ namespace CalradiaUnified
                 String.IsNullOrEmpty(settlementId))
                 return "family_home_id_required";
             return "";
+        }
+
+        // A landless independent clan cannot promise an owned estate at start.
+        // A non-landed role may opt out of fixed residence without inventing a fief.
+        public static string ValidateRoleRequest(string role, string mode,
+            bool spouseRequested)
+        {
+            return spouseRequested &&
+                SandboxCustomLifeRolePolicy.IsLandless(role) &&
+                mode!="None" ? "landless_cannot_start_with_owned_home" : "";
+        }
+
+        public static string ValidateObservedPlacement(string mode,
+            bool spouseRequested, string outcome)
+        {
+            if(!spouseRequested || mode=="None")return "";
+            return outcome!=null && outcome.StartsWith("placed:",
+                StringComparison.Ordinal) ? "" :
+                "requested_family_home_unfulfilled";
         }
 
         public static string ValidateSettlement(bool playerClanOwns,
