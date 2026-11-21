@@ -384,6 +384,7 @@ namespace CalradiaUnified
             // named estate officers it cannot legitimately own.
             if(!preCampaign && profile.OutlawGuidedStart &&
                 (key=="RetinueMode" || key=="Influence" ||
+                 key=="Troops" ||
                  key=="FamilyHomeMode" || key=="FamilyHomeId"))
                 return false;
             if(key=="WandererCompanionEnabled")
@@ -1193,8 +1194,10 @@ namespace CalradiaUnified
                 if(preCampaign && profile.Role=="Outlaw")
                     return "Outlaw / Bandit | native outlaw start\n"+
                         "No kingdom, estate or noble title\n"+
-                        "Retinue: one culturally trained band lieutenant "+
-                        "(subject to native game verification)\n"+
+                        "Band: six low-tier native bandits and "+
+                        "one culturally trained lieutenant\n"+
+                        "Wages: fourteen-day native payroll reserve, "+
+                        "plus starting food\n"+
                         "Family: optional spouse, children and siblings; "+
                         "no owned residence\n"+
                         "Player appearance and stats remain editable.";
