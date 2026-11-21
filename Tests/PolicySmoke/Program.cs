@@ -60,21 +60,44 @@ internal static class Program
             failedFamily.Observe("player",true,2,1)=="same" &&
             SandboxFamilyRecoveryState.Parse(failedFamily.Serialize())
                 .Status=="NativeCountsMatchReviewStillRequired");
-        Check("no optional grants follow failed native retinue",
+        Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly",
                 "officers=0|native_companions_dismissed=0|family_only=true") &&
             SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=1|family_only=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
                 "RoleBased",
-                "officers=2|native_companions_dismissed=0") &&
+                "officers=2|native_companions_dismissed=0|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "ReplaceNative",
+                "officers=1|native_companions_dismissed=1|same_culture=true"));
+        Check("retinue grant blocks malformed and incomplete receipts",
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly","partial:native_companions_dismissed=1") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "RoleBased","refused:no_retinue_for_role") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
-                "RoleBased","officers=0|no_valid_officer=true") &&
+                "RoleBased","officers=0|native_companions_dismissed=0|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=0") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=foo|native_companions_dismissed=0|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=-1|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=2|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=0|native_companions_dismissed=0|same_culture=false") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=1|native_companions_dismissed=0|family_only=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=0|native_companions_dismissed=0|family_only=true|extra") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "Native","officers=2|native_companions_dismissed=0|same_culture=true") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "UnsupportedMode","native_companions_preserved"));
         var nativeEconomyRoles=SandboxOriginProfile.Roles;
