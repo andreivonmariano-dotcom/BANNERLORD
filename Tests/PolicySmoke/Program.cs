@@ -169,6 +169,27 @@ internal static class Program
             successorOath.Release(false)=="personal_release_not_verified" &&
             successorOath.Release(true)=="consensual_release" &&
             successorOath.Break()=="no_oath_to_break");
+        var captiveOath=new SandboxKnightOathState();
+        captiveOath.Begin("player","lord","house","vlandia",100);
+        Check("Knight patron captivity pauses deadline and native penalties",
+            captiveOath.Observe(131,true,true,true,true,true)==
+                "patron_captivity_pause" &&
+            captiveOath.Status=="PatronCaptive" &&
+            captiveOath.MissedMusters==0 &&
+            !captiveOath.CanMuster(131,true) &&
+            captiveOath.Observe(161,true,true,true,true,true)==
+                "patron_still_captive" &&
+            captiveOath.MissedMusters==0 &&
+            SandboxKnightOathState.Parse(captiveOath.Serialize())
+                .Status=="PatronCaptive");
+        Check("Knight release from captivity renews duty without back penalties",
+            captiveOath.Observe(162,true,true,true,true,false)==
+                "patron_returned_muster_reset" &&
+            captiveOath.Status=="Active" &&
+            captiveOath.NextMusterDay==192 &&
+            captiveOath.MissedMusters==0 &&
+            captiveOath.Observe(163,true,true,true,true,false)==
+                "oath_active");
         Check("Knight oath corruption cannot produce bound player service",
             !SandboxKnightOathState.Parse("CU_KNIGHT_OATH_1\n"+
                 "player|lord|house|vlandia|Active|10|-1|4|0|0|0")
