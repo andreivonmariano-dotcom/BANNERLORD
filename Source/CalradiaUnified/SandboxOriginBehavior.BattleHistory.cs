@@ -167,13 +167,20 @@ namespace CalradiaUnified
             }
         }
 
+        private string NativeBattleHeroName(string nativeId)
+        {
+            var person = ResolveCampaignHero(nativeId);
+            return person == null ? nativeId :
+                person.Name.ToString();
+        }
+
         private string BattleHistoryDescription()
         {
             return "Witnessed completed battles: " +
                 battleHistory.Entries.Count +
                 " (last " + SandboxBattleHistoryState.MaxEntries +
                 " retained)\n" +
-                battleHistory.DescribeRecent(5) +
+                battleHistory.DescribeRecent(5, NativeBattleHeroName) +
                 "\nCasualties are native rosters of the participating " +
                 "player or enlisted host party, not the whole army. " +
                 "Named injuries are verified own-clan Heroes only. " +
