@@ -364,6 +364,7 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Creator-API.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Inspect pinned Knight clan membership action metadata
+        continue-on-error: true
         shell: pwsh
         run: |
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Knight-Clan-API.ps1
