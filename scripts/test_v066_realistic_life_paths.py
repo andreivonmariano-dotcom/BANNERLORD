@@ -25,7 +25,8 @@ home=read("SandboxBirthHouseholdPlacement.cs")
 auto=read("SandboxAutoHousePlan.cs")
 behavior=read("SandboxOriginBehavior.cs")
 simulation=read("SandboxMedievalLifeSimulation.cs")
-assert ' "Recruit", "Soldier", "HouseholdKnight"' in profile
+assert all('"' + role + '"' in profile for role in
+           ("Recruit","Soldier","HouseholdKnight","Mercenary","Outlaw"))
 assert '"Knight", "NobleCadet", "Lord"' in profile
 assert 'case "NobleCadet":return "default";' in role_matrix
 assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
