@@ -80,7 +80,7 @@ namespace CalradiaUnified
                         p.SoldierEntryRank,native.RankId);
                 if(service.Length==0 && rank.Length>0)
                     service=rank;
-                if(service.Length==0 && native.RankNumber>0 &&
+                if(service.Length==0 &&
                    native.RankNumber!=SandboxSoldierEnlistmentPolicy
                        .NativeRankNumber(native.RankId))
                     service="native_rank_number_mismatch";
