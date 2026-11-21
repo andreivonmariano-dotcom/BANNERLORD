@@ -144,9 +144,17 @@ namespace CalradiaUnified
                     "Swift travel","Optional native world modifier.",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
-                    "Your starting position",
+                    "Your occupation and native start",
                     "Choose your starting career, then kingdom if the role requires one.",
                     choices:SandboxOriginProfile.Roles));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "EarlyHousehold","The household that raised you",
+                    "Childhood shapes suggested family traditions and your biography. It does not invent ancestry.",
+                    choices:SandboxStartingLifePolicy.EarlyHouseholds,advanced:true));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "PersonalAmbition","Your personal ambition",
+                    "Saved personal goal for future relationships. No new quests or rewards are granted.",
+                    choices:SandboxStartingLifePolicy.Ambitions,advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartingKingdomId",
                     "Starting kingdom",
                     "The selected King, Lord, Knight, Soldier or Admiral start uses this native affiliation.",
@@ -655,6 +663,10 @@ namespace CalradiaUnified
                 candidate.StartingKingdomId+"|scenario="+
                 candidate.StartingScenario+
                 "|retinue_default="+candidate.RetinueMode+
+                "|early_household="+candidate.EarlyHousehold+
+                "|ambition="+candidate.PersonalAmbition+
+                "|station="+SandboxStartingLifePolicy.Station(
+                    candidate.Role,candidate.NobleBirthPosition)+
                 "|service_patron_request="+candidate.ServicePatronHeroId+
                 "|noble_birth="+candidate.NobleBirthPosition+
                 "|family_requested=false|native_state_next=true");
@@ -891,7 +903,9 @@ namespace CalradiaUnified
             get
             {
                 if(preCampaign)
-                    return "Starting role: "+profile.Role+"\n"+
+                    return SandboxStartingLifePolicy.Dossier(
+                            profile.Role,profile.NobleBirthPosition,
+                            profile.EarlyHousehold,profile.PersonalAmbition)+"\n"+
                         "Starting kingdom: "+
                         (profile.StartingKingdomId.Length==0?"None":
                             profile.StartingKingdomId)+"\n"+
@@ -908,6 +922,15 @@ namespace CalradiaUnified
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
+                    "Social station: "+SandboxStartingLifePolicy.Station(
+                        profile.Role,profile.NobleBirthPosition)+"\n"+
+                    "Obligations: "+SandboxStartingLifePolicy.Obligation(
+                        profile.Role,profile.NobleBirthPosition)+"\n"+
+                    "Early household: "+SandboxStartingLifePolicy.Household(
+                        profile.Role,profile.EarlyHousehold)+"\n"+
+                    "Personal ambition: "+SandboxStartingLifePolicy.Ambition(
+                        profile.Role,profile.NobleBirthPosition,
+                        profile.PersonalAmbition)+"\n"+
                     "Spouse: "+(profile.SpouseEnabled?profile.SpouseName:
                         "No spouse")+"\n"+
                     "Household: "+(profile.SpouseEnabled?

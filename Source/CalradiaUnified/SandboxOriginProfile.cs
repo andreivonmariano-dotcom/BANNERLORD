@@ -56,6 +56,8 @@ namespace CalradiaUnified
         public bool RealFamilyEnabled;
         public bool RoleAffiliationsEnabled;
         public string Role = "Wanderer";
+        public string EarlyHousehold = "Auto";
+        public string PersonalAmbition = "Auto";
         // Native Advanced Start IDs, not culture IDs.
         public static readonly string[] KingdomIds =
             { "", "vlandia", "sturgia", "battania", "empire",
@@ -194,6 +196,8 @@ namespace CalradiaUnified
             SiblingCount=0;
             AutoHouseNamesPrepared=false;
             NobleBirthPosition="Independent";
+            EarlyHousehold="Auto";
+            PersonalAmbition="Auto";
             NobleElderHeroId="";
             ServicePatronHeroId="";
             RetinueMode="Native";
@@ -308,6 +312,14 @@ namespace CalradiaUnified
                 case "Role":
                     if (!Allowed(value, Roles)) return false;
                     Role = value; return true;
+                case "EarlyHousehold":
+                    if (!SandboxStartingLifePolicy.ValidHousehold(value))
+                        return false;
+                    EarlyHousehold=value;return true;
+                case "PersonalAmbition":
+                    if (!SandboxStartingLifePolicy.ValidAmbition(value))
+                        return false;
+                    PersonalAmbition=value;return true;
                 case "StartingKingdomId":
                     if (!Allowed(value, KingdomIds)) return false;
                     StartingKingdomId = value; return true;
@@ -530,6 +542,12 @@ namespace CalradiaUnified
                 error = "Unknown starting-stats mode.";
                 return false;
             }
+            if(!SandboxStartingLifePolicy.ValidHousehold(EarlyHousehold) ||
+                !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
+            {
+                error="Choose a supported early household and ambition.";
+                return false;
+            }
             int playerAge = PlayerAge >= 18 ? PlayerAge : actualPlayerAge;
             if (playerAge < 18 || playerAge > 100)
             {
@@ -589,6 +607,13 @@ namespace CalradiaUnified
                     error = "Sibling needs a valid name.";
                     return false;
                 }
+            string lineageError=SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                this,playerAge);
+            if(lineageError.Length>0)
+            {
+                error="Noble birth and sibling ages conflict: "+lineageError;
+                return false;
+            }
             return true;
         }
 
@@ -599,6 +624,8 @@ namespace CalradiaUnified
                 ", " + Troops + " additional troops, kit=" + EquipmentKit +
                 ", family=" + (SpouseEnabled ?
                     SpouseBackground + " spouse " + SpouseName : "none") +
+                ", early_household=" + EarlyHousehold +
+                ", ambition=" + PersonalAmbition +
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
                 ", noble_birth=" + NobleBirthPosition +
@@ -640,6 +667,8 @@ namespace CalradiaUnified
                 "RealFamilyEnabled=" + RealFamilyEnabled.ToString().ToLowerInvariant(),
                 "RoleAffiliationsEnabled=" + RoleAffiliationsEnabled.ToString().ToLowerInvariant(),
                 "Role=" + Role,
+                "EarlyHousehold=" + EarlyHousehold,
+                "PersonalAmbition=" + PersonalAmbition,
                 "StartingKingdomId=" + StartingKingdomId,
                 "StartingScenario=" + StartingScenario,
                 "ScenarioFaction1=" + ScenarioFaction1,

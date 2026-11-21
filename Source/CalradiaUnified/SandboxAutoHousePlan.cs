@@ -21,12 +21,9 @@ namespace CalradiaUnified
             plan.SpouseBackground=
                 (plan.Role=="Lord" || plan.Role=="King")?
                 "NobleRandom":"Commoner";
-            plan.FamilyScenario=
-                (plan.Role=="Lord" || plan.Role=="King" ||
-                 plan.Role=="Knight" || plan.Role=="Soldier")?
-                "Martial":plan.Role=="Admiral"?
-                "Seafaring":plan.Role=="Trader"?
-                "Mercantile":"Natural";
+            plan.FamilyScenario=plan.Role=="Admiral"?
+                "Seafaring":SandboxStartingLifePolicy.FamilyScenario(
+                    plan.Role,plan.EarlyHousehold);
             var used=new List<string>();
             if(!String.IsNullOrWhiteSpace(playerName))used.Add(playerName);
             bool spouseFemale=!playerFemale;
