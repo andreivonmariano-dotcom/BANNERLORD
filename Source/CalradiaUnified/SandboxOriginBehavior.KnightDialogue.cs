@@ -188,6 +188,23 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            // A first audience is a real encounter with the recorded lord.
+            // It cannot fire from a distant menu or a fabricated NPC.
+            starter.AddPlayerLine(
+                "cu_knight_patron_first_audience","hero_main_options",
+                "cu_knight_patron_first_audience_reply",
+                "My lord, I have come to take my place in your service.",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay<0,
+                ()=>RecordNativePatronAudience(),200);
+            starter.AddDialogLine(
+                "cu_knight_patron_first_audience_reply",
+                "cu_knight_patron_first_audience_reply",
+                "hero_main_options",
+                "Welcome to my banner. Your house is known to mine. "+
+                "Keep your people safe, and answer my summons. "+
+                "You remain master of your own household.",
+                null,null,200);
             starter.AddPlayerLine(
                 "cu_knight_patrontalk_start",
                 "hero_main_options","cu_knight_patron_answer",
