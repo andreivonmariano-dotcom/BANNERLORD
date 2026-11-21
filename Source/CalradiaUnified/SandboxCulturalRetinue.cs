@@ -257,7 +257,7 @@ namespace CalradiaUnified
             string[] offices=SandboxNobleStartPolicy.RetinueOffices(
                 profile.Role,HasBrother(player));
             // Keep the original native court for historical King saves.
-            // Only the new guided King fixes its two royal officers.
+            // Only the new guided King fixes its three royal officers.
             if(profile.KingGuidedStart)
                 offices=SandboxKingStartPolicy.CourtOffices;
             if(offices.Length==0)
@@ -288,6 +288,7 @@ namespace CalradiaUnified
             for(int i=0;i<offices.Length;i++)
             {
                 bool female=offices[i]=="Chamberlain" ||
+                    offices[i]=="RoyalMinister" ||
                     offices[i]=="Navigator";
                 sources[i]=FindNobleSource(player,female,offices[i]);
                 if(sources[i]==null)
@@ -347,29 +348,55 @@ namespace CalradiaUnified
                 {
                     var officer=staged[i];
                     AddCompanionAction.Apply(Clan.PlayerClan,officer);
-                    AddHeroToPartyAction.Apply(
-                        officer,MobileParty.MainParty,true);
+                    bool royalMinister=profile.KingGuidedStart &&
+                        offices[i]=="RoyalMinister";
+                    string duty="unassigned";
+                    if(royalMinister)
+                    {
+                        // A governor serves at the owned fief, not in the
+                        // traveling King's army. The native action is
+                        // the sole authority for the appointment.
+                        string holding;
+                        duty=SandboxKingNativeMinistry.TryAppoint(
+                            officer,out holding);
+                        if(!duty.StartsWith(
+                            "native_royal_minister_governs:",
+                            StringComparison.Ordinal) ||
+                            !SandboxKingNativeMinistry.VerifiedGovernor(
+                                officer))
+                            throw new InvalidOperationException(
+                                "Royal minister native governor not verified: "+
+                                duty);
+                    }
+                    else
+                    {
+                        AddHeroToPartyAction.Apply(
+                            officer,MobileParty.MainParty,true);
+                        try
+                        {
+                            duty=AssignNativeDuty(officer,offices[i]);
+                        }
+                        catch(Exception roleError)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_cultural_retinue_duty_failed",roleError);
+                            duty="native_assignment_failed";
+                        }
+                    }
                     bool confirmed=Clan.PlayerClan.Companions
                         .Contains(officer) &&
                         officer.Culture==player.Culture &&
                         officer.Clan==Clan.PlayerClan &&
-                        MobileParty.MainParty.MemberRoster
-                            .GetTroopCount(officer.CharacterObject)>0;
+                        officer.CompanionOf==Clan.PlayerClan &&
+                        (royalMinister?
+                            SandboxKingNativeMinistry.VerifiedGovernor(
+                                officer):
+                            MobileParty.MainParty.MemberRoster
+                                .GetTroopCount(officer.CharacterObject)>0);
                     if(!confirmed)
                         throw new InvalidOperationException(
-                            "Retinue officer not registered as clan companion");
+                            "Retinue officer native assignment not verified");
                     created++;
-                    string duty="unassigned";
-                    try
-                    {
-                        duty=AssignNativeDuty(officer,offices[i]);
-                    }
-                    catch(Exception roleError)
-                    {
-                        DiagnosticJournal.Exception(
-                            "cu_cultural_retinue_duty_failed",roleError);
-                        duty="native_assignment_failed";
-                    }
                     DiagnosticJournal.Event("cu_cultural_retinue_officer",
                         "id="+officer.StringId+
                         "|office="+offices[i]+
@@ -382,7 +409,8 @@ namespace CalradiaUnified
                         "|duty="+duty+
                         "|native_occupation="+officer.Occupation+
                         "|clan_companion=true"+
-                        "|party_member=true");
+                        "|party_member="+(!royalMinister)+
+                        "|native_governor="+royalMinister);
                 }
                 if(replace)
                 {
