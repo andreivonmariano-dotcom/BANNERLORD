@@ -446,6 +446,27 @@ jobs:
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
           if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
           Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
+          # Missing required dependency must refuse replacement BEFORE
+          # moving the existing module or creating another backup.
+          $butr = Join-Path $fake "Modules/Bannerlord.ButterLib"
+          $disabledButr = Join-Path $fake "Modules/ButterLib_InstallerTestDisabled"
+          Move-Item -LiteralPath $butr -Destination $disabledButr
+          $before = (Get-FileHash -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll") -Algorithm SHA256).Hash
+          $backupsBefore = @(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count
+          $rejected = $false
+          try {
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
+          }
+          catch {
+            if ($_.Exception.Message -notmatch 'Required BUTR module not installed: Bannerlord.ButterLib') { throw }
+            $rejected = $true
+          }
+          if (-not $rejected) { throw "Installer accepted missing mandatory BUTR." }
+          $after = (Get-FileHash -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll") -Algorithm SHA256).Hash
+          if ($before -ne $after) { throw "Mandatory dependency failure modified the installed DLL." }
+          if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne $backupsBefore) { throw "Rejected dependency changed backups." }
+          Move-Item -LiteralPath $disabledButr -Destination $butr
+          Write-Output "PASS: required BUTR failure blocks replacement without touching installed files."
       - name: Show latest verified PowerShell installer candidate and fail-closed selection
         shell: pwsh
         run: |
