@@ -158,6 +158,13 @@ with tempfile.TemporaryDirectory() as folder:
         module.audit_role("Knight",mutate("Knight",
             "cu_knight_native_escort_completed",
             "result=verified_native_party_escort_completed|native_hero_party=False|days=3|native_favor_action=True"),native)["missing"])
+    for role,context in (
+        ("Lord","cu_lord_master_native_garrison_order"),
+        ("King","cu_king_marshal_native_court_order")):
+        assert "unverified_"+context in (
+            module.audit_role(role,mutate(role,context,
+                "result=PASS|troops_transferred=5|troops_spawned=5|real_garrison=True"),
+                native)["missing"])
     assert "unverified_cu_sas_service_observed" in (
         module.audit_role("Soldier",mutate("Soldier",
             "cu_sas_service_observed",

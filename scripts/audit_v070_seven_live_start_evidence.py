@@ -30,9 +30,10 @@ ROLE_UI_SCREENSHOTS={
  "Knight":("knight_oath_ui.png","knight_household_ui.png",
            "knight_patron_conversation.png",
            "knight_escort_map.png"),
- "Lord":("lord_inheritance_ui.png","lord_household_ui.png"),
+ "Lord":("lord_inheritance_ui.png","lord_household_ui.png",
+         "lord_master_order.png"),
  "King":("king_council_ui.png","king_governor_ui.png",
-         "king_household_ui.png"),
+         "king_household_ui.png","king_marshal_order.png"),
 }
 REQUIRED={
  "Wanderer":("cu_starting_life_preflight",
@@ -56,7 +57,8 @@ REQUIRED={
          "cu_lord_native_family_verification",
          "cu_lord_native_noble_inlaws",
          "cu_lord_native_household_officers",
-         "cu_lord_native_final_verification"),
+         "cu_lord_native_final_verification",
+         "cu_lord_master_native_garrison_order"),
  "King":("cu_starting_life_preflight",
          "cu_king_native_preflight",
          "cu_king_native_dynasty_verification",
@@ -64,7 +66,8 @@ REQUIRED={
          "cu_king_native_final_verification",
          "cu_king_royal_minister_native_governor",
          "cu_royal_court_native_commission",
-         "cu_king_native_council_meeting"),
+         "cu_king_native_council_meeting",
+         "cu_king_marshal_native_court_order"),
 }
 # Details for these already represent status rather than a strict PASS tag.
 GOOD={
@@ -93,6 +96,8 @@ GOOD={
  "cu_lord_native_noble_inlaws":("result=PASS",),
  "cu_lord_native_household_officers":("result=PASS",),
  "cu_lord_native_final_verification":("result=PASS",),
+ "cu_lord_master_native_garrison_order":(
+    "result=PASS|troops_transferred=5|troops_spawned=0|real_garrison=True",),
  "cu_king_native_preflight":("result=PASS",),
  "cu_king_native_dynasty_verification":("result=PASS",),
  "cu_king_native_court_verification":("result=PASS",),
@@ -102,6 +107,8 @@ GOOD={
      "result=native_royal_hero_council_commissioned|kingsguard_hero_only=true",),
  "cu_king_native_council_meeting":(
      "result=real_royal_hero_council_convened|native_minister_governs=True|marshal_in_party=True|kingsguard_single_hero_in_party=True",),
+ "cu_king_marshal_native_court_order":(
+    "result=PASS|troops_transferred=5|troops_spawned=0|real_garrison=True",),
 }
 
 def detail(row):

@@ -48,3 +48,14 @@ Grouping remains an interim interface. Some civic actions truly require presence
 **Live UI:** After real save, quit, and reload, each start must observe true flags for duplicate-free settlement choices, context-appropriate actions and absence of the old next-game editor. Retain existing readable portrait, party/Clan/Kingdom state, screenshots, and Back checks. Test at 1280×720, 1650×927 and 1920×1080. A source/build pass is not a rendered in-game pass.
 
 **Release:** Keep PR #93 draft, current installer pinned, and Gate C through E blocked until actual Bannerlord sessions prove the behavior.
+
+## v0.70w | First real duties for Lord and King officers
+
+The real Master of Arms and Marshal are no longer purely informational titles:
+
+- **Lord:** In an actually player-owned castle, speak to the **Master of Arms** companion in the native Hero conversation. With at least five unwounded, zero-XP local recruits already present in the player's party, the officer may issue a transfer of exactly five to the existing castle garrison. The source verifies the before/after native troop counts and rolls back any partial roster change. No troop is created or paid.
+- **King:** Convene the royal council at its real player-owned court seat with the real Minister governor, Marshal and single Kingsguard Hero present. On that same campaign day, speak directly to the **Marshal** companion at the seat. An explicit order moves five actual local recruits from the player party to the native court garrison, never creates new troops, and leaves kingdom political decisions untouched.
+- Both actions are separate from the generic civic recruitment/garrison controls. These are personally issued orders to existing native Hero officers, grounded in the same physical roster records and ownership guards.
+- To mark either accepted, diagnostic events must show **five existing troops transferred, zero spawned, real garrison true**, and role-specific screenshot `lord_master_order.png` or `king_marshal_order.png`. In-game dialogue and roster checks are not certified by CI.
+
+**Remaining gaps:** This does not appoint the Master of Arms as a native army commander or confer independent command on the Marshal. Full military expeditions, actual Army leadership, officer survival/injury, native Kingdom proposals, the Minister's administrative recommendations and rulership policy remain separate work. Do not call the council a native kingdom government until those actions are proven.

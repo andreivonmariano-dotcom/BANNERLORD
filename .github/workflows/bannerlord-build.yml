@@ -59,6 +59,8 @@ jobs:
         run: python scripts/test_v070s_native_household_integration.py
       - name: Audit settlement entry budget and context placement for all starts
         run: python scripts/test_v070v_native_menu_placement.py
+      - name: Guard native Lord and King officer garrison orders
+        run: python scripts/test_v070w_officer_native_garrison_orders.py
       - name: Regress live Knight Lord King failed-family handoffs
         run: python scripts/test_v070q_failed_native_family_handoffs.py
       - name: Verify seven-path native-game acceptance fails shut without playthrough evidence
