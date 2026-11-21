@@ -17,7 +17,8 @@ namespace CalradiaUnified
                 case "Recruit":
                 case "HouseholdKnight":
                 case "NobleCadet":return "default";
-                case "Soldier":return "mercenary";
+                case "Soldier":
+                case "Mercenary":return "mercenary";
                 case "Knight":
                 case "Lord":return "vassal";
                 case "King":return "king";
@@ -60,6 +61,9 @@ namespace CalradiaUnified
             if(role=="Lord" || role=="Knight")
                 return !hasKingdom || rulingClan || fiefs<1?
                     "vassal_status_or_fief_missing":"";
+            if(role=="Mercenary")
+                return !hasKingdom || rulingClan || fiefs!=0 ?
+                    "mercenary_company_station_or_land_missing":"";
             if(role=="Soldier" || role=="Admiral")
                 return !hasKingdom || rulingClan?
                     "native_military_kingdom_missing":"";
