@@ -4,6 +4,7 @@ using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.MapEvents;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Roster;
 using TaleWorlds.Core;
 
 namespace CalradiaUnified
@@ -13,11 +14,27 @@ namespace CalradiaUnified
         private SandboxBattleHistoryState battleHistory =
             new SandboxBattleHistoryState();
 
+        private static string NativeOwnClanHeroIds(TroopRoster roster)
+        {
+            var clan = Clan.PlayerClan;
+            if (roster == null || clan == null) return "";
+            // A death can clear PartyBelongedTo. The own-clan identity
+            // comes from the Hero object, not a post-battle party slot.
+            return String.Join(",", roster.GetTroopRoster()
+                .Where(e => e.Number > 0 && e.Character != null &&
+                    e.Character.IsHero && e.Character.HeroObject != null)
+                .Select(e => e.Character.HeroObject)
+                .Where(h => h.StringId != null &&
+                    (h == Hero.MainHero || h.Clan == clan ||
+                     h.CompanionOf == clan))
+                .Select(h => h.StringId)
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(s => s, StringComparer.Ordinal)
+                .Take(4));
+        }
+
         private void ObserveCompletedBattle(MapEvent battle)
         {
-            // No mission or economy patching. A campaign map event is the
-            // authoritative outcome. SaS's public API establishes a soldier's
-            // current host; a private SaS field or a guessed rank never does.
             if (!applied || !IsStandaloneSandbox() ||
                 Campaign.Current == null || battle == null ||
                 Hero.MainHero == null)
@@ -40,27 +57,55 @@ namespace CalradiaUnified
                 if (!enrolledHost && !playerParty) return;
 
                 BattleSideEnum side = battle.PlayerSide;
-                string source = "PlayerParty";
-                string lordId = "";
+                string source = "PlayerParty", lordId = "";
+                MapEventParty receiptParty = null;
+
                 if (enrolledHost)
                 {
-                    bool attacker = battle.PartiesOnSide(
-                        BattleSideEnum.Attacker).Any(p => p != null &&
-                            p.Party != null &&
+                    receiptParty = battle.PartiesOnSide(
+                        BattleSideEnum.Attacker).FirstOrDefault(p =>
+                            p != null && p.Party != null &&
                             p.Party.MobileParty == service.HostParty);
-                    bool defender = battle.PartiesOnSide(
-                        BattleSideEnum.Defender).Any(p => p != null &&
-                            p.Party != null &&
-                            p.Party.MobileParty == service.HostParty);
-                    if (attacker == defender) return;
-                    side = attacker ? BattleSideEnum.Attacker :
-                        BattleSideEnum.Defender;
+                    if (receiptParty != null)
+                        side = BattleSideEnum.Attacker;
+                    else
+                    {
+                        receiptParty = battle.PartiesOnSide(
+                            BattleSideEnum.Defender).FirstOrDefault(p =>
+                                p != null && p.Party != null &&
+                                p.Party.MobileParty == service.HostParty);
+                        if (receiptParty == null) return;
+                        side = BattleSideEnum.Defender;
+                    }
                     source = "ServeAsSoldier";
-                    lordId = service.LordId ?? "";
+                    lordId = service.LordId;
                 }
-                else if (side != BattleSideEnum.Attacker &&
-                         side != BattleSideEnum.Defender)
-                    return;
+                else
+                {
+                    if (side != BattleSideEnum.Attacker &&
+                        side != BattleSideEnum.Defender) return;
+                    receiptParty = battle.PartiesOnSide(side)
+                        .FirstOrDefault(p => p != null &&
+                            p.Party == PartyBase.MainParty);
+                    // A campaign "player event" need not mean our
+                    // controlled party actually suffered casualties.
+                    if (receiptParty == null) return;
+                }
+
+                string patronWitnessId = "";
+                if (source == "PlayerParty" &&
+                    knightOath.HasCurrentOath)
+                {
+                    var patron = KnightOathPatron();
+                    if (patron != null && patron.IsAlive &&
+                        patron.IsActive &&
+                        battle.PartiesOnSide(side).Any(p =>
+                            p != null && p.Party != null &&
+                            p.Party != PartyBase.MainParty &&
+                            p.Party.MobileParty != null &&
+                            p.Party.MobileParty.LeaderHero == patron))
+                        patronWitnessId = patron.StringId;
+                }
 
                 string kind = battle.IsSiegeAssault ? "Siege" :
                     battle.IsRaid ? "Raid" :
@@ -72,8 +117,24 @@ namespace CalradiaUnified
                 string settlement = battle.MapEventSettlement == null ?
                     "" : battle.MapEventSettlement.StringId ?? "";
                 int day = (int)Math.Floor(CampaignTime.Now.ToDays);
-                // Stable canonical key avoids duplicate receipts after
-                // event callback reentry or campaign save/reload.
+
+                // Native MapEventParty rosters count deaths and wounds in
+                // this single party, not the entire army or personal kills.
+                // Refuse estimated numbers when the rosters are absent.
+                int fallen = receiptParty.DiedInBattle == null ? -1 :
+                    receiptParty.DiedInBattle.TotalManCount;
+                int wounded = receiptParty.WoundedInBattle == null ? -1 :
+                    receiptParty.WoundedInBattle.TotalManCount;
+                if ((fallen < 0) != (wounded < 0))
+                {
+                    fallen = -1;
+                    wounded = -1;
+                }
+                string woundedHeroes = fallen < 0 ? "" :
+                    NativeOwnClanHeroIds(receiptParty.WoundedInBattle);
+                string fallenHeroes = fallen < 0 ? "" :
+                    NativeOwnClanHeroIds(receiptParty.DiedInBattle);
+
                 string participants = String.Join(",",
                     parties.Where(p => p != null)
                     .Select(p => p.Id ?? "unknown")
@@ -83,14 +144,21 @@ namespace CalradiaUnified
                     "|" + kind + "|" + settlement + "|" +
                     participants + "|" + source + "|" + lordId;
                 string key = SandboxBattleHistoryState.EventKey(canonical);
-                if (!battleHistory.Record(key, day, kind, outcome,
-                    source, settlement, lordId)) return;
+                if (!battleHistory.RecordObserved(key, day, kind,
+                    outcome, source, settlement, lordId,
+                    patronWitnessId, fallen, wounded,
+                    woundedHeroes, fallenHeroes))
+                    return;
                 DiagnosticJournal.Event("cu_native_battle_witness",
                     "day=" + day + "|kind=" + kind +
                     "|result=" + outcome + "|source=" + source +
                     "|settlement=" + settlement + "|lord=" + lordId +
-                    "|personal_kills_not_claimed=true" +
-                    "|casualty_counts_not_claimed=true");
+                    "|party_fallen=" + fallen +
+                    "|party_wounded=" + wounded +
+                    "|clan_wounded_heroes=" + woundedHeroes +
+                    "|clan_fallen_heroes=" + fallenHeroes +
+                    "|same_side_patron=" + patronWitnessId +
+                    "|personal_kills_not_claimed=true");
             }
             catch (Exception error)
             {
@@ -106,9 +174,11 @@ namespace CalradiaUnified
                 " (last " + SandboxBattleHistoryState.MaxEntries +
                 " retained)\n" +
                 battleHistory.DescribeRecent(5) +
-                "\nThese are party-level outcomes, not proof of " +
-                "personal kills or named casualties. Only the native " +
-                "game and Serve as Soldier grant actual military status.";
+                "\nCasualties are native rosters of the participating " +
+                "player or enlisted host party, not the whole army. " +
+                "Named injuries are verified own-clan Heroes only. " +
+                "No personal kills, cause of injury or political " +
+                "promotion is inferred.";
         }
     }
 }
