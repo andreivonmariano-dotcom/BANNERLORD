@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress latest native noble loop, historical parents and cultural retinue
+        shell: pwsh
+        run: python scripts/test_v069i_two_session_noble_parents_retinue.py
       - name: Simulate active creator controls and hit boxes at three viewports
         shell: pwsh
         run: python scripts/simulate_v069e_creator_hitboxes.py
