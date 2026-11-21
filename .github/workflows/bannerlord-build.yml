@@ -625,6 +625,7 @@ jobs:
           path: |
             BuildResults/native-widget-api-v157.txt
             BuildResults/native-layout-metadata-v157.txt
+            BuildResults/v070y-all-gauntlet-layouts.json
           if-no-files-found: ignore
       - name: Upload Knight native clan API audit
         if: always()
