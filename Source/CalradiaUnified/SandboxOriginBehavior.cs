@@ -95,6 +95,8 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightServiceOrderDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveNativeMilitaryAppointmentsDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKingSuccessionDaily);
@@ -430,6 +432,11 @@ namespace CalradiaUnified
             string bonds=socialBonds.Serialize();
             store.SyncData("CU_v071g_social_bonds",ref bonds);
             socialBonds=SandboxSocialBondState.Parse(bonds);
+            string military=militaryWitness.Serialize();
+            store.SyncData("CU_v071g_native_military_witness",
+                ref military);
+            militaryWitness=SandboxNativeMilitaryWitnessState.Parse(
+                military);
         }
 
         private static void Notify(string text)
