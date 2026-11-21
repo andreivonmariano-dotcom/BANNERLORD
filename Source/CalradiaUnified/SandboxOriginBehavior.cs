@@ -876,7 +876,8 @@ namespace CalradiaUnified
                         roleEconomy.Role,
                         serviceCareer.VerifiedExternalEnlistment,
                         nativeVassal,nativeStart=="mercenary",
-                        inKingdom);
+                        inKingdom,inKingdom &&
+                            clan.Kingdom.RulingClan==clan);
                     string economicChange=roleEconomy.Observe(
                         agencyDecisions.Day,player.Gold,
                         serviceCareer.VerifiedExternalEnlistment?
