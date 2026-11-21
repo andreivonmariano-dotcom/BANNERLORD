@@ -62,9 +62,12 @@ namespace CalradiaUnified
                     return nativeMercenary && nativeKingdom?
                         "NativeMercenaryVerified":"MercenaryUnverified";
                 case "King":
+                    return nativeKingdom && nativeRulingClan?
+                        "NativeRulerStatusVerified":"RulerStatusUnverified";
                 case "Lord":
                 case "Knight":
-                    return nativeVassal && nativeKingdom?
+                    return nativeVassal && nativeKingdom &&
+                        !nativeRulingClan?
                         "NativeNobleServiceVerified":"NobleServiceUnverified";
                 case "Admiral":
                     return nativeKingdom?"NativeFleetContextVerified":
