@@ -30,7 +30,8 @@ namespace CalradiaUnified
             {
                 case "King":return "Court";
                 case "Lord":case "NobleCadet":return "Court";
-                case "Knight":case "Soldier":case "Recruit":
+                case "Knight":case "Soldier":case "Mercenary":
+                case "Recruit":
                 case "HouseholdKnight":case "Admiral":
                     return "Garrison";
                 case "Trader":return "TradingHouse";
@@ -51,7 +52,8 @@ namespace CalradiaUnified
             {
                 case "King":return "Duty";
                 case "Lord":case "NobleCadet":return "Land";
-                case "Knight":case "Soldier":case "Recruit":
+                case "Knight":case "Soldier":case "Mercenary":
+                case "Recruit":
                 case "HouseholdKnight":case "Admiral":
                     return "Recognition";
                 case "Trader":return "Prosperity";
@@ -78,7 +80,8 @@ namespace CalradiaUnified
                 case "HouseholdKnight":return "UnlandedKnightRetainer";
                 case "Recruit":return "ProspectiveEnlistedRecruit";
                 case "Knight":return "LandedKnightVassal";
-                case "Soldier":return "MercenaryCompany";
+                case "Soldier":case "Mercenary":
+                    return "MercenaryCompany";
                 case "Admiral":return "NativeFleetCommander";
                 case "Trader":return "IndependentMerchant";
                 case "Outlaw":return "OutlawBand";
@@ -96,7 +99,8 @@ namespace CalradiaUnified
                 case "HouseholdKnight":return "HouseholdKnightRetainer";
                 case "Recruit":return "EnlistmentApplicant";
                 case "Knight":return "KnightInVassalService";
-                case "Soldier":return "MercenaryCaptain";
+                case "Soldier":case "Mercenary":
+                    return "MercenaryCaptain";
                 case "Admiral":return "FleetCommander";
                 case "Trader":return "Merchant";
                 case "Outlaw":return "Outlaw";
@@ -114,7 +118,8 @@ namespace CalradiaUnified
                 return "RecordedPersonalPatronNoFormalVassalage";
             if(role=="NobleCadet")
                 return "BirthFamilyMembershipWithoutLandGrant";
-            if(role=="Soldier")return "NativeMercenaryContract";
+            if(role=="Soldier" || role=="Mercenary")
+                return "NativeMercenaryContract";
             if(role=="Admiral")return "NativeFleetService";
             if(role=="Trader")return "TradeAndHouseholdDebtsUnmodeled";
             if(role=="Outlaw")return "BandLoyaltyUnmodeled";
