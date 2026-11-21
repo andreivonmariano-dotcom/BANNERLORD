@@ -206,6 +206,48 @@ internal static class Program
                 CUNativeHouseNavigationPolicy.BannerStage) &&
             !CUNativeHouseNavigationPolicy.CanReplayNativeNext(
                 CUNativeHouseNavigationPolicy.ReviewStage));
+        // In a 2026-11-21 real Vlandian session, the chosen native
+        // elder was absent. Early House refusal must not erase spouse,
+        // children and siblings if the player selects Independent instead.
+        Check("younger brother of a lord cannot bind a parentless elder",
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,true,false,
+                true,true,true,false,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,false,true,
+                true,true,true,false,0) &&
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,true,true,
+                true,true,true,false,0));
+        var realSessionHouse=new SandboxOriginProfile();
+        Check("young lord's requested Vlandian household remains editable",
+            realSessionHouse.TrySet("Role","Lord") &&
+            realSessionHouse.TrySet("StartingKingdomId","vlandia") &&
+            realSessionHouse.TrySet(
+                "NobleBirthPosition","YoungerBrotherOfLord") &&
+            realSessionHouse.TrySet("SpouseEnabled","true") &&
+            realSessionHouse.TrySet("SpouseAge","38") &&
+            realSessionHouse.TrySet("ChildCount","2") &&
+            realSessionHouse.TrySet("Child.1.Age","9") &&
+            realSessionHouse.TrySet("Child.2.Age","7") &&
+            realSessionHouse.TrySet("SiblingCount","2"));
+        var recoverableHouse=SandboxOriginProfile.Parse(
+            realSessionHouse.Serialize());
+        Check("correcting unsupported noble birth retains whole family",
+            recoverableHouse.TrySet(
+                "NobleBirthPosition","Independent") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                recoverableHouse.NobleBirthPosition,
+                recoverableHouse.Role) &&
+            recoverableHouse.SpouseEnabled &&
+            recoverableHouse.SpouseAge==38 &&
+            recoverableHouse.ChildCount==2 &&
+            recoverableHouse.Children[0].Age==9 &&
+            recoverableHouse.Children[1].Age==7 &&
+            recoverableHouse.SiblingCount==2 &&
+            recoverableHouse.StartingKingdomId=="vlandia" &&
+            SandboxOriginProfile.Parse(recoverableHouse.Serialize())
+                .Serialize()==recoverableHouse.Serialize());
         Check("younger brother of a king requires real old king lineage",
             SandboxNobleStartPolicy.CanBindElder(
                 "YoungerBrotherOfKing","Lord",false,true,true,
