@@ -173,9 +173,11 @@ namespace CalradiaUnified
         {
             var player=Hero.MainHero;
             var actor=RequestedCharacter();
-            if(player==null || actor==null)
+            if(player==null || actor==null ||
+                Hero.OneToOneConversationHero!=actor)
             {
-                Notify("That person is not physically available here.");
+                Notify("Speak with the person directly to answer "+
+                    "their petition. No remote decision was made.");
                 return;
             }
             string kind=agencyDecisions.PendingKind;
@@ -249,7 +251,9 @@ namespace CalradiaUnified
                 }
             }
             int relationAfter=player.GetRelation(actor);
-            bool relationProof=SandboxNativeEffectProof.RelationConfirmed(
+            bool exactRelation=SandboxNativeEffectProof.RelationConfirmed(
+                relationBefore,relationAfter,requestedRelation);
+            bool relationProof=SandboxNativeEffectProof.RelationDirectionObserved(
                 relationBefore,relationAfter,requestedRelation);
             int actualRelation=SandboxNativeEffectProof.ObservedDelta(
                 relationBefore,relationAfter);
@@ -266,13 +270,15 @@ namespace CalradiaUnified
                 "|relation_before="+relationBefore+
                 "|relation_after="+relationAfter+
                 "|actual_relation_delta="+actualRelation+
-                "|relation_confirmed="+relationProof);
+                "|relation_confirmed="+relationProof+
+                "|relation_exact="+exactRelation);
             DiagnosticJournal.Event("cu_character_request_resolved",
                 "actor="+actor.StringId+
                 "|choice="+(accept?"accepted":"declined")+
                 "|type="+kind+
                 "|gift_proof="+giftProof+
                 "|relation_proof="+relationProof+
+                "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
             // A confirmed payment must never be duplicated if a following
             // native relation action fails. The choice is terminal.
@@ -280,10 +286,15 @@ namespace CalradiaUnified
                 (accept?"Accepted":"Declined"):
                 "NativeRelationUnverified");
             Notify(actor.Name.ToString()+": "+
-                (relationProof?"the native relationship was verified.":
-                "the intended relation change was not verified.")+
+                (relationProof?
+                    (actualRelation>0?
+                        "your standing has improved.":
+                        actualRelation<0?
+                        "your standing has declined.":
+                        "your answer has been recorded."):
+                    "the change in standing could not be confirmed.")+
                 (giftProof=="confirmed"?
-                    " Both native gold balances confirmed the gift.":""));
+                    " The promised denars were transferred.":""));
         }
         private Clan RecordedBirthClan()
         {
