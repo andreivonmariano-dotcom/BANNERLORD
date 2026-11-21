@@ -33,6 +33,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxOutlawBandPolicy.cs" Link="SandboxOutlawBandPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSoldierEnlistmentPolicy.cs" Link="SandboxSoldierEnlistmentPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightStartPolicy.cs" Link="SandboxKnightStartPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxNativeNobleHandoffPolicy.cs" Link="SandboxNativeNobleHandoffPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxLordStartPolicy.cs" Link="SandboxLordStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKingStartPolicy.cs" Link="SandboxKingStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKingSuccessionState.cs" Link="SandboxKingSuccessionState.cs" />
