@@ -17,6 +17,22 @@ assert 'LordGuidedStart=false;' in profile
 assert 'case "LordGuidedStart":' in profile
 assert '"LordGuidedStart=" +' in profile
 assert 'if(LordGuidedStart)' in profile
+assert 'SandboxLordStartPolicy.ValidateRequiredFamily(' in profile
+assert 'lord_spouse_required' in policy
+assert 'lord_child_required' in policy
+assert 'native_lord_marriage_missing' in policy
+assert 'native_lord_children_or_parentage_missing' in policy
+assert 'candidate.SpouseEnabled=true;' in creator
+assert 'candidate.ChildCount=Math.Max(1,candidate.ChildCount);' in creator
+assert 'if(!preCampaign && profile.LordGuidedStart &&' in creator
+assert 'VerifyGuidedLordNativeFamily(' in behavior
+nativeFamily=read("SandboxOriginBehavior.LordFamily.cs")
+assert 'spouse.Spouse==player' in nativeFamily
+assert 'child.Mother==mother && child.Father==father' in nativeFamily
+assert 'mother.Children.Contains(child)' in nativeFamily
+assert 'father.Children.Contains(child)' in nativeFamily
+assert 'matchingChildren.Remove(actual);' in nativeFamily
+assert 'SandboxFamilyAgePolicy.MatchesRequestedAge(' in nativeFamily
 assert 'SandboxLordStartPolicy.ValidateRequest(' in profile
 assert 'GuidedNativeType="vassal"' in policy
 assert 'GuidedRetinue="RoleBased"' in policy
