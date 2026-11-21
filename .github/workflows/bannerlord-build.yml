@@ -385,9 +385,9 @@ jobs:
           $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
           foreach ($required in @(
             'Development version: v0.69g',
-            'Windows CI run: 44866582823',
-            '63a82b14bde2ccc07eea9a15a9745aa6ae3693fb',
-            '2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0',
+            'Windows CI run: 44867186334',
+            '8c2382461522907db63d5890e2204864a336e056',
+            'd6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10',
             'Internal Bannerlord manifest version: v0.38.0',
             'game-tested build')) {
             if (-not $listing.Contains($required)) {
