@@ -422,8 +422,10 @@ namespace CalradiaUnified
             if(key=="ScenarioVariant")
                 return profile.StartingScenario=="alternativecalradia";
             if(key=="StartingKingdomId")
-                return SandboxNativeStartOptions.RequiresKingdom(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role)) ||
+                return profile.Role=="Soldier" ||
+                    SandboxNativeStartOptions.RequiresKingdom(
+                        SandboxNativeStartOptions.StartTypeForProfile(
+                            profile)) ||
                     SandboxCustomLifeRolePolicy.NeedsKingdomContext(
                         profile.Role);
             if(key=="FamilyScenario" ||
