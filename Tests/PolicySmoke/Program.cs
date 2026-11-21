@@ -282,6 +282,89 @@ internal static class Program
         guidedOutlaw.ResetForNewCampaign();
         Check("Outlaw starter grants do not bleed into next campaign",
             !guidedOutlaw.OutlawGuidedStart);
+        var guidedMercenary=new SandboxOriginProfile();
+        Check("Mercenary is distinct from the legacy Soldier start",
+            guidedMercenary.TrySet("Role","Mercenary") &&
+            guidedMercenary.TrySet("MercenaryGuidedStart","true") &&
+            guidedMercenary.TrySet("StartingKingdomId","vlandia") &&
+            guidedMercenary.TrySet("RetinueMode","FamilyOnly") &&
+            guidedMercenary.TrySet("FamilyHomeMode","None") &&
+            guidedMercenary.IsValid(30,out _) &&
+            SandboxRoleConsistencyPolicy.NativeType("Mercenary")==
+                "mercenary" &&
+            SandboxRoleConsistencyPolicy.NativeType("Soldier")==
+                "mercenary" &&
+            !SandboxServicePolicy.NeedsPatron("Mercenary") &&
+            SandboxServicePolicy.DefaultRetinue("Mercenary")==
+                "FamilyOnly" &&
+            SandboxStartingLifePolicy.Station(
+                "Mercenary","Independent")=="MercenaryCompany");
+        Check("new mercenary role requires native paid-company standing",
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                false,0)=="" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",false,true,true,
+                false,0)=="native_mercenary_contract_missing" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","sturgia",true,true,true,
+                false,0)=="native_contract_kingdom_mismatch" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","",true,true,true,
+                false,0)=="native_kingdom_missing" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","","vlandia",true,true,true,
+                false,0)=="contract_kingdom_missing");
+        Check("native mercenary cannot claim lordship or foreign command",
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                false,1)=="mercenary_land_or_rulership_invalid" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                true,0)=="mercenary_land_or_rulership_invalid" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,false,true,
+                false,0)=="player_does_not_lead_company_clan" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,false,
+                false,0)=="player_not_leading_independent_party" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Soldier","vlandia","vlandia",true,true,true,
+                false,0)=="not_guided_mercenary");
+        Check("mercenary spouse remains optional without an owned home",
+            guidedMercenary.TrySet("SpouseEnabled","true") &&
+            guidedMercenary.IsValid(40,out _) &&
+            guidedMercenary.TrySet("FamilyHomeMode","OwnedFief") &&
+            !guidedMercenary.IsValid(40,out _) &&
+            guidedMercenary.TrySet("FamilyHomeMode","None") &&
+            guidedMercenary.TrySet("SpouseEnabled","false") &&
+            guidedMercenary.IsValid(40,out _));
+        Check("mercenary rejects free troops, personal stipend and fief",
+            guidedMercenary.TrySet("Troops","4") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Troops","0") &&
+            guidedMercenary.TrySet("Gold","2000") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Gold","-1") &&
+            guidedMercenary.TrySet("Influence","10") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Influence","-1") &&
+            guidedMercenary.TrySet("StartingFiefMode","Castle") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("StartingFiefMode","Native") &&
+            guidedMercenary.IsValid(30,out _));
+        Check("mercenary profile flag persists without changing native role",
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .MercenaryGuidedStart &&
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .Role=="Mercenary" &&
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .StartingKingdomId=="vlandia");
+        guidedMercenary.ResetForNewCampaign();
+        Check("new-game reset clears mercenary grant flag",
+            !guidedMercenary.MercenaryGuidedStart &&
+            !guidedMercenary.OutlawGuidedStart &&
+            !guidedMercenary.WandererNoHouseStart);
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
