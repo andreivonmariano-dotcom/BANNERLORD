@@ -1707,6 +1707,43 @@ namespace CalradiaUnified
                     patron==null)
                     failures=failures.Concat(new[]{
                         "commanding_lord_not_bound"}).ToArray();
+                // Re-check native paid-company status after the marriage,
+                // companion dismissal and resource stages. The contract is
+                // not the same as a personal NPC-party enlisted rank.
+                string mercenaryReceipt="not_requested";
+                if(profile.MercenaryGuidedStart)
+                {
+                    mercenaryReceipt=SandboxMercenaryStartPolicy.Validate(
+                        profile.Role,profile.StartingKingdomId,
+                        observedKingdom==null?"":observedKingdom.StringId,
+                        observedClan.IsUnderMercenaryService,
+                        observedClan.Leader==hero,
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==hero,
+                        observedKingdom!=null &&
+                            observedKingdom.RulingClan==observedClan,
+                        observedClan.Settlements==null?
+                            0:observedClan.Settlements.Count);
+                    if(mercenaryReceipt.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_mercenary_contract_unverified:"+
+                                mercenaryReceipt}).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_mercenary_company_native_verification",
+                        "result="+(mercenaryReceipt.Length==0?"PASS":"FAIL")+
+                        "|reason="+mercenaryReceipt+
+                        "|employer="+(observedKingdom==null?
+                            "none":observedKingdom.StringId)+
+                        "|true_native_mercenary="+
+                            observedClan.IsUnderMercenaryService+
+                        "|player_clan_head="+
+                            (observedClan.Leader==hero)+
+                        "|self_led_party="+(
+                            MobileParty.MainParty!=null &&
+                            MobileParty.MainParty.LeaderHero==hero)+
+                        "|salary_and_term_owned_by_native=true"+
+                        "|not_enlisted_in_foreign_party=true");
+                }
                 if(profile.RetinueMode=="FamilyOnly" &&
                     (profile.WandererNoHouseStart && profile.Role=="Wanderer" ?
                         (profile.WandererCompanionEnabled ?
@@ -1740,6 +1777,7 @@ namespace CalradiaUnified
                     "|wanderer_companion="+wandererCompanionResult+
                     "|wanderer_companion_id="+wandererCompanionId+
                     "|outlaw_band="+outlawBand+
+                    "|mercenary_receipt="+mercenaryReceipt+
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
                 {
