@@ -156,8 +156,26 @@ namespace CalradiaUnified
                     bool sameRealParty=day%180<125;
                     int award=agenda.ObserveComradeship(siblingId,
                         sameRealParty,true,true,relation);
-                    relation+=award;
-                    result.ComradeshipAwards+=award;
+                    if(award>0)
+                    {
+                        // A rejected native change must not use one
+                        // of the five lifetime sibling awards.
+                        bool nativeAccepted=day%180!=29;
+                        int beforeAwards=agenda.Get(siblingId)
+                            .ComradeshipAwards;
+                        bool recorded=agenda.ConfirmComradeshipAward(
+                            siblingId,relation,
+                            relation+(nativeAccepted?award:0));
+                        Require(result,recorded==nativeAccepted &&
+                            agenda.Get(siblingId).ComradeshipAwards==
+                                beforeAwards+(recorded?1:0),
+                            "failed relation action spent an award");
+                        if(recorded)
+                        {
+                            relation+=award;
+                            result.ComradeshipAwards+=award;
+                        }
+                    }
                     Require(result,award<=1 && relation<=15 &&
                         agenda.Get(siblingId).ComradeshipAwards<=5,
                         "unbounded family relation reward");
