@@ -36,22 +36,45 @@ namespace CalradiaUnified
             return "";
         }
 
+        /// <summary>
+        /// Only accept the COMPLETE, structured success receipt emitted by
+        /// SandboxCulturalRetinue. A prefix match is not proof of native
+        /// companion registration and could release later starting grants.
+        /// </summary>
         public static bool RetinueReadyForOtherGrants(
             string mode,string observedResult)
         {
             if(mode=="Native")
                 return observedResult=="native_companions_preserved";
+            if(mode!="FamilyOnly" && mode!="RoleBased" &&
+                mode!="ReplaceNative")
+                return false;
+            if(String.IsNullOrEmpty(observedResult))return false;
+
+            string[] parts=observedResult.Split('|');
+            if(parts.Length!=3)return false;
+            const string officerPrefix="officers=";
+            const string dismissedPrefix="native_companions_dismissed=";
+            if(!parts[0].StartsWith(officerPrefix,StringComparison.Ordinal) ||
+                !parts[1].StartsWith(dismissedPrefix,
+                    StringComparison.Ordinal))
+                return false;
+            int officers,dismissed;
+            if(!Int32.TryParse(parts[0].Substring(officerPrefix.Length),
+                    out officers) ||
+                !Int32.TryParse(parts[1].Substring(dismissedPrefix.Length),
+                    out dismissed) ||
+                dismissed<0 || dismissed>1)
+                return false;
+
             if(mode=="FamilyOnly")
-                return observedResult!=null &&
-                    observedResult.StartsWith("officers=0|",
-                        StringComparison.Ordinal);
-            if(mode=="RoleBased" || mode=="ReplaceNative")
-                return observedResult!=null &&
-                    observedResult.StartsWith("officers=",
-                        StringComparison.Ordinal) &&
-                    !observedResult.StartsWith("officers=0|",
-                        StringComparison.Ordinal);
-            return false;
+                return officers==0 && parts[2]=="family_only=true";
+
+            // The actual native retinue factory returns the full receipt
+            // only after all new officers were registered in the party,
+            // and the selected native companion was dismissed, if needed.
+            return officers>0 && officers<=16 &&
+                parts[2]=="same_culture=true";
         }
 
         public static string[] Validate(
