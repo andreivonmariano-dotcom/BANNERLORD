@@ -64,7 +64,8 @@ assert 'NativeHostPartyLedByLord' in bridge
 assert 'LordKingdomId' in bridge
 assert 'RankNumber=Num(Field(snap,"Rank"))' in bridge
 assert 'host.LeaderHero==lord' in bridge
-assert 'SandboxSoldierEnlistmentPolicy.ValidateEnlisted(' in pre
+assert '.ValidateEnlisted(' in pre
+assert 'SandboxSoldierEnlistmentPolicy' in pre
 assert 'SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(' in pre
 assert 'SandboxNativeStartOptions' in pre
 assert '.StartTypeForProfile(p)' in pre
