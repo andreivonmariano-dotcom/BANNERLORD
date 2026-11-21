@@ -55,7 +55,8 @@ assert '"Confirm","Cancel"' in menu
 assert 'ScreenManager.PushScreen' not in menu
 assert 'Gauntlet' not in menu
 assert '"CU: Review my service, relatives and recorded history"' not in behavior
-assert 'SandboxAgencyDecisionPolicy.Choose(' in menu
+assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in menu
+assert 'SandboxAgencyDecisionPolicy.Choose(' in policy
 assert 'SamePlace(player,hero)' in menu
 assert 'other.StayingInSettlement==settlement' in menu
 assert "other.HomeSettlement==settlement" not in menu
@@ -72,6 +73,7 @@ assert 'SandboxInheritanceNegotiationPolicy.TransferGate(' in menu
 assert 'ChangeOwnerOfSettlementAction.ApplyByDefault(' in menu
 assert 'bool confirmed=estate.OwnerClan==Clan.PlayerClan' in menu
 assert 'inheritanceNegotiation.Complete(confirmed)' in menu
+assert '!inheritanceNegotiation.NativeHeadConsentObserved' in menu
 assert 'if(!CanConfirmFamilyGrant())' in menu
 assert 'current==primary?null:current' in menu
 assert 'Clan.PlayerClan.Kingdom==clan.Kingdom' in menu
