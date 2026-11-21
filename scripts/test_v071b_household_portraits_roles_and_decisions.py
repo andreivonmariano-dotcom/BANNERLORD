@@ -61,7 +61,7 @@ assert 'ReviewDossierCalling' in house
 assert 'RoleActionLabel' in screen
 assert 'ExecuteRoleAction()' in screen
 assert 'clan.IsUnderMercenaryService' in house
-assert 'serviceCareer.VerifiedExternalEnlistment' in house
+assert 'VerifiedExternalEnlistment' in house
 assert 'knightOath.LastMusterDay<0' in house
 assert 'royalCouncil.IsRecorded' in house
 assert 'lordInheritance.PrimaryHeirId' in house
