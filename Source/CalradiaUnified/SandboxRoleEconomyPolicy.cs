@@ -61,6 +61,9 @@ namespace CalradiaUnified
                 case "Recruit":
                     return verifiedEnlisted?"ExternalEnlistmentVerified":
                         "EnlistmentNotVerified";
+                case "EnlistedSoldier":
+                    return verifiedEnlisted?"ExternalEnlistmentVerified":
+                        "EnlistedRankNotVerified";
                 case "HouseholdKnight":
                     return verifiedEnlisted?"ExternalServiceVerified":
                         "PersonalPatronNotFormalEmployment";
