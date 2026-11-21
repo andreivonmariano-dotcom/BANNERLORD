@@ -48,6 +48,68 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
+        var guardState=new SandboxKingsguardState();
+        Check("Kingsguard actual royal identity required before recording",
+            guardState.Begin("vlandia","sargot","king","guard",
+                "marshal","minister",100)==
+                    "native_kingsguard_commissioned" &&
+            guardState.IsRecorded &&
+            guardState.RoyalSeatId=="sargot" &&
+            guardState.CommanderId=="guard" &&
+            guardState.Begin("vlandia","another","king","guard",
+                "marshal","minister",101)=="already_commissioned");
+        Check("Kingsguard cannot accept decorative duplicate court Heroes",
+            new SandboxKingsguardState().Begin("vlandia",
+                "sargot","king","king","marshal","minister",100)==
+                    "native_royal_identity_unverified");
+        Check("Kingsguard can only recruit actual elite armed garrison",
+            SandboxKingsguardState.CanRecruit(
+                3,0,0,15,true,5)==2 &&
+            SandboxKingsguardState.CanRecruit(
+                1,0,0,15,true,4)==1 &&
+            SandboxKingsguardState.CanRecruit(
+                3,0,0,15,false,5)==0 &&
+            SandboxKingsguardState.CanRecruit(
+                3,0,0,15,true,2)==0 &&
+            SandboxKingsguardState.CanRecruit(
+                3,0,0,0,true,5)==0 &&
+            SandboxKingsguardState.CanRecruit(
+                3,0,SandboxKingsguardState.MaxGuard,15,
+                true,5)==0);
+        Check("Kingsguard no troop spawn; native garrison and party balanced",
+            guardState.RecordNativeTransfer("vlandian_guard",2,
+                8,6,0,2,101)=="native_guard_recruitment_verified" &&
+            guardState.TroopId=="vlandian_guard" &&
+            guardState.DesignatedCount==2 &&
+            guardState.RecruitmentActions==1 &&
+            guardState.RecordNativeTransfer("vlandian_guard",2,
+                6,6,2,4,102)=="native_troop_transfer_not_verified" &&
+            guardState.DesignatedCount==2);
+        Check("Kingsguard cannot switch identity to another troop type",
+            guardState.RecordNativeTransfer("battanian_guard",2,
+                6,4,2,4,102)=="native_troop_transfer_not_verified");
+        Check("Kingsguard native casualties shrink real troop designation",
+            guardState.Reconcile(1,103)==
+                "native_guard_casualties_observed" &&
+            guardState.DesignatedCount==1 &&
+            guardState.Reconcile(1,103)==
+                "native_guard_roster_unchanged");
+        Check("Kingsguard original native kits and save IDs survive parse",
+            SandboxKingsguardState.Parse(guardState.Serialize())
+                .Serialize()==guardState.Serialize() &&
+            SandboxKingsguardState.Parse(guardState.Serialize())
+                .CommanderId=="guard" &&
+            SandboxKingsguardState.Parse(guardState.Serialize())
+                .TroopId=="vlandian_guard");
+        Check("Kingsguard strict native save boundary",
+            !SandboxKingsguardState.Parse(
+                "CU_KINGS_GUARD_1\ninvalid").IsRecorded &&
+            !SandboxKingsguardState.Parse(
+                guardState.Serialize()+"|surplus").IsRecorded &&
+            guardState.Reconcile(-1,104)==
+                "invalid_native_roster_observation" &&
+            guardState.Reconcile(0,90)==
+                "invalid_native_roster_observation");
         Check("guided King requires exact native crown and player clan",
             SandboxKingStartPolicy.ValidateNativeCrown(
                 "king","vlandia","vlandia",
