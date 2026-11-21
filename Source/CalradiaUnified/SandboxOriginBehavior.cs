@@ -1128,8 +1128,8 @@ namespace CalradiaUnified
 
             // Commit the one-shot barrier before any resources are changed.
             // Save/load or partial action failure must not duplicate grants.
-            applied=true;
-            startedNewGame=false;
+            applied = true;
+            startedNewGame = false;
             soldierPendingStartSaved=false;
             soldierPendingOriginProfile="";
             if (SandboxCreatorOverlay.BlockNewGameProfile)
