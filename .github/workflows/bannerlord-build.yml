@@ -428,6 +428,15 @@ jobs:
           $native = Join-Path $fake "Modules/Native"
           New-Item -ItemType Directory -Force -Path $native | Out-Null
           '<Module><Id value="Native"/></Module>' | Set-Content -LiteralPath (Join-Path $native "SubModule.xml")
+          # Synthetic dependencies for installer contract testing only.
+          # Do not interpret these as real BUTR runtime loading.
+          foreach ($dependency in @('Bannerlord.Harmony','Bannerlord.ButterLib',
+                  'Bannerlord.UIExtenderEx','Bannerlord.MBOptionScreen')) {
+            $target = Join-Path $fake ("Modules/" + $dependency)
+            New-Item -ItemType Directory -Force -Path $target | Out-Null
+            ('<Module><Id value="' + $dependency + '"/></Module>') |
+              Set-Content -LiteralPath (Join-Path $target "SubModule.xml")
+          }
           $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
           Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.38.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer
