@@ -41,11 +41,11 @@ namespace CalradiaUnified
             catch{return "";}
         }
         private static string ObservedStatus(bool founderAlive,
-            bool sameRulingHouse,string currentRuler,
+            bool sameRulingHouse,string founderId,string currentRuler,
             SandboxLordSuccessionPolicy.Candidate heir)
         {
             if(founderAlive)
-                return sameRulingHouse && currentRuler.Length>0 ?
+                return sameRulingHouse && currentRuler==founderId ?
                     (heir==null?"NativeReignNoChildClaim":
                      "NativeReignHouseholdClaimOnly"):
                     "NativeRulershipChangedDuringFounderLife";
@@ -71,7 +71,7 @@ namespace CalradiaUnified
             ActualRulerId=founder;ActualRulingClanId=rulingClan;
             RankedHeirIds=String.Join(",",ranked.Select(c=>c.Id));
             PreferredHeirId=ranked.Length>0?ranked[0].Id:"";
-            Status=ObservedStatus(true,true,founder,
+            Status=ObservedStatus(true,true,founder,founder,
                 ranked.Length>0?ranked[0]:null);
             LastObservedDay=day;
             return "native_royal_household_recorded";
@@ -90,8 +90,8 @@ namespace CalradiaUnified
             var next=ranked.Length>0?ranked[0].Id:"";
             var all=String.Join(",",ranked.Select(c=>c.Id));
             var status=ObservedStatus(founderAlive,
-                observedRulingClan==RulingClanId,observedRuler,
-                ranked.Length>0?ranked[0]:null);
+                observedRulingClan==RulingClanId,FounderId,
+                observedRuler,ranked.Length>0?ranked[0]:null);
             bool change=next!=PreferredHeirId ||
                 all!=RankedHeirIds ||
                 observedRulingClan!=ActualRulingClanId ||
