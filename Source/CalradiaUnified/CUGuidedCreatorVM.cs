@@ -80,6 +80,11 @@ namespace CalradiaUnified
                     profile.SpouseEnabled=true;
                     profile.ChildCount=Math.Max(1,profile.ChildCount);
                 }
+                if(profile.KingGuidedStart)
+                {
+                    profile.SpouseEnabled=true;
+                    profile.ChildCount=Math.Max(1,profile.ChildCount);
+                }
                 if(!profile.AutoHouseNamesPrepared)
                 {
                     var hero=Hero.MainHero;
@@ -283,7 +288,7 @@ namespace CalradiaUnified
                     "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseEnabled",
                     "Begin married?",
-                    "Lord: a real spouse is mandatory. Other paths may opt out.",
+                    "Royal King and Lord: a real spouse is mandatory. Other paths may opt out.",
                     "boolean"));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","FamilyScenario",
                     "Household story",
@@ -291,8 +296,9 @@ namespace CalradiaUnified
                     choices:SandboxFamilyDevelopmentPolicy.Scenarios,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseName",
                     "Spouse name","Name your generated native spouse. "+
-                    "A Lord requires a spouse.","text",
-                    advanced:!profile.LordGuidedStart));
+                    "A King or Lord requires a spouse.","text",
+                    advanced:!(profile.LordGuidedStart ||
+                        profile.KingGuidedStart)));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseAge",
                     "Spouse age","Ages must permit the selected children.",
                     "number",min:18,max:70,advanced:true));
@@ -316,9 +322,10 @@ namespace CalradiaUnified
                         "empire","aserai","khuzait"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","ChildCount",
                     "Starting children",
-                    "A Lord requires at least one genuine child. "+
-                    "Parent ages and real family links are checked.",
-                    "number",min:profile.LordGuidedStart?1:0,max:6));
+                    "A King or Lord requires at least one genuine "+
+                    "child. Native parent links are checked.",
+                    "number",min:(profile.LordGuidedStart ||
+                        profile.KingGuidedStart)?1:0,max:6));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "KingSuccessionRule","Royal household heir ranking",
                     "EldestChild ranks verified living children by birth "+
@@ -339,7 +346,8 @@ namespace CalradiaUnified
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Name","Child "+i+" | Name",
                         "Give this child a real native Hero name.","text",
-                        advanced:!(profile.LordGuidedStart && i==1)));
+                        advanced:!((profile.LordGuidedStart ||
+                            profile.KingGuidedStart) && i==1)));
                     list.Add(new Field("CHAPTER III | YOUR HOUSE",
                         prefix+"Age","Child "+i+" | Age",
                         "Choose a permitted age. The limit adjusts to both parents.",
@@ -423,6 +431,8 @@ namespace CalradiaUnified
             if(key=="EarlyHousehold" && preCampaign &&
                 profile.Role=="Wanderer")return false;
             if(!preCampaign && profile.LordGuidedStart &&
+                key=="SpouseEnabled")return false;
+            if(!preCampaign && profile.KingGuidedStart &&
                 key=="SpouseEnabled")return false;
             if(key=="KingSuccessionRule")
                 return !preCampaign && profile.KingGuidedStart;
@@ -692,6 +702,19 @@ namespace CalradiaUnified
                     "birth clan. Select a genuine noble origin.");
                 return false;
             }
+            if(!preCampaign && copy.KingGuidedStart &&
+                (key=="SpouseEnabled" || key=="ChildCount"))
+            {
+                string required=SandboxKingStartPolicy
+                    .ValidateRequiredRoyalFamily(
+                        copy.SpouseEnabled,copy.ChildCount);
+                if(required.Length>0)
+                {
+                    Report("Royal household requires a real spouse "+
+                        "and at least one native child.");
+                    return false;
+                }
+            }
             if(!preCampaign && copy.LordGuidedStart &&
                 (key=="SpouseEnabled" || key=="ChildCount"))
             {
@@ -927,6 +950,10 @@ namespace CalradiaUnified
             candidate.KingGuidedStart=candidate.Role=="King";
             if(candidate.KingGuidedStart)
             {
+                candidate.SpouseEnabled=true;
+                candidate.ChildCount=Math.Max(1,candidate.ChildCount);
+                candidate.SpouseBackground="NobleRandom";
+                candidate.SpouseBirthClanId="";
                 candidate.RoleAffiliationsEnabled=false;
                 candidate.NobleBirthPosition="Independent";
                 candidate.NobleElderHeroId="";
@@ -1127,6 +1154,18 @@ namespace CalradiaUnified
             candidate.RealFamilyEnabled=candidate.SpouseEnabled ||
                 candidate.ChildCount>0 || candidate.SiblingCount>0;
             string error;
+            if(candidate.KingGuidedStart)
+            {
+                string required=SandboxKingStartPolicy
+                    .ValidateRequiredRoyalFamily(
+                        candidate.SpouseEnabled,candidate.ChildCount);
+                if(required.Length>0)
+                {
+                    Report("Royal family requires marriage and at "+
+                        "least one genuine native child.");
+                    return;
+                }
+            }
             if(candidate.LordGuidedStart)
             {
                 string required=SandboxLordStartPolicy.ValidateRequiredFamily(
@@ -1305,7 +1344,10 @@ namespace CalradiaUnified
                         (profile.NobleBirthPosition=="Independent"?"":" "+
                         projectedElderName);
                 if(!preCampaign && Current.Key=="ChildCount")
-                    return (profile.LordGuidedStart?
+                    return (profile.KingGuidedStart?
+                        "King requires a spouse and at least one "+
+                        "genuine child. ":
+                        profile.LordGuidedStart?
                         "Lord requires one or more genuine children. ":
                         "")+"Suggested children: "+
                         (profile.ChildCount==0?"none":String.Join(", ",
@@ -1477,9 +1519,11 @@ namespace CalradiaUnified
                         "and main party. At least one real native fief."+
                         "\nNo invented crown, fief grant, treasury, "+
                         "royal stipend or free army."+
-                        "\nTwo native same-culture court Heroes: Marshal "+
-                        "and Chamberlain. Official command stays native."+
-                        "\nSpouse, children and siblings optional."+
+                        "\nThree same-culture Heroes: Marshal and "+
+                        "Kingsguard travel with the King. Royal Minister "+
+                        "governs a genuine vacant native royal fief."+
+                        "\nSpouse and at least one child required. "+
+                        "Siblings remain optional."+
                         "\nNo older brother in an uncontested founding house."+
                         "\nRoyal heir ranking is a saved family custom, "+
                         "not a native kingship transfer or regency.";
