@@ -101,9 +101,9 @@
               PositionXOffset="24" PositionYOffset="502"
               Command.Click="ExecuteEditSpouse"
               IsSelected="@IsSpouseTarget"
-              IsVisible="@IsStatsPage">
+              IsVisible="@IsSecondaryStatsTargetVisible">
               <Children><TextWidget Brush.FontSize="15"
-                Text="Edit your spouse"
+                Text="@SecondaryStatsTargetLabel"
                 Color="#F6E4C4FF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"
