@@ -11,6 +11,99 @@ namespace CalradiaUnified
         private SandboxKnightServiceOrderState knightServiceOrders=
             new SandboxKnightServiceOrderState();
 
+        private string KnightVerifiedStanding()
+        {
+            var patron=KnightOathPatron();
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            if(patron==null || player==null || clan==null)
+                return "Unverified sworn service";
+            return SandboxKnightStandingPolicy.Standing(
+                player.GetRelation(patron),clan.Renown,
+                knightServiceOrders.CompletedOrders,
+                knightEscort.CompletedEscorts);
+        }
+        private bool KnightCanAskRecommendation()
+        {
+            var player=Hero.MainHero;
+            var patron=KnightOathPatron();
+            var clan=Clan.PlayerClan;
+            return SpeakingWithSwornPatron() &&
+                knightOath.LastMusterDay>=0 &&
+                player!=null && patron!=null && clan!=null &&
+                patron.Clan!=null &&
+                knightServiceOrders.CanPresentRecommendation(
+                    patron.StringId,CurrentOathDay()) &&
+                SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                    player.GetRelation(patron),clan.Renown,
+                    knightServiceOrders.CompletedOrders,
+                    knightEscort.CompletedEscorts,
+                    patron.Clan.Kingdom!=null,
+                    clan.Kingdom==null);
+        }
+        private void RequestKnightRecommendation()
+        {
+            if(!KnightCanAskRecommendation())return;
+            var patron=KnightOathPatron();
+            if(!knightServiceOrders.RecordRecommendation(
+                patron.StringId,CurrentOathDay()))return;
+            bool favored=KnightOathNativeRelation(patron,1,
+                "cu_knight_service_recommendation_favor");
+            DiagnosticJournal.Event("cu_knight_recommendation",
+                "patron="+patron.StringId+
+                "|native_relations_verified="+favored+
+                "|actual_kingdom_membership_unchanged=true"+
+                "|king_audience_not_yet_held=true");
+        }
+        private bool KnightCanSeekRoyalAudience()
+        {
+            var patron=KnightOathPatron();
+            var clan=Clan.PlayerClan;
+            var lord=Hero.OneToOneConversationHero;
+            if(!applied || !knightOath.HasCurrentOath ||
+                patron==null || patron.Clan==null ||
+                patron.Clan.Kingdom==null || clan==null ||
+                clan.Kingdom!=null ||
+                knightOath.PatronId!=knightServiceOrders.PatronId ||
+                !knightServiceOrders.CanHearKing(CurrentOathDay()))
+                return false;
+            var rulingClan=patron.Clan.Kingdom.RulingClan;
+            return rulingClan!=null && lord!=null &&
+                lord==rulingClan.Leader && lord.IsAlive &&
+                lord.IsActive && !lord.IsPrisoner &&
+                Hero.MainHero!=null;
+        }
+        private void CompleteKnightRoyalAudience()
+        {
+            if(!KnightCanSeekRoyalAudience())return;
+            var king=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            if(!knightServiceOrders.RecordRoyalHearing(
+                CurrentOathDay()))return;
+            int before=player.GetRelation(king);
+            try
+            {
+                TaleWorlds.CampaignSystem.Actions.ChangeRelationAction
+                    .ApplyRelationChangeBetweenHeroes(
+                        player,king,1,false);
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_knight_royal_audience_relation_failed",error);
+            }
+            int after=player.GetRelation(king);
+            DiagnosticJournal.Event("cu_knight_royal_audience",
+                "ruler="+king.StringId+
+                "|relation_before="+before+
+                "|relation_after="+after+
+                "|native_favor_observed="+
+                SandboxNativeEffectProof.RelationDirectionObserved(
+                    before,after,1)+
+                "|kingdom_membership_unchanged=true"+
+                "|no_fief_or_royal_promotion_granted=true");
+        }
+
         private bool KnightCanRequestOrder()
         {
             var patron=KnightOathPatron();
@@ -69,11 +162,11 @@ namespace CalradiaUnified
                 "|patron="+patron.StringId+
                 "|total_completed="+knightServiceOrders.CompletedOrders+
                 "|native_favor_verified="+favor+
-                "|personal_standing="+knightServiceOrders.PersonalStanding()+
+                "|personal_standing="+KnightVerifiedStanding()+
                 "|no_native_kingdom_rank_or_troops=true");
             Notify("Your lord has witnessed this service. "+
                 "Your household standing is now "+
-                knightServiceOrders.PersonalStanding()+".");
+                KnightVerifiedStanding()+".");
         }
         private bool KnightCanScoutCurrentTown()
         {
@@ -205,6 +298,76 @@ namespace CalradiaUnified
                 "earned my greater trust. Keep your "+
                 "household fit for the next duty.",
                 null,null,100);
+
+            starter.AddPlayerLine(
+                "cu_knight_service_review",
+                "cu_knight_patron_options",
+                "cu_knight_service_review_reply",
+                "How stands my household's service in your eyes?",
+                ()=>SpeakingWithSwornPatron() &&
+                    knightOath.LastMusterDay>=0,null,100);
+            starter.AddDialogLine(
+                "cu_knight_review_new",
+                "cu_knight_service_review_reply",
+                "hero_main_options",
+                "You have sworn your sword. Keep faith and "+
+                "show what your household can do.",
+                ()=>KnightVerifiedStanding()=="Newly sworn knight",
+                null,100);
+            starter.AddDialogLine(
+                "cu_knight_review_proven",
+                "cu_knight_service_review_reply",
+                "hero_main_options",
+                "Your proven work has reached my notice. "+
+                "I expect your banner to answer when called.",
+                ()=>KnightVerifiedStanding()=="Proven sworn sword",
+                null,100);
+            starter.AddDialogLine(
+                "cu_knight_review_trusted",
+                "cu_knight_service_review_reply",
+                "hero_main_options",
+                "Your service, conduct and reputation "+
+                "have earned my trust. Continue to serve well.",
+                ()=>KnightVerifiedStanding()=="Trusted household knight",
+                null,100);
+            starter.AddDialogLine(
+                "cu_knight_review_veteran",
+                "cu_knight_service_review_reply",
+                "hero_main_options",
+                "Few have a longer record of dependable "+
+                "service to this house. Your honor is your own.",
+                ()=>KnightVerifiedStanding()=="Veteran retainer",
+                null,100);
+            starter.AddPlayerLine(
+                "cu_knight_request_recommendation",
+                "cu_knight_patron_options",
+                "cu_knight_recommendation_reply",
+                "Would you acknowledge my service before the crown?",
+                ()=>KnightCanAskRecommendation(),
+                ()=>RequestKnightRecommendation(),115);
+            starter.AddDialogLine(
+                "cu_knight_recommendation_reply",
+                "cu_knight_recommendation_reply",
+                "hero_main_options",
+                "Your household has earned a hearing. "+
+                "Seek our ruler in person. I will acknowledge "+
+                "the service you have completed under my banner.",
+                null,null,110);
+            starter.AddPlayerLine(
+                "cu_knight_royal_hearing",
+                "hero_main_options",
+                "cu_knight_royal_hearing_reply",
+                "I seek an audience on the service of my household.",
+                ()=>KnightCanSeekRoyalAudience(),
+                ()=>CompleteKnightRoyalAudience(),110);
+            starter.AddDialogLine(
+                "cu_knight_royal_hearing_reply",
+                "cu_knight_royal_hearing_reply",
+                "hero_main_options",
+                "Your service under your sworn lord has been heard. "+
+                "Any formal entry into this kingdom must follow "+
+                "the law of the crown and its existing clans.",
+                null,null,110);
 
             foreach(var source in new[]{"town"})
                 starter.AddGameMenuOption(source,
