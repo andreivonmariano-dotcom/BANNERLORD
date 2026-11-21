@@ -186,7 +186,7 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
-                    "Wanderer is the native default. Outlaw / Bandit begins independent and landless. Other legacy starts remain available until their own redesign.",
+                    "Wanderer, Outlaw / Bandit and Mercenary are the three reviewed starts. Mercenary serves a chosen kingdom with a real native contract. Other roles remain legacy selections.",
                     choices:SandboxOriginProfile.Roles));
                 // New Wanderer collects its sole companion here, before
                 // the native player stats and appearance sequence. There
@@ -385,6 +385,11 @@ namespace CalradiaUnified
             if(!preCampaign && profile.OutlawGuidedStart &&
                 (key=="RetinueMode" || key=="Influence" ||
                  key=="Troops" ||
+                 key=="FamilyHomeMode" || key=="FamilyHomeId"))
+                return false;
+            if(!preCampaign && profile.MercenaryGuidedStart &&
+                (key=="RetinueMode" || key=="Influence" ||
+                 key=="Gold" || key=="Troops" ||
                  key=="FamilyHomeMode" || key=="FamilyHomeId"))
                 return false;
             if(key=="WandererCompanionEnabled")
@@ -787,6 +792,27 @@ namespace CalradiaUnified
             candidate.RealFamilyEnabled=false;
             candidate.WandererNoHouseStart=candidate.Role=="Wanderer";
             candidate.OutlawGuidedStart=candidate.Role=="Outlaw";
+            candidate.MercenaryGuidedStart=
+                candidate.Role=="Mercenary";
+            if(candidate.MercenaryGuidedStart)
+            {
+                // The actual game Advanced Start creates the kingdom's
+                // paid mercenary contract. Do not invent a personal oath,
+                // officer rank, fief, free roster or regular stipend.
+                candidate.RoleAffiliationsEnabled=false;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.ServicePatronHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.FamilyHomeMode="None";
+                candidate.FamilyHomeId="";
+                candidate.RetinueMode="FamilyOnly";
+                candidate.Gold=-1;
+                candidate.Influence=-1;
+                candidate.Troops=0;
+            }
             if(candidate.OutlawGuidedStart)
             {
                 candidate.StartingKingdomId="";
@@ -829,7 +855,8 @@ namespace CalradiaUnified
             // can request a named Sergeant or retain the native roster.
             candidate.RetinueMode=candidate.WandererNoHouseStart?
                 "FamilyOnly":candidate.OutlawGuidedStart?
-                "RoleBased":SandboxServicePolicy.DefaultRetinue(
+                "RoleBased":candidate.MercenaryGuidedStart?
+                "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
                 candidate.ServicePatronHeroId="";
@@ -867,7 +894,10 @@ namespace CalradiaUnified
                 "|wanderer_no_house="+candidate.WandererNoHouseStart+
                 "|wanderer_companion="+candidate.WandererCompanionEnabled+
                 "|outlaw_guided="+candidate.OutlawGuidedStart+
-                "|outlaw_lieutenant_required="+candidate.OutlawGuidedStart);
+                "|outlaw_lieutenant_required="+candidate.OutlawGuidedStart+
+                "|mercenary_guided="+candidate.MercenaryGuidedStart+
+                "|native_contract_required="+
+                    candidate.MercenaryGuidedStart);
             if(complete!=null)complete();
         }
 
@@ -1076,6 +1106,10 @@ namespace CalradiaUnified
         {
             if(String.IsNullOrEmpty(raw))return "Native default";
             if(key=="Role" && raw=="Outlaw")return "Outlaw / Bandit";
+            if(key=="Role" && raw=="Mercenary")
+                return "Mercenary | contracted company";
+            if(key=="Role" && raw=="Soldier")
+                return "Soldier | legacy mercenary, redesign pending";
             if(key=="NobleBirthPosition")
             {
                 switch(raw)
@@ -1191,6 +1225,16 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Mercenary")
+                    return "Mercenary | paid native company\n"+
+                        "Contract kingdom: "+
+                        (profile.StartingKingdomId.Length==0?
+                            "not selected":profile.StartingKingdomId)+
+                        "\nNo noble rank, fief or NPC-party enlistment"+
+                        "\nExisting native troop payroll and wages apply"+
+                        "\nFamily: optional spouse, children and siblings; "+
+                        "no invented owned residence"+
+                        "\nNative player appearance and stats remain editable.";
                 if(preCampaign && profile.Role=="Outlaw")
                     return "Outlaw / Bandit | native outlaw start\n"+
                         "No kingdom, estate or noble title\n"+
