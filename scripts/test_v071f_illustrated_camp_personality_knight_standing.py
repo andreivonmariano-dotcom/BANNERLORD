@@ -47,7 +47,8 @@ for element in panel.find("Children"):
 commands={w.get("Command.Click") for w in
     x.iter("ButtonWidget") if w.get("Command.Click")}
 assert commands=={"ExecutePeople","ExecuteOfficers","ExecuteLetters",
-                  "ExecuteService","ExecuteInspect","ExecuteClose"}
+                  "ExecuteService","ExecuteChronicle",
+                  "ExecuteInspect","ExecuteClose"}
 attendees=x.find(".//ListPanel[@DataSource='{Attendees}']")
 assert attendees is not None
 assert attendees.find("./ItemTemplate/ButtonWidget[@Command.Click='ExecuteInspect']") is not None
