@@ -53,5 +53,9 @@ assert 'cultural_retinue_not_applied' in bh
 assert 'family_only_retinue_not_applied' in bh
 assert bh.index("SandboxLivingPersons.Capture(") > bh.index(
     'DiagnosticJournal.Event("sandbox_start_contract",')
-assert '"CU: Review my service, relatives and recorded history"' in bh
+# v0.67 groups the old status action under the native People & Lineage menu.
+native_affairs=text("SandboxOriginBehavior.LivingMenus.cs")
+assert '"CU: People & Lineage"' in native_affairs
+assert '"cu_people_household"' in native_affairs
+assert 'RegisterPeopleAndLineageMenus(starter);' in bh
 print("PASS: World visibility, native career tracking, observed social changes, succession interests and no false start PASS (SOURCE ONLY)")
