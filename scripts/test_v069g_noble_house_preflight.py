@@ -116,12 +116,11 @@ assert "FirstOlderBrotherInIndependentLordHouse(" in house
 assert 'field.Key=="Sibling."+olderBrother+".Age"' in house
 assert 'if(siblingStep>=0)cursor=siblingStep;' in house
 assert 'advanced=true;' in house
+# Native defaults already produce younger brothers and older sisters.
+# Do not silently rewrite a custom sibling's sex during auto preparation.
 auto_house = read("SandboxAutoHousePlan.cs")
-assert 'plan.NobleBirthPosition=="Independent"' in auto_house
-assert 'sibling.Gender=="Male" && sibling.Age>founder' in auto_house
-assert 'sibling.Gender="Female";' in auto_house
-assert auto_house.index('sibling.Gender="Female";') < (
-    auto_house.index('bool female=sibling.Gender=="Female";'))
+assert 'bool female=sibling.Gender=="Female";' in auto_house
+assert 'sibling.Gender="Female";' not in auto_house
 
 assert 'An older sister is allowed, but a ' in vm
 assert 'Independent Lord starts cannot include an older brother.' in vm
