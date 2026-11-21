@@ -40,7 +40,13 @@ for key in ("SpouseEnabled","ChildCount","SiblingCount"):
 for key in ("SpouseName","SpouseAge","SpouseGender","SpouseBackground",
             "FamilyScenario","FamilyHomeMode","RetinueMode","Gold","Influence"):
     start=house.index(f'"{key}"')
-    assert 'advanced:true' in house[start:house.index('));',start)],key
+    field=house[start:house.index('));',start)]
+    # The new guided Lord requires a spouse, so the first spouse name
+    # is a normal House step. Older life paths keep this field Advanced.
+    if key=="SpouseName":
+        assert 'advanced:!profile.LordGuidedStart' in field,key
+    else:
+        assert 'advanced:true' in field,key
 for culture in ("vlandia","sturgia","battania","empire","aserai","khuzait"):
     assert f'case "{culture}"' in names,culture
 assert "SandboxCulturalNames.Suggest" in auto
