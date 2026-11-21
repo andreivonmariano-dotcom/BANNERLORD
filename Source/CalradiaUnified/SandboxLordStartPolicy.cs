@@ -68,6 +68,37 @@ namespace CalradiaUnified
             return "";
         }
 
+        public static string ValidateNobleSpouseRequest(
+            string background,string chosenClanId)
+        {
+            if(background!="NobleRandom" && background!="NobleChosen")
+                return "lord_spouse_requires_native_noble_house";
+            if(background=="NobleChosen" &&
+                String.IsNullOrWhiteSpace(chosenClanId))
+                return "lord_named_noble_house_required";
+            return "";
+        }
+
+        public static string ValidateNativeNobleSpouse(
+            bool foreignNativeNobleBirthClan,
+            bool verifiedNativeMarriedParents,
+            bool reciprocalNativeChildReferences,
+            bool spouseNativeOriginClanMatches,
+            bool chosenClanMatches)
+        {
+            if(!foreignNativeNobleBirthClan)
+                return "native_noble_birth_house_missing";
+            if(!verifiedNativeMarriedParents)
+                return "native_noble_married_parents_missing";
+            if(!reciprocalNativeChildReferences)
+                return "native_noble_parentage_unverified";
+            if(!spouseNativeOriginClanMatches)
+                return "native_noble_origin_clan_mismatch";
+            if(!chosenClanMatches)
+                return "native_chosen_noble_house_mismatch";
+            return "";
+        }
+
         public static string ValidateNativeHouse(string nativeType,
             string expectedKingdom,string actualKingdom,
             bool playerLeadsClan,bool playerLeadsParty,
