@@ -93,7 +93,7 @@ assert 'fourth guided start is real soldier' in tests
 assert 'real soldier needs live SaS service' in tests
 assert 'Soldier startup profile flags roundtrip and reset' in tests
 for name in ('Recruit','Sergeant','Captain','SaS','rank','lord',
-             'not a gameplay','source'):
+             'real gameplay','source'):
     assert name.lower() in doc.lower(),name
 print("PASS v0.70g SOURCE: Soldier mapped to independent native start, "
       "true SaS lord/host/rank verification, pending save and native wages. "
