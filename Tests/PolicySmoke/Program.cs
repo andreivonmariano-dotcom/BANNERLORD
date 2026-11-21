@@ -23,6 +23,56 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.71g: observed social bonds and genuine army/vassal status.
+        var nativeBonds=new SandboxSocialBondState();
+        Check("social records reject fictional IDs and invalid deltas",
+            !nativeBonds.RecordPetition("",true,2,1) &&
+            !nativeBonds.RecordPetition("hero_a",true,101,1) &&
+            nativeBonds.RecordPetition("hero_a",true,2,1) &&
+            !nativeBonds.RecordPetition("hero_a",true,2,1));
+        Check("social trust needs repeated help and actual relations",
+            nativeBonds.SocialStanding("hero_a",55)==
+                "Recorded goodwill" &&
+            nativeBonds.RecordPetition("hero_a",true,2,3) &&
+            nativeBonds.SocialStanding("hero_a",55)==
+                "Established goodwill" &&
+            nativeBonds.RecordFollowUp("hero_a",1,10) &&
+            !nativeBonds.RecordFollowUp("hero_a",1,10));
+        Check("native relation alone does not invent a rivalry",
+            nativeBonds.SocialStanding("hero_unknown",-60)==
+                "No petition history recorded");
+        Check("repeated refused petitions and real hostility substantiate grievance",
+            nativeBonds.RecordPetition("hero_b",false,-1,4) &&
+            nativeBonds.RecordPetition("hero_b",false,0,9) &&
+            nativeBonds.SocialStanding("hero_b",-35)==
+                "Repeated grievance" &&
+            nativeBonds.SocialStanding("hero_b",15)==
+                "History recorded, current standing uncertain");
+        Check("social records survive load without extra native actions",
+            SandboxSocialBondState.Parse(nativeBonds.Serialize())
+                .Serialize()==nativeBonds.Serialize() &&
+            SandboxSocialBondState.Parse(
+                nativeBonds.Serialize()+"|forged").People.Count==0);
+        var trueAppointment=new SandboxNativeMilitaryWitnessState();
+        Check("an audience alone never counts as native vassalage",
+            !trueAppointment.Observe(1,"kingdom_1",false,false) &&
+            trueAppointment.VassalDay==-1 &&
+            !trueAppointment.Observe(2,"kingdom_1",false,true));
+        Check("real native vassalage precedes acknowledged army command",
+            trueAppointment.Observe(10,"kingdom_1",true,false) &&
+            !trueAppointment.Observe(11,"kingdom_1",true,false) &&
+            !trueAppointment.Observe(12,"kingdom_2",true,true) &&
+            trueAppointment.Observe(13,"kingdom_1",true,true) &&
+            trueAppointment.VassalDay==10 &&
+            trueAppointment.ArmyCommandDay==13);
+        Check("native appointment receipts persist and reject tampering",
+            SandboxNativeMilitaryWitnessState.Parse(
+                trueAppointment.Serialize()).Serialize()==
+                trueAppointment.Serialize() &&
+            SandboxNativeMilitaryWitnessState.Parse(
+                trueAppointment.Serialize()+"|forged")
+                .VassalDay==-1);
+        
         // v0.71f: native personality and earned political audience.
         Check("reserved petitioners speak from actual low native relation",
             SandboxPetitionVoicePolicy.Style(
