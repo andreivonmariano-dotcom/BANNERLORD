@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress Soldier Recruit Sergeant Captain real native SaS service and pending save
+        shell: pwsh
+        run: python scripts/test_v070g_soldier_native_enlistment.py
       - name: Regress mercenary low-pay consent, protected exit bond and renegotiation
         shell: pwsh
         run: python scripts/test_v070f_mercenary_three_consent_rules.py
