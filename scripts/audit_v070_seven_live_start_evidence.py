@@ -245,6 +245,15 @@ def audit_role(role,rows,evidence_root):
     for filename in ROLE_UI_SCREENSHOTS.get(role,()):
         if not screenshot_ok(evidence_root/filename):
             problems.append("missing_native_ui_"+filename)
+    # Real native BUTR screens must be seen in EACH campaign identity,
+    # not borrowed from a different start or described only by a JSON flag.
+    butr_screens=("clan","party","mcm")
+    if role in ("Lord","King"):
+        butr_screens+=("kingdom",)
+    for screen in butr_screens:
+        filename=role.lower()+"_butr_"+screen+".png"
+        if not screenshot_ok(evidence_root/filename):
+            problems.append("missing_native_ui_"+filename)
     if role in ROLE_UI_SCREENSHOTS:
         for field in ("ui_gauntlet_dossier_after_reload",
                       "ui_gauntlet_dossier_back_escape"):

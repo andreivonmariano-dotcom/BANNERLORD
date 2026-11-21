@@ -137,6 +137,13 @@ with tempfile.TemporaryDirectory() as folder:
             json.dumps(proof_for(role)),encoding="utf-8")
         (native/(role.lower()+".png")).write_bytes(native_png())
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
+    for role in module.ROLES:
+        screens=("clan","party","mcm")
+        if role in ("Lord","King"):
+            screens+=("kingdom",)
+        for screen in screens:
+            (native/(role.lower()+"_butr_"+screen+".png")).write_bytes(
+                native_png())
     for screenshots in module.ROLE_UI_SCREENSHOTS.values():
         for filename in screenshots:
             (native/filename).write_bytes(native_png())
@@ -240,6 +247,11 @@ with tempfile.TemporaryDirectory() as folder:
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
     assert module.audit_role("King",cases+[row("King",
         "exception_detected","context=king_critical")],native)["result"]=="BLOCKED"
+    knight_party=native/"knight_butr_party.png"
+    knight_party.unlink()
+    assert "missing_native_ui_knight_butr_party.png" in (
+        module.audit_role("Knight",cases,native)["missing"])
+    knight_party.write_bytes(native_png())
     king_screens=native/"king_council_ui.png"
     king_screens.unlink()
     assert "missing_native_ui_king_council_ui.png" in (
