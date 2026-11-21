@@ -51,6 +51,6 @@ assert 'observedResult.Split(\'|\')' in contract
 assert 'if(parts.Length!=3)return false' in contract
 assert 'parts[2]=="same_culture=true"' in contract
 assert 'parts[2]=="family_only=true"' in contract
-assert 'dismissed<0 || dismissed>1' in contract
+assert 'dismissed<0 || dismissed>16' in contract
 
 print("PASS v0.69: native start, family, lineage, patron and fief ordered before optional resources (SOURCE ONLY)")
