@@ -158,8 +158,8 @@ namespace CalradiaUnified.AuditSimulator
                 "one original native companion was safely dismissed");
             Require(!SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly",
-                "officers=0|native_companions_dismissed=2|family_only=true"),
-                "multiple original companion dismissals refused");
+                "partial:native_companions_dismissed=2|reason=NativeFireFailed"),
+                "partially completed dismissals never authorize grants");
         }
 
         private static void SimulateNativeEffects(int amount,int gold)
