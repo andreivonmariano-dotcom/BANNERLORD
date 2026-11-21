@@ -852,7 +852,7 @@ internal static class Program
 
         // One game-backed social contract matrix covers every selectable role.
         var auditRoles=new[]{"Wanderer","Outlaw","Mercenary",
-            "Recruit","Soldier","HouseholdKnight","Knight",
+            "Soldier","Recruit","HouseholdKnight","Knight",
             "NobleCadet","Lord","King","Admiral","Trader","Beggar"};
         var auditStarts=new[]{"default","outlaw","mercenary",
             "default","mercenary","default","vassal","default",
