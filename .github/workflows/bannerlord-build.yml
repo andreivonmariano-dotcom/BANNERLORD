@@ -57,6 +57,8 @@ jobs:
         run: python scripts/test_v070n_royal_seat_council_kingsguard.py
       - name: Guard native household screens, readable hero labels and seven-path UI release evidence
         run: python scripts/test_v070s_native_household_integration.py
+      - name: Audit Gauntlet noble dossier and small-screen family gallery layouts
+        run: python scripts/test_v070x_gauntlet_dossier_layout.py
       - name: Audit settlement entry budget and context placement for all starts
         run: python scripts/test_v070v_native_menu_placement.py
       - name: Guard native Lord and King officer garrison orders
