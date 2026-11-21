@@ -369,6 +369,58 @@ internal static class Program
                 .ServicePatronHeroId=="lord_1_1" &&
             SandboxOriginProfile.Parse(nobleProfile.Serialize())
                 .Siblings[1].Gender=="Female");
+        // The real guided creator edits a Serialize/Parse copy on
+        // every field change, then reopens House after a native Back.
+        // Inactive conditional fields must preserve genuine user input.
+        var editedHouse=new SandboxOriginProfile();
+        Check("guided House retains named kin across hidden fields",
+            editedHouse.TrySet("Role","Lord") &&
+            editedHouse.TrySet("SpouseEnabled","true") &&
+            editedHouse.TrySet("SpouseName","Evelyn") &&
+            editedHouse.TrySet("SpouseAge","34") &&
+            editedHouse.TrySet("ChildCount","2") &&
+            editedHouse.TrySet("Child.1.Name","Mira") &&
+            editedHouse.TrySet("Child.1.Age","9") &&
+            editedHouse.TrySet("Child.2.Name","Rowan") &&
+            editedHouse.TrySet("Child.2.Age","11") &&
+            editedHouse.TrySet("SiblingCount","1") &&
+            editedHouse.TrySet("Sibling.1.Name","Elian") &&
+            editedHouse.TrySet("RetinueMode","RoleBased") &&
+            editedHouse.TrySet("Gold","1250"));
+        var hiddenHouse=SandboxOriginProfile.Parse(
+            editedHouse.Serialize());
+        Check("conditional child count hides but never destroys entries",
+            hiddenHouse.TrySet("ChildCount","0") &&
+            hiddenHouse.TrySet("SpouseEnabled","false") &&
+            hiddenHouse.TrySet("SiblingCount","0") &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .Children[0].Name=="Mira" &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .Children[1].Age==11 &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .SpouseName=="Evelyn");
+        var revisitedHouse=SandboxOriginProfile.Parse(
+            hiddenHouse.Serialize());
+        Check("native Review Back reopens preserved House draft",
+            revisitedHouse.TrySet("SpouseEnabled","true") &&
+            revisitedHouse.TrySet("ChildCount","2") &&
+            revisitedHouse.TrySet("SiblingCount","1") &&
+            revisitedHouse.SpouseName=="Evelyn" &&
+            revisitedHouse.SpouseAge==34 &&
+            revisitedHouse.Children[0].Name=="Mira" &&
+            revisitedHouse.Children[0].Age==9 &&
+            revisitedHouse.Children[1].Name=="Rowan" &&
+            revisitedHouse.Children[1].Age==11 &&
+            revisitedHouse.Siblings[0].Name=="Elian" &&
+            revisitedHouse.Gold==1250 &&
+            revisitedHouse.RetinueMode=="RoleBased" &&
+            SandboxOriginProfile.Parse(revisitedHouse.Serialize())
+                .Serialize()==revisitedHouse.Serialize());
+        Check("invalid House input never changes saved selection",
+            !revisitedHouse.TrySet("Child.1.Age","999") &&
+            revisitedHouse.Children[0].Age==9 &&
+            !revisitedHouse.TrySet("SpouseName","Invalid123") &&
+            revisitedHouse.SpouseName=="Evelyn");
         Check("unsafe invented royal identity rejected in profile",
             !nobleProfile.TrySet("NobleBirthPosition","FakeRoyal") &&
             !nobleProfile.TrySet("RetinueMode","RandomWanderers") &&
@@ -769,6 +821,37 @@ internal static class Program
                 "HouseholdAid",true,100,true) &&
             SandboxAgencyDecisionPolicy.RelationDelta(
                 "HouseholdAid",false)==-1);
+        Check("saved NPC invitation requires the matching quota record",
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|phantom|HouseholdAid|15")
+                .HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
+                "\\nR|sister|15|1").HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
+                "\\nR|brother|14|1").HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
+                "\\nR|brother|15|0").HasPending);
+        Check("invalid saved request timestamps cannot bypass quotas",
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
+                "\\nR|brother|-2147483648|1").HasPending &&
+            SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n15|brother|HouseholdAid|15"+
+                "\\nR|brother|-2147483648|1").Records.Count==0 &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\\n50|brother|HouseholdAid|15"+
+                "\\nR|brother|15|1").HasPending);
+        var nearMaxNpcDay=new SandboxAgencyDecisionState{
+            Day=Int32.MaxValue};
+        Check("large campaign day cannot overflow first NPC cooldown",
+            nearMaxNpcDay.Propose("late_hero","Recognition") &&
+            nearMaxNpcDay.HasPending &&
+            nearMaxNpcDay.For("late_hero").RequestsMade==1 &&
+            SandboxAgencyDecisionState.Parse(
+                nearMaxNpcDay.Serialize()).HasPending);
         string originalRequest=npcRequests.Serialize();
         var reloadedRequest=SandboxAgencyDecisionState.Parse(
             originalRequest);
