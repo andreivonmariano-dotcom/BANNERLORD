@@ -1347,6 +1347,12 @@ namespace CalradiaUnified
                     profile.RealFamilyEnabled,family,finalSonRankValid,
                     SandboxNobleStartPolicy.RequiresNobleElder(
                         profile.NobleBirthPosition),dynasty);
+                // The new guided Lord cannot proceed on a mere spouse
+                // receipt. Require native marriage, clan membership and
+                // distinct children with verified reciprocal parent links.
+                if(postFamilyGate.Length==0 && profile.LordGuidedStart)
+                    postFamilyGate=VerifyGuidedLordNativeFamily(
+                        profile,hero);
                 if(postFamilyGate.Length>0)
                 {
                     RecordFailedNativeFamily(profile,hero,postFamilyGate);
