@@ -10,6 +10,58 @@ namespace CalradiaUnified
     {
         private SandboxKnightServiceOrderState knightServiceOrders=
             new SandboxKnightServiceOrderState();
+        private SandboxKnightBattleRecognitionState knightBattleRecognition=
+            new SandboxKnightBattleRecognitionState();
+
+        private int WitnessedKnightVictories()
+        {
+            return knightOath.HasCurrentOath ?
+                battleHistory.WitnessedVictoriesWith(
+                    knightOath.PatronId) : 0;
+        }
+        private string KnightBattleServiceSummary()
+        {
+            int victories=WitnessedKnightVictories();
+            return "Confirmed victories on the same side as your sworn lord: "+
+                victories+" | acknowledged stages: "+
+                knightBattleRecognition.Stage+"/2"+
+                "\\nBattle receipts prove shared participation only. "+
+                "Native relations change solely after reporting in person.";
+        }
+        private bool CanReportKnightBattleService()
+        {
+            var patron=KnightOathPatron();
+            return applied && knightOath.HasCurrentOath &&
+                patron!=null && patron.IsAlive && patron.IsActive &&
+                !patron.IsPrisoner && SpeakingWithSwornPatron() &&
+                knightBattleRecognition.CanAcknowledge(
+                    patron.StringId,WitnessedKnightVictories(),
+                    true,CurrentOathDay());
+        }
+        private void ReportKnightBattleService()
+        {
+            if(!CanReportKnightBattleService())return;
+            var patron=KnightOathPatron();
+            int victories=WitnessedKnightVictories();
+            int day=CurrentOathDay();
+            // Mark once before attempting the native action. A failed
+            // transaction can never be replayed as free relationship XP.
+            if(!knightBattleRecognition.MarkAcknowledged(
+                patron.StringId,victories,true,day))return;
+            bool nativeFavor=KnightOathNativeRelation(patron,1,
+                "cu_knight_joint_battle_acknowledgement");
+            DiagnosticJournal.Event("cu_knight_battle_acknowledgement",
+                "patron="+patron.StringId+
+                "|joint_native_victories="+victories+
+                "|stage="+knightBattleRecognition.Stage+
+                "|relation_effect_verified="+nativeFavor+
+                "|rank_title_and_renown_unchanged=true");
+            Notify(nativeFavor?
+                "Your lord acknowledges your shared battles. "+
+                "Your native personal relation increased by one.":
+                "Your shared battle report was heard, but no native "+
+                "relationship change was confirmed.");
+        }
 
         private string KnightVerifiedStanding()
         {
@@ -355,6 +407,20 @@ namespace CalradiaUnified
                 "service to this house. Your honor is your own.",
                 ()=>KnightVerifiedStanding()=="Veteran retainer",
                 null,100);
+            starter.AddPlayerLine(
+                "cu_knight_joint_battle_report",
+                "cu_knight_patron_options",
+                "cu_knight_joint_battle_report_reply",
+                "My lord, I fought in your company. Hear my account?",
+                ()=>CanReportKnightBattleService(),
+                ()=>ReportKnightBattleService(),114);
+            starter.AddDialogLine(
+                "cu_knight_joint_battle_report_reply",
+                "cu_knight_joint_battle_report_reply",
+                "hero_main_options",
+                "Your presence in those battles has been witnessed. "+
+                "Keep your house ready for further service.",
+                null,null,110);
             starter.AddPlayerLine(
                 "cu_knight_request_recommendation",
                 "cu_knight_patron_options",
