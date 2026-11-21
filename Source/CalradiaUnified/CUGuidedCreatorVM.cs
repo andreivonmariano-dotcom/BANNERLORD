@@ -98,7 +98,48 @@ namespace CalradiaUnified
                         "|provisional=true");
             }
             fields=BuildFields();
+            // A requested noble elder is not guaranteed to exist in the
+            // player's actual native culture and kingdom. If the House
+            // preview cannot prove one, focus the corrective birth choice
+            // immediately rather than let the user complete every House
+            // field and hit the same failed confirmation repeatedly.
+            if(!preCampaign &&
+                SandboxNobleStartPolicy.RequiresNobleElder(
+                    profile.NobleBirthPosition) &&
+                !HasEligibleProjectedNoble(profile))
+            {
+                int step=Array.FindIndex(Visible,
+                    f=>f.Key=="NobleBirthPosition");
+                if(step>=0)cursor=step;
+                status="No eligible native noble relative for "+
+                    profile.NobleBirthPosition+" in "+
+                    profile.StartingKingdomId+
+                    ". Choose Independent here to continue. Your "+
+                    "existing family choices are preserved.";
+                DiagnosticJournal.Event(
+                    "cu_house_unavailable_noble_birth_focused",
+                    "birth="+profile.NobleBirthPosition+
+                    "|kingdom="+profile.StartingKingdomId+
+                    "|native_family_not_invented=true"+
+                    "|house_draft_preserved=true");
+            }
             Refresh();
+        }
+
+        private static bool HasEligibleProjectedNoble(
+            SandboxOriginProfile candidate)
+        {
+            if(candidate==null)return false;
+            if(!SandboxNobleStartPolicy.RequiresNobleElder(
+                candidate.NobleBirthPosition))return true;
+            var hero=Hero.MainHero;
+            if(hero==null)return false;
+            return SandboxNobleStartPolicy.IsSonOrigin(
+                candidate.NobleBirthPosition) ?
+                SandboxDynasticSonStart.HasProjectedNativeFather(
+                    candidate,hero) :
+                SandboxDynasticStart.HasProjectedNativeElder(
+                    candidate,hero);
         }
 
         private List<Field> BuildFields()
@@ -659,6 +700,24 @@ namespace CalradiaUnified
         public void ExecuteContinue()
         {
             if(Current==null)return;
+            // Resolve this birth choice at its own page. A pre-campaign
+            // estimate is not enough to grant an actual native family.
+            // Stay on the choice, not a looping final confirmation.
+            if(!preCampaign && Current.Key=="NobleBirthPosition" &&
+                !HasEligibleProjectedNoble(profile))
+            {
+                DiagnosticJournal.Event(
+                    "cu_house_noble_choice_unavailable",
+                    "birth="+profile.NobleBirthPosition+
+                    "|kingdom="+profile.StartingKingdomId+
+                    "|blocked_on_birth_field=true");
+                Report("Unavailable noble birth: no eligible existing "+
+                    "clan-leading relative matches your character. "+
+                    "Choose Independent to proceed, or go Back to "+
+                    "World and select another background or kingdom.");
+                Refresh();
+                return;
+            }
             if(cursor<Visible.Length-1)
             {
                 cursor++;
@@ -790,12 +849,7 @@ namespace CalradiaUnified
                 candidate.NobleBirthPosition))
             {
                 bool nativeRelative=hero!=null &&
-                    (SandboxNobleStartPolicy.IsSonOrigin(
-                        candidate.NobleBirthPosition) ?
-                     SandboxDynasticSonStart.HasProjectedNativeFather(
-                        candidate,hero) :
-                     SandboxDynasticStart.HasProjectedNativeElder(
-                        candidate,hero));
+                    HasEligibleProjectedNoble(candidate);
                 if(!nativeRelative)
                 {
                     DiagnosticJournal.Event(
