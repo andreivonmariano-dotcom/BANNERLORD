@@ -13,7 +13,8 @@ namespace CalradiaUnified
         }
         public static string DefaultRetinue(string role)
         {
-            if(role=="Soldier" || role=="Recruit" ||
+            if(role=="Soldier" || role=="Mercenary" ||
+                role=="Recruit" ||
                 role=="HouseholdKnight" || role=="NobleCadet")
                 return "FamilyOnly";
             return SandboxNobleStartPolicy.EligibleForRetinue(
