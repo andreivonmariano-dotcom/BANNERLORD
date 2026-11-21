@@ -188,6 +188,13 @@ namespace CalradiaUnified
                     "Your starting life",
                     "Wanderer, Outlaw / Bandit and Mercenary are the three reviewed starts. Mercenary serves a chosen kingdom with a real native contract. Other roles remain legacy selections.",
                     choices:SandboxOriginProfile.Roles));
+                list.Add(new Field("CHAPTER I | YOUR WORLD",
+                    "SoldierEntryRank","Requested service entry",
+                    "Recruit (native private), Sergeant or Captain. "+
+                    "The installed Serve as Soldier provider controls the "+
+                    "actual troop, lord, rank and wages. No grade is "+
+                    "granted by the creator.",
+                    choices:SandboxSoldierEnlistmentPolicy.EntryChoices));
                 // New Wanderer collects its sole companion here, before
                 // the native player stats and appearance sequence. There
                 // is deliberately NO House or Fortune page afterward.
@@ -392,6 +399,13 @@ namespace CalradiaUnified
                  key=="Gold" || key=="Troops" ||
                  key=="FamilyHomeMode" || key=="FamilyHomeId"))
                 return false;
+            if(!preCampaign && profile.SoldierGuidedStart &&
+                (key=="RetinueMode" || key=="Influence" ||
+                 key=="Gold" || key=="Troops" ||
+                 key=="FamilyHomeMode" || key=="FamilyHomeId"))
+                return false;
+            if(key=="SoldierEntryRank")
+                return preCampaign && profile.Role=="Soldier";
             if(key=="WandererCompanionEnabled")
                 return preCampaign && profile.Role=="Wanderer";
             if(key.StartsWith("WandererCompanion",
@@ -794,6 +808,24 @@ namespace CalradiaUnified
             candidate.OutlawGuidedStart=candidate.Role=="Outlaw";
             candidate.MercenaryGuidedStart=
                 candidate.Role=="Mercenary";
+            candidate.SoldierGuidedStart=candidate.Role=="Soldier";
+            if(candidate.SoldierGuidedStart)
+            {
+                // Real SaS enlistment is controlled by its native creator
+                // prompt, not a synthetic political kingdom action.
+                candidate.RoleAffiliationsEnabled=false;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.FamilyHomeMode="None";
+                candidate.FamilyHomeId="";
+                candidate.RetinueMode="FamilyOnly";
+                candidate.Gold=-1;
+                candidate.Influence=-1;
+                candidate.Troops=0;
+            }
             if(candidate.MercenaryGuidedStart)
             {
                 // The actual game Advanced Start creates the kingdom's
@@ -855,7 +887,8 @@ namespace CalradiaUnified
             // can request a named Sergeant or retain the native roster.
             candidate.RetinueMode=candidate.WandererNoHouseStart?
                 "FamilyOnly":candidate.OutlawGuidedStart?
-                "RoleBased":candidate.MercenaryGuidedStart?
+                "RoleBased":candidate.MercenaryGuidedStart ||
+                candidate.SoldierGuidedStart ?
                 "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
@@ -897,7 +930,12 @@ namespace CalradiaUnified
                 "|outlaw_lieutenant_required="+candidate.OutlawGuidedStart+
                 "|mercenary_guided="+candidate.MercenaryGuidedStart+
                 "|native_contract_required="+
-                    candidate.MercenaryGuidedStart);
+                    candidate.MercenaryGuidedStart+
+                "|soldier_guided="+candidate.SoldierGuidedStart+
+                "|soldier_requested_entry_rank="+
+                    candidate.SoldierEntryRank+
+                "|native_sas_enlistment_required="+
+                    candidate.SoldierGuidedStart);
             if(complete!=null)complete();
         }
 
@@ -1109,7 +1147,7 @@ namespace CalradiaUnified
             if(key=="Role" && raw=="Mercenary")
                 return "Mercenary | contracted company";
             if(key=="Role" && raw=="Soldier")
-                return "Soldier | legacy mercenary, redesign pending";
+                return "Soldier | enlisted under a lord";
             if(key=="NobleBirthPosition")
             {
                 switch(raw)
@@ -1225,6 +1263,20 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Soldier")
+                    return "Soldier | sworn service under a real lord\n"+
+                        "Requested entry: "+profile.SoldierEntryRank+
+                        " (native "+
+                        SandboxSoldierEnlistmentPolicy.RequestedNativeRank(
+                            profile.SoldierEntryRank)+")\n"+
+                        "Kingdom to join: "+
+                        (profile.StartingKingdomId.Length==0?
+                            "not selected":profile.StartingKingdomId)+
+                        "\nThe SaS start-enlisted menu selects the actual "+
+                        "troop and commander. A requested rank is not a "+
+                        "granted rank.\n"+
+                        "No independent mercenary company, fief or court.\n"+
+                        "Native appearance and full stats remain editable.";
                 if(preCampaign && profile.Role=="Mercenary")
                     return "Mercenary | paid native company\n"+
                         "Contract kingdom: "+
