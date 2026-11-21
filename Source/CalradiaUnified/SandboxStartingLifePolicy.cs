@@ -153,7 +153,8 @@ namespace CalradiaUnified
                     return "Independent mercenary captain, not an enlisted soldier";
                 case "NativeFleetCommander":return "Fleet commander";
                 case "IndependentMerchant":return "Independent merchant";
-                case "OutlawBand":return "Outlaw band leader";
+                case "OutlawBand":
+                    return "Independent outlaw in a native bandit start";
                 case "UnprotectedTraveler":return "Person without formal protection";
                 default:return "Free traveler";
             }
