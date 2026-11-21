@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """v0.70l source-only King crown, family and saved succession gates."""
 from pathlib import Path
+import re
 root=Path(__file__).resolve().parents[1]
 src=root/"Source"/"CalradiaUnified"
 read=lambda p:(src/p).read_text(encoding="utf-8")
@@ -73,7 +74,8 @@ for code in (policy,claims,observation):
     for forbidden in ('ChangeOwnerOfSettlementAction',
         'ChangeKingdomAction.Apply','ChangeClanLeaderAction.Apply',
         'Clan.PlayerClan.Leader=','kingdom.RulingClan='):
-        assert forbidden not in code,forbidden
+        # An == native-identity comparison is not a setter.
+        assert not re.search(re.escape(forbidden)+r'(?![=])',code),forbidden
 print("PASS v0.70l SOURCE: King requires actual native crown, "
       "true clan and estate, real cultural Marshal and Chamberlain, "
       "and saved read-only royal heir ranks. LIVE GAME NOT TESTED.")
