@@ -1781,6 +1781,11 @@ namespace CalradiaUnified
                         soldierReceipt=SandboxSoldierEnlistmentPolicy
                             .ValidateRequestedEntryRank(
                                 profile.SoldierEntryRank,soldier.RankId);
+                    if(soldierReceipt.Length==0 &&
+                       soldier.RankNumber!=
+                           SandboxSoldierEnlistmentPolicy.NativeRankNumber(
+                               soldier.RankId))
+                        soldierReceipt="native_rank_number_mismatch";
                     if(soldierReceipt.Length>0)
                         failures=failures.Concat(new[]{
                             "native_enlisted_soldier_unverified:"+
