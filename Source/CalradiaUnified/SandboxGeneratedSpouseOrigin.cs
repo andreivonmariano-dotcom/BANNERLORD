@@ -96,7 +96,7 @@ namespace CalradiaUnified
                     h.Spouse != null && h.Spouse!=player.Father &&
                     h.Spouse!=player.Mother &&
                     h.Spouse.IsAlive && h.Spouse.IsFemale &&
-                    h.Spouse.Clan == clan &&
+                    h.Spouse.IsLord && h.Spouse.Clan == clan &&
                     SandboxFamilyOriginPolicy.CanBeNobleParents(
                         (int)h.Age,(int)h.Spouse.Age,profile.SpouseAge,
                         h.Spouse.Spouse == h,true))
