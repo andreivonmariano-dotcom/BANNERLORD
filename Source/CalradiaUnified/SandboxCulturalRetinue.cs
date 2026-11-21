@@ -254,8 +254,10 @@ namespace CalradiaUnified
                         "|reason="+ex.GetType().Name;
                 }
             }
-            string[] offices=SandboxNobleStartPolicy.RetinueOffices(
-                profile.Role,HasBrother(player));
+            string[] offices=profile.KingGuidedStart?
+                SandboxKingStartPolicy.CourtOffices:
+                SandboxNobleStartPolicy.RetinueOffices(
+                    profile.Role,HasBrother(player));
             if(offices.Length==0)
                 return "refused:no_retinue_for_role";
             // RoleBased is an actual replacement, not an additive court.
