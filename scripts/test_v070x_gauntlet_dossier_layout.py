@@ -72,7 +72,8 @@ gallery_source=read(SRC/"CUFamilyPortraitGallery.cs")
 settings=read(SRC/"NativeSettingsPanel.cs")
 main_labels={
     "Title","Clan","Family","Officers","Duty","Footer",
-    "SectionFamilyTitle","SectionOfficersTitle","SectionDutyTitle"}
+    "SectionFamilyTitle","SectionOfficersTitle","SectionDutyTitle",
+    "RoleActionLabel"}
 portrait_labels={"Name","Relationship","AdditionalArgs","Id",
                  "TextureProviderName"}
 assert bound_names(dossier)==main_labels|portrait_labels
