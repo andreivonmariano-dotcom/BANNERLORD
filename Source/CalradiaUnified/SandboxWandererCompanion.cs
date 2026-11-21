@@ -62,7 +62,15 @@ namespace CalradiaUnified
                 .ThenBy(c=>c.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
             if(source==null)
-                return "refused:same_culture_template_missing";
+                source=Hero.AllAliveHeroes.Where(h=>h!=null &&
+                    h!=player && h.IsActive && h.IsLord &&
+                    h.CharacterObject!=null &&
+                    h.Culture==player.Culture && h.IsFemale==female)
+                    .OrderBy(h=>h.StringId,StringComparer.Ordinal)
+                    .Select(h=>h.CharacterObject)
+                    .FirstOrDefault();
+            if(source==null)
+                return "refused:same_culture_native_source_missing";
 
             Hero provisional=null;
             bool registered=false;
@@ -118,6 +126,13 @@ namespace CalradiaUnified
                 if(delta!=0)
                     ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
                         player,provisional,delta,false);
+                // The player's requested starting friendship is exact.
+                // The public native personal-relation setter avoids
+                // inventing a family or modifying a patron's clan.
+                if(player.GetRelation(provisional)!=100)
+                    player.SetPersonalRelation(provisional,100);
+                if(provisional.GetRelation(player)!=100)
+                    provisional.SetPersonalRelation(player,100);
                 if(player.GetRelation(provisional)!=100 ||
                    provisional.GetRelation(player)!=100 ||
                    Clan.PlayerClan.Companions.Count!=1 ||
