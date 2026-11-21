@@ -18,3 +18,13 @@ Private user report: `CU-Session-20261121T115957_a1e76bb9-CLOSED.zip`, game DLL 
 A fully featured Knight career needs native event-backed assignments, such as joining and protecting a patron's field army, escorting a real party, capturing an actual enemy lord in service, and reporting outcomes to the patron. Each duty must be tied to real game parties, faction relations, battles, rewards and a quest record, not a fabricated settlement menu or a free status flag. A separate formal kingdom service path requires native political acceptance and independent clan ownership tests.
 
 The source build cannot certify that any NPC conversation rendered. Keep PR #93 draft, installer pinned, and the native gameplay gate blocked until the user's exact-game run verifies the new controls and saved state.
+
+## v0.70u | Real map duty rather than menu-only retinue flavor
+
+The living patron now offers a **three-day field escort** after the first witnessed audience. Accept this through his ordinary native conversation. Follow the patron's existing moving MobileParty on the campaign map; each new campaign day counts only if both player and patron lead real separate parties outside settlements and the map distance is at most six native distance units. Three **consecutive** observed days trigger a native +5 relationship action once, with a 30-day cooldown before the next assignment. The session logs actual party ID, day, separation, distance, and action result. No spawned guards, troops, wages, fictional battles or unused mission-success flags. The independent knight can take part without obtaining a fief or political vassalage.
+
+`SandboxKnightEscortState` is a new versioned, saved state. Its date and count invariants reject corrupt reloads. Loading an earlier v0.70t campaign starts this specific optional duty unassigned. The King and Lord starts remain unaffected. Observed escort status appears inside the existing sworn-service and native household inquiry. The daily check does not automatically trigger a mission on behalf of the player.
+
+**Real-game acceptance** requires successful patron dialog, a completed three-day escort from actual native map parties with native relationship receipt `cu_knight_native_escort_completed`, and an actual map screenshot `knight_escort_map.png`. Source-only policy fixtures are not game evidence.
+
+This first escort is a playable service mechanic, **not** the final complete Knight career. True kingdom membership, campaign-map quest log/tracking, armed service, patron requests, promotion, and broader political consequences require their own native-backed implementation and live tests.
