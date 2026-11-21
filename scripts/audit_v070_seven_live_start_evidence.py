@@ -133,17 +133,27 @@ def audit_role(role,rows,evidence_root):
         if sid:
             sessions.setdefault(sid,[]).append(row)
     candidates=[]
+    reused_session=False
     for session,group in sessions.items():
         contracts=[row for row in group
                    if row.get("context")=="sandbox_start_contract"]
+        roles_in_session={detail(row).get("role") for row in contracts
+                          if detail(row).get("role") in ROLES}
+        # A single logger session cannot stand for two different new
+        # campaigns, regardless of which start contract was logged last.
+        if len(roles_in_session)>1:
+            reused_session |= role in roles_in_session
+            continue
         # A late native FAIL supersedes an earlier PASS in the same session.
         if (contracts and detail(contracts[-1]).get("role")==role
                 and detail(contracts[-1]).get("result")=="PASS"):
             candidates.append((session,group))
     problems=[]
     if not candidates:
-        return {"role":role,"result":"BLOCKED",
-                "missing":["same_session_native_start_contract_PASS"]}
+        missing=["same_session_native_start_contract_PASS"]
+        if reused_session:
+            missing.append("session_reused_between_starting_paths")
+        return {"role":role,"result":"BLOCKED","missing":missing}
     # Latest chronological logged candidate, not a stale historical
     # unrelated session. This is evidence, not a game-memory mutation.
     session,group=max(candidates,key=lambda p:max(
