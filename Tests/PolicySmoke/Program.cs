@@ -255,7 +255,8 @@ internal static class Program
         Check("automatic independent noble household has valid seniority",
             suggestedLordHouse.TrySet("Role","Lord") &&
             suggestedLordHouse.TrySet("NobleBirthPosition","Independent") &&
-            suggestedLordHouse.TrySet("SiblingCount","2"));
+            suggestedLordHouse.TrySet("SiblingCount","2") &&
+            suggestedLordHouse.TrySet("Sibling.2.Gender","Male"));
         SandboxAutoHousePlan.Prepare(suggestedLordHouse,
             "vlandia",40,false,"Founder");
         Check("automatic older sibling is a sister, not an older brother",
@@ -271,6 +272,7 @@ internal static class Program
         cadetHouse.TrySet("Role","Lord");
         cadetHouse.TrySet("NobleBirthPosition","YoungerBrotherOfLord");
         cadetHouse.TrySet("SiblingCount","2");
+        cadetHouse.TrySet("Sibling.2.Gender","Male");
         SandboxAutoHousePlan.Prepare(cadetHouse,
             "vlandia",40,false,"Cadet");
         Check("automatic non-independent cadet can retain older brother",
