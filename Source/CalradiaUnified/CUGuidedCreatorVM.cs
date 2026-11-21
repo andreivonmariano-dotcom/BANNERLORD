@@ -765,12 +765,19 @@ namespace CalradiaUnified
                         "|elder_id="+candidate.NobleElderHeroId+
                         "|draft_preserved=true"+
                         "|native_finalization_not_invoked=true");
+                    // Bring the corrective choice into view instead
+                    // of leaving the player on the final sibling field.
+                    // Keep every uncommitted spouse/child/sibling choice.
+                    int nobleStep=Array.FindIndex(Visible,
+                        field=>field.Key=="NobleBirthPosition");
+                    if(nobleStep>=0)cursor=nobleStep;
                     Report("No eligible existing noble relative for "+
                         candidate.NobleBirthPosition+" in "+
                         candidate.StartingKingdomId+
-                        ". Select Independent under Confirm your noble "+
-                        "birth to keep your spouse and children, or "+
-                        "restart with another kingdom or origin.");
+                        ". Change your noble birth here to Independent "+
+                        "to keep your spouse and children, or restart "+
+                        "with a different kingdom or birth.");
+                    Refresh();
                     return;
                 }
             }
