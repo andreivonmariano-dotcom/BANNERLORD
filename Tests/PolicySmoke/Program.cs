@@ -968,6 +968,15 @@ internal static class Program
             !SandboxNativeEffectProof.RelationConfirmed(20,21,2) &&
             SandboxNativeEffectProof.ObservedDelta(20,21)==1 &&
             SandboxNativeEffectProof.RelationConfirmed(20,20,0));
+        Check("native social modifiers can double a bounded petition favor",
+            SandboxNativeEffectProof.RelationDirectionObserved(20,22,1) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(20,20,0) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(99,100,1) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(20,18,-1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,20,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,18,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,25,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,21,0));
         var failedFamily=new SandboxFamilyRecoveryState();
         failedFamily.RecordFailure("player","NobleCadet",
             "family_creation_incomplete",true,2,1,true,1,0);
