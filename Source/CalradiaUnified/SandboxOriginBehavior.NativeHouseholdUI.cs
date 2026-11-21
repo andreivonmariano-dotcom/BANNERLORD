@@ -86,7 +86,10 @@ namespace CalradiaUnified
                     ". Native relation: "+(patron==null?"unavailable":
                         player.GetRelation(patron).ToString())+
                     ". Next muster day: "+knightOath.NextMusterDay+
-                    ". No native kingdom vassalage or clan transfer.";
+                    ". Field escort: "+knightEscort.Status+
+                    " ("+knightEscort.ConsecutiveDays+"/"+ 
+                    SandboxKnightEscortState.RequiredDays+" days)."+
+                    " No native kingdom vassalage or clan transfer.";
             }
             else if(lordInheritance.IsRecorded)
             {

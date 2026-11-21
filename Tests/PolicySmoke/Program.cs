@@ -627,6 +627,40 @@ internal static class Program
             firstAudience.CompletedMusters==2 &&
             SandboxKnightOathState.Parse(firstAudience.Serialize())
                 .CompletedMusters==2);
+        var knightEscort=new SandboxKnightEscortState();
+        Check("Knight field service needs a real accepted duty",
+            knightEscort.Begin("lord_4_16",10)==
+                "native_patron_field_escort_accepted" &&
+            knightEscort.IsActive &&
+            knightEscort.Observe(10,true)=="no_new_campaign_day" &&
+            knightEscort.Observe(11,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(11,true)=="no_new_campaign_day" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(12,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(13,true)==
+                "verified_native_party_escort_completed" &&
+            knightEscort.CompletedEscorts==1 &&
+            !knightEscort.CanBegin("lord_4_16",20) &&
+            knightEscort.CanBegin("lord_4_16",43) &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize())
+                .CompletedEscorts==1);
+        knightEscort.Begin("lord_4_16",43);
+        Check("Knight escort presence requires consecutive map days",
+            knightEscort.Observe(44,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(45,false)=="field_escort_separated" &&
+            knightEscort.ConsecutiveDays==0 &&
+            knightEscort.Observe(47,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(48,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(49,true)==
+                "verified_native_party_escort_completed" &&
+            knightEscort.CompletedEscorts==2);
         Check("Knight native verified muster accrues once",
             knightOath.Observe(33,true,true,true,true)==
                 "muster_window_open" &&

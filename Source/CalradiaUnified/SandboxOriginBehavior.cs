@@ -87,6 +87,8 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightOathDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightEscortDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKingSuccessionDaily);
@@ -376,6 +378,9 @@ namespace CalradiaUnified
             string oath=knightOath.Serialize();
             store.SyncData("CU_v070i_knight_personal_oath",ref oath);
             knightOath=SandboxKnightOathState.Parse(oath);
+            string escort=knightEscort.Serialize();
+            store.SyncData("CU_v070t_knight_native_escort",ref escort);
+            knightEscort=SandboxKnightEscortState.Parse(escort);
             string heirs=lordInheritance.Serialize();
             store.SyncData("CU_v070k_lord_native_heir_claims",ref heirs);
             lordInheritance=SandboxLordInheritanceState.Parse(heirs);

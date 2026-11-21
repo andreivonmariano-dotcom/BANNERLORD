@@ -218,6 +218,12 @@ namespace CalradiaUnified
                         ". Completed reports: "+knightOath.CompletedMusters+
                         ". Missed: "+knightOath.MissedMusters+
                         ". Next review day: "+knightOath.NextMusterDay+
+                        ". Field escort: "+knightEscort.Status+
+                        ", consecutive days: "+
+                        knightEscort.ConsecutiveDays+"/"+ 
+                        SandboxKnightEscortState.RequiredDays+
+                        ", completed duties: "+
+                        knightEscort.CompletedEscorts+
                         ". Your clan is independent, not a kingdom "+
                         "vassal. The king must approve formal vassalage.");
                 },false);

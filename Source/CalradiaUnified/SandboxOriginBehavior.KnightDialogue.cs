@@ -7,6 +7,8 @@ namespace CalradiaUnified
 {
     public sealed partial class SandboxOriginBehavior
     {
+        private SandboxKnightEscortState knightEscort=
+            new SandboxKnightEscortState();
         // Bannerlord's REAL lord conversation, both in settlements and
         // from encounters on the campaign map. This does not create a
         // replica NPC, a menu-only contact or a fictional kingdom office.
@@ -92,6 +94,95 @@ namespace CalradiaUnified
                 "|new_patron="+successor.StringId+
                 "|actual_native_conversation=true");
         }
+        private bool CanAcceptKnightEscort()
+        {
+            var patron=KnightOathPatron();
+            return SpeakingWithSwornPatron() &&
+                knightOath.LastMusterDay>=0 &&
+                patron!=null &&
+                patron.PartyBelongedTo!=null &&
+                patron.PartyBelongedTo.LeaderHero==patron &&
+                knightEscort.CanBegin(patron.StringId,CurrentOathDay());
+        }
+        private void AcceptKnightFieldEscort()
+        {
+            var patron=KnightOathPatron();
+            if(patron==null || !CanAcceptKnightEscort())return;
+            string receipt=knightEscort.Begin(patron.StringId,
+                CurrentOathDay());
+            DiagnosticJournal.Event("cu_knight_native_escort_accepted",
+                "result="+receipt+
+                "|patron="+patron.StringId+
+                "|native_party="+patron.PartyBelongedTo.Name+
+                "|escort_days="+SandboxKnightEscortState.RequiredDays+
+                "|actual_player_party_not_reparented=true");
+            if(receipt=="native_patron_field_escort_accepted")
+                Notify("Field service: follow "+patron.Name+
+                    "'s moving party for THREE consecutive in-game days. "+
+                    "Stay close on the campaign map. No reward is given "+
+                    "until the days are verified.");
+        }
+        private void ObserveKnightEscortDaily()
+        {
+            if(!applied || !IsStandaloneSandbox() ||
+                !knightEscort.IsActive)return;
+            var patron=KnightOathPatron();
+            if(!knightOath.HasCurrentOath ||
+                patron==null ||
+                knightEscort.PatronId!=knightOath.PatronId)
+            {
+                knightEscort.Interrupt();
+                DiagnosticJournal.Event(
+                    "cu_knight_native_escort_interrupted",
+                    "result=patron_changed_or_oath_ended");
+                return;
+            }
+            var lordParty=patron.PartyBelongedTo;
+            var playerParty=MobileParty.MainParty;
+            bool parties=lordParty!=null && playerParty!=null &&
+                lordParty.LeaderHero==patron &&
+                playerParty.LeaderHero==Hero.MainHero &&
+                !patron.IsPrisoner &&
+                patron.CurrentSettlement==null &&
+                Hero.MainHero!=null &&
+                Hero.MainHero.CurrentSettlement==null;
+            float distance=parties?
+                lordParty.Position2D.Distance(playerParty.Position2D):
+                99999f;
+            bool near=parties && distance<=6f;
+            int day=CurrentOathDay();
+            string observed=knightEscort.Observe(day,near);
+            if(observed=="native_field_escort_day_verified")
+            {
+                DiagnosticJournal.Event("cu_knight_native_escort_progress",
+                    "result="+observed+
+                    "|native_party_hero="+patron.StringId+
+                    "|day="+day+
+                    "|verified_days="+knightEscort.ConsecutiveDays+
+                    "|native_party_distance="+distance);
+                Notify("Sworn field escort: "+
+                    knightEscort.ConsecutiveDays+" of "+
+                    SandboxKnightEscortState.RequiredDays+
+                    " consecutive campaign days verified.");
+            }
+            if(observed=="verified_native_party_escort_completed")
+            {
+                bool favor=KnightOathNativeRelation(patron,5,
+                    "cu_knight_native_escort_reward");
+                DiagnosticJournal.Event("cu_knight_native_escort_completed",
+                    "result="+observed+
+                    "|patron="+patron.StringId+
+                    "|native_hero_party="+parties+
+                    "|days="+SandboxKnightEscortState.RequiredDays+
+                    "|native_favor_action="+favor+
+                    "|native_party_distance="+distance+
+                    "|independent_player_house=true");
+                Notify("You completed real field service alongside "+
+                    patron.Name+". Your standing with him "+
+                    (favor?"has improved.":"needs verification.")+
+                    " Another escort can be accepted after 30 days.");
+            }
+        }
         private void RegisterKnightPatronConversations(
             CampaignGameStarter starter)
         {
@@ -128,6 +219,18 @@ namespace CalradiaUnified
                 "hero_main_options",
                 "Keep your household ready and return for service review. "+
                 "Your house is not yet a vassal clan of my kingdom.",
+                null,null,100);
+            starter.AddPlayerLine(
+                "cu_knight_patron_escort","cu_knight_patron_options",
+                "cu_knight_patron_escort_reply",
+                "I will escort your party in the field.",
+                ()=>CanAcceptKnightEscort(),
+                ()=>AcceptKnightFieldEscort(),100);
+            starter.AddDialogLine(
+                "cu_knight_patron_escort_reply",
+                "cu_knight_patron_escort_reply","hero_main_options",
+                "Then ride near my banner for three days. Your "+
+                "household remains under your own command.",
                 null,null,100);
             starter.AddPlayerLine(
                 "cu_knight_patron_release","cu_knight_patron_options",
