@@ -39,6 +39,8 @@ namespace CalradiaUnified
             new SandboxServiceCareerState();
         private SandboxRoleEconomyState roleEconomy=
             new SandboxRoleEconomyState();
+        private SandboxCareerChronicleState careerChronicle=
+            new SandboxCareerChronicleState();
         private SandboxSuccessionInterestState successionInterest=
             new SandboxSuccessionInterestState();
         private SandboxCharacterAgendaState characterAgendas=
@@ -80,6 +82,8 @@ namespace CalradiaUnified
                 this, NewGameCreated);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveCareerChronicleDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, AdvanceFamilyUpbringing);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
@@ -407,6 +411,12 @@ namespace CalradiaUnified
             store.SyncData("CU_v067_family_negotiation",ref court);
             inheritanceNegotiation=SandboxInheritanceNegotiationState
                 .Parse(court);
+            string duties=householdDuties.Serialize();
+            store.SyncData("CU_v071c_household_duties",ref duties);
+            householdDuties=SandboxHouseholdDutyState.Parse(duties);
+            string chapters=careerChronicle.Serialize();
+            store.SyncData("CU_v071c_career_chronicle",ref chapters);
+            careerChronicle=SandboxCareerChronicleState.Parse(chapters);
         }
 
         private static void Notify(string text)
@@ -430,6 +440,8 @@ namespace CalradiaUnified
             RegisterKnightOathMenus(starter);
             RegisterKnightPatronConversations(starter);
             RegisterNobleOfficerConversations(starter);
+            RegisterHouseholdConversations(starter);
+            RegisterCareerChronicleMenus(starter);
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
