@@ -300,8 +300,12 @@ namespace CalradiaUnified
                     "Spouse gender","Auto chooses the opposite of the player's sex.",
                     choices:new[]{"Auto","Female","Male"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBackground",
-                    "Spouse's origin","Choose a supported native family background.",
-                    choices:SandboxFamilyOriginPolicy.Backgrounds,advanced:true));
+                    "Spouse's origin","Lord: a genuinely noble native "+
+                    "birth clan with two existing married noble parents. "+
+                    "Commoner is not a guided Lord option.",
+                    choices:profile.LordGuidedStart?
+                        new[]{"NobleRandom","NobleChosen"}:
+                        SandboxFamilyOriginPolicy.Backgrounds,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBirthClanId",
                     "Spouse's noble birth clan","Enter the exact eligible clan ID.",
                     "text",advanced:true));
@@ -315,6 +319,13 @@ namespace CalradiaUnified
                     "A Lord requires at least one genuine child. "+
                     "Parent ages and real family links are checked.",
                     "number",min:profile.LordGuidedStart?1:0,max:6));
+                list.Add(new Field("CHAPTER III | YOUR HOUSE",
+                    "LordSuccessionRule","Children's inheritance custom",
+                    "EldestChild ranks living native children by birth "+
+                    "order regardless of sex. MalePreference ranks sons "+
+                    "before daughters. Neither rule changes native "+
+                    "clan succession or grants a fief.",
+                    choices:SandboxLordSuccessionPolicy.Rules));
                 for(int i=1;i<=SandboxOriginProfile.MaxChildren;i++)
                 {
                     string prefix="Child."+i+".";
@@ -443,6 +454,8 @@ namespace CalradiaUnified
                    (profile.KnightGuidedStart &&
                     !SandboxKnightStartPolicy.CanCreateSiblings(
                         profile.KnightOrigin)))return false;
+            if(key=="LordSuccessionRule")
+                return !preCampaign && profile.LordGuidedStart;
             if(key=="KnightOrigin")
                 return preCampaign && profile.Role=="Knight";
             if(key=="SoldierEntryRank")
@@ -650,6 +663,15 @@ namespace CalradiaUnified
             if(!copy.TrySet(key,value))
             {
                 Report("Invalid value for "+key+".");
+                return false;
+            }
+            if(!preCampaign && copy.LordGuidedStart &&
+                key=="SpouseBackground" &&
+                SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                    copy.SpouseBackground,copy.SpouseBirthClanId).Length>0)
+            {
+                Report("A Lord's spouse must have a native noble "+
+                    "birth clan. Select a genuine noble origin.");
                 return false;
             }
             if(!preCampaign && copy.LordGuidedStart &&
@@ -882,6 +904,10 @@ namespace CalradiaUnified
                 // and family creation. All real Heroes come later.
                 candidate.SpouseEnabled=true;
                 candidate.ChildCount=Math.Max(1,candidate.ChildCount);
+                candidate.SpouseBackground="NobleRandom";
+                candidate.SpouseBirthClanId="";
+                candidate.LordSuccessionRule=
+                    SandboxLordSuccessionPolicy.EldestChild;
                 candidate.FamilyHomeMode="OwnedFief";
                 candidate.FamilyHomeId="";
                 candidate.RoleAffiliationsEnabled=false;
@@ -1399,7 +1425,11 @@ namespace CalradiaUnified
                         "\nNo additional fief gift, bonus funds or troops."+
                         "\nTwo cultured native Heroes: Master of Arms "+
                         "and sworn Knight. Both must join the clan party."+
-                        "\nSpouse and at least one native child required."+
+                        "\nSpouse from verified native noble parents "+
+                        "and at least one child required."+
+                        "\nChild inheritance: eldest living child "+
+                        "by default, or chosen male-preference rule."+
+                        "\nNative leadership and land stay game-owned."+
                         "\nSiblings optional. No older founding brother."+
                         "\nOlder sisters are allowed."+
                         "\nNo royal title or invented court authority.";
@@ -1474,6 +1504,11 @@ namespace CalradiaUnified
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
                     "Role: "+profile.Role+"\n"+
+                    (profile.LordGuidedStart?
+                        "Noble spouse: "+profile.SpouseBackground+
+                        "\nHousehold inheritance custom: "+
+                        profile.LordSuccessionRule+
+                        " (claims only, native succession unchanged)\n":"")+
                     "Social station: "+SandboxStartingLifePolicy.StationLabel(
                         SandboxStartingLifePolicy.Station(profile))+"\n"+
                     "Obligations: "+SandboxStartingLifePolicy.ObligationLabel(
