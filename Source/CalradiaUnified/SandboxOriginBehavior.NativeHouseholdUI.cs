@@ -264,9 +264,15 @@ namespace CalradiaUnified
                         "unknown":player.GetRelation(patron).ToString())+
                     " | Escort: "+knightEscort.Status+
                     "\nPersonal standing: "+
-                    knightServiceOrders.PersonalStanding()+
+                    KnightVerifiedStanding()+
                     " | Service orders completed: "+
                     knightServiceOrders.CompletedOrders+
+                    "\nRuler's hearing: "+
+                    (knightServiceOrders.RoyalHearingDay>=0?
+                        "personally heard":
+                        knightServiceOrders.RecommendationDay>=0?
+                        "patron's recommendation recorded":
+                        "not requested")+
                     "\nCurrent order: "+knightServiceOrders.Status+
                     (knightServiceOrders.Active?
                         " ("+knightServiceOrders.Order+
