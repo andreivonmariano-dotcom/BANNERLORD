@@ -372,6 +372,23 @@ namespace CalradiaUnified
                         "|clan="+(sibling.Clan==null?
                             "none":sibling.Clan.StringId));
                 }
+                if(SandboxNobleStartPolicy.IsSonOrigin(
+                    profile.NobleBirthPosition))
+                {
+                    int older=player.Father.Children.Count(h=>h!=null &&
+                        h!=player && h.IsAlive && !h.IsFemale &&
+                        h.Mother==player.Mother && h.Age>player.Age);
+                    int expected=SandboxNobleStartPolicy.RequiredOlderSons(
+                        profile.NobleBirthPosition);
+                    if(!SandboxHouseholdLineagePolicy.ExactFinalRank(
+                        expected,older))
+                        throw new InvalidOperationException(
+                            "House siblings altered the native noble birth order");
+                    DiagnosticJournal.Event("cu_final_son_birth_rank",
+                        "expected_older_sons="+expected+
+                        "|actual_older_sons="+older+
+                        "|house_siblings_created="+madeSiblings);
+                }
             }
             catch (Exception e)
             {

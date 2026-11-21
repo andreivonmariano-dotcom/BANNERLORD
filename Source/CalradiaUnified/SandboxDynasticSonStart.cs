@@ -59,13 +59,20 @@ namespace CalradiaUnified
                 p.NobleBirthPosition);
             if(needed<=0)return false;
             var existing=OlderSons(father,mother,player);
-            if(existing.Length>needed)return false;
-            // Missing sons are created at least two years older than the
-            // founder. Reject households with impossible parental ages.
-            int oldestNew=(int)player.Age+2+(needed-existing.Length-1)*2;
-            int oldest=Math.Max((int)player.Age,
-                existing.Length>0?(int)existing[0].Age:0);
-            if(existing.Length<needed)oldest=Math.Max(oldest,oldestNew);
+            int planned=SandboxHouseholdLineagePolicy.PlannedOlderBrothers(
+                p,(int)player.Age);
+            int missing=SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                needed,existing.Length,planned);
+            if(missing<0)return false;
+            // Siblings requested in House count as actual sons in the
+            // same genealogy. Both parents must be old enough for ALL
+            // selected siblings, not only automatically created brothers.
+            int oldest=SandboxHouseholdLineagePolicy.OldestPlannedSiblingAge(
+                p,(int)player.Age);
+            if(existing.Length>0)
+                oldest=Math.Max(oldest,(int)existing[0].Age);
+            if(missing>0)
+                oldest=Math.Max(oldest,(int)player.Age+missing*2);
             return father.Age>=oldest+16 && mother.Age>=oldest+16;
         }
 
@@ -138,7 +145,12 @@ namespace CalradiaUnified
             var before=OlderSons(father,mother,player);
             int needed=SandboxNobleStartPolicy.RequiredOlderSons(
                 p.NobleBirthPosition);
-            int missing=needed-before.Length;
+            int planned=SandboxHouseholdLineagePolicy.PlannedOlderBrothers(
+                p,(int)player.Age);
+            int missing=SandboxHouseholdLineagePolicy.AdditionalOlderBrothers(
+                needed,before.Length,planned);
+            if(missing<0)
+                return "refused:older_sons_exceed_selected_birth_rank";
             var source=missing>0?BrotherSource(player):null;
             if(missing>0 && source==null)
                 return "refused:native_older_brother_template_missing";
@@ -146,6 +158,8 @@ namespace CalradiaUnified
             var reserved=new List<string>{player.Name.ToString(),
                 father.Name.ToString(),mother.Name.ToString()};
             reserved.AddRange(before.Select(h=>h.Name.ToString()));
+            reserved.AddRange(p.Siblings.Take(p.SiblingCount)
+                .Select(h=>h.Name));
             try
             {
                 // Create and verify missing older sons before binding the
@@ -186,9 +200,10 @@ namespace CalradiaUnified
                         "|age="+brother.Age+"|clan="+brother.Clan.StringId);
                 }
                 var older=OlderSons(father,mother,player);
-                if(older.Length!=needed)
+                if(!SandboxHouseholdLineagePolicy.ExactFinalRank(
+                    needed,older.Length+planned))
                     throw new InvalidOperationException(
-                        "Requested son rank does not match older brothers");
+                        "Existing and planned older brothers contradict birth rank");
                 player.Father=father;
                 player.Mother=mother;
                 if(!father.Children.Contains(player))
@@ -212,9 +227,13 @@ namespace CalradiaUnified
                     "|older_brothers="+String.Join(",",older.Select(
                         h=>h.StringId))+
                     "|generated_older_brothers="+generated.Count+
+                    "|pending_house_older_brothers="+planned+
+                    "|projected_total_older_brothers="+
+                        (older.Length+planned)+
                     "|real_native_lineage=true");
                 return "bound:father="+father.StringId+
-                    "|older_brothers="+older.Length;
+                    "|verified_older_brothers="+older.Length+
+                    "|house_older_brothers_pending="+planned;
             }
             catch(Exception ex)
             {
