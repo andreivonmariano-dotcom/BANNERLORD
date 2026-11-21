@@ -44,7 +44,15 @@ hint = vm[vm.index("[DataSourceProperty] public string Hint"):
           vm.index("private static string DisplayChoice")]
 assert 'Current.Key=="NobleBirthPosition"' in hint
 assert '"Eligible native family: "+projectedElderName+' in hint
-assert '". If none is found, choose Independent here "' in hint
+assert '". An older sibling created in House cannot "' in hint
+assert '"replace an existing native lord. If no lord "' in hint
+assert '"qualifies, choose Independent here."' in hint
+
+# Names and ages added to the House sibling list do not make a new
+# clan leader or an existing titled noble for YoungerBrotherOfLord.
+assert '"automatically your lord or a clan leader. "' in hint
+assert '"An older brother created here does not become an existing lord,' in vm
+assert '"native clan-leading lord. Creating an older sibling "' in vm
 
 house = vm[vm.index("private void CommitHouse()"):
            vm.index("[DataSourceProperty] public bool IsWorldSetup")]
