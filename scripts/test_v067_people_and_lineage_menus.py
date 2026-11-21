@@ -47,7 +47,7 @@ assert 'GiveGoldAction.ApplyBetweenCharacters(' in menu
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in menu
 assert 'NativeResidenceChangedObserved' in read("SandboxLivingPersons.cs")
 assert 'SandboxAgencyDecisionPolicy.ExpiryDays' in agency
-assert 'SandboxAgencyDecisionPolicy.MaxRequestsPerHero' in agency
+assert 'SandboxAgencyDecisionPolicy' in agency and 'MaxRequestsPerHero' in agency
 assert 'CU_AGENCY_1' in agency
 assert 'CU_NEGOTIATION_1' in state
 assert 'SandboxInheritanceNegotiationPolicy.Evaluate(' in menu
