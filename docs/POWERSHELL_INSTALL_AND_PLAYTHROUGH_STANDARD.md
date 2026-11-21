@@ -2,20 +2,20 @@
 
 ## Current playable-test candidate | v0.69g (21 November 2026)
 
-The currently **compiled and policy-tested** stabilization candidate is **v0.69g**, source commit `63a82b14bde2ccc07eea9a15a9745aa6ae3693fb`. It addresses a real Vlandian Younger Brother of a Lord test in which a missing native older-lord candidate blocked all custom family creation after native finalization. The new House check catches that missing elder *before* completing the native wizard, returns the cursor to the existing noble-birth choice and preserves the requested spouse, two children and two siblings. A true older-lord family link still requires a qualified native Hero.
+The currently **compiled and policy-tested** stabilization candidate is **v0.69g**, source commit `8c2382461522907db63d5890e2204864a336e056`. It addresses a real Vlandian Younger Brother of a Lord test in which a missing native older-lord candidate blocked all custom family creation after native finalization. The new House check catches that missing elder *before* completing the native wizard, returns the cursor to the existing noble-birth choice and preserves the requested spouse, two children and two siblings. The Siblings screen now explains that generating an older brother does **not** create the existing clan-leading lord required by that origin. A true older-lord family link still requires a qualified native Hero.
 
-**[Exact v0.69g Windows CI 44866582823](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823)** passed **910 independent C# policy checks**, 0 compile warnings/errors, 1,159,203 audit model assertions and 1,441,129 extended campaign model checks. **This repaired build is not yet verified inside a live game.** The recorded earlier session is proof that the previous version failed.
+**[Exact v0.69g Windows CI 44867186334](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334)** passed **910 independent C# policy checks**, 0 compile warnings/errors, 1,159,203 audit model assertions and 1,441,129 extended campaign model checks. **This repaired build is not yet verified inside a live game.** The recorded earlier session is proof that the previous version failed.
 
 The in-game `SubModule.xml` still says historical **v0.38.0**. The PowerShell installer prints the distinct development label and refuses any DLL except the pinned successful artifact. Do not rename the ZIP or rewrite `SubModule.xml` to conceal its actual metadata.
 
-- [Download the exact v0.69g game-untested compiled artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44866582823/artifacts/14692466071) (GitHub login may be required).
-- DLL SHA-256: `2f1cad7fd25359fe5eef0f25e5ef8dde91a4f3e334f6c0a694f55849a9381ab0`.
+- [Download the exact v0.69g game-untested compiled artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274) (GitHub login may be required).
+- DLL SHA-256: `d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10`.
 - [Pinpointed live-session fault and repair](V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md).
-- The [v0.69g PowerShell installer](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/ace58f7e19d15ee1db8698a0e0b1de660dd4199a/scripts/Install-CU-From-Artifact.ps1) supports `-ShowLatest` and `-LatestVerified`. These commands show the current label, exact CI artifact, DLL hash, and historical manifest, then check the downloaded DLL **before** moving any installed files.
+- The [v0.69g PowerShell installer](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1) supports `-ShowLatest` and `-LatestVerified`. These commands show the current label, exact CI artifact, DLL hash, and historical manifest, then check the downloaded DLL **before** moving any installed files.
 
 ```powershell
 $Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
-$Source = 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/ace58f7e19d15ee1db8698a0e0b1de660dd4199a/scripts/Install-CU-From-Artifact.ps1'
+$Source = 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1'
 Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Installer
 Set-ExecutionPolicy -Scope Process Bypass -Force
 
