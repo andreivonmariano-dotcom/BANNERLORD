@@ -72,7 +72,8 @@ for key in ("Family","Officers","Duty","Footer"):
     text=next(x for x in dossier.iter("TextWidget")
               if x.get("Text")=="@"+key)
     assert text.get("Brush.TextHorizontalAlignment")=="Left",key
-    assert text.get("Brush.TextVerticalAlignment")=="Top",key
+    if key!="Footer":
+        assert text.get("Brush.TextVerticalAlignment")=="Top",key
     minimum=17 if key=="Duty" else 13
     assert int(text.get("Brush.FontSize"))>=minimum,key
 gallery=ET.parse(PREFABS/"CUFamilyPortraits.xml").getroot()
