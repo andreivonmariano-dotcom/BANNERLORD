@@ -384,7 +384,7 @@ namespace CalradiaUnified
             string royal=kingSuccession.Serialize();
             store.SyncData("CU_v070l_native_royal_household",ref royal);
             kingSuccession=SandboxKingSuccessionState.Parse(royal);
-            string guard=sandboxKingsguardStateForSave();
+            string guard=kingsguard.Serialize();
             store.SyncData("CU_v070n_kingsguard_actual_native_troops",
                 ref guard);
             kingsguard=SandboxKingsguardState.Parse(guard);
