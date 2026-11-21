@@ -29,8 +29,9 @@ namespace CalradiaUnified
             switch(role)
             {
                 case "King":return "Court";
-                case "Lord":return "Court";
-                case "Knight":case "Soldier":case "Admiral":
+                case "Lord":case "NobleCadet":return "Court";
+                case "Knight":case "Soldier":case "Recruit":
+                case "HouseholdKnight":case "Admiral":
                     return "Garrison";
                 case "Trader":return "TradingHouse";
                 case "Outlaw":case "Beggar":return "Displaced";
@@ -49,8 +50,9 @@ namespace CalradiaUnified
             switch(role)
             {
                 case "King":return "Duty";
-                case "Lord":return "Land";
-                case "Knight":case "Soldier":case "Admiral":
+                case "Lord":case "NobleCadet":return "Land";
+                case "Knight":case "Soldier":case "Recruit":
+                case "HouseholdKnight":case "Admiral":
                     return "Recognition";
                 case "Trader":return "Prosperity";
                 case "Outlaw":return "Independence";
@@ -72,6 +74,9 @@ namespace CalradiaUnified
                 case "Lord":
                     return SandboxNobleStartPolicy.RequiresNobleElder(birth)?
                         "LandedVassalCadet":"LandedVassal";
+                case "NobleCadet":return "UnlandedDynasticCadet";
+                case "HouseholdKnight":return "UnlandedKnightRetainer";
+                case "Recruit":return "ProspectiveEnlistedRecruit";
                 case "Knight":return "LandedKnightVassal";
                 case "Soldier":return "MercenaryCompany";
                 case "Admiral":return "NativeFleetCommander";
@@ -87,6 +92,9 @@ namespace CalradiaUnified
             {
                 case "King":return "Ruler";
                 case "Lord":return "VassalLord";
+                case "NobleCadet":return "UnlandedNobleRelative";
+                case "HouseholdKnight":return "HouseholdKnightRetainer";
+                case "Recruit":return "EnlistmentApplicant";
                 case "Knight":return "KnightInVassalService";
                 case "Soldier":return "MercenaryCaptain";
                 case "Admiral":return "FleetCommander";
@@ -101,6 +109,11 @@ namespace CalradiaUnified
             if(role=="King")return "RuleAndProtectKingdom";
             if(role=="Lord" || role=="Knight")
                 return "NativeVassalService";
+            if(role=="Recruit")return "PendingVerifiedEnlistment";
+            if(role=="HouseholdKnight")
+                return "RecordedPersonalPatronNoFormalVassalage";
+            if(role=="NobleCadet")
+                return "BirthFamilyMembershipWithoutLandGrant";
             if(role=="Soldier")return "NativeMercenaryContract";
             if(role=="Admiral")return "NativeFleetService";
             if(role=="Trader")return "TradeAndHouseholdDebtsUnmodeled";
@@ -129,6 +142,12 @@ namespace CalradiaUnified
                 case "LandedVassalCadet":
                     return "Cadet noble with a separate native vassal holding";
                 case "LandedVassal":return "Landed vassal";
+                case "UnlandedDynasticCadet":
+                    return "Landless noble cadet, independent native clan";
+                case "UnlandedKnightRetainer":
+                    return "Landless knight with named household patron";
+                case "ProspectiveEnlistedRecruit":
+                    return "Recruit seeking enlistment, not yet in an NPC party";
                 case "LandedKnightVassal":return "Knight holding a native vassal fief";
                 case "MercenaryCompany":
                     return "Independent mercenary captain, not an enlisted soldier";
@@ -146,6 +165,9 @@ namespace CalradiaUnified
                 case "Ruler":return "Monarch";
                 case "VassalLord":return "Vassal lord";
                 case "KnightInVassalService":return "Knight in vassal service";
+                case "UnlandedNobleRelative":return "Unlanded noble relative";
+                case "HouseholdKnightRetainer":return "Household knight applicant";
+                case "EnlistmentApplicant":return "Military recruit";
                 case "MercenaryCaptain":return "Mercenary captain";
                 case "FleetCommander":return "Fleet commander";
                 case "Merchant":return "Merchant";
@@ -163,6 +185,12 @@ namespace CalradiaUnified
                     return "Kingdom vassal duties under native Bannerlord";
                 case "NativeMercenaryContract":
                     return "Kingdom mercenary contract, no NPC-party enlistment";
+                case "PendingVerifiedEnlistment":
+                    return "Enlistment requires a verified service-mod action";
+                case "RecordedPersonalPatronNoFormalVassalage":
+                    return "Personal lord recorded; formal household duty pending";
+                case "BirthFamilyMembershipWithoutLandGrant":
+                    return "Native ancestry without an estate grant";
                 case "NativeFleetService":return "Native fleet command";
                 case "TradeAndHouseholdDebtsUnmodeled":
                     return "Trading obligations not yet simulated";

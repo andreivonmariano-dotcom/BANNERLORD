@@ -145,7 +145,7 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your occupation and native start",
-                    "Choose your starting career, then kingdom if the role requires one.",
+                    "Recruit seeks real enlistment; HouseholdKnight and NobleCadet start landless. Soldier remains a mercenary captain.",
                     choices:SandboxOriginProfile.Roles));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "EarlyHousehold","The household that raised you",
@@ -157,15 +157,15 @@ namespace CalradiaUnified
                     choices:SandboxStartingLifePolicy.Ambitions,advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartingKingdomId",
                     "Starting kingdom",
-                    "The selected King, Lord, Knight, Soldier or Admiral start uses this native affiliation.",
+                    "Landed and mercenary roles use native allegiance. Landless roles choose a patron or birth-family kingdom without a native oath.",
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "ServicePatronHeroId","Commanding lord Hero ID (optional)",
-                    "Soldier and Knight automatically join a real kingdom and receive a named superior. Advanced: enter a native lord's exact Hero ID; native rank-and-file enlistment is not claimed.",
+                    "Real lord contact for Soldier, Knight, Recruit and HouseholdKnight. Recruit remains independent until external enlistment is verified.",
                     "text",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "NobleBirthPosition","Your noble birth",
-                    "Choose independent origin or a younger brother, sister, second son or third son of a real lord or king. Family links are verified after native character creation.",
+                    "Lord may start landed. NobleCadet requires a real noble family and starts without land; both use native parent links.",
                     choices:SandboxNobleStartPolicy.BirthPositions));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "NobleElderHeroId","Native family leader ID (optional)",
@@ -302,7 +302,9 @@ namespace CalradiaUnified
                 return profile.StartingScenario=="alternativecalradia";
             if(key=="StartingKingdomId")
                 return SandboxNativeStartOptions.RequiresKingdom(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+                    SandboxNativeStartOptions.StartTypeForRole(profile.Role)) ||
+                    SandboxCustomLifeRolePolicy.NeedsKingdomContext(
+                        profile.Role);
             if(key=="FamilyScenario" ||
                 key=="SpouseName" || key=="SpouseAge" ||
                 key=="SpouseGender" || key=="SpouseBackground" ||
@@ -316,9 +318,12 @@ namespace CalradiaUnified
                 return preCampaign &&
                     SandboxServicePolicy.NeedsPatron(profile.Role);
             if(key=="NobleBirthPosition")
-                return preCampaign && profile.Role=="Lord";
+                return preCampaign &&
+                    SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
+                        profile.Role);
             if(key=="NobleElderHeroId")
-                return preCampaign && profile.Role=="Lord" &&
+                return preCampaign &&
+                    SandboxCustomLifeRolePolicy.IsNobleFamilyRole(profile.Role) &&
                     profile.NobleBirthPosition!="Independent";
             if(key.StartsWith("Sibling.",StringComparison.Ordinal))
             {
@@ -643,7 +648,7 @@ namespace CalradiaUnified
             if(!SandboxNobleStartPolicy.ValidForRole(
                 candidate.NobleBirthPosition,candidate.Role))
             {
-                Report("Noble or royal younger-sibling origins require a Lord start.");
+                Report("Noble lineage requires Lord or NobleCadet. NobleCadet must name a valid native family.");
                 return;
             }
             SandBox.AdvancedStartOptions.AdvancedStartOptions gameOptions;
