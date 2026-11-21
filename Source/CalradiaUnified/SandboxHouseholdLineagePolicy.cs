@@ -69,10 +69,24 @@ namespace CalradiaUnified
                     p.Siblings[i].Age>founderAge)return i+1;
             return 0;
         }
+        public static int FirstOlderBrotherInFoundingKingHouse(
+            SandboxOriginProfile p,int founderAge)
+        {
+            if(p==null || !p.KingGuidedStart ||
+                p.NobleBirthPosition!="Independent")return 0;
+            int count=Math.Min(p.SiblingCount,p.Siblings.Count);
+            for(int i=0;i<count;i++)
+                if(p.Siblings[i]!=null &&
+                    p.Siblings[i].Gender=="Male" &&
+                    p.Siblings[i].Age>founderAge)return i+1;
+            return 0;
+        }
         public static string ValidateHousePlan(
             SandboxOriginProfile p,int founderAge)
         {
             if(p==null)return "missing_profile";
+            if(FirstOlderBrotherInFoundingKingHouse(p,founderAge)>0)
+                return "founding_king_older_brother";
             if(FirstOlderBrotherInIndependentLordHouse(p,founderAge)>0)
                 return "independent_lord_older_brother";
             if(FirstOlderBrotherInSwornKnightHouse(p,founderAge)>0)
