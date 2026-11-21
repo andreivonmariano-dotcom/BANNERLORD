@@ -112,6 +112,43 @@ namespace CalradiaUnified.AuditSimulator
                 }
         }
 
+        private static void SimulateRetinueGrantGuard()
+        {
+            Require(SandboxStartContract.RetinueReadyForOtherGrants(
+                "Native","native_companions_preserved"),
+                "original native companions require exact preservation");
+            for(int n=0;n<5000;n++)
+            {
+                int count=n%17;
+                int dismissed=n%3;
+                string receipt="officers="+count+
+                    "|native_companions_dismissed="+dismissed+
+                    "|same_culture=true";
+                bool shouldPass=count>0 && count<=16 && dismissed<=1;
+                Require(SandboxStartContract.RetinueReadyForOtherGrants(
+                    "RoleBased",receipt)==shouldPass,
+                    "complete native officer receipt rule "+n);
+                Require(!SandboxStartContract.RetinueReadyForOtherGrants(
+                    "RoleBased","officers="+count+
+                    "|native_companions_dismissed="+dismissed),
+                    "truncated retinue cannot authorize gifts "+n);
+                Require(!SandboxStartContract.RetinueReadyForOtherGrants(
+                    "RoleBased",receipt+"|unverified_extra"),
+                    "retinue receipt cannot accept appended data "+n);
+                Require(!SandboxStartContract.RetinueReadyForOtherGrants(
+                    "FamilyOnly",receipt),
+                    "non-family retinue cannot pose as family-only "+n);
+            }
+            Require(SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=1|family_only=true"),
+                "one original native companion was safely dismissed");
+            Require(!SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=2|family_only=true"),
+                "multiple original companion dismissals refused");
+        }
+
         private static void SimulateNativeEffects(int amount,int gold)
         {
             int payer=Math.Max(1000,gold);
@@ -252,6 +289,7 @@ namespace CalradiaUnified.AuditSimulator
             try
             {
                 SimulateCreatorNavigation();
+                SimulateRetinueGrantGuard();
                 foreach(string role in Roles)
                     for(int run=0;run<SeedsPerRole;run++)
                         SimulateRole(role,run);
