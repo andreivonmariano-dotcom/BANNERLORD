@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
-"""v0.71e source gates for native 3D camp, petitioner arcs, and Knight orders.
+"""v0.71e source gates for 2D household camp, petitioner arcs, and Knight orders.
 
-Source correctness and a successful reference-assembly build do not
-establish native mission scene, NavMesh or in-game camera behavior.
+No custom mission, cutscene, generated agent, or physical scene is
+permitted for the household interface.
 """
 from pathlib import Path
 import re
@@ -13,7 +13,6 @@ read=lambda filename:(source/filename).read_text(encoding="utf-8")
 origin=read("SandboxOriginBehavior.cs")
 native=read("CUBUTRNativeScreens.cs")
 camp=read("SandboxOriginBehavior.HouseholdCamp.cs")
-scene=read("CUHouseholdCampMissionLogic.cs")
 stories=read("SandboxOriginBehavior.PetitionStories.cs")
 petitions=read("SandboxOriginBehavior.PetitionConversations.cs")
 agency=read("SandboxOriginBehavior.LivingMenus.cs")
@@ -40,25 +39,22 @@ assert 'CanSetUpNativeCamp()' in camp
 assert '!party.IsCurrentlyAtSea' in camp
 assert 'party.MapEvent==null' in camp
 assert 'IsStandaloneSandbox()' in camp
-assert 'Mission.Current==null' in camp
-assert 'GetConversationSceneForMapPosition' in camp
-assert 'GetBattleSceneForMapPosition' in camp
-assert 'MissionState.OpenNew("CUHouseholdCamp"' in camp
-assert 'new CUHouseholdCampMissionLogic(people)' in camp
 assert 'party.MemberRoster.GetTroopRoster()' in camp
-assert 'hero.PartyBelongedTo!=party' in camp
-assert 'hero.Age<18f' in camp
-assert 'person.CharacterObject' in scene
-assert 'new AgentBuildData(' in scene
-assert '.TroopOrigin(new PartyAgentOrigin(' in scene
-assert 'Mission.SpawnAgent(data,false)' in scene
-assert 'MissionConversationLogic()' in camp
-assert 'MissionGauntletConversationView()' in camp
+assert 'person.PartyBelongedTo!=party' in camp
+assert 'person.Age<18f' in camp
 assert 'GameMenu.ExitToLast()' in camp
-for bad in ('HeroCreator.Create','ChangeClanLeaderAction',
-            'ChangeKingdomAction','ChangeOwnerOfSettlementAction',
-            'GiveGoldAction','ChangeRelationAction'):
-    assert bad not in camp+scene,bad
+assert 'ShowHouseholdDutyLedger()' in camp
+assert 'CareerChronicleDescription()' in camp
+assert 'HearDossierPetition()' in camp
+assert not (source/"CUHouseholdCampMissionLogic.cs").exists()
+for forbidden in (
+    'MissionState.OpenNew','Mission.SpawnAgent',
+    'new AgentBuildData(', 'MissionInitializerRecord',
+    'GetBattleSceneForMapPosition', 'GetConversationSceneForMapPosition',
+    'HeroCreator.Create', 'ChangeClanLeaderAction',
+    'ChangeKingdomAction', 'ChangeOwnerOfSettlementAction',
+    'GiveGoldAction', 'ChangeRelationAction'):
+    assert forbidden not in camp,forbidden
 
 assert 'RememberPetitionStory(actor,kind);' in petitions
 assert 'RememberPetitionStory(hero,kind);' in agency
@@ -93,6 +89,6 @@ assert 'SandboxKnightServiceOrderState.cs' in (root/"Tests"/"PolicySmoke"/
     "PolicySmoke.csproj").read_text()
 assert 'petition stories require actual supported actor/kind' in smoke
 assert 'scouting needs two distinct native kingdom towns' in smoke
-print("PASS v0.71e STATIC: gated native 3D camp scene with real roster "+
+print("PASS v0.71e STATIC: native 2D camp menu for real roster "+
       "Heroes, petitioner face-to-face follow-ups and sworn patron "+
       "scouting/muster orders. Game acceptance remains pending.")
