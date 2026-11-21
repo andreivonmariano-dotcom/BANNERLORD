@@ -15,6 +15,10 @@ required={
   "Bannerlord.UIExtenderEx","Bannerlord.MBOptionScreen"}
 assert required <= declared
 assert len(required & declared)==4
+metadata=module.find("DependedModuleMetadatas")
+assert metadata is not None
+order={e.get("id"):e.get("order") for e in metadata}
+assert all(order.get(dep)=="LoadBeforeThis" for dep in required),order
 csproj=(source/"CalradiaUnified.csproj").read_text()
 assert 'Include="Bannerlord.UIExtenderEx" Version="3.0.3"' in csproj
 assert 'Include="Bannerlord.UIExtenderEx.Analyzers"' in csproj
