@@ -101,6 +101,16 @@ assert 'characterCreationComplete = true' in behavior
 assert 'applied = true;' in behavior
 assert 'HasNativePatron(' in patron
 assert 'RetinueReadyForOtherGrants(' in contract
+# The player-side evidence reader must anchor the newest guided session,
+# not a stale successful legacy creator event.
+reporter = (root / "scripts" / "Test-CU-Playthrough.ps1").read_text(
+    encoding="utf-8")
+assert "'cu_guided_world_start_committed'" in reporter
+assert "'cu_guided_house_fortune_committed'" in reporter
+assert "$accepted = @($events | Where-Object" in reporter
+assert "creator_source =" in reporter
+assert "$null -eq $contract" in reporter
+
 print("PASS v0.69h starting options source audit: "
       "12 roles, 6 scenarios, 9 noble births, 4 fief modes, "
       "native grants and guarded defaults. GAME STATUS UNTESTED.")
