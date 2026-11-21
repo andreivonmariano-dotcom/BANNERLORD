@@ -55,11 +55,11 @@ import zlib
 
 def native_png():
     width,height=640,360
-    raw=(b"\\x00"+b"\\x11\\x22\\x33"*width)*height
+    raw=(b"\x00"+b"\x11\x22\x33"*width)*height
     def chunk(name,data):
         return (struct.pack(">I",len(data))+name+data+
                 struct.pack(">I",zlib.crc32(name+data)&0xffffffff))
-    return (b"\\x89PNG\\r\\n\\x1a\\n"+
+    return (b"\x89PNG\r\n\x1a\n"+
             chunk(b"IHDR",struct.pack(">IIBBBBB",width,height,8,2,0,0,0))+
             chunk(b"IDAT",zlib.compress(raw))+chunk(b"IEND",b""))
 
