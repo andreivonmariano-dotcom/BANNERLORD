@@ -73,7 +73,10 @@ after_staging=retinue.index('for(int i=0;i<staged.Count;i++)')
 officer_confirm=retinue.index('if(!confirmed)',after_staging)
 replacement=retinue.index('if(replace)',after_staging)
 assert after_staging < officer_confirm < replacement
-assert 'multi_companion_dismissal_not_atomic' in retinue
+assert 'multi_companion_dismissal_not_atomic' not in retinue
+assert 'replaced!=existing.Length' in retinue
+assert 'failed_removal_reported_partial=true' in retinue
+assert 'native.Length>16' in retinue
 assert 'pending.PartyBelongedTo!=null' in retinue
 assert 'registered_preserved=' in retinue
 
