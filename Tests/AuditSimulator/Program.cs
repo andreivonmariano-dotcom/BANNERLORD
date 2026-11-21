@@ -16,6 +16,7 @@ namespace CalradiaUnified.AuditSimulator
         private static long checks, simulatedDays, checkpoints;
         private static long giftProofs, agencyRequests, recoveryReviews;
         private static long agePointerCases, navigationCases;
+        private static long adverseSaveCases;
         private static readonly string[] Roles = {
             "King","Lord","Knight","Soldier","Admiral","Trader",
             "Outlaw","Beggar","Wanderer","Recruit",
@@ -284,12 +285,109 @@ namespace CalradiaUnified.AuditSimulator
                 "NPC contact count and request limits remain bounded");
         }
 
+        private static void SimulateAdverseSaveRecovery()
+        {
+            // Malformed snapshots and player identity mismatches must not
+            // create NPC actions, alter family facts or invent wages.
+            // These are state-string fixtures, never engine SaveGame files.
+            for(int i=0;i<10000;i++)
+            {
+                int day=15+i%120;
+                string hero="npc_"+i;
+                string head="CU_AGENCY_1\n"+day+"|"+hero+
+                    "|HouseholdAid|"+day;
+                string row="\nR|"+hero+"|"+day+"|1";
+                var restored=SandboxAgencyDecisionState.Parse(head+row);
+                Require(restored.HasPending &&
+                    restored.PendingHeroId==hero &&
+                    restored.For(hero)!=null,
+                    "valid request and quota survive restore "+i);
+                Require(!SandboxAgencyDecisionState.Parse(head).HasPending,
+                    "orphan pending request rejected "+i);
+                Require(!SandboxAgencyDecisionState.Parse(head+
+                    "\nR|wrong_person|"+day+"|1").HasPending,
+                    "foreign quota cannot authorize request "+i);
+                Require(!SandboxAgencyDecisionState.Parse(head+
+                    "\nR|"+hero+"|"+(day-1)+"|1").HasPending,
+                    "pending opening day must match quota "+i);
+                Require(!SandboxAgencyDecisionState.Parse(head+
+                    "\nR|"+hero+"|-2147483648|1").HasPending,
+                    "negative saved cooldown rejected "+i);
+                Require(!SandboxAgencyDecisionState.Parse(head+
+                    "\nR|"+hero+"|"+day+"|0").HasPending,
+                    "zero-request quota cannot authorize invitation "+i);
+                Require(!SandboxAgencyDecisionState.Parse(
+                    "CU_AGENCY_1\n"+(day+35)+"|"+hero+
+                    "|HouseholdAid|"+day+row).HasPending,
+                    "expired request cannot reopen after restore "+i);
+
+                var failed=new SandboxFamilyRecoveryState();
+                failed.RecordFailure("player_"+i,"Recruit",
+                    "simulated_partial_family",true,2,1,false,1,0);
+                string prior=failed.Serialize();
+                Require(failed.Observe("other",true,2,1)==
+                    "no_matching_partial_start" &&
+                    failed.Serialize()==prior,
+                    "different player cannot mutate recovery "+i);
+                Require(failed.Observe("player_"+i,true,-1,1)==
+                    "invalid_native_counts" &&
+                    failed.Serialize()==prior,
+                    "invalid family count leaves original fact intact "+i);
+                Require(failed.Observe("player_"+i,true,1000,1000)==
+                    "native_family_counts_changed" &&
+                    failed.ChildrenObserved==99 &&
+                    failed.SiblingsObserved==99 &&
+                    failed.Status=="NativeCountsMatchReviewStillRequired",
+                    "oversized telemetry stays bounded and under review "+i);
+                Require(failed.Observe("player_"+i,true,1000,1000)=="same",
+                    "same bounded observation does not fabricate moves "+i);
+                string normalized=failed.Serialize();
+                Require(SandboxFamilyRecoveryState.Parse(normalized)
+                    .Serialize()==normalized,
+                    "bounded family dossier survives parse "+i);
+                Require(!SandboxFamilyRecoveryState.Parse(
+                    normalized.Replace(
+                    "NativeCountsMatchReviewStillRequired",
+                    "TamperedConsent")).NeedsReview,
+                    "unrecognized family status never trusted "+i);
+
+                var money=new SandboxRoleEconomyState();
+                Require(money.Start("Trader",100,0) &&
+                    money.Observe(1,96,-1,"NativeCommerce")==
+                        "native_balance_change_observed",
+                    "valid native balance observation "+i);
+                string validMoney=money.Serialize();
+                Require(SandboxRoleEconomyState.Parse(validMoney)
+                    .Serialize()==validMoney,
+                    "economic ledger survives checkpoint "+i);
+                Require(!SandboxRoleEconomyState.Parse(
+                    validMoney.Replace("|96|-4|","|-1|-4|")).Started,
+                    "negative native balance rejected on reload "+i);
+                adverseSaveCases++;
+            }
+
+            var emptyFamily=new SandboxFamilyRecoveryState();
+            emptyFamily.RecordFailure("player_empty","Wanderer",
+                "post_family_failed",false,0,0,false,0,0);
+            Require(emptyFamily.Observe("player_empty",false,0,0)==
+                "native_family_counts_changed" &&
+                emptyFamily.Status=="NativeCountsMatchReviewStillRequired",
+                "status transition is recorded even with unchanged counts");
+            var nearMaxDay=new SandboxAgencyDecisionState{
+                Day=Int32.MaxValue};
+            Require(nearMaxDay.Propose("late_campaign_npc","Recognition") &&
+                SandboxAgencyDecisionState.Parse(
+                    nearMaxDay.Serialize()).HasPending,
+                "cooldown cannot overflow at the largest campaign day");
+        }
+
         private static int Main(string[] args)
         {
             try
             {
                 SimulateCreatorNavigation();
                 SimulateRetinueGrantGuard();
+                SimulateAdverseSaveRecovery();
                 foreach(string role in Roles)
                     for(int run=0;run<SeedsPerRole;run++)
                         SimulateRole(role,run);
@@ -313,6 +411,7 @@ namespace CalradiaUnified.AuditSimulator
                     syntheticDoubleEntryGiftCases=giftProofs,
                     modeledNpcRequests=agencyRequests,
                     modeledFamilyCountReviews=recoveryReviews,
+                    simulatedAdverseSavedStateCases=adverseSaveCases,
                     liveGameStatus="NOT RUN"
                 };
                 string json=JsonSerializer.Serialize(report,
