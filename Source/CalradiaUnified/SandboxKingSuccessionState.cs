@@ -66,6 +66,8 @@ namespace CalradiaUnified
                 !SandboxLordSuccessionPolicy.IsRule(rule) || day<0)
                 return "invalid_native_royal_identity";
             var ranked=SandboxLordSuccessionPolicy.Order(rule,children);
+            if(ranked.Length==0)
+                return "no_verified_native_royal_child";
             FounderId=founder;RulingClanId=rulingClan;
             KingdomId=kingdom;Rule=rule;
             ActualRulerId=founder;ActualRulingClanId=rulingClan;
