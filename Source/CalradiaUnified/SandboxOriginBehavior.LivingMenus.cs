@@ -694,11 +694,12 @@ namespace CalradiaUnified
             // and saved campaign records, not an old creator .ini file.
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_starting_household_native_status",
-                "My starting household and service",
+                "My household and present calling",
                 args=>Hero.MainHero!=null &&
                     (knightOath.IsConfigured ||
                      lordInheritance.IsRecorded ||
-                     kingSuccession.IsRecorded),
+                     kingSuccession.IsRecorded ||
+                     roleEconomy.Started),
                 args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
