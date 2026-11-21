@@ -162,5 +162,71 @@ namespace CalradiaUnified
                 "|future_dialogue_hooks_not_active=true");
             return "captured:"+state.People.Count;
         }
+
+        /// <summary>
+        /// Daily read-only observation of real native relation scores,
+        /// witnessed marriage links and clan moves. No reputation,
+        /// loyalty or backstory is invented from a score change.
+        /// </summary>
+        internal static int ObserveDaily(SandboxLifeHistoryState state,
+            SandboxSocialObservationState social,Hero player)
+        {
+            if(state==null || social==null || player==null ||
+                state.People.Count==0)return 0;
+            var living=Hero.AllAliveHeroes.Where(h=>h!=null &&
+                !String.IsNullOrEmpty(h.StringId))
+                .GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),
+                    StringComparer.Ordinal);
+            int events=0;
+            foreach(var record in state.People.ToArray())
+            {
+                Hero hero;
+                if(!living.TryGetValue(record.Id,out hero))continue;
+                string clan=hero.Clan==null?"":hero.Clan.StringId;
+                if(record.HouseholdId!=clan)
+                {
+                    state.Remember("NativeClanChangedObserved",
+                        hero.StringId,"",
+                        "previous="+record.HouseholdId+
+                        "|current="+clan+"|cause=unverified");
+                    record.HouseholdId=clan;
+                    events++;
+                }
+                if(hero.Spouse!=null &&
+                    !state.Bonds.Any(x=>x.From==hero.StringId &&
+                        x.To==hero.Spouse.StringId &&
+                        x.Kind=="Spouse"))
+                {
+                    state.Tie(hero.StringId,hero.Spouse.StringId,
+                        "Spouse","VerifiedNativeMarriage");
+                    state.Remember("NativeMarriageObserved",
+                        hero.StringId,hero.Spouse.StringId,
+                        "native_marriage_seen=true|date_not_established");
+                    events++;
+                }
+                if(hero!=player)
+                {
+                    var change=social.Observe(hero.StringId,
+                        player.GetRelation(hero));
+                    if(change!=null)
+                    {
+                        state.Remember("NativeRelationChangedObserved",
+                            player.StringId,hero.StringId,
+                            "before="+change.Before+
+                            "|after="+change.After+
+                            "|cause=unverified");
+                        events++;
+                    }
+                }
+            }
+            if(events>0)
+                DiagnosticJournal.Event("cu_living_person_events",
+                    "count="+events+
+                    "|known_people="+state.People.Count+
+                    "|native_state_observed=true"+
+                    "|causes_not_fabricated=true");
+            return events;
+        }
     }
 }
