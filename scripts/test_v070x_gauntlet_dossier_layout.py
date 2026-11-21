@@ -71,7 +71,8 @@ origin=read(SRC/"SandboxOriginBehavior.NativeHouseholdUI.cs")
 gallery_source=read(SRC/"CUFamilyPortraitGallery.cs")
 settings=read(SRC/"NativeSettingsPanel.cs")
 assert bound_names(dossier)=={
-    "Title","Clan","Family","Officers","Duty","Footer"}
+    "Title","Clan","Family","Officers","Duty","Footer",
+    "SectionFamilyTitle","SectionOfficersTitle","SectionDutyTitle"}
 for name in bound_names(dossier):
     assert "public string "+name in dossier_source,name
 assert 'Command.Click="ExecuteClose"' in read(UI/"CUNobleDossier.xml")
@@ -83,6 +84,11 @@ assert 'ScreenManager.PushScreen(new CUNobleDossierScreen(' in origin
 assert 'ShowNativeDetail("Starting household | "+type,' in origin
 assert '"cu_native_household_dossier_fallback"' in origin
 assert '"cu_native_household_dossier_attached"' in dossier_source
+for role_name in ("Wanderer","Outlaw","Mercenary","Soldier",
+                  "Knight","Lord","King"):
+    assert 'case "'+role_name+'":' in dossier_source
+    assert 'case "'+role_name+'":return' in origin
+assert 'NativeDossierTitle(type)' in origin
 assert 'native_read_only=true' in dossier_source
 assert 'HeroCreator.Create' not in dossier_source
 assert 'ChangeKingdomAction' not in dossier_source

@@ -39,7 +39,7 @@ namespace CalradiaUnified
         {
             base.OnInitialize();
             viewModel=new CUNobleDossierVM(
-                heading,clan,family,officers,duty,footnote,
+                role,heading,clan,family,officers,duty,footnote,
                 () => CloseSafely());
             layer=new GauntletLayer("CUNobleDossier",130,false)
             {
@@ -92,18 +92,69 @@ namespace CalradiaUnified
     public sealed class CUNobleDossierVM : ViewModel
     {
         private readonly Action close;
-        public CUNobleDossierVM(string title,string clan,
+        public CUNobleDossierVM(string role,string title,string clan,
             string family,string officers,string duty,string note,
             Action closeAction)
         {
             Title=title;Clan=clan;Family=family;
             Officers=officers;Duty=duty;Footer=note;
             close=closeAction;
+            // The same native Gauntlet language, but contextual
+            // headings for all seven distinct career identities.
+            switch(role)
+            {
+                case "Wanderer":
+                    SectionFamilyTitle="Personal ties";
+                    SectionOfficersTitle="Traveling companions";
+                    SectionDutyTitle="Life on the road";
+                    break;
+                case "Outlaw":
+                    SectionFamilyTitle="Personal ties";
+                    SectionOfficersTitle="Band and lieutenant";
+                    SectionDutyTitle="Outlaw standing";
+                    break;
+                case "Mercenary":
+                    SectionFamilyTitle="Household";
+                    SectionOfficersTitle="Company officers";
+                    SectionDutyTitle="Contract and service";
+                    break;
+                case "Soldier":
+                    SectionFamilyTitle="Family";
+                    SectionOfficersTitle="Party and commanders";
+                    SectionDutyTitle="Enlistment and rank";
+                    break;
+                case "Knight":
+                    SectionFamilyTitle="Noble family";
+                    SectionOfficersTitle="Squire and companions";
+                    SectionDutyTitle="Oath and field service";
+                    break;
+                case "Lord":
+                    SectionFamilyTitle="Dynasty and heirs";
+                    SectionOfficersTitle="Household officers";
+                    SectionDutyTitle="Fiefs and inheritance";
+                    break;
+                case "King":
+                    SectionFamilyTitle="Royal family";
+                    SectionOfficersTitle="Council and Kingsguard";
+                    SectionDutyTitle="Crown and government";
+                    break;
+                default:
+                    SectionFamilyTitle="Family and lineage";
+                    SectionOfficersTitle="Companions and officers";
+                    SectionDutyTitle="Career and current duties";
+                    break;
+            }
         }
         [DataSourceProperty]
         public string Title {get;private set;}
         [DataSourceProperty]
         public string Clan {get;private set;}
+        [DataSourceProperty]
+        public string SectionFamilyTitle {get;private set;}
+        [DataSourceProperty]
+        public string SectionOfficersTitle {get;private set;}
+        [DataSourceProperty]
+        public string SectionDutyTitle {get;private set;}
         [DataSourceProperty]
         public string Family {get;private set;}
         [DataSourceProperty]

@@ -70,6 +70,20 @@ namespace CalradiaUnified
             if(context=="Kingdom")return "Royal and kingdom affairs";
             return "Household and career dossier";
         }
+        private static string NativeDossierTitle(string type)
+        {
+            switch(type)
+            {
+                case "Wanderer":return "Wanderer | Life and company";
+                case "Outlaw":return "Outlaw | Band and allegiance";
+                case "Mercenary":return "Mercenary | Company record";
+                case "Soldier":return "Soldier | Enlistment record";
+                case "Knight":return "Knight | Oath and household";
+                case "Lord":return "Lord | House and estates";
+                case "King":return "King | Crown and court";
+                default:return "Calradia Unified | Campaign record";
+            }
+        }
         private void ShowStartingHouseholdStatus()
         {
             var player=Hero.MainHero;
@@ -189,7 +203,7 @@ namespace CalradiaUnified
             {
                 ScreenManager.PushScreen(new CUNobleDossierScreen(
                     type,
-                    "Starting household | "+type,
+                    NativeDossierTitle(type),
                     "Clan: "+clan.Name,
                     family,assignment,role,
                     "Native Clan, Party and Kingdom screens remain "+

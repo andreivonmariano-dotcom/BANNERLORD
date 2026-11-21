@@ -45,7 +45,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="439"
                     HeightSizePolicy="Fixed" SuggestedHeight="237"
                     PositionXOffset="488" PositionYOffset="136"/>
-            <TextWidget Text="Family and lineage" Brush.FontSize="22"
+            <TextWidget Text="@SectionFamilyTitle" Brush.FontSize="22"
                     Color="#EAC991FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="397" HeightSizePolicy="Fixed"
                     SuggestedHeight="36" PositionXOffset="48"
@@ -55,7 +55,7 @@
                     SuggestedWidth="397" HeightSizePolicy="Fixed"
                     SuggestedHeight="175" PositionXOffset="48"
                     PositionYOffset="191"/>
-            <TextWidget Text="Household officers" Brush.FontSize="22"
+            <TextWidget Text="@SectionOfficersTitle" Brush.FontSize="22"
                     Color="#EAC991FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="398" HeightSizePolicy="Fixed"
                     SuggestedHeight="36" PositionXOffset="503"
@@ -69,7 +69,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="894"
                     HeightSizePolicy="Fixed" SuggestedHeight="157"
                     PositionXOffset="33" PositionYOffset="393"/>
-            <TextWidget Text="Service and current responsibilities"
+            <TextWidget Text="@SectionDutyTitle"
                     Brush.FontSize="21" Color="#EAC991FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="838"
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
