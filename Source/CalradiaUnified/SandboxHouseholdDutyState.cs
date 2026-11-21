@@ -62,6 +62,12 @@ namespace CalradiaUnified
             reportCounts[slot]=0;
             return "personal_duty_recorded";
         }
+        public bool CanReport(string office,string heroId,int day)
+        {
+            int slot=Slot(office);
+            return slot>=0 && Id(heroId) && day>=0 &&
+                officerIds[slot]==heroId && lastReportDays[slot]<day;
+        }
         public string Report(string office,string heroId,int day)
         {
             int slot=Slot(office);
