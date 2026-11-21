@@ -659,6 +659,9 @@ namespace CalradiaUnified
                     AllowStartingFiefTransfer,Gold,Influence,Troops,
                     RoleAffiliationsEnabled,NobleElderHeroId,
                     ServicePatronHeroId);
+                if(lord.Length==0)
+                    lord=SandboxLordStartPolicy.ValidateRequiredFamily(
+                        SpouseEnabled,ChildCount);
                 if(lord.Length!=0 || KnightGuidedStart ||
                    SoldierGuidedStart || MercenaryGuidedStart ||
                    OutlawGuidedStart || WandererNoHouseStart)
