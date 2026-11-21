@@ -1369,10 +1369,16 @@ namespace CalradiaUnified
                 {
                     servicePatronHeroId=patron.StringId;
                     servicePatronName=patron.Name.ToString();
-                    Notify(profile.Role+" service confirmed under "+
-                        servicePatronName+" of "+
-                        patron.Clan.Name.ToString()+
-                        ". The kingdom contract remains native.");
+                    Notify(profile.SoldierGuidedStart?
+                        "Actual enlisted service confirmed under "+
+                            servicePatronName+" of "+
+                            patron.Clan.Name.ToString()+
+                            ". Rank and wage are controlled by "+
+                            "Serve as Soldier.":
+                        profile.Role+" service confirmed under "+
+                            servicePatronName+" of "+
+                            patron.Clan.Name.ToString()+
+                            ". The kingdom contract remains native.");
                 }
                 DiagnosticJournal.Event("cu_service_start_status",
                     "role="+profile.Role+
