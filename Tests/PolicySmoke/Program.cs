@@ -23,6 +23,62 @@ internal static class Program
     }
     private static void Main()
     {
+        // v0.72: real campaign battle receipts are read-only and bounded.
+        var history = new SandboxBattleHistoryState();
+        string battleKey = SandboxBattleHistoryState.EventKey(
+            "day=7|field|lord=hero_12");
+        Check("battle fingerprint is stable and rejects invalid input",
+            battleKey.Length == 16 &&
+            battleKey == SandboxBattleHistoryState.EventKey(
+                "day=7|field|lord=hero_12") &&
+            battleKey != SandboxBattleHistoryState.EventKey(
+                "day=8|field|lord=hero_12") &&
+            SandboxBattleHistoryState.EventKey("") == "");
+        Check("battle ledger rejects unsourced or fake outcomes",
+            !history.Record(battleKey, -1, "Field", "Victory",
+                "PlayerParty", "", "") &&
+            !history.Record(battleKey, 7, "Field", "Win",
+                "PlayerParty", "", "") &&
+            !history.Record(battleKey, 7, "Field", "Victory",
+                "UnknownMod", "", "") &&
+            !history.Record(battleKey, 7, "Field", "Victory",
+                "PlayerParty", "../escape", "") &&
+            history.Entries.Count == 0);
+        Check("native player victory recorded once",
+            history.Record(battleKey, 7, "Field", "Victory",
+                "PlayerParty", "", "") &&
+            !history.Record(battleKey, 7, "Field", "Victory",
+                "PlayerParty", "", "") &&
+            history.Entries.Count == 1);
+        string enlistmentKey = SandboxBattleHistoryState.EventKey(
+            "day=8|siege|host=lord_a");
+        Check("enlisted host battles preserve real lord and outcome",
+            history.Record(enlistmentKey, 8, "Siege", "Defeat",
+                "ServeAsSoldier", "castle_a", "lord_a") &&
+            history.DescribeRecent(2).Contains("enlisted host army") &&
+            history.DescribeRecent(2).Contains("Defeat"));
+        Check("battle history survives save and refuses corruption",
+            SandboxBattleHistoryState.Parse(history.Serialize())
+                .Serialize() == history.Serialize() &&
+            SandboxBattleHistoryState.Parse(
+                history.Serialize() + "|forged").Entries.Count == 0 &&
+            SandboxBattleHistoryState.Parse("NOT_A_CU_SAVE")
+                .Entries.Count == 0);
+        for (int n = 0; n < SandboxBattleHistoryState.MaxEntries + 2; n++)
+            history.Record(SandboxBattleHistoryState.EventKey(
+                "distinct_native_encounter_" + n), n + 9,
+                "Field", n % 2 == 0 ? "Victory" : "Unresolved",
+                "PlayerParty", "", "");
+        Check("battle history is capped and keeps newest records",
+            history.Entries.Count == SandboxBattleHistoryState.MaxEntries &&
+            history.Entries[0].Day == 11 &&
+            SandboxBattleHistoryState.Parse(history.Serialize())
+                .Entries.Count == SandboxBattleHistoryState.MaxEntries);
+        Check("battle history has no fabricated kill or wage fields",
+            !history.Serialize().Contains("casualties") &&
+            !history.Serialize().Contains("wages") &&
+            !history.Serialize().Contains("kills"));
+        
         // v0.71g: observed social bonds and genuine army/vassal status.
         var nativeBonds=new SandboxSocialBondState();
         Check("social records reject fictional IDs and invalid deltas",
