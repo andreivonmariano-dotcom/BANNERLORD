@@ -50,7 +50,7 @@ namespace CalradiaUnified
             int day=CurrentOathDay();
             var patron=KnightOathPatron();
             return day>=0 && patron!=null &&
-                patron.Clan!=null &&
+                !patron.IsPrisoner && patron.Clan!=null &&
                 patron.Clan.StringId==knightOath.PatronClanId &&
                 patron.Clan.Kingdom!=null &&
                 patron.Clan.Kingdom.StringId==knightOath.KingdomId &&
@@ -60,7 +60,7 @@ namespace CalradiaUnified
         {
             var patron=KnightOathPatron();
             return knightOath.HasCurrentOath && patron!=null &&
-                patron.Clan!=null &&
+                !patron.IsPrisoner && patron.Clan!=null &&
                 patron.Clan.StringId==knightOath.PatronClanId &&
                 patron.Clan.Kingdom!=null &&
                 patron.Clan.Kingdom.StringId==knightOath.KingdomId &&
@@ -124,7 +124,8 @@ namespace CalradiaUnified
             bool sameKingdom=sameClan && patron.Clan.Kingdom!=null &&
                 patron.Clan.Kingdom.StringId==knightOath.KingdomId;
             string result=knightOath.Observe(day,patron!=null,
-                patron!=null && patron.IsAlive,sameClan,sameKingdom);
+                patron!=null && patron.IsAlive,sameClan,sameKingdom,
+                patron!=null && patron.IsPrisoner);
             if(result=="new_muster_breach")
             {
                 // One state transition per overdue period, hence one
@@ -135,6 +136,8 @@ namespace CalradiaUnified
             if(result=="new_muster_breach" ||
                result=="successor_consent_required" ||
                result=="native_patron_allegiance_changed" ||
+               result=="patron_captivity_pause" ||
+               result=="patron_returned_muster_reset" ||
                result=="muster_window_open")
                 DiagnosticJournal.Event("cu_knight_oath_observed",
                     "result="+result+
