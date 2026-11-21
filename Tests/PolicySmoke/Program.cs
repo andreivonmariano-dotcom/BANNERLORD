@@ -167,7 +167,13 @@ internal static class Program
                 "officers=2|native_companions_dismissed=0|same_culture=true") &&
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "ReplaceNative",
-                "officers=1|native_companions_dismissed=1|same_culture=true"));
+                "officers=1|native_companions_dismissed=1|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=2|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=2|family_only=true"));
         Check("retinue grant blocks malformed and incomplete receipts",
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly","partial:native_companions_dismissed=1") &&
@@ -182,7 +188,7 @@ internal static class Program
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "RoleBased","officers=2|native_companions_dismissed=-1|same_culture=true") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
-                "RoleBased","officers=2|native_companions_dismissed=2|same_culture=true") &&
+                "RoleBased","officers=2|native_companions_dismissed=17|same_culture=true") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly","officers=0|native_companions_dismissed=0|same_culture=false") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
