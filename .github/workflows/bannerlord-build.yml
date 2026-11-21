@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress new Wanderer no-House and one loyal wage-free companion
+        shell: pwsh
+        run: python scripts/test_v070b_wanderer_single_companion_no_house.py
       - name: Regress latest native noble loop, historical parents and cultural retinue
         shell: pwsh
         run: python scripts/test_v069i_two_session_noble_parents_retinue.py
