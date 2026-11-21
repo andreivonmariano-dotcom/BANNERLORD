@@ -799,6 +799,8 @@ namespace CalradiaUnified
                 candidate.FamilyHomeId="";
                 candidate.Influence=-1;
                 candidate.RetinueMode="RoleBased";
+                // A native bandit troop grant, not extra culture recruits.
+                candidate.Troops=0;
             }
             if(candidate.WandererNoHouseStart)
             {
