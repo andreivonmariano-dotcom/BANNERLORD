@@ -70,11 +70,20 @@ dossier_source=read(SRC/"CUNobleDossierScreen.cs")
 origin=read(SRC/"SandboxOriginBehavior.NativeHouseholdUI.cs")
 gallery_source=read(SRC/"CUFamilyPortraitGallery.cs")
 settings=read(SRC/"NativeSettingsPanel.cs")
-assert bound_names(dossier)=={
+main_labels={
     "Title","Clan","Family","Officers","Duty","Footer",
     "SectionFamilyTitle","SectionOfficersTitle","SectionDutyTitle"}
-for name in bound_names(dossier):
+portrait_labels={"Name","Relationship","AdditionalArgs","Id",
+                 "TextureProviderName"}
+assert bound_names(dossier)==main_labels|portrait_labels
+for name in main_labels:
     assert "public string "+name in dossier_source,name
+for name in ("Name","Relationship"):
+    assert "public string "+name in gallery_source,name
+assert 'DataSource="{FamilyMembers}"' in read(UI/"CUNobleDossier.xml")
+assert 'DataSource="{OfficerMembers}"' in read(UI/"CUNobleDossier.xml")
+assert "MBBindingList<CUFamilyPortraitVM> FamilyMembers" in dossier_source
+assert "MBBindingList<CUFamilyPortraitVM> OfficerMembers" in dossier_source
 assert 'Command.Click="ExecuteClose"' in read(UI/"CUNobleDossier.xml")
 assert "public void ExecuteClose()" in dossier_source
 assert 'layer.LoadMovie("CUNobleDossier",viewModel)' in dossier_source
