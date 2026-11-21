@@ -31,6 +31,10 @@ assert "AdditionalOlderBrothers(" in son
 assert 'pending_house_older_brothers=' in son
 assert "ExactFinalRank(" in family
 assert "cu_final_son_birth_rank" in family
+assert "birthHouseholdHeir" in family
+assert "player.Father.Clan" in family
+assert "cu_family_older_heir_stays_with_father" in family
+assert "player_party_member=false" in family
 assert "cu_dynastic_final_birth_rank" in behavior
 assert "noble_birth_rank_changed_after_house" in behavior
 assert "requested_native_siblings_missing" in behavior
