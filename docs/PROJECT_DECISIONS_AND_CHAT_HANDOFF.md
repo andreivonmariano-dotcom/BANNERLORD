@@ -113,6 +113,16 @@ Do not advance the feature scope ahead of Q1 integrity gates.
 
 **Test source and detailed results:** [v0.69e simulated audit](V069E_SIMULATION_AUDIT_RESULTS.md), [current live-game acceptance protocol](V069E_CURRENT_FEATURES_GAME_UI_AUDIT_GATE.md), [draft PR #93](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/93).
 
+## v0.69e stabilization refinement | Fail-closed native retinue receipts (21 November 2026)
+
+**Latest user direction:** Continue *improving and refining* the existing module, preserving the feature freeze and simulation-first review. No new roles, UI pages, storylines, economies or NPC systems. The source audit exposed a concrete P1 flaw in `SandboxStartContract.RetinueReadyForOtherGrants`: a nonzero `officers=` prefix was treated as success without the completed native retinue receipt fields. This could permit later optional grants if a malformed/incomplete receipt reached the gate.
+
+**Scoped source repair:** Success now demands the complete 3-field receipt with integer officer/dismissal counts, `same_culture=true` for RoleBased/ReplaceNative or `family_only=true` for FamilyOnly, and exact `native_companions_preserved` for Native. Dismissed native companion count is 0 or 1, consistent with the existing non-atomic multi-dismissal refusal. Malformed, truncated, appended, negative and unknown-mode values cannot authorize optional gold, troops, items or renown. The actual retinue creator behavior is not expanded or reinterpreted.
+
+**Tests:** Updated executable `Tests/PolicySmoke` positive/negative cases, added the pure gate source to `Tests/AuditSimulator`, and included **20,000** malformed/successful receipt stress cases. The existing phase-9 source-order regression now checks that all three receipt fields are parsed. [Detailed continuation note](V069E_SIMULATION_AUDIT_RESULTS.md).
+
+**CI:** Pending the exact successful pinned Windows run of this repair at the time of writing. Do not use prior [44862791276](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276) as proof for this new code. Once successful, record the full compiled run SHA, C# test count, stress-test assertions, DLL and inner ZIP hashes. No installed-game UI, real native companion replacement or save/quit/reload has been tested. Keep PR #93 draft.
+
 ## Rules for future BANNERLORD chats
 
 Read this record, the source Google Doc, `AGENTS.md`, `PROJECT_INSTRUCTIONS.md`, the relevant current source, latest open PRs and Actions runs at the start of a development request. Do not assume `main` is newest: recent features are a stacked chain of draft PRs. Distinguish **requested**, **planned**, **committed**, **compiled**, and **verified live in game**. Update this record after each concrete milestone, including SHA, changed files, C# check counts, Actions ID, artifact hash, remaining blockers and next action. Keep all verified evidence links. Never insert untested claims into release notes.
