@@ -41,6 +41,11 @@ namespace CalradiaUnified
         {
             SandboxOriginBehavior.OpenFromNativeBUTRScreen();
         }
+        [DataSourceMethod]
+        public void ExecuteCUCamp()
+        {
+            SandboxOriginBehavior.EnterCampFromPartyDossier();
+        }
     }
 
     [ViewModelMixin(handleDerived: true)]
@@ -81,6 +86,17 @@ namespace CalradiaUnified
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
         public string Content => "<ButtonWidget Id=\"CUKingdomButton\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"340\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"46\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"82\" Command.Click=\"ExecuteCUDossier\"><Children><TextWidget Brush.FontSize=\"13\" Text=\"@CUKingdomSummary\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
+    }
+
+    // This is a second Party-only action. The global dossier is not
+    // a scene and does not spawn NPCs. This action changes to the
+    // guarded on-map household camp menu.
+    [PrefabExtension("Party", "descendant::Window/Children")]
+    internal sealed class CUPartyCampMoviePatch : PrefabExtensionInsertPatch
+    {
+        public override InsertType Type => InsertType.Child;
+        [PrefabExtensionText]
+        public string Content => "<ButtonWidget Id=\"CUPartyCampButton\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"340\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"46\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"134\" Command.Click=\"ExecuteCUCamp\"><Children><TextWidget Brush.FontSize=\"13\" Text=\"Visit traveling household camp\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
 
 }
