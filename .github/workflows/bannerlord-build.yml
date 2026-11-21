@@ -53,6 +53,8 @@ jobs:
         run: python scripts/test_v070l_king_native_crown_and_royal_house.py
       - name: Regress in-person native royal council, Kingsguard and real royal seat
         run: python scripts/test_v070n_royal_seat_council_kingsguard.py
+      - name: Regress live Knight Lord King failed-family handoffs
+        run: python scripts/test_v070q_failed_native_family_handoffs.py
       - name: Verify seven-path native-game acceptance fails shut without playthrough evidence
         run: python scripts/test_v070o_seven_game_acceptance_failclosed.py
       - name: Regress mercenary low-pay consent, protected exit bond and renegotiation
