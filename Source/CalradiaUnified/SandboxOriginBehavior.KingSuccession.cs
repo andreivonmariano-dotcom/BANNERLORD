@@ -84,19 +84,15 @@ namespace CalradiaUnified
                 "are saved claims, not an election, an appointed "+
                 "regent or a legal grant of crown and estates.",
                 args=>{});
-            foreach(var source in new[]{"town","castle"})
-            {
-                string origin=source;
-                starter.AddGameMenuOption(origin,
-                    "cu_king_succession_entry_"+origin,
-                    "CU: Royal household and succession",
-                    args=>kingSuccession.IsRecorded,
-                    args=>
-                    {
-                        kingSuccessionReturnMenu=origin;
-                        GameMenu.SwitchToMenu("cu_king_succession");
-                    },false);
-            }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_king_succession_entry",
+                "Dynastic succession",
+                args=>kingSuccession.IsRecorded,
+                args=>
+                {
+                    kingSuccessionReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_king_succession");
+                },false);
             starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_succession_review",
                 "Review native ruler and ranked children",

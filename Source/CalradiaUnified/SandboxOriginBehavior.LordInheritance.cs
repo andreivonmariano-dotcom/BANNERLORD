@@ -112,19 +112,15 @@ namespace CalradiaUnified
                 "ranks proven biological children. Native clan "+
                 "leadership, elections, fiefs and regency remain "+
                 "under game authority.",args=>{});
-            foreach(var source in new[]{"town","castle"})
-            {
-                string origin=source;
-                starter.AddGameMenuOption(origin,
-                    "cu_lord_inheritance_entry_"+origin,
-                    "CU: Lord family and inheritance",
-                    args=>lordInheritance.IsRecorded,
-                    args=>
-                    {
-                        lordInheritanceReturnMenu=origin;
-                        GameMenu.SwitchToMenu("cu_lord_inheritance");
-                    },false);
-            }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_lord_inheritance_entry",
+                "My household inheritance",
+                args=>lordInheritance.IsRecorded,
+                args=>
+                {
+                    lordInheritanceReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_lord_inheritance");
+                },false);
             starter.AddGameMenuOption("cu_lord_inheritance",
                 "cu_lord_inheritance_read",
                 "Review my family succession order",

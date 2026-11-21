@@ -176,21 +176,17 @@ namespace CalradiaUnified
                 "service oath is saved in this campaign. No kingdom "+
                 "vassalage or NPC-party enlistment is implied.",
                 args=>{});
-            foreach(string townMenu in new[]{"town","castle"})
-            {
-                string from=townMenu;
-                starter.AddGameMenuOption(from,
-                    "cu_knight_oath_entry_"+from,
-                    "CU: Knightly oath and service",
-                    args=>knightOath.IsConfigured &&
-                        Hero.MainHero!=null &&
-                        Hero.MainHero.StringId==knightOath.PlayerId,
-                    args=>
-                    {
-                        oathReturnMenu=from;
-                        GameMenu.SwitchToMenu("cu_knight_oath");
-                    },false);
-            }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_knight_oath_entry",
+                "My sworn lord and service",
+                args=>knightOath.IsConfigured &&
+                    Hero.MainHero!=null &&
+                    Hero.MainHero.StringId==knightOath.PlayerId,
+                args=>
+                {
+                    oathReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_knight_oath");
+                },false);
             starter.AddGameMenuOption("cu_knight_oath",
                 "cu_knight_oath_status","Review my sworn duty",
                 args=>knightOath.IsConfigured,

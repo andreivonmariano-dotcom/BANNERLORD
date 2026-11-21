@@ -453,19 +453,12 @@ namespace CalradiaUnified
             starter.AddGameMenu("cu_origin_location",
                 "Choose a town for your next Sandbox profile. Relocation is " +
                 "disabled pending game tests.", args => { });
-            foreach (string sourceMenu in new[] { "town", "castle" })
-            {
-                string from = sourceMenu;
-                starter.AddGameMenuOption(sourceMenu, "cu_origin_entry_" + sourceMenu,
-                    "CU: Design my NEXT Sandbox starting life",
-                    args => true, args =>
-                    {
-                        returnMenu = from;
-                        GameMenu.SwitchToMenu("cu_origin_main");
-                    }, false);
-                starter.AddGameMenuOption(from,
-                    "cu_family_portraits_" + from,
-                    "CU: View my household portraits",
+            // Pre-campaign character design is already available through
+            // the guided creator. Never advertise a NEXT GAME editor in
+            // every active town/castle.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_portraits",
+                "View my household portraits",
                     args => Hero.MainHero != null &&
                         (Hero.MainHero.Spouse != null ||
                          (Hero.MainHero.Children != null &&
@@ -501,9 +494,9 @@ namespace CalradiaUnified
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to
                 // a party. It is not an automatic retroactive save migration.
-                starter.AddGameMenuOption(from,
-                    "cu_family_residence_here_" + from,
-                    "CU: Make this my family's home",
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_residence_here",
+                "Make this owned holding my family's home",
                     args => Hero.MainHero != null &&
                         Hero.MainHero.Spouse != null &&
                         Clan.PlayerClan != null &&
@@ -515,9 +508,7 @@ namespace CalradiaUnified
                         SandboxFamilyHome.PlaceExistingFamilyAt(
                             Hero.MainHero, Settlement.CurrentSettlement)),
                     false);
-                // v0.67 consolidates older status buttons into one
-                // native People & Lineage entry rather than duplicate menus.
-            }
+
             starter.AddGameMenuOption("cu_origin_main", "cu_origin_preview",
                 "Preview my next-game setup", args => true,
                 args => Notify(Editing.Describe()), false);

@@ -656,27 +656,32 @@ namespace CalradiaUnified
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
-                // Visible even if a failed family never reached the
-                // successful Living Persons capture. No repair action
-                // is issued automatically on save/load or menu opening.
-                starter.AddGameMenuOption(from,
-                    "cu_partial_family_review_"+from,
-                    "CU: Review incomplete Starting Life",
-                    args=>familyRecovery.NeedsReview &&
-                        Hero.MainHero!=null,
-                    args=>ShowNativeDetail(
-                        "Starting Life | Native family review",
-                        familyRecovery.Describe()),false);
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "CU: People & Lineage",
-                    args=>livingPersons.People.Count>0 &&
-                        Hero.MainHero!=null,
+                    "Household and personal affairs",
+                    args=>Hero.MainHero!=null &&
+                        (livingPersons.People.Count>0 ||
+                         knightOath.IsConfigured ||
+                         lordInheritance.IsRecorded ||
+                         kingSuccession.IsRecorded ||
+                         familyRecovery.NeedsReview ||
+                         roleEconomy.Started ||
+                         successionInterest.IsRecorded),
                     args=>{
                         affairsReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_lineage");
                     },false);
             }
+            // Recoverable failures are still accessible, but never
+            // occupy a separate top-level settlement option.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_partial_family_review",
+                "Review incomplete starting household",
+                args=>familyRecovery.NeedsReview &&
+                    Hero.MainHero!=null,
+                args=>ShowNativeDetail(
+                    "Starting Life | Native family review",
+                    familyRecovery.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_role_economy_observed",
                 "Livelihood, duties and native denar evidence",

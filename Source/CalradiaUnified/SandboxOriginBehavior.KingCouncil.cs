@@ -109,11 +109,12 @@ namespace CalradiaUnified
                 "Kingsguard Hero accompany the King. Native kingdom "+
                 "votes, appointments and estates remain authoritative.",
                 args=>{});
-            foreach(var menu in new[]{"town","castle"})
             {
-                starter.AddGameMenuOption(menu,
-                    "cu_native_royal_council_entry_"+menu,
-                    "CU: Royal court and council",
+                // Royal state is a personal/kingdom matter, not a
+                // permanent tab in every foreign castle.
+                starter.AddGameMenuOption("cu_people_lineage",
+                    "cu_native_royal_council_entry",
+                    "My royal court and council",
                     args=>royalCouncil.IsRecorded &&
                         Hero.MainHero!=null &&
                         Hero.MainHero.StringId==royalCouncil.KingId &&
@@ -196,8 +197,7 @@ namespace CalradiaUnified
                 "cu_native_royal_council_return","Return",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(
-                    RecordedRoyalSeat()!=null &&
-                    RecordedRoyalSeat().IsTown?"town":"castle"),
+                    "cu_people_lineage"),
                 false);
         }
     }

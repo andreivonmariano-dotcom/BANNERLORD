@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
@@ -18,6 +19,7 @@ namespace CalradiaUnified
         private readonly Settings settings;
         private CivicState state = new CivicState();
         private int advisorCount;
+        private string civicReturnMenu="town";
         public CivicBehavior(Settings settings) { this.settings = settings; }
 
         public override void RegisterEvents()
@@ -39,9 +41,67 @@ namespace CalradiaUnified
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             if (starter == null) return;
-            Log.Write("M0 campaign session launched; registering Calradia Unified town/castle menus.");
-            foreach (var menu in new[] { "town", "castle" })
+            // In-game locations get only ONE contextual entry.
+            // Existing player-owned and allied-settlement transactions
+            // remain executable behind native-style administrative groups.
+            Log.Write("Civic actions grouped behind the local-administration menu.");
+            starter.AddGameMenu("cu_civic_administration",
+                "Local administration. Actual inventory, native parties, "+
+                "fief ownership and kingdom authority are checked by "+
+                "each action.", args=>{});
+            starter.AddGameMenu("cu_civic_stores",
+                "Stores, supplies and physical trade at this settlement.",
+                args=>{});
+            starter.AddGameMenu("cu_civic_garrison",
+                "Local troops, fortification and recruitment.",
+                args=>{});
+            starter.AddGameMenu("cu_civic_correspondence",
+                "Correspondence and levies under existing kingdom "+
+                "authority. This does not replace kingdom decisions.",
+                args=>{});
+            foreach (var source in new[] { "town", "castle" })
             {
+                string from=source;
+                starter.AddGameMenuOption(source,
+                    "cu_civic_admin_entry_"+source,
+                    "Manage local administration",
+                    x=>CanVisit() && (Owned() ||
+                        CurrentSettlementInKingdom()),
+                    x=>
+                    {
+                        civicReturnMenu=from;
+                        GameMenu.SwitchToMenu("cu_civic_administration");
+                    },false);
+            }
+            starter.AddGameMenuOption("cu_civic_administration",
+                "cu_civic_to_stores","Stores and trade",
+                x=>Owned(),
+                x=>GameMenu.SwitchToMenu("cu_civic_stores"),false);
+            starter.AddGameMenuOption("cu_civic_administration",
+                "cu_civic_to_garrison","Recruitment and defenses",
+                x=>Owned(),
+                x=>GameMenu.SwitchToMenu("cu_civic_garrison"),false);
+            starter.AddGameMenuOption("cu_civic_administration",
+                "cu_civic_to_correspondence","Kingdom correspondence",
+                x=>CurrentSettlementInKingdom(),
+                x=>GameMenu.SwitchToMenu(
+                    "cu_civic_correspondence"),false);
+            starter.AddGameMenuOption("cu_civic_administration",
+                "cu_civic_return","Return to settlement",
+                x=>true,x=>GameMenu.SwitchToMenu(civicReturnMenu),
+                false);
+            foreach(var group in new[]{
+                "cu_civic_stores","cu_civic_garrison",
+                "cu_civic_correspondence"})
+            {
+                string parent=group;
+                starter.AddGameMenuOption(parent,"cu_back_"+parent,
+                    "Return to local administration",x=>true,
+                    x=>GameMenu.SwitchToMenu("cu_civic_administration"),
+                    false);
+            }
+            {
+                string menu="cu_civic_stores";
                 starter.AddGameMenuOption(menu, "cu_depot_deposit", "CU: Deposit 5 grain in depot",
                     x => CanVisit() && DepotLedgerPolicy.CanDeposit(settings.EnableCivicSystems, Owned(),
                         GrainOnHand(), 5, Stock(), settings.DepotCapacity),
@@ -58,18 +118,22 @@ namespace CalradiaUnified
                         Destination() != null && DepotLedgerPolicy.FreeCapacity(state.Stock(Destination().StringId),
                             settings.DepotCapacity) >= 5, state.HasShipment(CurrentId())),
                     x => Safe(Ship), false);
-                starter.AddGameMenuOption(menu, "cu_local_levy", "CU: Hire one local levy (200 gold)",
+                string defenseMenu="cu_civic_garrison";
+                starter.AddGameMenuOption(defenseMenu, "cu_local_levy",
+                    "Hire one local levy (200 gold)",
                     x => CanVisit() && CanLocalRecruit(),
                     x => Safe(Recruit), false);
-                starter.AddGameMenuOption(menu, "cu_grain_aid", "CU: Donate 5 grain for local goodwill",
+                starter.AddGameMenuOption(menu, "cu_grain_aid",
+                    "Donate 5 grain for local goodwill",
                     x => CanVisit() && CivicPolicy.CanAid(settings.EnableLocalDiplomacy, Owned(), GrainOnHand(), 5,
                         LocalNotable() != null),
                     x => Safe(Aid), false);
                 RegisterPhysicalConvoyMenu(starter, menu);
-                RegisterGarrisonMenu(starter, menu);
-                RegisterCastleManagementMenu(starter, menu);
-                RegisterFeudalMenu(starter, menu);
-                RegisterKingdomMenu(starter, menu);
+                RegisterGarrisonMenu(starter, defenseMenu);
+                RegisterCastleManagementMenu(starter, defenseMenu);
+                RegisterFeudalMenu(starter, defenseMenu);
+                RegisterKingdomMenu(starter,
+                    "cu_civic_correspondence");
                 RegisterDepotTradeMenu(starter, menu);
             }
         }
