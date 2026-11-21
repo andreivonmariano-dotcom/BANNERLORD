@@ -137,9 +137,14 @@ namespace CalradiaUnified
     public sealed class CUFamilyPortraitVM : ViewModel
     {
         private readonly CharacterImageIdentifierVM portrait;
+        private readonly Hero person;
+        private readonly Action<Hero> inspect;
 
-        public CUFamilyPortraitVM(Hero hero,string relationship)
+        public CUFamilyPortraitVM(Hero hero,string relationship,
+            Action<Hero> inspectAction=null)
         {
+            person=hero;
+            inspect=inspectAction;
             Relationship = relationship;
             Name = hero.Name.ToString();
             Age = hero.IsChild ? "Age " + (int)hero.Age +
@@ -201,5 +206,10 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Home { get; private set; }
         [DataSourceProperty] public string Parentage { get; private set; }
         [DataSourceProperty] public string Presence { get; private set; }
+        public void ExecuteInspect()
+        {
+            if(inspect!=null && person!=null && person.IsAlive)
+                inspect(person);
+        }
     }
 }
