@@ -65,6 +65,9 @@ namespace CalradiaUnified
         // pending state is save-backed, including across game reloads.
         private bool soldierPendingStartSaved;
         private bool soldierPendingNoticeShown;
+        // Snapshot the exact requesting profile, so a newer new-game
+        // .ini cannot silently alter a pending saved Soldier campaign.
+        private string soldierPendingOriginProfile="";
         // These belong to this campaign save, not an external profile.
         private string wandererCompanionId = "";
         private int wandererWageCreditDay = -1;
@@ -340,6 +343,8 @@ namespace CalradiaUnified
                 ref servicePatronName);
             store.SyncData("CU_v070g_soldier_native_enlistment_pending",
                 ref soldierPendingStartSaved);
+            store.SyncData("CU_v070g_soldier_pending_origin_profile",
+                ref soldierPendingOriginProfile);
             store.SyncData("CU_v070b_wanderer_companion",
                 ref wandererCompanionId);
             store.SyncData("CU_v070b_wanderer_wage_credit_day",
@@ -1085,8 +1090,10 @@ namespace CalradiaUnified
                 !IsStandaloneSandbox())return;
             var hero=Hero.MainHero;
             if(hero==null || Clan.PlayerClan==null)return;
-            SandboxOriginProfile profile=SandboxOriginProfile.Load(
-                SandboxOriginProfile.UserPath);
+            SandboxOriginProfile profile=soldierPendingStartSaved &&
+                !String.IsNullOrEmpty(soldierPendingOriginProfile)?
+                SandboxOriginProfile.Parse(soldierPendingOriginProfile):
+                SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
             if(!SandboxCreatorOverlay.BlockNewGameProfile &&
                 profile.Enabled && profile.SoldierGuidedStart)
             {
@@ -1099,6 +1106,7 @@ namespace CalradiaUnified
                 if(!waiting.Available || !waiting.Enlisted)
                 {
                     soldierPendingStartSaved=true;
+                    soldierPendingOriginProfile=profile.Serialize();
                     if(!soldierPendingNoticeShown)
                     {
                         soldierPendingNoticeShown=true;
@@ -1123,6 +1131,7 @@ namespace CalradiaUnified
             applied=true;
             startedNewGame=false;
             soldierPendingStartSaved=false;
+            soldierPendingOriginProfile="";
             if (SandboxCreatorOverlay.BlockNewGameProfile)
             {
                 DiagnosticJournal.Event("sandbox_creator_cancelled_no_grants",
