@@ -36,4 +36,15 @@ The expanded `Tests/AuditSimulator` exercises **10,000 adverse serialized snapsh
 - `.github/workflows/bannerlord-build.yml`: all legacy source regressions, 24 modeled UI hitbox cases, 96 × 730 modeled campaign days, and pinned native Bannerlord 1.5.7.125802 module compile with no errors or warnings
 - Actual installed-game UI, native spouse/companion/party effects, current-session screenshots, 30-day campaign, game save/quit/reload acceptance remain **NOT RUN** until real evidence is available
 
-**Verification pending at this document's creation.** Await a successful exact branch-head Windows Actions run. Record the policy count, model assertions, executable commit, DLL/ZIP SHA-256, and compiled artifact only from that run. Keep draft PR #93 unmerged and the current feature freeze intact.
+## Verified Windows CI and artifact
+
+[GitHub Actions run 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228) finished **success** and built exact executable/test commit `eec666c252f468cd92475e8abc86731d16da3a4f`. Documentation commits made later do not alter the tested runtime source.
+
+- **907 executed C# gameplay policy checks passed** (seven more than the previous 900). Source-only `test_v069f_creator_back_state_and_agency_save.py` passed. Generated creator XML: **24 logical hitbox cases at three resolutions**, no modeled collision.
+- **12 × 48 × 365 = 210,240 modeled days**, **1,159,203 audit policy assertions**, 10,000 modeled creator navigation cycles, 10,000 adverse saved-state fixtures, 7,488 groups of economy/family/agency serialization checkpoints, and the earlier 20,000 retinue-receipt stress attempts.
+- Campaign model: **96 × 730 = 70,080 modeled days, 1,441,129 checks**; baseline campaign **40 × 365, 303,098 checks**. Other models: 1,062,792 medieval-life checks and 180,425 living-affairs checks.
+- Pinned Bannerlord **1.5.7.125802** reference module compilation **0 warnings / 0 errors**.
+- DLL **588,288 bytes**, SHA-256 `3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684`. Inner runtime ZIP **267,191 bytes**, SHA-256 `6b5726284ef730fe90ab3cdd61ba130c7fd0a3e55a74f6a186a23b46b14841a1`.
+- [Compiled game-untested ZIP from this exact run](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491). [JSON model evidence and logs](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690804381). The historical internal package label remains `v0.38.0`.
+
+**Verification level remains B, compiled and simulated.** This does not establish actual Bannerlord startup, rendered pages, hover/mouse dragging, game-owned saved profiles or engine save/quit/reload. Preserve the feature freeze and keep draft PR #93 unmerged until direct game evidence meets C–F gates.
