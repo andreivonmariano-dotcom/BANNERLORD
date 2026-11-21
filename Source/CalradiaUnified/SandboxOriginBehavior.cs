@@ -441,6 +441,7 @@ namespace CalradiaUnified
             RegisterKnightPatronConversations(starter);
             RegisterNobleOfficerConversations(starter);
             RegisterHouseholdConversations(starter);
+            RegisterPrivatePetitionConversations(starter);
             RegisterCareerChronicleMenus(starter);
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
