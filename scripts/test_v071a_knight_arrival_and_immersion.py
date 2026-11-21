@@ -53,7 +53,11 @@ assert 'cu_knight_patron_first_audience_reply' in dialogue
 assert 'RecordNativePatronAudience()' in dialogue
 assert 'knightOath.RecordMuster(day,true)' in dialogue
 assert 'hero_main_options' in dialogue
-assert 'Your house is known to mine' in dialogue
+assert 'I have heard your oath' in dialogue
+assert 'cu_knight_ceremony_pledge' in dialogue
+assert 'cu_knight_ceremony_defer' in dialogue
+assert 'cu_knight_ceremony_house' in dialogue
+assert 'cu_knight_ceremony_duties' in dialogue
 
 for name,backdrop in (("CUNobleDossier","#100D0A99"),
                        ("CUFamilyPortraits","#110D0999")):
