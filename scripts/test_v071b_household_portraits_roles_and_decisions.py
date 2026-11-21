@@ -44,7 +44,7 @@ assert 'player.Children.Contains(person)' in house
 assert 'OpenDossierFamilyPortraits' in house
 assert 'ScreenManager.PushScreen(new CUFamilyPortraitScreen())' in house
 assert 'HearDossierPetition' in house
-assert 'DeclineDossierPetition' in house
+assert 'DeclineDossierPetition' not in house
 assert 'cu_petition_ledger_consulted' in house
 assert 'RequestedCharacter()' in house
 assert 'remote_payment_or_relation_action=false' in house
