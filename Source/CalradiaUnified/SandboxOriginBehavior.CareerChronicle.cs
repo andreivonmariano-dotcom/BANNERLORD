@@ -165,6 +165,12 @@ namespace CalradiaUnified
                         CareerChronicleDescription());
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_battle_history_review",
+                "Review witnessed battle service",
+                args=>roleEconomy.Started,
+                args=>ShowNativeDetail("Career | Battle history",
+                    BattleHistoryDescription()),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
                 "Return to household affairs",
                 args=>true,
