@@ -257,23 +257,39 @@ namespace CalradiaUnified
                     person.Mother==player.Mother;
                 bool actualParty=player.PartyBelongedTo!=null &&
                     person.PartyBelongedTo==player.PartyBelongedTo;
+                int before=player.GetRelation(person);
                 int awarded=agenda.ObserveComradeship(entry.Id,actualParty,
-                    person.Age>=18f,siblings,player.GetRelation(person));
+                    person.Age>=18f && player.Age>=18f,siblings,before);
                 if(awarded<=0)continue;
                 try
                 {
                     ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
                         player,person,awarded,false);
+                    int after=player.GetRelation(person);
+                    if(!agenda.ConfirmComradeshipAward(
+                        entry.Id,before,after))
+                    {
+                        DiagnosticJournal.Event(
+                            "cu_shared_service_relation_unconfirmed",
+                            "player="+player.StringId+
+                            "|sibling="+person.StringId+
+                            "|before="+before+"|after="+after+
+                            "|award_not_consumed=true");
+                        continue;
+                    }
                     life.Remember("VerifiedSiblingComradeship",
                         player.StringId,person.StringId,
                         "days="+entry.ConsecutiveDaysTogether+
-                        "|native_relation_delta="+awarded+
+                        "|native_relation_before="+before+
+                        "|native_relation_after="+after+
                         "|shared_native_party=true");
                     DiagnosticJournal.Event("cu_shared_service_relation",
                         "player="+player.StringId+
                         "|sibling="+person.StringId+
                         "|days="+entry.ConsecutiveDaysTogether+
-                        "|native_relation_delta="+awarded);
+                        "|native_relation_before="+before+
+                        "|native_relation_after="+after+
+                        "|award_confirmed=true");
                 }
                 catch(Exception error)
                 {
