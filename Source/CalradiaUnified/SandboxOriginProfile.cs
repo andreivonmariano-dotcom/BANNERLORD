@@ -124,6 +124,8 @@ namespace CalradiaUnified
         public string RetinueMode = "Native";
         // New guided Wanderer only. Legacy profiles keep their House flow.
         public bool WandererNoHouseStart;
+        // New guided Outlaw only. Keep legacy Outlaw save semantics intact.
+        public bool OutlawGuidedStart;
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -215,6 +217,7 @@ namespace CalradiaUnified
             ServicePatronHeroId="";
             RetinueMode="Native";
             WandererNoHouseStart=false;
+            OutlawGuidedStart=false;
             WandererCompanionEnabled=false;
             WandererCompanionName="Taran";
             WandererCompanionAge=25;
@@ -471,6 +474,9 @@ namespace CalradiaUnified
                 case "WandererNoHouseStart":
                     if(!Boolean.TryParse(value,out b))return false;
                     WandererNoHouseStart=b;return true;
+                case "OutlawGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    OutlawGuidedStart=b;return true;
                 case "WandererCompanionEnabled":
                     if(!Boolean.TryParse(value,out b))return false;
                     WandererCompanionEnabled=b;return true;
@@ -602,6 +608,20 @@ namespace CalradiaUnified
                 !SandboxStartingLifePolicy.ValidAmbition(PersonalAmbition))
             {
                 error="Choose a supported early household and ambition.";
+                return false;
+            }
+            if(OutlawGuidedStart &&
+                (Role!="Outlaw" || WandererNoHouseStart ||
+                 NobleBirthPosition!="Independent" ||
+                 StartingKingdomId!="" ||
+                 StartingFiefMode!="Native" ||
+                 AllowStartingFiefTransfer ||
+                 RetinueMode!="RoleBased" ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Outlaw must begin as an independent "+
+                    "landless bandit with one verified lieutenant. "+
+                    "Family has no owned estate at start.";
                 return false;
             }
             if(WandererNoHouseStart &&
@@ -811,6 +831,8 @@ namespace CalradiaUnified
                 "RetinueMode=" + RetinueMode,
                 "WandererNoHouseStart=" +
                     WandererNoHouseStart.ToString().ToLowerInvariant(),
+                "OutlawGuidedStart=" +
+                    OutlawGuidedStart.ToString().ToLowerInvariant(),
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,
