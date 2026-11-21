@@ -63,8 +63,8 @@ namespace CalradiaUnified
             var nativeMother=spouse==null?null:spouse.Mother;
             bool distinctNobleBirth=bornClan!=null &&
                 bornClan!=clan && !bornClan.IsEliminated &&
-                !bornClan.IsMinorFaction && !bornClan.IsBanditFaction &&
-                !bornClan.IsRebelClan && bornClan.Kingdom!=null &&
+                !bornClan.IsBanditFaction && !bornClan.IsRebelClan &&
+                bornClan.Kingdom!=null &&
                 bornClan.Kingdom.StringId==profile.StartingKingdomId;
             bool marriedNativeParents=nativeFather!=null &&
                 nativeMother!=null && nativeFather.IsAlive &&
@@ -88,9 +88,12 @@ namespace CalradiaUnified
                 (bornClan!=null && String.Equals(bornClan.StringId,
                     profile.SpouseBirthClanId,
                     StringComparison.OrdinalIgnoreCase));
+            bool unrecordedNativeParents=spouse!=null &&
+                nativeFather==null && nativeMother==null;
             string noble=SandboxLordStartPolicy.ValidateNativeNobleSpouse(
                 distinctNobleBirth,marriedNativeParents,
-                reciprocalChild,matchesOrigin,namedClan);
+                reciprocalChild,matchesOrigin,namedClan,
+                unrecordedNativeParents);
             if(result.Length==0)result=noble;
             DiagnosticJournal.Event("cu_lord_native_noble_inlaws",
                 "result="+(noble.Length==0?"PASS":"FAIL")+
@@ -101,6 +104,7 @@ namespace CalradiaUnified
                 "|mother="+(nativeMother==null?"none":
                     nativeMother.StringId)+
                 "|native_married_parents="+marriedNativeParents+
+                "|unrecorded_native_parents="+unrecordedNativeParents+
                 "|reciprocal_native_child="+reciprocalChild+
                 "|no_existing_npc_rewritten=true");
             DiagnosticJournal.Event("cu_lord_native_family_verification",

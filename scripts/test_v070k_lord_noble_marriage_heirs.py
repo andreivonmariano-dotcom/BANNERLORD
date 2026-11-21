@@ -18,8 +18,11 @@ for token in ("ValidateNobleSpouseRequest(", "ValidateNativeNobleSpouse(",
               "native_noble_married_parents_missing",
               "native_noble_origin_clan_mismatch"):
     assert token in policy,token
-assert 'if(profile.LordGuidedStart)' in spouse
-assert 'guided_lord_requires_native_married_noble_parents' in spouse
+assert '!profile.LordGuidedStart' in spouse
+assert 'guided_lord_requires_native_married_noble_parents' not in spouse
+assert 'return birthClan!=null?' in spouse
+assert 'unrecordedNativeParents' in family
+assert 'unrecordedNativeParents);' in family
 assert 'h.Spouse.IsLord' in spouse
 assert 'PreflightGuidedLord(' in spouse
 assert 'SandboxGeneratedSpouseOrigin' in preflight

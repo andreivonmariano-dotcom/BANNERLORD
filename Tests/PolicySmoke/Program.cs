@@ -273,6 +273,21 @@ internal static class Program
                 "Version=CU_ORIGIN_1\nRole=King\n"+
                 "StartingFiefMode=Castle\nGold=150000\n")
                 .KingGuidedStart);
+        Check("Lord accepts genuine noble clan without invented parents",
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                false,false,false,false,true,true)==
+                    "native_noble_birth_house_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,true,false)==
+                    "native_noble_married_parents_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,false,true,true,false)==
+                    "native_noble_parentage_unverified" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,false,true)==
+                    "native_chosen_noble_house_mismatch");
         Check("guided Lord true native vassal contract only",
             SandboxLordStartPolicy.ValidateNativeHouse(
                 "vassal","vlandia","vlandia",

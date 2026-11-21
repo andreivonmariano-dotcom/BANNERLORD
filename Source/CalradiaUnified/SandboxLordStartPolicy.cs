@@ -84,15 +84,17 @@ namespace CalradiaUnified
             bool verifiedNativeMarriedParents,
             bool reciprocalNativeChildReferences,
             bool spouseNativeOriginClanMatches,
-            bool chosenClanMatches)
+            bool chosenClanMatches,bool ancestryUnrecorded=false)
         {
             if(!foreignNativeNobleBirthClan)
                 return "native_noble_birth_house_missing";
-            if(!verifiedNativeMarriedParents)
+            // No parents on either side is genuine unrecorded ancestry.
+            // A half-linked or contradictory genealogy remains invalid.
+            if(!ancestryUnrecorded && !verifiedNativeMarriedParents)
                 return "native_noble_married_parents_missing";
-            if(!reciprocalNativeChildReferences)
+            if(!ancestryUnrecorded && !reciprocalNativeChildReferences)
                 return "native_noble_parentage_unverified";
-            if(!spouseNativeOriginClanMatches)
+            if(!ancestryUnrecorded && !spouseNativeOriginClanMatches)
                 return "native_noble_origin_clan_mismatch";
             if(!chosenClanMatches)
                 return "native_chosen_noble_house_mismatch";

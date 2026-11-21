@@ -31,8 +31,9 @@ namespace CalradiaUnified
                 out father,out mother,out refused))
                 return refused.Length==0?
                     "native_noble_parents_unavailable":refused;
-            return father!=null && mother!=null &&
-                birthClan!=null?"":"native_noble_parentage_unavailable";
+            // Native noble birth is grounded in the real birth clan.
+            // Absent parents stay absent, never invented for the spouse.
+            return birthClan!=null?"":"native_noble_birth_clan_unavailable";
         }
         internal static bool TryResolve(SandboxOriginProfile profile, Hero player,
             out Clan birthClan, out Hero father, out Hero mother,
@@ -67,7 +68,7 @@ namespace CalradiaUnified
                 clan != null && clan != Clan.PlayerClan &&
                 !closeFamilyClans.Contains(clan) &&
                 !clan.IsEliminated && !clan.IsBanditFaction &&
-                !clan.IsRebelClan && !clan.IsMinorFaction)
+                !clan.IsRebelClan)
                 .OrderBy(clan => clan.StringId, StringComparer.Ordinal)
                 .ToArray();
 
@@ -106,17 +107,10 @@ namespace CalradiaUnified
                 .ToArray();
             if (families.Length == 0)
             {
-                // The guided Lord has an explicit living noble in-law
-                // contract. A named noble clan without both real native
-                // married parents is not enough to establish that lineage.
-                if(profile.LordGuidedStart)
-                {
-                    refusal="guided_lord_requires_native_married_noble_parents";
-                    return false;
-                }
-                // No invented parents. NobleRandom still permits an actual
-                // native noble birth clan when no married couple is old
-                // enough to parent the requested adult spouse (e.g. age 48).
+                // Native noble birth does not require invented parents.
+                // Prefer verified paired parents when they exist. If none
+                // qualify, keep the generated spouse's real foreign clan
+                // origin and leave parent links absent.
                 // A missing ancestor must not cancel a genuine family.
                 if (candidates.Length == 0)
                 {

@@ -241,7 +241,8 @@ namespace CalradiaUnified
                     "|reason="+inlaws+
                     "|background="+p.SpouseBackground+
                     "|chosen_clan="+p.SpouseBirthClanId+
-                    "|native_married_noble_parents_required=true"+
+                    "|real_native_birth_clan_required=true"+
+                    "|unrecorded_native_parents_permitted=true"+
                     "|no_marriage_or_clan_changes=true");
                 if(inlaws.Length>0)return "lord_noble_spouse:"+inlaws;
             }
