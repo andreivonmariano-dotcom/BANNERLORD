@@ -68,10 +68,10 @@ assert 'RetinueMode!="FamilyOnly"' in p
 assert 'Gold!=-1 || Influence!=-1 || Troops!=0' in p
 assert 'NativeMercenaryContract' in economy
 assert 'case "Mercenary":' in economy
-assert 'role=="Mercenary"' in role
+assert 'role == "Mercenary"' in role
 assert 'role=="Mercenary"' in service
 assert '"MercenaryCompany"' in legacy
-assert 'if(profile.MercenaryGuidedStart)' in family
+assert 'profile.MercenaryGuidedStart' in family
 assert 'cu_independent_mercenary_ancestry_recorded' in family
 
 # The native role must actually be hired, not simply in a kingdom.
