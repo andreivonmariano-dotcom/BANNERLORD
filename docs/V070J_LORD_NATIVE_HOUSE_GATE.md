@@ -43,3 +43,16 @@ Gate B is a pinned reference-assembly compilation, C# policy testing, native sce
 Before raising the gate, complete a real new-game run with the Lord path: world options, character age and culture, native `vassal` start, real selected kingdom, player-clan leadership, live clan and fief ownership, no accidental mercenary contract, the two officers in the same native party, mandatory spouse and at least one child with exact native genealogies, optional sibling genealogies, residence authority, family save/quit/reload, real army invitation and vassal diplomacy, and retained native estate after reload. Negative tests must reject an unlanded native start, king start, wrong kingdom, missing party leader, missing officer or invented fief grant.
 
 The working branch is the draft PR #93 stacked on PR #92. Do not merge, rename the internal v0.38.0 compiled-only package as a verified release or change the user's installed artifact pin.
+
+## Mandatory family update and Windows source gate, 21 November 2026
+
+The guided Lord creator now preselects **married** and **one child**. The spouse toggle is removed from the guided Lord's House sequence, the child's minimum is one, the spouse name and first child's name are visible without opening Advanced, and siblings remain an optional separate choice. Other starting paths retain their prior family controls. Profiles saved by legacy Lord starts retain the original `LordGuidedStart=false` behavior.
+
+`SandboxLordStartPolicy.ValidateRequiredFamily` refuses an unmarried or childless guided Lord at profile validation and House confirmation. After native marriage and birth, `VerifyGuidedLordNativeFamily` checks a reciprocal living spouse in `Clan.PlayerClan` and a distinct verified native Hero for every requested child. Each must match the requested name, sex and age and appear in both actual parents' child collections. Any failure stops before starting Lord officers or additional CU grants. This does not invent a spouse, a family record or an heir by altering the creator's labels.
+
+- **CI passed:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44888333663
+- **Compiled source commit:** `ecdfdcef06978fe673ddcbc63ae4af0c1988b813`
+- **Result:** 1,026 C# gameplay policy checks passed; Lord family source gate passed; audit simulation passed with 210,240 modeled days, 1,159,206 assertions and 7,488 checkpoints; native reference compiler reported 0 warnings and 0 errors.
+- **DLL SHA-256:** `9fb3f2038032219a838ca5b212971307a78741df8795e0fef56969162a0c5e39`
+- **Compiled, game-untested candidate:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44888333663/artifacts/14700499263 . Its historical internal label remains v0.38.0.
+- **Limit:** highest acceptance remains **Gate B**. The optional, nonblocking Knight clan metadata reflection probe still reports a missing reference dependency, independent of this successful Lord compile. Actual native new-game marriage, child links, household residence and save/reload remain untested. PR #93 stays draft and the installed artifact pin stays unchanged.
