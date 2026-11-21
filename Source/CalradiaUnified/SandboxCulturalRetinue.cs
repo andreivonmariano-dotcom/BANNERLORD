@@ -88,8 +88,10 @@ namespace CalradiaUnified
         {
             bool female=office=="Chamberlain" ||
                 office=="RoyalMinister" || office=="Navigator";
+            string title=office=="RoyalMinister"?
+                "Royal Minister":office.Replace("Of"," of ");
             return SandboxCulturalNames.Suggest(culture,female,index+2,
-                new string[0])+" ("+office.Replace("Of"," of ")+")";
+                new string[0])+" ("+title+")";
         }
 
         private static void EquipFromNativeDonor(Hero officer,
