@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
@@ -120,18 +121,24 @@ namespace CalradiaUnified
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
                     continue;
                 var prior=agencyDecisions.For(hero.StringId);
-                string kind=SandboxAgencyDecisionPolicy.Choose(
+                string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
                     record.Goal,true,true,player.GetRelation(hero),
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
-                        agencyDecisions.Day-prior.LastDay);
+                        agencyDecisions.Day-prior.LastDay,
+                    hero.GetTraitLevel(DefaultTraits.Honor),
+                    hero.GetTraitLevel(DefaultTraits.Generosity),
+                    hero.GetTraitLevel(DefaultTraits.Calculating),
+                    hero.Gold);
                 if(kind.Length==0)continue;
                 if(agencyDecisions.Propose(hero.StringId,kind))
                 {
                     livingPersons.Remember("IndependentCharacterRequest",
                         hero.StringId,player.StringId,
                         "kind="+kind+
-                        "|source=character_goal_and_native_presence");
+                        "|source=modeled_npc_initiative"+
+                        "|native_evidence=goal_traits_wealth_presence"+
+                        "|not_a_claim_of_native_ai_dialogue=true");
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
                         "|day="+agencyDecisions.Day);
