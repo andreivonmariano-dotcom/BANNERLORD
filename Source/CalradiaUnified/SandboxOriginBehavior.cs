@@ -1899,9 +1899,9 @@ namespace CalradiaUnified
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
                         roleEconomy.Start(
-                            profile.SoldierGuidedStart?
-                                "EnlistedSoldier":profile.KnightGuidedStart?
-                                "HouseholdKnight":profile.Role,
+                            profile.KnightGuidedStart?
+                                "HouseholdKnight":profile.SoldierGuidedStart?
+                                "EnlistedSoldier":profile.Role,
                             hero.Gold,agencyDecisions.Day);
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
