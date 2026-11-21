@@ -194,15 +194,15 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_knight_patron_first_audience","hero_main_options",
                 "cu_knight_ceremony_open",
-                "My lord, I have come to take my place in your service.",
+                "I have come to your banner, my lord, to pledge my sword.",
                 ()=>SpeakingWithSwornPatron() &&
                     knightOath.LastMusterDay<0,null,200);
             starter.AddDialogLine(
                 "cu_knight_ceremony_open","cu_knight_ceremony_open",
                 "cu_knight_ceremony_choices",
-                "Then stand before me as the head of your own house. "+
-                "Your banner is yours to command. Tell me what "+
-                "you promise under mine.",
+                "Your name is written in my household roll, but this "+
+                "is our first meeting face to face. You still "+
+                "command your own people. What do you promise me?",
                 null,null,200);
             starter.AddPlayerLine(
                 "cu_knight_ceremony_duties","cu_knight_ceremony_choices",
