@@ -49,8 +49,8 @@ assert 'candidate.Gold=-1;' in creator
 assert 'if(p.KingGuidedStart)' in preflight
 assert '"cu_king_native_preflight"' in preflight
 assert 'SandboxKingStartPolicy.ValidateNativeCrown(' in preflight
-assert 'profile.KingGuidedStart?' in court
-assert 'SandboxKingStartPolicy.CourtOffices:' in court
+assert 'if(profile.KingGuidedStart)' in court
+assert 'offices=SandboxKingStartPolicy.CourtOffices;' in court
 assert '"cu_king_native_court_verification"' in behavior
 assert 'SandboxKingStartPolicy.ValidateCourt(' in behavior
 assert '"cu_king_native_final_verification"' in behavior
