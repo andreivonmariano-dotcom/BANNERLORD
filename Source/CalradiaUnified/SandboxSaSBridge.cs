@@ -16,6 +16,7 @@ namespace CalradiaUnified
         internal sealed class Snapshot
         {
             public bool Available,Enlisted,InsideHostParty;
+            public MobileParty HostParty;
             public bool NativeHostPartyLedByLord,LordIsNativeLord;
             public string LordId="",LordKingdomId="",RankId="",DutyId="";
             public int RankNumber,Wage,Days,TermDaysLeft;
@@ -92,6 +93,7 @@ namespace CalradiaUnified
                 }
                 var lord=Field(snap,"Lord") as Hero;
                 var host=Field(snap,"HostParty") as MobileParty;
+                result.HostParty=host;
                 result.LordIsNativeLord=lord!=null &&
                     lord.IsAlive && lord.IsActive && lord.IsLord &&
                     lord.Clan!=null;
