@@ -6,22 +6,26 @@ using System.Linq;
 namespace CalradiaUnified
 {
     /// <summary>
-    /// Read-only receipts for real finished campaign map encounters.
-    /// Does not award renown, ranks, wages, relations, kills or casualties.
-    /// The battle event provides party involvement, not proof the player
-    /// personally struck an enemy.
+    /// Bounded receipts for real native campaign battles. Native MapEventParty
+    /// death/wound rosters supply counts. Zero is a real observed zero;
+    /// -1 means the older save has no casualty observation.
+    /// No personal kill, injury cause, salary, renown or promotion inferred.
     /// </summary>
     public sealed class SandboxBattleHistoryState
     {
-        public const string Version = "CU_BATTLE_HISTORY_1";
+        public const string Version = "CU_BATTLE_HISTORY_2";
+        private const string LegacyVersion = "CU_BATTLE_HISTORY_1";
         public const int MaxEntries = 32;
+        private const int MaxNamedHeroes = 4;
         private readonly List<Entry> entries = new List<Entry>();
-
         public sealed class Entry
         {
             public string Key = "", Kind = "", Outcome = "";
             public string Source = "", SettlementId = "", LordId = "";
-            public int Day;
+            public string PatronWitnessId = "";
+            // IDs are actual engine Hero.StringId, never names invented by CU.
+            public string WoundedHeroIds = "", FallenHeroIds = "";
+            public int Day, PartyDead = -1, PartyWounded = -1;
         }
         public IList<Entry> Entries { get { return entries.AsReadOnly(); } }
 
@@ -34,56 +38,84 @@ namespace CalradiaUnified
                     return false;
             return true;
         }
+        private static bool ValidIds(string values)
+        {
+            if (values == null || values.Length > 324) return false;
+            if (values.Length == 0) return true;
+            var parts = values.Split(',');
+            return parts.Length <= MaxNamedHeroes &&
+                parts.All(p => ValidId(p, false)) &&
+                parts.Distinct(StringComparer.Ordinal).Count() == parts.Length;
+        }
         private static bool ValidKey(string key)
         {
             return key != null && key.Length == 16 &&
                 key.All(c => (c >= '0' && c <= '9') ||
                              (c >= 'a' && c <= 'f'));
         }
-        private static bool ValidKind(string value)
+        private static bool ValidKind(string kind)
         {
-            return value == "Field" || value == "Siege" ||
-                value == "Raid" || value == "Hideout" ||
-                value == "Other";
+            return kind == "Field" || kind == "Siege" ||
+                kind == "Raid" || kind == "Hideout" || kind == "Other";
         }
-        private static bool ValidOutcome(string value)
+        private static bool ValidOutcome(string result)
         {
-            return value == "Victory" || value == "Defeat" ||
-                value == "Unresolved";
+            return result == "Victory" || result == "Defeat" ||
+                result == "Unresolved";
         }
-        private static bool ValidSource(string value)
+        private static bool ValidSource(string source)
         {
-            return value == "PlayerParty" || value == "ServeAsSoldier";
+            return source == "PlayerParty" || source == "ServeAsSoldier";
         }
 
+        // Old callers and v0.72 tests retain their original behavior.
         public bool Record(string key, int day, string kind,
             string outcome, string source, string settlementId,
             string lordId)
         {
+            return RecordObserved(key, day, kind, outcome, source,
+                settlementId, lordId, "", -1, -1, "", "");
+        }
+
+        public bool RecordObserved(string key, int day, string kind,
+            string outcome, string source, string settlementId,
+            string lordId, string patronWitnessId, int partyDead,
+            int partyWounded, string woundedHeroIds,
+            string fallenHeroIds)
+        {
             if (!ValidKey(key) || day < 0 || day > 2000000 ||
                 !ValidKind(kind) || !ValidOutcome(outcome) ||
-                !ValidSource(source) ||
-                !ValidId(settlementId, true) ||
+                !ValidSource(source) || !ValidId(settlementId, true) ||
                 !ValidId(lordId, true) ||
+                !ValidId(patronWitnessId, true) ||
+                !ValidIds(woundedHeroIds) || !ValidIds(fallenHeroIds) ||
+                partyDead < -1 || partyDead > 100000 ||
+                partyWounded < -1 || partyWounded > 100000 ||
+                ((partyDead == -1) != (partyWounded == -1)) ||
+                // Names require an observed native casualty roster.
+                (partyDead < 0 && (woundedHeroIds.Length != 0 ||
+                    fallenHeroIds.Length != 0)) ||
+                // "Patron witness" is reserved for independent player party.
+                (source != "PlayerParty" && patronWitnessId.Length > 0) ||
                 entries.Any(e => e.Key == key))
                 return false;
 
-            // The newest receipts survive long campaigns, with bounded saves.
             if (entries.Count == MaxEntries) entries.RemoveAt(0);
             entries.Add(new Entry {
                 Key = key, Day = day, Kind = kind, Outcome = outcome,
                 Source = source, SettlementId = settlementId,
-                LordId = lordId
+                LordId = lordId, PatronWitnessId = patronWitnessId,
+                PartyDead = partyDead, PartyWounded = partyWounded,
+                WoundedHeroIds = woundedHeroIds,
+                FallenHeroIds = fallenHeroIds
             });
             return true;
         }
 
-        /// <summary>A stable key over canonical engine-observed event data.</summary>
         public static string EventKey(string canonical)
         {
             if (String.IsNullOrEmpty(canonical) || canonical.Length > 2048)
                 return "";
-            // FNV-1a, defined explicitly so the hash is stable across loads.
             unchecked
             {
                 ulong hash = 14695981039346656037UL;
@@ -96,6 +128,14 @@ namespace CalradiaUnified
                 }
                 return hash.ToString("x16", CultureInfo.InvariantCulture);
             }
+        }
+
+        public int WitnessedVictoriesWith(string actualPatronId)
+        {
+            if (!ValidId(actualPatronId, false)) return 0;
+            return entries.Count(e => e.Source == "PlayerParty" &&
+                e.Outcome == "Victory" &&
+                e.PatronWitnessId == actualPatronId);
         }
 
         public string DescribeRecent(int count)
@@ -111,7 +151,17 @@ namespace CalradiaUnified
                     (e.SettlementId.Length > 0 ?
                      " at " + e.SettlementId : "") +
                     (e.LordId.Length > 0 ?
-                     " under " + e.LordId : "")));
+                     " under " + e.LordId : "") +
+                    (e.PartyDead >= 0 ? " | party fallen " +
+                     e.PartyDead + ", wounded " + e.PartyWounded : "") +
+                    (e.WoundedHeroIds.Length > 0 ?
+                     " | wounded own-clan Heroes: " +
+                     e.WoundedHeroIds : "") +
+                    (e.FallenHeroIds.Length > 0 ?
+                     " | fallen own-clan Heroes: " +
+                     e.FallenHeroIds : "") +
+                    (e.PatronWitnessId.Length > 0 ?
+                     " | same-side patron " + e.PatronWitnessId : "")));
         }
 
         public string Serialize()
@@ -120,7 +170,11 @@ namespace CalradiaUnified
             foreach (var e in entries)
                 rows.Add(String.Join("|", new[] {
                     e.Key, e.Day.ToString(CultureInfo.InvariantCulture),
-                    e.Kind, e.Outcome, e.Source, e.SettlementId, e.LordId
+                    e.Kind, e.Outcome, e.Source, e.SettlementId,
+                    e.LordId, e.PatronWitnessId,
+                    e.PartyDead.ToString(CultureInfo.InvariantCulture),
+                    e.PartyWounded.ToString(CultureInfo.InvariantCulture),
+                    e.WoundedHeroIds, e.FallenHeroIds
                 }));
             return String.Join("\n", rows);
         }
@@ -128,21 +182,32 @@ namespace CalradiaUnified
         public static SandboxBattleHistoryState Parse(string packed)
         {
             var empty = new SandboxBattleHistoryState();
-            if (String.IsNullOrEmpty(packed) || packed.Length > 12000)
+            if (String.IsNullOrEmpty(packed) || packed.Length > 16000)
                 return empty;
             var rows = packed.Replace("\r", "").Split('\n');
             if (rows.Length < 1 || rows.Length > MaxEntries + 1 ||
-                rows[0] != Version) return empty;
+                (rows[0] != Version && rows[0] != LegacyVersion))
+                return empty;
+            bool old = rows[0] == LegacyVersion;
             var loaded = new SandboxBattleHistoryState();
             for (int i = 1; i < rows.Length; i++)
             {
                 var cells = rows[i].Split('|');
-                int day;
-                if (cells.Length != 7 ||
+                int day, died = -1, wounded = -1;
+                if (cells.Length != (old ? 7 : 12) ||
                     !Int32.TryParse(cells[1], NumberStyles.None,
-                        CultureInfo.InvariantCulture, out day) ||
-                    !loaded.Record(cells[0], day, cells[2], cells[3],
-                        cells[4], cells[5], cells[6]))
+                        CultureInfo.InvariantCulture, out day))
+                    return empty;
+                if (!old && (!Int32.TryParse(cells[8],
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out died) ||
+                    !Int32.TryParse(cells[9], NumberStyles.Integer,
+                    CultureInfo.InvariantCulture, out wounded)))
+                    return empty;
+                if (!loaded.RecordObserved(cells[0], day, cells[2],
+                    cells[3], cells[4], cells[5], cells[6],
+                    old ? "" : cells[7], died, wounded,
+                    old ? "" : cells[10], old ? "" : cells[11]))
                     return empty;
             }
             return loaded;
