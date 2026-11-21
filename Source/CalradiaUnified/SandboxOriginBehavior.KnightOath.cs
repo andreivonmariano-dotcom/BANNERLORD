@@ -24,18 +24,30 @@ namespace CalradiaUnified
         }
         private Hero KnightOathPatron()
         {
-            if(!knightOath.IsConfigured || MBObjectManager.Instance==null)
-                return null;
-            var hero=MBObjectManager.Instance.GetObject<Hero>(
-                knightOath.PatronId);
-            return hero!=null && hero.StringId==knightOath.PatronId?
-                hero:null;
+            if(!knightOath.IsConfigured)return null;
+            return ResolveCampaignHero(knightOath.PatronId);
         }
         private Clan KnightOathClan()
         {
             if(!knightOath.IsConfigured)return null;
             return Clan.All.FirstOrDefault(c=>c!=null &&
                 c.StringId==knightOath.PatronClanId);
+        }
+        private static string KnightPatronWhereabouts(Hero patron)
+        {
+            if(patron==null)return
+                "Unknown. Find your sworn lord in the native Encyclopedia.";
+            if(patron.IsPrisoner)return
+                "Your patron is a prisoner. Service is paused.";
+            if(patron.CurrentSettlement!=null)
+                return patron.Name+" is at "+
+                    patron.CurrentSettlement.Name+".";
+            if(patron.PartyBelongedTo!=null)
+                return patron.Name+" travels with "+
+                    patron.PartyBelongedTo.Name+
+                    ". Use the native Encyclopedia to locate him.";
+            return patron.Name+" has no confirmed current settlement. "+
+                "Consult the native Encyclopedia.";
         }
         private bool KnightOathInPerson(Hero target)
         {
@@ -132,7 +144,15 @@ namespace CalradiaUnified
                 // native standing penalty. Re-loading cannot replay it.
                 KnightOathNativeRelation(patron,-3,
                     "cu_knight_oath_missed_muster_relation");
+                Notify("You missed sworn service with "+
+                    NativeHeroDisplayName(knightOath.PatronId)+
+                    ". Your native standing has suffered.");
             }
+            if(result=="muster_window_open")
+                Notify("Your sworn lord expects you. Find "+
+                    NativeHeroDisplayName(knightOath.PatronId)+
+                    " and speak in person before day "+
+                    knightOath.NextMusterDay+".");
             if(result=="new_muster_breach" ||
                result=="successor_consent_required" ||
                result=="native_patron_allegiance_changed" ||
@@ -178,83 +198,42 @@ namespace CalradiaUnified
                 {
                     var patron=KnightOathPatron();
                     ShowNativeDetail("Knight | Sworn service",
-                        "Oath: "+knightOath.Status+
-                        ". Patron: "+(patron==null?
-                            knightOath.PatronId:patron.Name.ToString())+
-                        " of "+(patron==null || patron.Clan==null?
-                            knightOath.PatronClanId:
-                            patron.Clan.Name.ToString())+
-                        ". Native relation: "+(patron==null ||
+                        "Sworn patron: "+
+                        NativeHeroDisplayName(knightOath.PatronId)+
+                        " of "+(patron!=null && patron.Clan!=null?
+                            patron.Clan.Name.ToString():
+                            "the recorded noble house")+
+                        ". Native relationship: "+(patron==null ||
                             Hero.MainHero==null?"unavailable":
                             Hero.MainHero.GetRelation(patron).ToString())+
-                        ". Musters: "+knightOath.CompletedMusters+
+                        ".\n\nCURRENT GOAL: "+
+                        (knightOath.LastMusterDay<0?
+                            "Find your patron and report for your "+
+                            "first audience.":"Return to your patron "+
+                            "for service review.")+
+                        " Speak to the lord through Bannerlord's "+
+                        "normal conversation menu.\n\n"+
+                        KnightPatronWhereabouts(patron)+
+                        "\n\nDuty status: "+knightOath.Status+
+                        ". Completed reports: "+knightOath.CompletedMusters+
                         ". Missed: "+knightOath.MissedMusters+
-                        ". Next muster on day "+knightOath.NextMusterDay+
-                        ". No automatic wage, land or command.");
+                        ". Next review day: "+knightOath.NextMusterDay+
+                        ". Your clan is independent, not a kingdom "+
+                        "vassal. The king must approve formal vassalage.");
                 },false);
+            // All sworn-service actions now require an actual native
+            // conversation with the specified living lord. No more
+            // settlement-menu buttons that pretend the lord heard you.
             starter.AddGameMenuOption("cu_knight_oath",
-                "cu_knight_oath_muster",
-                "Report to patron in person for sworn muster",
-                args=>CanKnightMuster(),
-                args=>
-                {
-                    var patron=KnightOathPatron();
-                    int day=CurrentOathDay();
-                    if(patron==null || !CanKnightMuster())return;
-                    string result=knightOath.RecordMuster(day,true);
-                    if(result!="native_meeting_muster_recorded")return;
-                    bool nativeFavor=KnightOathNativeRelation(patron,2,
-                        "cu_knight_native_muster_reward");
-                    DiagnosticJournal.Event("cu_knight_oath_muster",
-                        "result="+result+"|day="+day+
-                        "|native_patron_meeting=true"+
-                        "|native_favor_action="+nativeFavor+
-                        "|next_muster="+knightOath.NextMusterDay);
-                    Notify("Muster recorded with "+patron.Name+
-                        (nativeFavor?". Native favor action completed.":
-                        ". Native favor unconfirmed; see diagnostics."));
-                },false);
-            starter.AddGameMenuOption("cu_knight_oath",
-                "cu_knight_oath_release",
-                "Request honorable release in person",
-                args=>CanKnightRelease(),
-                args=>
-                {
-                    var patron=KnightOathPatron();
-                    if(patron==null || !CanKnightRelease())return;
-                    string result=knightOath.Release(true);
-                    if(result!="consensual_release")return;
-                    KnightOathNativeRelation(patron,1,
-                        "cu_knight_oath_honorable_release_relation");
-                    DiagnosticJournal.Event("cu_knight_oath_release",
-                        "result="+result+"|patron="+patron.StringId+
-                        "|no_clan_or_property_changed=true");
-                    Notify("You have been released from the personal "+
-                        "oath. Your clan remains independent.");
-                },false);
-            starter.AddGameMenuOption("cu_knight_oath",
-                "cu_knight_oath_renew",
-                "Swear renewed oath to the actual successor",
-                args=>CanKnightRenew(),
-                args=>
-                {
-                    var successor=AvailableKnightSuccessor();
-                    if(successor==null || !CanKnightRenew())return;
-                    int day=CurrentOathDay();
-                    string result=knightOath.AcceptSuccessor(
-                        successor.StringId,successor.Clan.StringId,
-                        successor.Clan.Kingdom.StringId,day,true);
-                    if(result!="oath_renewed_to_native_successor")return;
-                    KnightOathNativeRelation(successor,2,
-                        "cu_knight_successor_oath_relation");
-                    DiagnosticJournal.Event("cu_knight_oath_succession",
-                        "result="+result+
-                        "|new_native_clan_leader="+successor.StringId+
-                        "|same_clan="+successor.Clan.StringId+
-                        "|player_house_retained=true");
-                    Notify("The oath now names "+successor.Name+
-                        ". Your independent clan was not transferred.");
-                },false);
+                "cu_knight_oath_find_patron",
+                "Where is my lord and how do I report?",
+                args=>knightOath.HasCurrentOath,
+                args=>ShowNativeDetail("Knight | Find your lord",
+                    KnightPatronWhereabouts(KnightOathPatron())+
+                    "\\nSpeak to this exact lord in a native conversation. "+
+                    "Choose 'About my sworn service' to report for duty, "+
+                    "ask for guidance or seek honorable release."),
+                false);
             starter.AddGameMenuOption("cu_knight_oath",
                 "cu_knight_oath_break_request",
                 "Renounce oath without leave (confirmation)",

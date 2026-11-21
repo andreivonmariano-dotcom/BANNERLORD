@@ -13,14 +13,25 @@ namespace CalradiaUnified
     /// </summary>
     public sealed partial class SandboxOriginBehavior
     {
+        private static Hero ResolveCampaignHero(string id)
+        {
+            if(String.IsNullOrWhiteSpace(id))return null;
+            // Generated and native Hero objects can be registered in the
+            // live campaign without resolving through GetObject<Hero>.
+            // The saved ID stays authoritative, never the display label.
+            var living=Hero.AllAliveHeroes.FirstOrDefault(h=>h!=null &&
+                h.StringId==id);
+            if(living!=null)return living;
+            var manager=MBObjectManager.Instance;
+            var hero=manager==null?null:manager.GetObject<Hero>(id);
+            return hero!=null && hero.StringId==id?hero:null;
+        }
         private static string NativeHeroDisplayName(string id)
         {
             if(String.IsNullOrWhiteSpace(id))return "none";
-            var manager=MBObjectManager.Instance;
-            var hero=manager==null?null:manager.GetObject<Hero>(id);
-            return hero!=null && hero.StringId==id &&
-                hero.Name!=null?hero.Name.ToString():
-                "native record unavailable";
+            var hero=ResolveCampaignHero(id);
+            return hero!=null && hero.Name!=null?
+                hero.Name.ToString():"native Hero not currently resolved";
         }
         private static string NativeHeroDisplayNames(string csv)
         {
@@ -64,7 +75,13 @@ namespace CalradiaUnified
                 var patron=KnightOathPatron();
                 type="Knight";
                 role="Sworn Knight, separate clan. Named patron: "+
-                    NativePersonName(patron)+
+                    (patron==null?"not currently resolved":
+                        NativePersonName(patron))+
+                    ". Current objective: "+
+                    (knightOath.LastMusterDay<0?
+                        "Find your lord and complete a first audience":
+                        "Report to your lord before the next muster")+
+                    ". Whereabouts: "+KnightPatronWhereabouts(patron)+
                     ". Personal oath: "+knightOath.Status+
                     ". Native relation: "+(patron==null?"unavailable":
                         player.GetRelation(patron).ToString())+

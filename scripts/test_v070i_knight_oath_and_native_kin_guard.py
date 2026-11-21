@@ -29,16 +29,16 @@ assert 'KnightOathNativeRelation(patron,-20,' in native
 assert 'AvailableKnightSuccessor()' in native
 assert 'successor.Clan.Kingdom.StringId' in native
 assert 'knightOath.AcceptSuccessor(' in native
-assert 'knightOath.RecordMuster(' in native
+assert 'knightOath.RecordMuster(' in get("SandboxOriginBehavior.KnightDialogue.cs")
 assert 'CanKnightMuster()' in native
 assert 'KnightOathInPerson(' in native
-assert 'knightOath.Release(true);' in native
+assert 'knightOath.Release(true);' in get("SandboxOriginBehavior.KnightDialogue.cs")
 assert 'patron.IsPrisoner' in native
 assert 'patron_captivity_pause' in state
 assert 'patron_returned_muster_reset' in state
 assert '"cu_knight_oath_confirm_break"' in native
 assert 'your personal oath' in origin
-assert 'Native relation:' in native
+assert 'Native relationship:' in native
 assert 'patron.Clan.Name.ToString()' in native
 assert 'KnightOrigin","Your knightly origin"' in vm
 assert '30-day muster' in vm

@@ -423,6 +423,7 @@ namespace CalradiaUnified
             if (starter == null || !IsStandaloneSandbox()) return;
             RegisterPeopleAndLineageMenus(starter);
             RegisterKnightOathMenus(starter);
+            RegisterKnightPatronConversations(starter);
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
@@ -2215,9 +2216,10 @@ namespace CalradiaUnified
                                     patron.Clan.Name+" is now active. "+
                                     "Native relation "+
                                     hero.GetRelation(patron)+
-                                    ". You command an independent clan. "+
-                                    "View the oath from any town or "+
-                                    "castle menu.");
+                                    ". You lead your own house. "+
+                                    "FIRST GOAL: find this lord in the "+
+                                    "native Encyclopedia and speak to "+
+                                    "him about your sworn service.");
                         }
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)

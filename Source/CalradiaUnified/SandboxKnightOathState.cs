@@ -101,10 +101,14 @@ namespace CalradiaUnified
         }
         public bool CanMuster(int day,bool inPerson)
         {
+            // First audience may take place immediately after the oath.
+            // Later reports keep their thirty-day term and seven-day
+            // window. Repeated conversations cannot farm native favor.
             return HasCurrentOath && Status!="PatronCaptive" &&
                 inPerson && day>=PledgedDay &&
-                day>=NextMusterDay-MusterWindowDays &&
-                (LastMusterDay<0 || day>LastMusterDay) &&
+                (LastMusterDay<0 ||
+                 (day>=NextMusterDay-MusterWindowDays &&
+                  day>LastMusterDay)) &&
                 day<=Int32.MaxValue-MusterDays;
         }
         public string RecordMuster(int day,bool inPerson)

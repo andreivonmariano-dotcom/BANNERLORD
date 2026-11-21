@@ -608,10 +608,25 @@ internal static class Program
                 .Serialize()==knightOath.Serialize() &&
             !SandboxKnightOathState.Parse(
                 "CU_KNIGHT_OATH_1\nplayer|lord|clan").IsConfigured);
-        Check("Knight muster rejects remote and premature rewards",
-            !knightOath.CanMuster(32,true) &&
+        Check("Knight first audience is immediate but never remote",
+            knightOath.CanMuster(10,true) &&
             !knightOath.CanMuster(40,false) &&
-            knightOath.RecordMuster(32,true)=="muster_not_eligible");
+            knightOath.RecordMuster(32,false)=="muster_not_eligible" &&
+            !knightOath.CanMuster(9,true));
+        var firstAudience=new SandboxKnightOathState();
+        firstAudience.Begin("player","lord","house","vlandia",10);
+        Check("Knight first audience earns one verified term, not repeatable",
+            firstAudience.RecordMuster(10,true)==
+                "native_meeting_muster_recorded" &&
+            firstAudience.CompletedMusters==1 &&
+            firstAudience.NextMusterDay==40 &&
+            firstAudience.RecordMuster(10,true)=="muster_not_eligible" &&
+            !firstAudience.CanMuster(32,true) &&
+            firstAudience.RecordMuster(33,true)==
+                "native_meeting_muster_recorded" &&
+            firstAudience.CompletedMusters==2 &&
+            SandboxKnightOathState.Parse(firstAudience.Serialize())
+                .CompletedMusters==2);
         Check("Knight native verified muster accrues once",
             knightOath.Observe(33,true,true,true,true)==
                 "muster_window_open" &&
