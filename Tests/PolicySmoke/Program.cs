@@ -1423,6 +1423,38 @@ internal static class Program
             NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
                 false, true, NativeCreatorParityPolicy.RequiredNativeStages));
 
+        Check("phase-9 grants accept a verified native spouse household",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "spouse=verified_hero|children=2|siblings=1",
+                true,false,"independent")=="");
+        Check("resource-only starts do not require fabricated family",
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,false,"independent")=="");
+        Check("partial native family never unlocks starting fief or gold",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "partial:InvalidOperationException:children=1/2",
+                true,false,"independent")=="family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "refused:native_marriage",true,false,"independent")==
+                    "family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "failed:family_reference_mismatch",true,false,"independent")==
+                    "family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "not_enabled",true,false,"independent")==
+                    "family_creation_incomplete");
+        Check("changed noble birth rank blocks late custom grants",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "spouse=none|children=0|siblings=2",
+                false,true,"bound:father_x")==
+                    "noble_birth_rank_changed_after_house");
+        Check("missing native noble family stops fief and retinue",
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,true,"refused:no_valid_native_father")==
+                    "native_noble_lineage_not_bound" &&
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,true,"bound:lord_x")=="");
+
         Check("start contract accepts genuine Vlandian Lord with fief and spouse",
             SandboxStartContract.Validate("vassal","vassal","vlandia",
                 "vlandia",false,1,true,true,0,0).Length == 0);
