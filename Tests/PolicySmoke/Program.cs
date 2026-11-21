@@ -473,7 +473,7 @@ internal static class Program
             SandboxNobleStartPolicy.RetinueOffices("Lord",false)
                 .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Lord",true)
-                .SequenceEqual(new[]{"Knight","HouseholdSteward"}) &&
+                .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Admiral",false)
                 .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
