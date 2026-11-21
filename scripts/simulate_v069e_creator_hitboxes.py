@@ -78,7 +78,10 @@ def examine(name,flags,expected,viewport):
     assert len(inners)==1,(name,"missing native inner panel")
     inner=inners[0]
     assert (number(inner,"SuggestedWidth"),number(inner,"SuggestedHeight"))==(573,750)
-    all_buttons=list(walk(inner,flags))
+    # Test in InnerPanel-local coordinates. Its own 23x37 offset is
+    # relative to the outer native shell and must not be counted twice.
+    all_buttons=[button for child in inner
+        for button in walk(child,flags)]
     body=[r for r in all_buttons if r[0] in GUIDED_COMMANDS|AGE_COMMANDS|STATS_COMMANDS]
     names=[r[0] for r in body]
     assert set(names)==set(expected),(name,flags,sorted(set(names)^set(expected)))
