@@ -92,6 +92,16 @@ namespace CalradiaUnified
                     "|actual_native_fiefs="+fiefs+
                     "|no_fief_or_crown_mutation=true");
                 if(crown.Length>0)return "king:"+crown;
+                var ministryFief=SandboxKingNativeMinistry
+                    .VacantOwnedFief();
+                DiagnosticJournal.Event("cu_king_native_governor_preflight",
+                    "result="+(ministryFief==null?"FAIL":"PASS")+
+                    "|owned_native_vacant_fief="+
+                    (ministryFief==null?"none":ministryFief.StringId)+
+                    "|incumbent_not_replaced=true"+
+                    "|native_royal_minister_required=true");
+                if(ministryFief==null)
+                    return "king:native_royal_governor_seat_missing";
             }
             if(p.LordGuidedStart)
             {
