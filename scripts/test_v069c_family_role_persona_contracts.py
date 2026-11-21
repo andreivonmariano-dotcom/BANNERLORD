@@ -31,6 +31,9 @@ assert "person.PartyBelongedToAsPrisoner!=null" in family
 assert "person.StayingInSettlement!=null" in family
 assert "player.Father==person" in family and "player.Mother==person" in family
 assert "DisableHeroAction.Apply(person);" in family
+assert family.index("DisableHeroAction.Apply(person);") < family.index(
+    "person.Father.Children.Remove(person);"
+)
 assert "hasNativeChildren" in safety and "playerReferencesHero" in safety
 
 all_roles = ["Wanderer","Recruit","Soldier","HouseholdKnight",
