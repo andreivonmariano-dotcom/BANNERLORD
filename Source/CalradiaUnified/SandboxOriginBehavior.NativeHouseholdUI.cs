@@ -227,20 +227,16 @@ namespace CalradiaUnified
                 var minister=NativeCourtOfficer("Royal Minister");
                 var marshal=NativeCourtOfficer("Marshal");
                 var guard=NativeCourtOfficer("Kingsguard");
-                role="Native crown: "+
-                    (clan.Kingdom!=null &&
-                     clan.Kingdom.RulingClan==clan?"verified ruling clan":
-                     "rulership not verified")+
-                    ". Marshal: "+NativePersonName(marshal)+
-                    ". ONE Kingsguard Hero: "+NativePersonName(guard)+
-                    ". Royal Minister: "+NativePersonName(minister)+
-                    ". Governor: "+(minister!=null &&
-                        SandboxKingNativeMinistry.VerifiedGovernor(minister)?
-                        minister.GovernorOf.Settlement.Name.ToString():
-                        "not verified")+
-                    ". Court: "+(royalCouncil.IsRecorded?
-                        "recorded":"not commissioned")+
-                    ". Native kingdom decisions remain authoritative.";
+                role=(clan.Kingdom!=null &&
+                    clan.Kingdom.RulingClan==clan?
+                    "You hold the native crown of "+clan.Kingdom.Name+".":
+                    "Your claim to the crown is not verified.")+
+                    "\nMinister: "+NativePersonName(minister)+
+                    " | Marshal: "+NativePersonName(marshal)+
+                    "\nKingsguard: "+NativePersonName(guard)+
+                    " | Council: "+(royalCouncil.IsRecorded?
+                        "appointed":"not yet appointed")+
+                    "\nThe kingdom assembly governs lawful decisions.";
             }
             else if(roleEconomy.Started)
             {
@@ -252,22 +248,53 @@ namespace CalradiaUnified
                 if(type!="Wanderer" && type!="Outlaw" &&
                    type!="Mercenary" && type!="Soldier")
                     type="Campaign";
-                string affiliation=clan.Kingdom==null?
-                    "No native kingdom affiliation recorded":
-                    "Current native kingdom: "+clan.Kingdom.Name;
-                role="Career: "+type+
-                    ". Actual recorded state: "+
-                    roleEconomy.CareerStatus+
-                    ". Native denars observed: "+
-                    roleEconomy.LastGold+
-                    ". "+affiliation+
-                    ". Native payroll evidence: "+
-                    (roleEconomy.VerifiedExternalDailyWage<0?
-                        "not confirmed":
-                        roleEconomy.VerifiedExternalDailyWage+
-                        " daily from the external provider")+
-                    ". This screen does not grant rank, equipment, "+
-                    "land, kingdom membership or free troops.";
+                string employer=clan.Kingdom==null?
+                    "no kingdom":clan.Kingdom.Name.ToString();
+                string career=roleEconomy.CareerStatus;
+                switch(type)
+                {
+                    case "Wanderer":
+                        role="Your road is your own. Choose which "+
+                            "town, company and opportunity to pursue."+
+                            "\nCurrent calling: "+career+
+                            " | Purse: "+player.Gold+" denars."+
+                            "\nCompanions and provisions are "+
+                            "those recorded by your actual party.";
+                        break;
+                    case "Outlaw":
+                        role="You live beyond the protection of "+
+                            "the lords. Keep your band supplied."+
+                            "\nBand standing: "+career+
+                            " | Purse: "+player.Gold+" denars."+
+                            "\nThe patrols and settlements still "+
+                            "obey Bannerlord's real law and factions.";
+                        break;
+                    case "Mercenary":
+                        role="Your company fights for coin, not "+
+                            "a promised noble birth."+
+                            "\nEmployer: "+employer+
+                            " | Contract: "+(clan.IsUnderMercenaryService?
+                                "native mercenary service":"unverified")+
+                            "\nStanding: "+career+
+                            " | Purse: "+player.Gold+" denars.";
+                        break;
+                    case "Soldier":
+                        role="Your name is entered among the "+
+                            "soldiers of a real host."+
+                            "\nEnlistment: "+(serviceCareer
+                                .VerifiedExternalEnlistment?
+                                "confirmed":"not verified")+
+                            " | Commander: "+
+                            NativeHeroDisplayName(serviceCareer.PatronId)+
+                            "\nRank and pay follow your native "+
+                            "enlistment provider, not this ledger.";
+                        break;
+                    default:
+                        role="Present calling: "+career+
+                            "\nRealm: "+employer+
+                            " | Purse: "+player.Gold+" denars.";
+                        break;
+                }
             }
             DiagnosticJournal.Event("cu_native_household_display_opened",
                 "result=OPENED|role="+type+
