@@ -48,3 +48,14 @@ The older-lord search in `SandboxDynasticStart` requires a real existing older n
 - The earlier **v0.69f** session had different DLL SHA `80b6f6bc725d8855ad18adf2fabcddccb57ab2a13b59a5e7393558bc083e2740`, so do not mix files across CI runs.
 
 **Required direct game verification:** Create a disposable Vlandian Lord/YoungerBrotherOfLord start, select a spouse (38), children (9, 7), and two siblings. On an ineligible elder, verify native Review never begins and the House screen focuses the noble-birth choice with all selections retained. Explicitly choose **Independent**, then finish the same House plan and verify one actual native spouse, two actual children and two native siblings in the real game. Check individual parent links, clan, age, menu, real save/quit/reload and that no duplicates appear. **This v0.69g source repair is not a successful native-elder-binding test.** It makes an unsupported start recoverable rather than creating a false lord or quietly discarding family choices.
+
+
+## Follow-up clarification: an older House sibling does not become the native lord
+
+**User's question:** After selecting **Younger Brother of a Lord**, will creating an **older brother** in House automatically make the new brother the lord? **No.** The two selections refer to different native Hero workflows.
+
+`SandboxDynasticStart.FindElder` searches `Hero.AllAliveHeroes` for an **already present** eligible older native lord and demands that he lead a qualifying native clan, share proper living/native parentage, and fit culture, kingdom and royal-rank rules. `SandboxFamilyCreator` later makes any requested sibling through `HeroCreator.CreateSpecialHero`, links them to native parents, and for the younger-brother origin places them in the **player's party**, not as a separate existing native clan leader or fief owner. The generated adult may have TaleWorlds `Occupation.Lord`, but that does not imply control of a kingdom clan, a land grant or eligibility as the pre-existing elder.
+
+**UI refinement:** World noble-birth hint, House `Confirm your noble birth`, House `Brothers and sisters` and its dynamic explanatory text now state that a newly generated older sibling cannot qualify as the pre-existing older lord. The v0.69g source-only regression checks this wording, without changing native kinship, clan leadership, property or family creation order. This is a communication repair, not proof that a compatible native older lord exists in the user's save.
+
+**Bounded design principle:** Do not silently promote a newly created sibling into another native clan or move settlements as a workaround. That would be a distinct gameplay feature with native political and save implications, not a repair of the reported failed starting-life contract. The qualified-elder check remains before native finalization.
