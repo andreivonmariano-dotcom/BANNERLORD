@@ -100,6 +100,82 @@ internal static class Program
         soldierKin.SiblingCount=1;
         Check("guided Soldier refuses stale generated sibling",
             !soldierKin.IsValid(30,out _));
+        var knightOath=new SandboxKnightOathState();
+        Check("Knight oath needs real identities and an initial day",
+            knightOath.Begin("player","player","clan","vlandia",10)==
+                "invalid_native_oath_identity" &&
+            knightOath.Begin("player","lord","clan","vlandia",10)==
+                "oath_recorded" &&
+            knightOath.PatronId=="lord" &&
+            knightOath.NextMusterDay==40 &&
+            knightOath.Begin("player","another","clan","vlandia",10)==
+                "already_configured");
+        Check("Knight oath survives valid native save round trip",
+            SandboxKnightOathState.Parse(knightOath.Serialize())
+                .Serialize()==knightOath.Serialize() &&
+            !SandboxKnightOathState.Parse(
+                "CU_KNIGHT_OATH_1\nplayer|lord|clan").IsConfigured);
+        Check("Knight muster rejects remote and premature rewards",
+            !knightOath.CanMuster(32,true) &&
+            !knightOath.CanMuster(40,false) &&
+            knightOath.RecordMuster(32,true)=="muster_not_eligible");
+        Check("Knight native verified muster accrues once",
+            knightOath.Observe(33,true,true,true,true)==
+                "muster_window_open" &&
+            knightOath.RecordMuster(34,true)==
+                "native_meeting_muster_recorded" &&
+            knightOath.CompletedMusters==1 &&
+            knightOath.NextMusterDay==64 &&
+            knightOath.RecordMuster(34,true)=="muster_not_eligible");
+        Check("Knight overdue is one breach, not daily penalties",
+            knightOath.Observe(65,true,true,true,true)==
+                "new_muster_breach" &&
+            knightOath.MissedMusters==1 &&
+            knightOath.Observe(66,true,true,true,true)==
+                "muster_still_overdue" &&
+            knightOath.MissedMusters==1 &&
+            knightOath.RecordMuster(66,true)==
+                "native_meeting_muster_recorded" &&
+            knightOath.CompletedMusters==2 &&
+            knightOath.MissedMusters==1);
+        Check("Knight oath refuses unverifiable patron identity",
+            knightOath.Observe(99,false,false,false,false)==
+                "patron_not_verified" &&
+            knightOath.Status=="Active" &&
+            knightOath.Observe(99,true,true,true,true)==
+                "new_muster_breach" &&
+            knightOath.MissedMusters==2);
+        Check("Knight break is irreversible and one-shot",
+            knightOath.Break()=="oath_broken" &&
+            knightOath.Break()=="no_oath_to_break" &&
+            !knightOath.HasCurrentOath &&
+            SandboxKnightOathState.Parse(knightOath.Serialize())
+                .Status=="Broken");
+        var successorOath=new SandboxKnightOathState();
+        successorOath.Begin("player","old_lord","house","vlandia",20);
+        Check("Knight requires native death and explicit successor consent",
+            successorOath.Observe(24,true,false,true,true)==
+                "successor_consent_required" &&
+            successorOath.Status=="SuccessionPending" &&
+            successorOath.AcceptSuccessor("new_lord","house",
+                "vlandia",25,false)=="unverified_successor_or_no_consent" &&
+            successorOath.AcceptSuccessor("new_lord","other_house",
+                "vlandia",25,true)=="unverified_successor_or_no_consent" &&
+            successorOath.AcceptSuccessor("new_lord","house",
+                "vlandia",25,true)=="oath_renewed_to_native_successor" &&
+            successorOath.Successions==1 &&
+            successorOath.PatronId=="new_lord");
+        Check("Knight honorable release requires verified patron meeting",
+            successorOath.Release(false)=="personal_release_not_verified" &&
+            successorOath.Release(true)=="consensual_release" &&
+            successorOath.Break()=="no_oath_to_break");
+        Check("Knight oath corruption cannot produce bound player service",
+            !SandboxKnightOathState.Parse("CU_KNIGHT_OATH_1\n"+
+                "player|lord|house|vlandia|Active|10|-1|4|0|0|0")
+                .IsConfigured &&
+            !SandboxKnightOathState.Parse("CU_KNIGHT_OATH_1\n"+
+                "player|lord|house|vlandia|Active|10|-1|40|0|0|0|x")
+                .IsConfigured);
         Check("missing changed-option native type is safe only for default",
             SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "default","",false,false,0) &&
