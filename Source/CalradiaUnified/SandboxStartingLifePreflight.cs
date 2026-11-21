@@ -21,13 +21,31 @@ namespace CalradiaUnified
             if(campaign==null || campaign.AdvancedStartData==null ||
                 clan==null)return "native_start:missing_native_context";
             var kingdom=clan.Kingdom;
+            string actualType=campaign.AdvancedStartData.GetStartType();
+            string expectedType=SandboxNativeStartOptions
+                .StartTypeForRole(p.Role);
+            int fiefs=clan.Settlements==null?0:clan.Settlements.Count;
+            bool ruling=kingdom!=null && kingdom.RulingClan==clan;
+            // Collect requested versus native-observed values even if the
+            // gate fails. Older session reports omitted the native type,
+            // preventing diagnosis of default/changed-option differences.
+            DiagnosticJournal.Event("cu_native_start_preflight_snapshot",
+                "role="+p.Role+
+                "|expected_type="+(expectedType??"<null>")+
+                "|actual_type="+(String.IsNullOrEmpty(actualType)?
+                    "<empty>":actualType)+
+                "|native_type_matches="+
+                    SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                        expectedType,actualType,kingdom!=null,ruling,fiefs)+
+                "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                "|fiefs="+fiefs+
+                "|ruling="+ruling);
             var nativeErrors=SandboxStartContract.Validate(
-                SandboxNativeStartOptions.StartTypeForRole(p.Role),
-                campaign.AdvancedStartData.GetStartType(),
+                expectedType,
+                actualType,
                 p.StartingKingdomId,
                 kingdom==null?"":kingdom.StringId,
-                kingdom!=null && kingdom.RulingClan==clan,
-                clan.Settlements==null?0:clan.Settlements.Count,
+                ruling,fiefs,
                 false,false,0,0);
             if(nativeErrors.Length>0)
                 return "native_start:"+nativeErrors[0];
