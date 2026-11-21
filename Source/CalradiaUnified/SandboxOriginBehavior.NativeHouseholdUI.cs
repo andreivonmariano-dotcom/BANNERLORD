@@ -120,6 +120,12 @@ namespace CalradiaUnified
             string duty=companion?
                 "Recorded in your actual clan companion roster.":
                 "Family ties are verified from native Hero records.";
+            string privateOffice=HouseholdOfficeFor(person.StringId);
+            if(companion && privateOffice.Length>0)
+                duty="Assigned household duty: "+privateOffice+
+                    ". Verified reports: "+
+                    householdDuties.ReportCount(privateOffice)+
+                    ". Speak in person to give or review orders.";
             if(companion && lordInheritance.IsRecorded &&
                 NativeCourtOfficer("Master of Arms")==person)
                 duty="Master of Arms: speak in person inside "+
@@ -193,87 +199,26 @@ namespace CalradiaUnified
 
         // Role briefings point to real native authorities. They do not
         // issue distant NPC orders, fabricate salaries, or grant lands.
+        private string DossierOfficerLabel(Hero hero)
+        {
+            if(hero==null || !hero.IsAlive)return "UNAVAILABLE";
+            string office=HouseholdOfficeFor(hero.StringId);
+            if(office.Length>0)return office.ToUpperInvariant();
+            if(NativeCourtOfficer("Master of Arms")==hero)
+                return "MASTER OF ARMS";
+            if(NativeCourtOfficer("Marshal")==hero)return "MARSHAL";
+            if(NativeCourtOfficer("Royal Minister")==hero)
+                return "ROYAL MINISTER";
+            if(NativeCourtOfficer("Kingsguard")==hero)
+                return "KINGSGUARD";
+            return "COMPANION";
+        }
+
         private void ReviewDossierCalling()
         {
-            var player=Hero.MainHero;
-            var clan=Clan.PlayerClan;
-            if(player==null || clan==null)return;
-            if(knightOath.IsConfigured)
-            {
-                var patron=KnightOathPatron();
-                ShowNativeDetail("Your oath and commanding lord",
-                    "Your sworn lord is "+NativePersonName(patron)+
-                    ". "+KnightPatronWhereabouts(patron)+
-                    "\nYour next muster: "+knightOath.NextMusterDay+
-                    ". First audience completed: "+
-                    (knightOath.LastMusterDay>=0?"yes":"not yet")+
-                    ". Seek this real Hero and speak in person.");
-                return;
-            }
-            if(kingSuccession.IsRecorded)
-            {
-                ShowNativeDetail("The royal council",
-                    "Realm: "+(clan.Kingdom==null?"unverified":
-                        clan.Kingdom.Name.ToString())+
-                    "\nRoyal council: "+(royalCouncil.IsRecorded?
-                        "commissioned":"not recorded")+
-                    "\nYour native Kingdom screen governs "+
-                    "policies, diplomacy and rulership. "+
-                    "Use your royal court at a suitable settlement.");
-                return;
-            }
-            if(lordInheritance.IsRecorded)
-            {
-                ShowNativeDetail("The obligations of your house",
-                    "Your clan holds "+clan.Settlements.Count+
-                    " actual settlements."+
-                    "\nRecorded heir: "+
-                    NativeHeroDisplayName(lordInheritance.PrimaryHeirId)+
-                    " | Custom: "+lordInheritance.Rule+
-                    "\nMeet your kin and hear legal estate "+
-                    "petitions at the family council.");
-                return;
-            }
-            string career=roleEconomy.Role=="EnlistedSoldier"?
-                "Soldier":roleEconomy.Role;
-            if(career=="Soldier")
-            {
-                ShowNativeDetail("Your place in the ranks",
-                    "Actual enlistment: "+(serviceCareer
-                        .VerifiedExternalEnlistment?
-                        "verified":"not yet verified")+
-                    "\nCommanding lord: "+
-                    NativeHeroDisplayName(serviceCareer.PatronId)+
-                    "\nPay, rank and daily orders belong to "+
-                    "the game-backed enlistment system.");
-            }
-            else if(career=="Mercenary")
-            {
-                ShowNativeDetail("Your company's contract",
-                    "Native mercenary service: "+
-                    (clan.IsUnderMercenaryService?"active":"not verified")+
-                    "\nEmployer: "+(clan.Kingdom==null?
-                        "none":clan.Kingdom.Name.ToString())+
-                    "\nYour actual native contract, clan "+
-                    "and kingdom affiliation govern pay.");
-            }
-            else if(career=="Outlaw")
-            {
-                ShowNativeDetail("Your outlaw company",
-                    "Your band belongs to your actual party. "+
-                    "No royal title or safe passage is assumed."+
-                    "\nCurrent purse: "+player.Gold+" denars."+
-                    "\nUse the native Party view to see and "+
-                    "command the troops you truly have.");
-            }
-            else
-            {
-                ShowNativeDetail("Your road through Calradia",
-                    "You choose where to travel and whom to meet."+
-                    "\nCurrent purse: "+player.Gold+" denars."+
-                    "\nYour native Clan and Party screens "+
-                    "record your actual people and company.");
-            }
+            ObserveCareerChronicleDaily();
+            ShowNativeDetail("Career | Your next charge",
+                CareerChronicleDescription());
         }
 
         private void ShowStartingHouseholdStatus()
@@ -420,7 +365,8 @@ namespace CalradiaUnified
                     InspectDossierHero,
                     OpenDossierFamilyPortraits,
                     HearDossierPetition,
-                    ReviewDossierCalling));
+                    ReviewDossierCalling,
+                    DossierOfficerLabel));
             }
             catch(Exception error)
             {
