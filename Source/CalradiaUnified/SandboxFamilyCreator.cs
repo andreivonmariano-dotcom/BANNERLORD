@@ -213,7 +213,8 @@ namespace CalradiaUnified
                     // personality and establish actual starting relations.
                     SandboxFamilyDevelopment.Spouse(
                         profile,player,spouseHero);
-                    if(profile.MercenaryGuidedStart &&
+                    if((profile.MercenaryGuidedStart ||
+                        profile.SoldierGuidedStart) &&
                         profile.SpouseBackground=="Commoner")
                     {
                         // Native marriage action has already verified the
@@ -305,7 +306,8 @@ namespace CalradiaUnified
                     // Never activate an underage native Hero.
                     if (!child.IsChild)
                     {
-                        if(profile.MercenaryGuidedStart)
+                        if(profile.MercenaryGuidedStart ||
+                            profile.SoldierGuidedStart)
                             child.SetNewOccupation(Occupation.Wanderer);
                         else
                             child.SetNewOccupation(Occupation.Lord);
@@ -572,7 +574,8 @@ namespace CalradiaUnified
             // be mistaken for owners, council officers or senior heirs.
             bool historicalOnly=(profile.Role=="Lord" ||
                 profile.Role=="Outlaw" ||
-                profile.MercenaryGuidedStart) &&
+                profile.MercenaryGuidedStart ||
+                profile.SoldierGuidedStart) &&
                 profile.NobleBirthPosition=="Independent";
             Hero newFather=null;
             Hero newMother=null;
@@ -616,7 +619,9 @@ namespace CalradiaUnified
                         "Independent founder parents unexpectedly active");
                 if(historicalOnly)
                     DiagnosticJournal.Event(
-                        profile.MercenaryGuidedStart ?
+                        profile.SoldierGuidedStart ?
+                            "cu_independent_soldier_ancestry_recorded" :
+                            profile.MercenaryGuidedStart ?
                             "cu_independent_mercenary_ancestry_recorded" :
                             profile.Role=="Outlaw" ?
                             "cu_independent_outlaw_ancestry_recorded" :
