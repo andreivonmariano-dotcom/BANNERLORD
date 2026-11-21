@@ -26,18 +26,18 @@ internal static class Program
         // v0.69h source/model matrix audit. A passing assertion does not
         // prove a Bannerlord campaign start or saved native Hero state.
         var nativeRoles=new [] {
-            "Wanderer","Recruit","Soldier","HouseholdKnight",
-            "Knight","NobleCadet","Lord","King","Admiral",
-            "Trader","Outlaw","Beggar"
+            "Wanderer","Outlaw","Mercenary","Recruit","Soldier",
+            "HouseholdKnight","Knight","NobleCadet","Lord","King",
+            "Admiral","Trader","Beggar"
         };
         var expectedTypes=new [] {
-            "default","default","mercenary","default",
-            "vassal","default","vassal","king","fleetadmiral",
-            "trader","outlaw","beggar"
+            "default","outlaw","mercenary","default","mercenary",
+            "default","vassal","default","vassal","king",
+            "fleetadmiral","trader","beggar"
         };
-        Check("all twelve role options have unique native mappings",
-            SandboxOriginProfile.Roles.Length==12 &&
-            SandboxOriginProfile.Roles.Distinct().Count()==12);
+        Check("13 compatible roles retain exact native start IDs",
+            SandboxOriginProfile.Roles.Length==13 &&
+            SandboxOriginProfile.Roles.Distinct().Count()==13);
         for(int i=0;i<nativeRoles.Length;i++)
             Check("native role matrix "+nativeRoles[i],
                 SandboxOriginProfile.Roles.Contains(nativeRoles[i]) &&
@@ -329,8 +329,8 @@ internal static class Program
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "UnsupportedMode","native_companions_preserved"));
         var nativeEconomyRoles=SandboxOriginProfile.Roles;
-        Check("all 12 medieval roles declare accurate income authority and duty",
-            nativeEconomyRoles.Length==12 &&
+        Check("all 13 compatible roles declare accurate income authority and duty",
+            nativeEconomyRoles.Length==13 &&
             nativeEconomyRoles.All(role=>
                 SandboxRoleEconomyPolicy.IncomeAuthority(role)!=
                     "UnrecognizedRole" &&
@@ -341,7 +341,11 @@ internal static class Program
             SandboxRoleEconomyPolicy.IncomeAuthority("NobleCadet")==
                 "BirthKinNoAutomaticEstateIncome" &&
             SandboxRoleEconomyPolicy.IncomeAuthority("Soldier")==
-                "NativeMercenaryContract");
+                "NativeMercenaryContract" &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("Mercenary")==
+                "NativeMercenaryContract" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Mercenary",
+                false,false,true,true,false)=="NativeMercenaryVerified");
         Check("career evidence distinguishes ruler, vassal and enlistment",
             SandboxRoleEconomyPolicy.CareerEvidence("King",
                 false,false,false,true,true)==
@@ -635,25 +639,26 @@ internal static class Program
                 false,0,true));
 
         // One game-backed social contract matrix covers every selectable role.
-        var auditRoles=new[]{"Wanderer","Recruit","Soldier",
-            "HouseholdKnight","Knight","NobleCadet","Lord","King",
-            "Admiral","Trader","Outlaw","Beggar"};
-        var auditStarts=new[]{"default","default","mercenary",
-            "default","vassal","default","vassal","king",
-            "fleetadmiral","trader","outlaw","beggar"};
-        Check("all 12 medieval roles map to one exact native start",
+        var auditRoles=new[]{"Wanderer","Outlaw","Mercenary",
+            "Recruit","Soldier","HouseholdKnight","Knight",
+            "NobleCadet","Lord","King","Admiral","Trader","Beggar"};
+        var auditStarts=new[]{"default","outlaw","mercenary",
+            "default","mercenary","default","vassal","default",
+            "vassal","king","fleetadmiral","trader","beggar"};
+        Check("all 13 compatible roles map to one exact native start",
             SandboxOriginProfile.Roles.Length==auditRoles.Length &&
             !auditRoles.Except(SandboxOriginProfile.Roles).Any() &&
             !SandboxOriginProfile.Roles.Except(auditRoles).Any() &&
-            auditRoles.Distinct().Count()==12 &&
+            auditRoles.Distinct().Count()==13 &&
             auditRoles.Select((role,index)=>
                 SandboxRoleConsistencyPolicy.NativeType(role)==
                     auditStarts[index]).All(x=>x) &&
             SandboxRoleConsistencyPolicy.NativeType("InventedTitle")=="");
-        Check("all 12 starting stations have factual native requirements",
+        Check("all 13 starting stations have factual native requirements",
             auditRoles.Select((role,index)=>{
                 bool kingdom=role=="King" || role=="Lord" ||
-                    role=="Knight" || role=="Soldier" || role=="Admiral";
+                    role=="Knight" || role=="Soldier" ||
+                    role=="Mercenary" || role=="Admiral";
                 bool royal=role=="King";
                 int actualFiefs=royal || role=="Lord" ||
                     role=="Knight"?1:0;
@@ -685,6 +690,14 @@ internal static class Program
             SandboxRoleConsistencyPolicy.CheckNativeStation(
                 "Soldier","mercenary",false,false,0)==
                     "native_military_kingdom_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",false,false,0)==
+                    "mercenary_company_station_or_land_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",true,false,1)==
+                    "mercenary_company_station_or_land_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",true,false,0)=="" &&
             SandboxRoleConsistencyPolicy.CheckNativeStation(
                 "Trader","trader",false,false,2)==
                     "independent_start_has_kingdom_or_fief");
