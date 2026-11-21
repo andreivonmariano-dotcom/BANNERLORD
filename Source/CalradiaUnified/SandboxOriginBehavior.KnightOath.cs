@@ -60,6 +60,10 @@ namespace CalradiaUnified
         {
             var patron=KnightOathPatron();
             return knightOath.HasCurrentOath && patron!=null &&
+                patron.Clan!=null &&
+                patron.Clan.StringId==knightOath.PatronClanId &&
+                patron.Clan.Kingdom!=null &&
+                patron.Clan.Kingdom.StringId==knightOath.KingdomId &&
                 KnightOathInPerson(patron);
         }
         private Hero AvailableKnightSuccessor()
@@ -81,10 +85,10 @@ namespace CalradiaUnified
             var successor=AvailableKnightSuccessor();
             return successor!=null && KnightOathInPerson(successor);
         }
-        private void KnightOathNativeRelation(Hero patron,int change,
+        private bool KnightOathNativeRelation(Hero patron,int change,
             string eventName)
         {
-            if(patron==null || Hero.MainHero==null)return;
+            if(patron==null || Hero.MainHero==null)return false;
             try
             {
                 int before=Hero.MainHero.GetRelation(patron);
@@ -96,11 +100,13 @@ namespace CalradiaUnified
                     "|native_relation_after="+
                         Hero.MainHero.GetRelation(patron)+
                     "|no_gold_or_fief_transferred=true");
+                return true;
             }
             catch(Exception ex)
             {
                 DiagnosticJournal.Exception(
                     "cu_knight_native_relation_failed",ex);
+                return false;
             }
         }
         private void ObserveKnightOathDaily()
@@ -186,15 +192,16 @@ namespace CalradiaUnified
                     if(patron==null || !CanKnightMuster())return;
                     string result=knightOath.RecordMuster(day,true);
                     if(result!="native_meeting_muster_recorded")return;
-                    KnightOathNativeRelation(patron,2,
+                    bool nativeFavor=KnightOathNativeRelation(patron,2,
                         "cu_knight_native_muster_reward");
                     DiagnosticJournal.Event("cu_knight_oath_muster",
                         "result="+result+"|day="+day+
                         "|native_patron_meeting=true"+
+                        "|native_favor_action="+nativeFavor+
                         "|next_muster="+knightOath.NextMusterDay);
                     Notify("Muster recorded with "+patron.Name+
-                        ". Your personal standing was adjusted through "+
-                        "the native relation action.");
+                        (nativeFavor?". Native favor action completed.":
+                        ". Native favor unconfirmed; see diagnostics."));
                 },false);
             starter.AddGameMenuOption("cu_knight_oath",
                 "cu_knight_oath_release",
