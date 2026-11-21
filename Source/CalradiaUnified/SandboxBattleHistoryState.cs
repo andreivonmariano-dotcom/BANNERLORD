@@ -144,7 +144,20 @@ namespace CalradiaUnified
                 e.PatronWitnessId == actualPatronId);
         }
 
-        public string DescribeRecent(int count)
+        private static string VisibleHeroes(string ids,
+            Func<string, string> nameLookup)
+        {
+            if (nameLookup == null || String.IsNullOrEmpty(ids))
+                return ids;
+            return String.Join(", ", ids.Split(',')
+                .Select(id => {
+                    string name = nameLookup(id);
+                    return String.IsNullOrWhiteSpace(name) ? id : name;
+                }));
+        }
+
+        public string DescribeRecent(int count,
+            Func<string, string> nativeNameLookup = null)
         {
             if (entries.Count == 0)
                 return "No completed battles have been witnessed yet.";
@@ -162,10 +175,10 @@ namespace CalradiaUnified
                      e.PartyDead + ", wounded " + e.PartyWounded : "") +
                     (e.WoundedHeroIds.Length > 0 ?
                      " | wounded own-clan Heroes: " +
-                     e.WoundedHeroIds : "") +
+                     VisibleHeroes(e.WoundedHeroIds, nativeNameLookup) : "") +
                     (e.FallenHeroIds.Length > 0 ?
                      " | fallen own-clan Heroes: " +
-                     e.FallenHeroIds : "") +
+                     VisibleHeroes(e.FallenHeroIds, nativeNameLookup) : "") +
                     (e.PatronWitnessId.Length > 0 ?
                      " | same-side patron " + e.PatronWitnessId : "")));
         }
