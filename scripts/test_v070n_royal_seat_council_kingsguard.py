@@ -34,7 +34,6 @@ for token in (
     'party.MemberRoster.GetTroopCount(',
     'kingsguard.CharacterObject',
     'royalCouncil.KingsguardHeroId',
-    'native_royal_hero_council_commissioned',
     'hero',
 ):
     assert token in council,token
@@ -43,6 +42,7 @@ for token in (
     'public string MarshalId="",MinisterId="",KingsguardHeroId=""',
     'Distinct(StringComparer.Ordinal).Count()==4',
     'public string Convene(',
+    'native_royal_hero_council_commissioned',
     'real_royal_hero_council_convened',
     'public static SandboxRoyalCouncilState Parse(',
     'council_day_invalid',
