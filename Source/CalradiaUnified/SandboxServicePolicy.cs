@@ -8,11 +8,14 @@ namespace CalradiaUnified
     {
         public static bool NeedsPatron(string role)
         {
-            return role=="Soldier" || role=="Knight";
+            return role=="Soldier" || role=="Knight" ||
+                role=="Recruit" || role=="HouseholdKnight";
         }
         public static string DefaultRetinue(string role)
         {
-            if(role=="Soldier")return "FamilyOnly";
+            if(role=="Soldier" || role=="Recruit" ||
+                role=="HouseholdKnight" || role=="NobleCadet")
+                return "FamilyOnly";
             return SandboxNobleStartPolicy.EligibleForRetinue(
                 "RoleBased",role)?"RoleBased":"Native";
         }

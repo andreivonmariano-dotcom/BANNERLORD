@@ -16,8 +16,9 @@ namespace CalradiaUnified
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
         public static readonly string[] Roles =
-            { "Wanderer", "Soldier", "Knight", "Lord", "King", "Admiral",
-      "Trader", "Outlaw", "Beggar" };
+            { "Wanderer", "Recruit", "Soldier", "HouseholdKnight",
+              "Knight", "NobleCadet", "Lord", "King", "Admiral",
+              "Trader", "Outlaw", "Beggar" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
@@ -557,9 +558,17 @@ namespace CalradiaUnified
             if(!SandboxNobleStartPolicy.IsPosition(NobleBirthPosition) ||
                 !SandboxNobleStartPolicy.IsRetinueMode(RetinueMode) ||
                 !SandboxNobleStartPolicy.ValidForRole(
-                    NobleBirthPosition,Role))
+                    NobleBirthPosition,Role) ||
+                !SandboxCustomLifeRolePolicy.ValidBirth(Role,
+                    NobleBirthPosition))
             {
-                error="Royal and noble family origins require a Lord start.";
+                error="Noble origin requires Lord or NobleCadet; NobleCadet needs native relatives.";
+                return false;
+            }
+            if(SandboxCustomLifeRolePolicy.NeedsKingdomContext(Role) &&
+                String.IsNullOrEmpty(StartingKingdomId))
+            {
+                error="Select the kingdom of your family or service patron.";
                 return false;
             }
             if (SpouseOverrides.Any(kv=>

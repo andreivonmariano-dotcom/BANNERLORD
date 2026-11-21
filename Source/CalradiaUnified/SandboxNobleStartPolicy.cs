@@ -66,7 +66,8 @@ namespace CalradiaUnified
         }
         public static bool ValidForRole(string position,string role)
         {
-            return position=="Independent" || role=="Lord";
+            if(position=="Independent")return role!="NobleCadet";
+            return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(role);
         }
         public static bool CanBindElder(string position,string role,
             bool playerFemale,bool older,bool bothParents,

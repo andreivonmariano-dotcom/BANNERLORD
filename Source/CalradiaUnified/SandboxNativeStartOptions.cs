@@ -15,7 +15,10 @@ namespace CalradiaUnified
         {
             switch (role)
             {
-                case "Wanderer": return "default";
+                case "Wanderer":
+                case "Recruit":
+                case "HouseholdKnight":
+                case "NobleCadet": return "default";
                 case "Soldier": return "mercenary";
                 case "Knight":
                 case "Lord": return "vassal";
@@ -61,6 +64,13 @@ namespace CalradiaUnified
                 // engine's documented scenario value, not its locked selector.
                 types.SetValue(type);
 
+                if(SandboxCustomLifeRolePolicy.NeedsKingdomContext(
+                    profile.Role) &&
+                    String.IsNullOrEmpty(profile.StartingKingdomId))
+                {
+                    error="Select your birth-family or patron's kingdom.";
+                    return false;
+                }
                 if (RequiresKingdom(type))
                 {
                     var kingdom = candidate.GetOption<ListAdvancedStartOption>("KingdomId");
