@@ -730,7 +730,8 @@ namespace CalradiaUnified
                    !String.IsNullOrEmpty(NobleElderHeroId) ||
                    StartingFiefMode!="Native" ||
                    !String.IsNullOrEmpty(StartingFiefId) ||
-                   AllowStartingFiefTransfer || RetinueMode!="FamilyOnly" ||
+                   AllowStartingFiefTransfer ||
+                   (RetinueMode!="FamilyOnly" && RetinueMode!="RoleBased") ||
                    Gold!=-1 || Influence!=-1 || Troops!=0 ||
                    (SpouseEnabled && FamilyHomeMode!="None") ||
                    knight.Length!=0)

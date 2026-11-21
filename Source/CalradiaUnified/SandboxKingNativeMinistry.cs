@@ -66,9 +66,21 @@ namespace CalradiaUnified
 
         internal static Settlement VacantOwnedFief()
         {
-            var seat=VerifiedRoyalCourtSeat();
-            return seat!=null && seat.Town.Governor==null?
-                seat:null;
+            var preferred=VerifiedRoyalCourtSeat();
+            if(preferred!=null && preferred.Town.Governor==null)
+                return preferred;
+            // Prefer the native homeland when vacant, otherwise use
+            // another REAL unbesieged player-owned vacant seat. Do not
+            // fire a governor to make a ceremonial capital.
+            var clan=Clan.PlayerClan;
+            return clan==null || clan.Settlements==null?
+                null:clan.Settlements.Where(s=>s!=null &&
+                    s.OwnerClan==clan && s.IsFortification &&
+                    s.Town!=null && !s.IsUnderSiege &&
+                    s.Town.Governor==null)
+                    .OrderBy(s=>s.IsTown?0:1)
+                    .ThenBy(s=>s.StringId,StringComparer.Ordinal)
+                    .FirstOrDefault();
         }
 
         internal static string TryAppoint(Hero minister,

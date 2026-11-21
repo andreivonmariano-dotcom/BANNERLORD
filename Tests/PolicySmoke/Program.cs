@@ -93,6 +93,21 @@ internal static class Program
                 royalCouncil.Serialize()+"|extra").IsRecorded &&
             royalCouncil.Convene(99,true,true,true,true,true)==
                 "council_day_invalid");
+        Check("native handoff accepts established King and Lord even before Hero.IsLord",
+            SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,false,false,false,false,3) &&
+            SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,false,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,false,false,false,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,true,false,false,false,3) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,true,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,false,true,false,false,3) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,false,false,0));
         Check("guided King requires exact native crown and player clan",
             SandboxKingStartPolicy.ValidateNativeCrown(
                 "king","vlandia","vlandia",
@@ -520,6 +535,19 @@ internal static class Program
         knight.StartingKingdomId="vlandia";
         knight.RetinueMode="FamilyOnly";
         knight.FamilyHomeMode="None";
+        Check("Knight permits real family and a same-culture Squire",
+            knight.TrySet("RetinueMode","RoleBased") &&
+            knight.TrySet("SpouseEnabled","true") &&
+            knight.TrySet("ChildCount","1") &&
+            knight.TrySet("FamilyHomeMode","None") &&
+            knight.IsValid(30,out _) &&
+            SandboxNobleStartPolicy.RetinueOffices("Knight",false)
+                .SequenceEqual(new[]{"Squire"}) &&
+            SandboxOriginProfile.Parse(knight.Serialize())
+                .RetinueMode=="RoleBased");
+        knight.SpouseEnabled=false;
+        knight.ChildCount=0;
+        knight.RetinueMode="FamilyOnly";
         Check("Knight guided profile is separate from landed legacy Knight",
             SandboxRoleConsistencyPolicy.NativeType("Knight")=="vassal" &&
             SandboxStartingLifePolicy.Station(knight)==

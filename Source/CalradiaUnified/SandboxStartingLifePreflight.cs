@@ -28,6 +28,13 @@ namespace CalradiaUnified
                 .StartTypeForProfile(p);
             int fiefs=clan.Settlements==null?0:clan.Settlements.Count;
             bool ruling=kingdom!=null && kingdom.RulingClan==clan;
+            bool nativeNobleHouse=SandboxNativeNobleHandoffPolicy
+                .HasVerifiedNativeNobleAuthority(actualType,
+                    kingdom!=null,clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    clan.IsBanditFaction,clan.IsRebelClan,fiefs);
             // Collect requested versus native-observed values even if the
             // gate fails. Older session reports omitted the native type,
             // preventing diagnosis of default/changed-option differences.
@@ -76,8 +83,7 @@ namespace CalradiaUnified
                     MobileParty.MainParty!=null &&
                         MobileParty.MainParty.LeaderHero==player,
                     ruling,clan.IsUnderMercenaryService,
-                    !clan.IsMinorFaction && !clan.IsBanditFaction &&
-                        !clan.IsRebelClan && player.IsLord,
+                    nativeNobleHouse,
                     clan.IsEliminated,fiefs);
                 DiagnosticJournal.Event("cu_king_native_preflight",
                     "result="+(crown.Length==0?"PASS":"FAIL")+
@@ -90,6 +96,12 @@ namespace CalradiaUnified
                         MobileParty.MainParty.LeaderHero==player)+
                     "|actual_native_ruling_clan="+ruling+
                     "|actual_native_fiefs="+fiefs+
+                    "|native_noble_authority="+nativeNobleHouse+
+                    "|hero_is_lord_at_handoff="+player.IsLord+
+                    "|clan_minor_flag="+clan.IsMinorFaction+
+                    "|clan_bandit_flag="+clan.IsBanditFaction+
+                    "|clan_rebel_flag="+clan.IsRebelClan+
+                    "|clan_eliminated_flag="+clan.IsEliminated+
                     "|no_fief_or_crown_mutation=true");
                 if(crown.Length>0)return "king:"+crown;
                 var ministryFief=SandboxKingNativeMinistry
@@ -112,8 +124,7 @@ namespace CalradiaUnified
                     MobileParty.MainParty!=null &&
                         MobileParty.MainParty.LeaderHero==player,
                     ruling,clan.IsUnderMercenaryService,
-                    !clan.IsMinorFaction && !clan.IsBanditFaction &&
-                        !clan.IsRebelClan && player.IsLord,
+                    nativeNobleHouse,
                     clan.IsEliminated,fiefs);
                 DiagnosticJournal.Event("cu_lord_native_preflight",
                     "result="+(lord.Length==0?"PASS":"FAIL")+
@@ -127,6 +138,12 @@ namespace CalradiaUnified
                     "|native_vassal="+(!ruling &&
                         !clan.IsUnderMercenaryService)+
                     "|native_fiefs="+fiefs+
+                    "|native_noble_authority="+nativeNobleHouse+
+                    "|hero_is_lord_at_handoff="+player.IsLord+
+                    "|clan_minor_flag="+clan.IsMinorFaction+
+                    "|clan_bandit_flag="+clan.IsBanditFaction+
+                    "|clan_rebel_flag="+clan.IsRebelClan+
+                    "|clan_eliminated_flag="+clan.IsEliminated+
                     "|no_fief_transfer=true");
                 if(lord.Length>0)return "lord:"+lord;
             }

@@ -2011,6 +2011,19 @@ namespace CalradiaUnified
                         "|salary_and_term_owned_by_native=true"+
                         "|not_enlisted_in_foreign_party=true");
                 }
+                bool verifiedNobleHandoff=SandboxNativeNobleHandoffPolicy
+                    .HasVerifiedNativeNobleAuthority(actualStart,
+                        observedKingdom!=null,
+                        observedClan.Leader==hero,
+                        MobileParty.MainParty!=null &&
+                            MobileParty.MainParty.LeaderHero==hero,
+                        observedKingdom!=null &&
+                            observedKingdom.RulingClan==observedClan,
+                        observedClan.IsUnderMercenaryService,
+                        observedClan.IsBanditFaction,
+                        observedClan.IsRebelClan,
+                        observedClan.Settlements==null?0:
+                            observedClan.Settlements.Count);
                 if(profile.KingGuidedStart)
                 {
                     string crownFinal=SandboxKingStartPolicy
@@ -2023,9 +2036,7 @@ namespace CalradiaUnified
                             observedKingdom!=null &&
                                 observedKingdom.RulingClan==observedClan,
                             observedClan.IsUnderMercenaryService,
-                            !observedClan.IsMinorFaction &&
-                                !observedClan.IsBanditFaction &&
-                                !observedClan.IsRebelClan && hero.IsLord,
+                            verifiedNobleHandoff,
                             observedClan.IsEliminated,
                             observedClan.Settlements==null?0:
                                 observedClan.Settlements.Count);
@@ -2060,9 +2071,7 @@ namespace CalradiaUnified
                             observedKingdom!=null &&
                                 observedKingdom.RulingClan==observedClan,
                             observedClan.IsUnderMercenaryService,
-                            !observedClan.IsMinorFaction &&
-                                !observedClan.IsBanditFaction &&
-                                !observedClan.IsRebelClan && hero.IsLord,
+                            verifiedNobleHandoff,
                             observedClan.IsEliminated,
                             observedClan.Settlements==null?0:
                                 observedClan.Settlements.Count);

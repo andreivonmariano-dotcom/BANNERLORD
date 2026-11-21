@@ -382,7 +382,7 @@ namespace CalradiaUnified
                 }
                 list.Add(new Field("CHAPTER III | YOUR HOUSE",
                     "RetinueMode","Your starting household officers",
-                    "Native keeps Bannerlord's starting companions. Cultural Household replaces those native companions with new same-culture knights and officers.",
+                    "Cultural Household creates same-culture Hero officers. Knight: one Squire. Lord: Master of Arms and Knight. King: Marshal, Minister and ONE Kingsguard Hero. Family Only creates no officers.",
                     choices:new[]{"Native","RoleBased","FamilyOnly"},
                     advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
@@ -694,6 +694,11 @@ namespace CalradiaUnified
                 Report("Invalid value for "+key+".");
                 return false;
             }
+            // Turning off Knight marriage also clears dependent children.
+            // ChildCount disappears from House when marriage is disabled.
+            if(!preCampaign && copy.KnightGuidedStart &&
+                key=="SpouseEnabled" && !copy.SpouseEnabled)
+                copy.ChildCount=0;
             if(!preCampaign && copy.LordGuidedStart &&
                 key=="SpouseBackground" &&
                 copy.SpouseBackground=="Commoner")
@@ -996,6 +1001,10 @@ namespace CalradiaUnified
             }
             if(candidate.KnightGuidedStart)
             {
+                // A visible, editable proposal, never a forced marriage:
+                // one real spouse, child and culturally trained Squire.
+                candidate.SpouseEnabled=true;
+                candidate.ChildCount=Math.Max(1,candidate.ChildCount);
                 candidate.RoleAffiliationsEnabled=false;
                 candidate.NobleBirthPosition="Independent";
                 candidate.NobleElderHeroId="";
@@ -1004,7 +1013,7 @@ namespace CalradiaUnified
                 candidate.AllowStartingFiefTransfer=false;
                 candidate.FamilyHomeMode="None";
                 candidate.FamilyHomeId="";
-                candidate.RetinueMode="FamilyOnly";
+                candidate.RetinueMode="RoleBased";
                 candidate.Gold=-1;
                 candidate.Influence=-1;
                 candidate.Troops=0;
@@ -1090,8 +1099,8 @@ namespace CalradiaUnified
             // can request a named Sergeant or retain the native roster.
             candidate.RetinueMode=candidate.WandererNoHouseStart?
                 "FamilyOnly":candidate.OutlawGuidedStart?
-                "RoleBased":candidate.MercenaryGuidedStart ||
-                candidate.KnightGuidedStart ?
+                "RoleBased":candidate.KnightGuidedStart ?
+                "RoleBased":candidate.MercenaryGuidedStart ?
                 "FamilyOnly":candidate.SoldierGuidedStart ?
                 "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
