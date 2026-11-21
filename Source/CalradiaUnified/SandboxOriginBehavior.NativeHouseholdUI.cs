@@ -336,6 +336,9 @@ namespace CalradiaUnified
                 string employer=clan.Kingdom==null?
                     "no kingdom":clan.Kingdom.Name.ToString();
                 string career=roleEconomy.CareerStatus;
+                string actualDailyPay=roleEconomy.VerifiedExternalDailyWage<0?
+                    "not confirmed":
+                    roleEconomy.VerifiedExternalDailyWage+" denars per day";
                 switch(type)
                 {
                     case "Wanderer":
@@ -361,7 +364,7 @@ namespace CalradiaUnified
                             " | Contract: "+(clan.IsUnderMercenaryService?
                                 "native mercenary service":"unverified")+
                             "\nStanding: "+career+
-                            " | Purse: "+player.Gold+" denars.";
+                            " | Verified wage: "+actualDailyPay+".";
                         break;
                     case "Soldier":
                         role="Your name is entered among the "+
