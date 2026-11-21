@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
 
 namespace CalradiaUnified
@@ -168,6 +169,120 @@ namespace CalradiaUnified
         /// witnessed marriage links and clan moves. No reputation,
         /// loyalty or backstory is invented from a score change.
         /// </summary>
+        private static string RealHome(Hero hero,out string evidence)
+        {
+            evidence="Unverified";
+            if(hero==null)return "";
+            var residence=hero.StayingInSettlement;
+            if(residence!=null)
+            {
+                evidence="NativeCurrentSettlement";
+                return residence.StringId;
+            }
+            residence=hero.HomeSettlement;
+            if(residence!=null)
+            {
+                evidence="NativeHomeSettlement";
+                return residence.StringId;
+            }
+            return "";
+        }
+
+        internal static int CaptureAgenda(SandboxOriginProfile profile,
+            SandboxLifeHistoryState life,SandboxCharacterAgendaState agenda,
+            Hero player)
+        {
+            if(profile==null || life==null || agenda==null ||
+                player==null)return 0;
+            var alive=Hero.AllAliveHeroes.Where(h=>h!=null)
+                .GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),
+                    StringComparer.Ordinal);
+            int created=0;
+            foreach(var known in life.People)
+            {
+                Hero person;
+                if(!alive.TryGetValue(known.Id,out person))continue;
+                bool sibling=person!=player &&
+                    player.Father!=null && player.Mother!=null &&
+                    person.Father==player.Father &&
+                    person.Mother==player.Mother;
+                bool inParty=person.PartyBelongedTo!=null &&
+                    person.PartyBelongedTo==player.PartyBelongedTo;
+                string office=Office(person);
+                string evidence;
+                string home=RealHome(person,out evidence);
+                string goal=person==player?
+                    SandboxStartingLifePolicy.Ambition(
+                        profile.Role,profile.NobleBirthPosition,
+                        profile.PersonalAmbition):
+                    SandboxGeneratedCharacterGoalPolicy.Goal(
+                        known.Culture,known.Station,
+                        office.Length>0?office:known.Occupation,
+                        sibling,inParty);
+                if(agenda.Register(person.StringId,goal,home,evidence,
+                    known.Occupation,known.Culture,known.HouseholdId))
+                    created++;
+            }
+            DiagnosticJournal.Event("cu_character_agendas_created",
+                "entries="+created+
+                "|homes_unverified="+agenda.Entries.Count(x=>
+                    x.HomeEvidence=="Unverified")+
+                "|generated_motives_are_not_past_memories=true");
+            return created;
+        }
+
+        internal static void ObserveAgenda(SandboxLifeHistoryState life,
+            SandboxCharacterAgendaState agenda,Hero player)
+        {
+            if(life==null || agenda==null || player==null)return;
+            var alive=Hero.AllAliveHeroes.Where(h=>h!=null)
+                .GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),
+                    StringComparer.Ordinal);
+            foreach(var entry in agenda.Entries)
+            {
+                Hero person;
+                if(!alive.TryGetValue(entry.Id,out person))continue;
+                string evidence;
+                string home=RealHome(person,out evidence);
+                if(agenda.ObserveHome(entry.Id,home,evidence)==
+                    "native_home_changed")
+                    life.Remember("NativeResidenceChangedObserved",
+                        person.StringId,home,"evidence="+evidence);
+                if(person==player)continue;
+                bool siblings=player.Father!=null &&
+                    player.Mother!=null &&
+                    person.Father==player.Father &&
+                    person.Mother==player.Mother;
+                bool actualParty=player.PartyBelongedTo!=null &&
+                    person.PartyBelongedTo==player.PartyBelongedTo;
+                int awarded=agenda.ObserveComradeship(entry.Id,actualParty,
+                    person.Age>=18f,siblings,player.GetRelation(person));
+                if(awarded<=0)continue;
+                try
+                {
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+                        player,person,awarded,false);
+                    life.Remember("VerifiedSiblingComradeship",
+                        player.StringId,person.StringId,
+                        "days="+entry.ConsecutiveDaysTogether+
+                        "|native_relation_delta="+awarded+
+                        "|shared_native_party=true");
+                    DiagnosticJournal.Event("cu_shared_service_relation",
+                        "player="+player.StringId+
+                        "|sibling="+person.StringId+
+                        "|days="+entry.ConsecutiveDaysTogether+
+                        "|native_relation_delta="+awarded);
+                }
+                catch(Exception error)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_comradeship_native_action_failed",error);
+                }
+            }
+        }
+
         internal static int ObserveDaily(SandboxLifeHistoryState state,
             SandboxSocialObservationState social,Hero player)
         {
