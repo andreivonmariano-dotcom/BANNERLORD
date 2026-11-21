@@ -190,9 +190,9 @@ namespace CalradiaUnified
                     choices:SandboxStartingLifePolicy.SevenPaths));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "KnightOrigin","Your knightly origin",
-                    "Sworn House: separate landless house with a real personal "+
-                    "patron. Younger Sibling: unavailable until joining "+
-                    "a genuine native lord clan can be verified.",
+                    "Sworn House: personal oath, 30-day muster duty, "+
+                    "last 7 days eligible, missed duty harms lord relation. "+
+                    "Younger Sibling: native clan joining unverified.",
                     choices:SandboxKnightStartPolicy.Origins));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "SoldierEntryRank","Requested service entry",
@@ -1315,8 +1315,10 @@ namespace CalradiaUnified
             {
                 if(preCampaign && profile.Role=="Knight")
                     return "Knight | "+profile.KnightOrigin+"\n"+
-                        "Sworn House: landless independent house with a real "+
-                        "personal patron. No automatic castle or vassalage.\n"+
+                        "Sworn House: independent landless house, "+
+                        "real personal lord and 30-day in-person muster.\n"+
+                        "Missed muster: native relation -3, oath break: -20.\n"+
+                        "No automatic castle, wage or vassalage.\n"+
                         "Younger Sibling: reserved pending genuine same-clan "+
                         "entry. Spouse and children remain optional.";
                 if(preCampaign && profile.Role=="Soldier")
