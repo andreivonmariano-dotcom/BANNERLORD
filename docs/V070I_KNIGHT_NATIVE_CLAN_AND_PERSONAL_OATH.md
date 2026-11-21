@@ -22,6 +22,7 @@ The new `SandboxKnightOathState` is a versioned, strict serialized game-save rec
 - **Dishonorable oath break:** A separate confirmation menu is required. Breaking an active oath becomes `Broken` and calls native patron relation -20 once. The clan is not moved or destroyed.
 - **Succession:** A confirmed death of the original patron suspends duties in `SuccessionPending`. A real, alive, currently leading lord of the **same native clan and kingdom** must be encountered in person. The player explicitly renews the oath. No automatic lineage creation, office transfer or fake succession.
 - **Changed allegiances:** A native patron changing clan or kingdom moves the contract to `Interrupted`, and no phantom obligations or rewards continue. An unresolved patron does not count as dead or absent service.
+- **Captured patron:** A verified native prisoner suspends musters in `PatronCaptive`, with no overdue penalty. On verified release, the next duty falls 30 days later. A captured lord cannot be used as a valid in-person reward or honorable-release target.
 
 The in-game `cu_knight_oath` menu appears from town/castle for an eligible saved Knight. All state changes are one-shot; external `sandbox-origin.ini` is not used to rewrite an active campaign oath.
 
