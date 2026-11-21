@@ -48,68 +48,51 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
-        var guardState=new SandboxKingsguardState();
-        Check("Kingsguard actual royal identity required before recording",
-            guardState.Begin("vlandia","sargot","king","guard",
-                "marshal","minister",100)==
-                    "native_kingsguard_commissioned" &&
-            guardState.IsRecorded &&
-            guardState.RoyalSeatId=="sargot" &&
-            guardState.CommanderId=="guard" &&
-            guardState.Begin("vlandia","another","king","guard",
-                "marshal","minister",101)=="already_commissioned");
-        Check("Kingsguard cannot accept decorative duplicate court Heroes",
-            new SandboxKingsguardState().Begin("vlandia",
-                "sargot","king","king","marshal","minister",100)==
-                    "native_royal_identity_unverified");
-        Check("Kingsguard can only recruit actual elite armed garrison",
-            SandboxKingsguardState.CanRecruit(
-                3,0,0,15,true,5)==2 &&
-            SandboxKingsguardState.CanRecruit(
-                1,0,0,15,true,4)==1 &&
-            SandboxKingsguardState.CanRecruit(
-                3,0,0,15,false,5)==0 &&
-            SandboxKingsguardState.CanRecruit(
-                3,0,0,15,true,2)==0 &&
-            SandboxKingsguardState.CanRecruit(
-                3,0,0,0,true,5)==0 &&
-            SandboxKingsguardState.CanRecruit(
-                3,0,SandboxKingsguardState.MaxGuard,15,
-                true,5)==0);
-        Check("Kingsguard no troop spawn; native garrison and party balanced",
-            guardState.RecordNativeTransfer("vlandian_guard",2,
-                8,6,0,2,101)=="native_guard_recruitment_verified" &&
-            guardState.TroopId=="vlandian_guard" &&
-            guardState.DesignatedCount==2 &&
-            guardState.RecruitmentActions==1 &&
-            guardState.RecordNativeTransfer("vlandian_guard",2,
-                6,6,2,4,102)=="native_troop_transfer_not_verified" &&
-            guardState.DesignatedCount==2);
-        Check("Kingsguard cannot switch identity to another troop type",
-            guardState.RecordNativeTransfer("battanian_guard",2,
-                6,4,2,4,102)=="native_troop_transfer_not_verified");
-        Check("Kingsguard native casualties shrink real troop designation",
-            guardState.Reconcile(1,103)==
-                "native_guard_casualties_observed" &&
-            guardState.DesignatedCount==1 &&
-            guardState.Reconcile(1,103)==
-                "native_guard_roster_unchanged");
-        Check("Kingsguard original native kits and save IDs survive parse",
-            SandboxKingsguardState.Parse(guardState.Serialize())
-                .Serialize()==guardState.Serialize() &&
-            SandboxKingsguardState.Parse(guardState.Serialize())
-                .CommanderId=="guard" &&
-            SandboxKingsguardState.Parse(guardState.Serialize())
-                .TroopId=="vlandian_guard");
-        Check("Kingsguard strict native save boundary",
-            !SandboxKingsguardState.Parse(
-                "CU_KINGS_GUARD_1\ninvalid").IsRecorded &&
-            !SandboxKingsguardState.Parse(
-                guardState.Serialize()+"|surplus").IsRecorded &&
-            guardState.Reconcile(-1,104)==
-                "invalid_native_roster_observation" &&
-            guardState.Reconcile(0,90)==
-                "invalid_native_roster_observation");
+        var royalCouncil=new SandboxRoyalCouncilState();
+        Check("one actual Hero per royal council office",
+            royalCouncil.Begin("vlandia","sargot","king",
+                "marshal","minister","kingsguard")==
+                    "native_royal_hero_council_commissioned" &&
+            royalCouncil.IsRecorded &&
+            royalCouncil.KingsguardHeroId=="kingsguard" &&
+            royalCouncil.MarshalId=="marshal" &&
+            royalCouncil.MinisterId=="minister" &&
+            royalCouncil.Begin("vlandia","other","king",
+                "marshal","minister","kingsguard")==
+                    "already_commissioned");
+        Check("royal council rejects duplicate Hero and king as guard",
+            new SandboxRoyalCouncilState().Begin(
+                "vlandia","sargot","king","marshal",
+                "minister","king")==
+                    "native_royal_council_hero_identity_unverified");
+        Check("royal council requires all native Heroes and governor",
+            royalCouncil.Convene(100,true,true,true,true,true)==
+                "real_royal_hero_council_convened" &&
+            royalCouncil.Meetings==1 &&
+            royalCouncil.Convene(100,true,true,true,true,true)==
+                "already_convened_today" &&
+            royalCouncil.Convene(101,true,false,true,true,true)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Convene(101,true,true,true,false,true)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Convene(101,true,true,true,true,false)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Meetings==1);
+        Check("in-person royal council persisted without troop state",
+            royalCouncil.Convene(101,true,true,true,true,true)==
+                "real_royal_hero_council_convened" &&
+            royalCouncil.Meetings==2 &&
+            SandboxRoyalCouncilState.Parse(royalCouncil.Serialize())
+                .Serialize()==royalCouncil.Serialize() &&
+            SandboxRoyalCouncilState.Parse(royalCouncil.Serialize())
+                .KingsguardHeroId=="kingsguard");
+        Check("royal council strict saves and monotonic meeting day",
+            !SandboxRoyalCouncilState.Parse(
+                "CU_ROYAL_HERO_COUNCIL_1\\ninvalid").IsRecorded &&
+            !SandboxRoyalCouncilState.Parse(
+                royalCouncil.Serialize()+"|extra").IsRecorded &&
+            royalCouncil.Convene(99,true,true,true,true,true)==
+                "council_day_invalid");
         Check("guided King requires exact native crown and player clan",
             SandboxKingStartPolicy.ValidateNativeCrown(
                 "king","vlandia","vlandia",
