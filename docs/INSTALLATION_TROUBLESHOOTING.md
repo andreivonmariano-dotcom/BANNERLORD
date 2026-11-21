@@ -1,3 +1,11 @@
+# Current installer and version visibility | v0.69f
+
+The previous v0.16.0 examples below are historical. The current pinned **v0.69f development candidate** passed [Windows CI 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228) but has **not** been tested inside the game. The packaged module still reports historical `v0.38.0` in `SubModule.xml`. This is separate from the verified development label `v0.69f`.
+
+To display the latest verified candidate, its exact [artifact download page](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491), SHA-256 and compatibility warning, use `scripts/Install-CU-From-Artifact.ps1 -ShowLatest`. After downloading the correct ZIP, pass `-LatestVerified` with `-GameRoot`, `-ArtifactZip` and `-ReplaceExisting`. The installer verifies the pinned DLL SHA before moving an existing module and makes a backup. It never changes saves. [Current full PowerShell instructions](POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md).
+
+---
+
 # Calradia Unified v0.16.0: mod missing from Bannerlord launcher
 
 **Status:** Installation instructions. Bannerlord launch remains untested.
