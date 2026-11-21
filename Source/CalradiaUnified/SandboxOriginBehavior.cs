@@ -22,7 +22,7 @@ namespace CalradiaUnified
     /// New-campaign-only founder profile. No legacy-save conversion, no NPC
     /// mutation, no early kingdom creation and no unsafe family registration.
     /// </summary>
-    public sealed class SandboxOriginBehavior : CampaignBehaviorBase
+    public sealed partial class SandboxOriginBehavior : CampaignBehaviorBase
     {
         private bool applied;
         private bool startedNewGame;
@@ -39,6 +39,11 @@ namespace CalradiaUnified
             new SandboxSuccessionInterestState();
         private SandboxCharacterAgendaState characterAgendas=
             new SandboxCharacterAgendaState();
+        private SandboxAgencyDecisionState agencyDecisions=
+            new SandboxAgencyDecisionState();
+        private SandboxInheritanceNegotiationState inheritanceNegotiation=
+            new SandboxInheritanceNegotiationState();
+        private string affairsReturnMenu="town";
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
@@ -340,6 +345,13 @@ namespace CalradiaUnified
             string agenda=characterAgendas.Serialize();
             store.SyncData("CU_v066_character_agendas",ref agenda);
             characterAgendas=SandboxCharacterAgendaState.Parse(agenda);
+            string requests=agencyDecisions.Serialize();
+            store.SyncData("CU_v067_character_requests",ref requests);
+            agencyDecisions=SandboxAgencyDecisionState.Parse(requests);
+            string court=inheritanceNegotiation.Serialize();
+            store.SyncData("CU_v067_family_negotiation",ref court);
+            inheritanceNegotiation=SandboxInheritanceNegotiationState
+                .Parse(court);
         }
 
         private static void Notify(string text)
@@ -359,6 +371,7 @@ namespace CalradiaUnified
             // Prefer the first actual session launch over a delayed daily tick.
             TryApplyOnce();
             if (starter == null || !IsStandaloneSandbox()) return;
+            RegisterPeopleAndLineageMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -745,6 +758,7 @@ namespace CalradiaUnified
                     socialObservations,player);
                 SandboxLivingPersons.ObserveAgenda(livingPersons,
                     characterAgendas,player);
+                ObserveAgencyDaily(player);
                 if(serviceCareer.IsConfigured)
                 {
                     // Serve as Soldier owns every actual enlisted-party
