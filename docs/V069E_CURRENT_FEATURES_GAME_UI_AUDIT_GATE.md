@@ -4,9 +4,9 @@
 
 ## Evidence classification and current baseline
 
-**Latest simulated-audit compiled candidate:** [Windows Actions 44862791276](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276), compiled code SHA `2b220bf94d15a98e94342bdb163f883c370615df`, **899 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
+**Latest simulated-audit compiled candidate:** [Windows Actions 44863495218](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44863495218), compiled code SHA `fc17fa8599f103d8136beabc0ab779074b8b2062`, **900 executable C# policy checks passed**, zero C# warnings and errors against Bannerlord 1.5.7.125802 references. The deterministic models completed 1,062,792 medieval-life checks, 180,425 living-affairs checks and 303,098 campaign-policy checks. Those are NOT game-session playthroughs.
 
-[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276/artifacts/14691045274). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **588,288 bytes**, SHA-256 `4047d5eda6c4bc191a7a50345be4ef3bd8e67d1a073a1a64cd07d70b79d01461`. Inner runtime ZIP: **267,062 bytes**, SHA-256 `b0ae5826fb57380775de85a611405d7d7881f3ab890398cf46f8b27ad32f8350`.
+[Exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44863495218/artifacts/14690753378). Installed module manifest/package still reads **v0.38.0**, not v0.69e. Compiled DLL: **588,288 bytes**, SHA-256 `0ceefa4e8d73dea686d28efb79fc6ba98a0d7830dfad273955d4cea788cb523b`. Inner runtime ZIP: **267,119 bytes**, SHA-256 `046c1c3471eed5b28ebf9fb26111b9a22fbbd4e2f2098e020eb07f471e308b46`.
 
 **Gate status:** A/B compiled and policy-tested. For THIS exact DLL, **C (installed startup), D (live feature interaction), E (game save/reload), F (extended game session) and G (release)** are not verified. Keep drafts unmerged. Older v0.18–v0.48 screenshots and game logs document historical regressions but cannot certify the new build.
 
@@ -48,13 +48,13 @@ Suggested evidence filenames: `A01_main_menu.png`, `A02_world.png`, `A03_culture
 
 ## Player-side pinned validation, PowerShell 5.1
 
-From [exact artifact 14691045274](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276/artifacts/14691045274), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
+From [exact artifact 14690753378](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44863495218/artifacts/14690753378), download the ZIP **manually**, then install using the pre-existing, source-audited PowerShell helper. The installer backs up the old CalradiaUnified module and does not touch saves. Verify the game root and downloaded filename on the player's machine.
 
 ```powershell
 $GameRoot = 'D:\Steam\steamapps\common\Mount & Blade II Bannerlord'
-$SourceCommit = '2b220bf94d15a98e94342bdb163f883c370615df'
+$SourceCommit = 'fc17fa8599f103d8136beabc0ab779074b8b2062'
 $ExpectedVersion = 'v0.38.0'
-$ExpectedHash = '4047d5eda6c4bc191a7a50345be4ef3bd8e67d1a073a1a64cd07d70b79d01461'
+$ExpectedHash = '0ceefa4e8d73dea686d28efb79fc6ba98a0d7830dfad273955d4cea788cb523b'
 $Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.38.0-compiled-untested.zip'
 if (-not (Test-Path -LiteralPath $Zip -PathType Leaf)) {
     throw "First download the pinned Actions artifact and set the actual ZIP path."
@@ -92,6 +92,11 @@ Log each case with: **case ID, exact DLL hash, native game version, active modul
 
 ## Simulated QA update, 21 November 2026
 
-User-directed Q1/Q2/Q3 stress tests now pass Windows CI without adding gameplay code. [Latest simulation details](V069E_SIMULATION_AUDIT_RESULTS.md): 24 logical creator hitbox/visibility cases across three declared viewports, 10,000 modeled navigation cycles, 96×730 campaign model days and 1,441,129 checks, plus 12×48×365 modeled role-days and 979,198 assertions with 7,488 multi-state serializer checkpoint groups. The 899 independent C# gameplay policy checks and pinned module compile passed with zero errors/warnings. The installed-game protocol above now identifies the **exact same-run CI artifact, scripts SHA and DLL SHA** from 44862791276. Previous run hashes remain correct only for their own artifacts.
+User-directed Q1/Q2/Q3 stress tests now pass Windows CI without adding gameplay code. [Latest simulation details](V069E_SIMULATION_AUDIT_RESULTS.md): 24 logical creator hitbox/visibility cases across three declared viewports, 10,000 modeled navigation cycles, 96×730 campaign model days and 1,441,129 checks, plus 12×48×365 modeled role-days and 979,198 assertions with 7,488 multi-state serializer checkpoint groups. The 900 independent C# gameplay policy checks and pinned module compile passed with zero errors/warnings. The installed-game protocol above now identifies the **exact same-run CI artifact, scripts SHA and DLL SHA** from 44862791276. Previous run hashes remain correct only for their own artifacts.
 
 This simulation success does not advance the installed-game acceptance gate. Real screen rendering, actual UI click/drag focus, first game launch, native 30-day campaign and save/quit/reload remain unverified.
+
+
+## Verified source-defect correction and latest build
+
+The latest [run 44863495218](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44863495218) contains a single bounded runtime repair: `SandboxStartContract.RetinueReadyForOtherGrants` refuses incomplete or malformed success receipts. Existing native retinue creation, class features and Gauntlet views were not changed. Policy smoke passed **900** checks, and the separate Q1–Q3 simulator passed **999,201** assertions, including 20,000 receipt stress cases. Module compilation had zero warnings and errors. The PowerShell validation recipe above is pinned to **this new run's code SHA and DLL hash**, not earlier candidates. [More detailed result](V069E_SIMULATION_AUDIT_RESULTS.md). In-game Gate C–G remains not run.
