@@ -150,6 +150,7 @@ namespace CalradiaUnified
                 "\nNative party: "+MobileParty.MainParty.Name+
                 "\nStanding with you: "+
                 Hero.MainHero.GetRelation(person)+
+                "\n"+SocialBondDescription(person)+
                 "\nKnown settlement: "+(place==null?
                     "not recorded":place.Name.ToString())+
                 "\nThis is an actual living companion in your "+
@@ -168,7 +169,7 @@ namespace CalradiaUnified
                         "Beneath the banner of "+clan.Name,
                     CampRollText(),CampOfficerText(),
                     CampCorrespondenceText(),CampServiceText(),
-                    InspectTravelingHouseholdMember));
+                    CampChronicleText(),InspectTravelingHouseholdMember));
             }
             catch(Exception error)
             {
