@@ -4,6 +4,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.ObjectSystem;
 using TaleWorlds.ScreenSystem;
+using TaleWorlds.Library;
 
 namespace CalradiaUnified
 {
@@ -84,6 +85,96 @@ namespace CalradiaUnified
                 default:return "Calradia Unified | Campaign record";
             }
         }
+        // These buttons inspect real campaign entities. A Hero must
+        // still belong to the player's actual family or companion roster.
+        private void InspectDossierHero(Hero person)
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            if(person==null || !person.IsAlive ||
+                player==null || clan==null)return;
+            bool family=person==player ||
+                (person==player.Spouse &&
+                 person.Spouse==player) ||
+                (player.Children!=null &&
+                 player.Children.Contains(person) &&
+                 (person.Father==player || person.Mother==player));
+            bool companion=clan.Companions!=null &&
+                clan.Companions.Contains(person) &&
+                person.CompanionOf==clan;
+            if(!family && !companion)return;
+            var residence=person.StayingInSettlement ??
+                person.CurrentSettlement ??
+                person.LastKnownClosestSettlement;
+            string relationship=person==player?"Household head":
+                person==player.Spouse?"Spouse":
+                person.Father==player || person.Mother==player?
+                    "Child":"Companion of your clan";
+            string parentage=person.Father==null &&
+                person.Mother==null?"Parentage not recorded":
+                "Mother: "+NativePersonName(person.Mother)+
+                " | Father: "+NativePersonName(person.Father);
+            string location=residence==null?
+                "Present location not recorded":
+                "Known place: "+residence.Name;
+            string duty=companion?
+                "Serving in the actual clan companion roster.":
+                "Family belonging verified from native Hero links.";
+            ShowNativeDetail(person.Name+" | "+relationship,
+                "Age "+(int)person.Age+" | "+parentage+
+                "\n"+location+
+                "\n"+duty+
+                "\nStanding with you: "+
+                (person==player?"your own character":
+                    player.GetRelation(person).ToString()));
+        }
+
+        private void OpenDossierFamilyPortraits()
+        {
+            // The gallery displays original CharacterImageIdentifierVM
+            // portraits of native Heroes. It cannot create new kin.
+            ScreenManager.PushScreen(new CUFamilyPortraitScreen());
+        }
+
+        private void DeclineDossierPetition()
+        {
+            var actor=RequestedCharacter();
+            if(actor==null)return;
+            InformationManager.ShowInquiry(new InquiryData(
+                "Decline "+actor.Name,
+                "Decline this person's outstanding request? "+
+                "The native relationship change will be recorded.",
+                true,true,"Decline","Not now",
+                ()=>AnswerCharacterRequest(false),()=>{}),true);
+        }
+
+        private void HearDossierPetition()
+        {
+            OfferLocalCharacterRequest(Hero.MainHero);
+            var actor=RequestedCharacter();
+            if(actor==null)
+            {
+                ShowNativeDetail("Petitions",
+                    "No one currently present has a pending request. "+
+                    "Visit your household and companions in person.");
+                return;
+            }
+            int denars=SandboxAgencyDecisionPolicy.Amount(
+                agencyDecisions.PendingKind);
+            string request=agencyDecisions.PendingKind=="Recognition"?
+                "asks you to recognize their work":
+                "asks for "+denars+" denars from your actual purse";
+            InformationManager.ShowInquiry(new InquiryData(
+                actor.Name+" | A private petition",
+                actor.Name+" "+request+
+                ". You may offer help or decline. "+
+                "Both choices follow the campaign's real "+
+                "gold and relationship rules.",
+                true,true,"Offer help","Decline",
+                ()=>ConfirmCharacterSupport(),
+                ()=>DeclineDossierPetition()),true);
+        }
+
         private void ShowStartingHouseholdStatus()
         {
             var player=Hero.MainHero;
@@ -98,15 +189,11 @@ namespace CalradiaUnified
                         h.CompanionOf==clan)
                     .OrderBy(h=>h.StringId,StringComparer.Ordinal)
                     .Take(8).ToArray();
-            string family="Spouse: "+NativePersonName(player.Spouse)+
-                "\nChildren ("+children.Length+"): "+
-                (children.Length==0?"none":
-                    String.Join(", ",children.Select(NativePersonName)))+
-                "\nHouse: "+clan.Name+".";
-            string assignment="Officers and companions ("+
-                officers.Length+"):\n"+(officers.Length==0?
-                    "None appointed":
-                    String.Join("\n",officers.Select(NativePersonName)))+".";
+            string family="Family roll: "+children.Length+
+                " living children. View every portrait below.";
+            string assignment=officers.Length==0?
+                "No appointed companions in your clan.":
+                "Tap a portrait to inspect an actual companion.";
             string role="Unverified starting role.";
             string type="none";
             if(knightOath.IsConfigured)
@@ -198,8 +285,10 @@ namespace CalradiaUnified
                     NativeDossierTitle(type),
                     "Clan: "+clan.Name,
                     family,assignment,role,
-                    "Native Clan, Party and Kingdom screens remain "+
-                    "authoritative for characters and political powers."));
+                    "Live native household records. No fabricated titles.",
+                    InspectDossierHero,
+                    OpenDossierFamilyPortraits,
+                    HearDossierPetition));
             }
             catch(Exception error)
             {
