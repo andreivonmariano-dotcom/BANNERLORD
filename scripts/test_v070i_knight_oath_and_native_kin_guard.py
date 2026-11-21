@@ -43,8 +43,8 @@ for token in ('MusterDays=30','MusterWindowDays=7','Status="SuccessionPending"',
               'Serialize()','Parse(string text)'):
     assert token in state,token
 for text in (native,origin):
-    assert not re.search(r'\\bHero\\.MainHero\\.Clan\\s*=(?!=)',text)
-    assert not re.search(r'\\bClan\\.PlayerClan\\s*=(?!=)',text)
+    assert not re.search(r'\bHero\.MainHero\.Clan\s*=(?!=)',text)
+    assert not re.search(r'\bClan\.PlayerClan\s*=(?!=)',text)
     assert 'ChangeClanLeaderAction' not in text
 print("PASS v0.70i SOURCE: save-backed, one-shot Knight oath with "
       "native relation actions; unsupported clan reparent remains blocked. "
