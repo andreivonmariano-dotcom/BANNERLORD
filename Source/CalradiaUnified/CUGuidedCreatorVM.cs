@@ -400,6 +400,19 @@ namespace CalradiaUnified
                  key=="Troops" ||
                  key=="FamilyHomeMode" || key=="FamilyHomeId"))
                 return false;
+            // New Lord owns one genuine native vassal house. The
+            // creator cannot seize a stranger's fief or add an invented
+            // court stipend. The two native cultural officers are fixed.
+            if((profile.LordGuidedStart ||
+                (preCampaign && profile.Role=="Lord")) &&
+               (key=="NobleBirthPosition" ||
+                key=="NobleElderHeroId" ||
+                (!preCampaign &&
+                 (key=="StartingFiefMode" || key=="StartingFiefId" ||
+                  key=="AllowStartingFiefTransfer" ||
+                  key=="RetinueMode" || key=="Gold" ||
+                  key=="Influence" || key=="Troops"))))
+                return false;
             if(!preCampaign && profile.MercenaryGuidedStart &&
                 (key=="RetinueMode" || key=="Influence" ||
                  key=="Gold" || key=="Troops" ||
@@ -836,6 +849,21 @@ namespace CalradiaUnified
                 candidate.Role=="Mercenary";
             candidate.SoldierGuidedStart=candidate.Role=="Soldier";
             candidate.KnightGuidedStart=candidate.Role=="Knight";
+            candidate.LordGuidedStart=candidate.Role=="Lord";
+            if(candidate.LordGuidedStart)
+            {
+                candidate.RoleAffiliationsEnabled=false;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.ServicePatronHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.Gold=-1;
+                candidate.Influence=-1;
+                candidate.Troops=0;
+                candidate.RetinueMode=SandboxLordStartPolicy.GuidedRetinue;
+            }
             if(candidate.KnightGuidedStart)
             {
                 candidate.RoleAffiliationsEnabled=false;
@@ -935,7 +963,9 @@ namespace CalradiaUnified
                 "RoleBased":candidate.MercenaryGuidedStart ||
                 candidate.KnightGuidedStart ?
                 "FamilyOnly":candidate.SoldierGuidedStart ?
-                "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
+                "FamilyOnly":candidate.LordGuidedStart?
+                SandboxLordStartPolicy.GuidedRetinue:
+                SandboxServicePolicy.DefaultRetinue(
                     candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
                 candidate.ServicePatronHeroId="";
@@ -977,6 +1007,9 @@ namespace CalradiaUnified
                 "|native_contract_required="+
                     candidate.MercenaryGuidedStart+
                 "|soldier_guided="+candidate.SoldierGuidedStart+
+                "|guided_lord="+candidate.LordGuidedStart+
+                "|native_vassal_clan_and_fief_required="+
+                    candidate.LordGuidedStart+
                 "|soldier_requested_entry_rank="+
                     candidate.SoldierEntryRank+
                 "|native_sas_enlistment_required="+
@@ -1313,6 +1346,19 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Lord")
+                    return "Lord | founder of your own native noble house\n"+
+                        "True vassal in "+
+                        (profile.StartingKingdomId.Length==0?
+                            "an unselected kingdom":profile.StartingKingdomId)+
+                        "\nNative clan leadership and party command required."+
+                        "\nAt least one real native Advanced Start holding."+
+                        "\nNo additional fief gift, bonus funds or troops."+
+                        "\nTwo cultured native Heroes: Master of Arms "+
+                        "and sworn Knight. Both must join the clan party."+
+                        "\nSpouse, children and siblings are optional."+
+                        "\nNo older founding brother. Older sisters allowed."+
+                        "\nNo royal title or invented court authority.";
                 if(preCampaign && profile.Role=="Knight")
                     return "Knight | "+profile.KnightOrigin+"\n"+
                         "Sworn House: independent landless house, "+
