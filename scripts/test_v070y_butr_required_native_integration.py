@@ -40,7 +40,9 @@ for movie,vm,prop in (
     assert '[DataSourceProperty]' in adapter
     assert prop in adapter
 assert adapter.count('[ViewModelMixin(handleDerived: true)]')==3
-assert adapter.count('PrefabExtensionText')==3
+assert adapter.count('PrefabExtensionText')==4
+assert 'ExecuteCUCamp()' in adapter
+assert 'Command.Click=\\\"ExecuteCUCamp' in adapter
 assert adapter.count('ExecuteCUDossier()')==3
 assert 'Command.Click=\\\"ExecuteCUDossier' in adapter
 assert '"ButtonBrush"' in adapter or 'Brush=\\\"ButtonBrush' in adapter
