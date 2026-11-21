@@ -92,6 +92,12 @@ namespace CalradiaUnified
                 partyDead < -1 || partyDead > 100000 ||
                 partyWounded < -1 || partyWounded > 100000 ||
                 ((partyDead == -1) != (partyWounded == -1)) ||
+                // A named Hero cannot outnumber a verified roster count.
+                (partyDead >= 0 &&
+                    (woundedHeroIds.Length > 0 &&
+                     woundedHeroIds.Split(',').Length > partyWounded ||
+                     fallenHeroIds.Length > 0 &&
+                     fallenHeroIds.Split(',').Length > partyDead)) ||
                 // Names require an observed native casualty roster.
                 (partyDead < 0 && (woundedHeroIds.Length != 0 ||
                     fallenHeroIds.Length != 0)) ||
