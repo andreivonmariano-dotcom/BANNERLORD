@@ -135,6 +135,8 @@ namespace CalradiaUnified
         // a second mercenary captain. Legacy Soldier profiles opt out.
         public bool SoldierGuidedStart;
         public string SoldierEntryRank = "Recruit";
+        public bool KnightGuidedStart;
+        public string KnightOrigin = "SwornHouse";
         public bool WandererCompanionEnabled;
         public string WandererCompanionName = "Taran";
         public int WandererCompanionAge = 25;
@@ -230,6 +232,10 @@ namespace CalradiaUnified
             MercenaryGuidedStart=false;
             SoldierGuidedStart=false;
             SoldierEntryRank="Recruit";
+            KnightGuidedStart=false;
+            KnightOrigin="SwornHouse";
+            if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)
+                Role="Wanderer";
             WandererCompanionEnabled=false;
             WandererCompanionName="Taran";
             WandererCompanionAge=25;
@@ -495,6 +501,12 @@ namespace CalradiaUnified
                 case "SoldierGuidedStart":
                     if(!Boolean.TryParse(value,out b))return false;
                     SoldierGuidedStart=b;return true;
+                case "KnightGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    KnightGuidedStart=b;return true;
+                case "KnightOrigin":
+                    if(!SandboxKnightStartPolicy.IsOrigin(value))return false;
+                    KnightOrigin=value;return true;
                 case "SoldierEntryRank":
                     if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
                         return false;
@@ -632,9 +644,32 @@ namespace CalradiaUnified
                 error="Choose a supported early household and ambition.";
                 return false;
             }
+            if(KnightGuidedStart)
+            {
+                string knight=SandboxKnightStartPolicy.ValidateRequest(
+                    KnightOrigin,StartingKingdomId,SiblingCount);
+                if(Role!="Knight" || SoldierGuidedStart ||
+                   MercenaryGuidedStart || OutlawGuidedStart ||
+                   WandererNoHouseStart || RoleAffiliationsEnabled ||
+                   NobleBirthPosition!="Independent" ||
+                   !String.IsNullOrEmpty(NobleElderHeroId) ||
+                   StartingFiefMode!="Native" ||
+                   !String.IsNullOrEmpty(StartingFiefId) ||
+                   AllowStartingFiefTransfer || RetinueMode!="FamilyOnly" ||
+                   Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                   (SpouseEnabled && FamilyHomeMode!="None") ||
+                   knight.Length!=0)
+                {
+                    error="Guided Knight: "+(knight.Length==0?
+                        "independent sworn house needs no native fief, "
+                        +"political title or invented subsidy":knight);
+                    return false;
+                }
+            }
             if(SoldierGuidedStart &&
                 (Role!="Soldier" || MercenaryGuidedStart ||
                  OutlawGuidedStart || WandererNoHouseStart ||
+                 KnightGuidedStart || SiblingCount!=0 ||
                  !SandboxSoldierEnlistmentPolicy.IsEntryRank(
                      SoldierEntryRank) ||
                  String.IsNullOrEmpty(StartingKingdomId) ||
@@ -809,6 +844,7 @@ namespace CalradiaUnified
                 ", ambition=" + PersonalAmbition +
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
+                ", knight_origin=" + (KnightGuidedStart?KnightOrigin:"legacy") +
                 ", noble_birth=" + NobleBirthPosition +
                 ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
@@ -901,6 +937,9 @@ namespace CalradiaUnified
                 "SoldierGuidedStart=" +
                     SoldierGuidedStart.ToString().ToLowerInvariant(),
                 "SoldierEntryRank=" + SoldierEntryRank,
+                "KnightGuidedStart=" +
+                    KnightGuidedStart.ToString().ToLowerInvariant(),
+                "KnightOrigin=" + KnightOrigin,
                 "WandererCompanionEnabled=" +
                     WandererCompanionEnabled.ToString().ToLowerInvariant(),
                 "WandererCompanionName=" + WandererCompanionName,

@@ -9,6 +9,9 @@ namespace CalradiaUnified
     /// </summary>
     public static class SandboxStartingLifePolicy
     {
+        public static readonly string[] SevenPaths={
+            "Wanderer","Outlaw","Mercenary","Soldier","Knight","Lord","King"
+        };
         public static readonly string[] EarlyHouseholds={
             "Auto","Rural","Town","Garrison","TradingHouse","Court","Displaced"
         };
@@ -67,6 +70,12 @@ namespace CalradiaUnified
         {
             return requested=="Auto" || !ValidAmbition(requested)?
                 DefaultAmbition(role,birth):requested;
+        }
+        public static string Station(SandboxOriginProfile p)
+        {
+            return p!=null && p.KnightGuidedStart?
+                "UnlandedKnightRetainer":Station(p==null?"":p.Role,
+                    p==null?"Independent":p.NobleBirthPosition);
         }
         public static string Station(string role,string birth)
         {

@@ -57,12 +57,26 @@ namespace CalradiaUnified
             }
             return 0;
         }
+        public static int FirstOlderBrotherInSwornKnightHouse(
+            SandboxOriginProfile p,int founderAge)
+        {
+            if(p==null || !p.KnightGuidedStart ||
+                p.KnightOrigin!="SwornHouse")return 0;
+            int count=Math.Min(p.SiblingCount,p.Siblings.Count);
+            for(int i=0;i<count;i++)
+                if(p.Siblings[i]!=null &&
+                    p.Siblings[i].Gender=="Male" &&
+                    p.Siblings[i].Age>founderAge)return i+1;
+            return 0;
+        }
         public static string ValidateHousePlan(
             SandboxOriginProfile p,int founderAge)
         {
             if(p==null)return "missing_profile";
             if(FirstOlderBrotherInIndependentLordHouse(p,founderAge)>0)
                 return "independent_lord_older_brother";
+            if(FirstOlderBrotherInSwornKnightHouse(p,founderAge)>0)
+                return "sworn_knight_older_brother";
             if(!SandboxNobleStartPolicy.IsSonOrigin(
                 p.NobleBirthPosition))return "";
             int required=SandboxNobleStartPolicy.RequiredOlderSons(
