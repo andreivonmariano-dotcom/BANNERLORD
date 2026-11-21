@@ -34,6 +34,8 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxSoldierEnlistmentPolicy.cs" Link="SandboxSoldierEnlistmentPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightStartPolicy.cs" Link="SandboxKnightStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxLordStartPolicy.cs" Link="SandboxLordStartPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxLordSuccessionPolicy.cs" Link="SandboxLordSuccessionPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxLordInheritanceState.cs" Link="SandboxLordInheritanceState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightOathState.cs" Link="SandboxKnightOathState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenaryStartPolicy.cs" Link="SandboxMercenaryStartPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxMercenarySolvencyPolicy.cs" Link="SandboxMercenarySolvencyPolicy.cs" />
