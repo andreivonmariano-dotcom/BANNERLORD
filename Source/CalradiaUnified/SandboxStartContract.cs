@@ -92,8 +92,10 @@ namespace CalradiaUnified
             var errors = new List<string>();
             if (String.IsNullOrEmpty(desiredNativeStartType))
                 errors.Add("unknown_requested_start_type");
-            else if (!String.Equals(desiredNativeStartType,
-                actualNativeStartType, StringComparison.Ordinal))
+            else if (!SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                desiredNativeStartType,actualNativeStartType,
+                !String.IsNullOrEmpty(actualKingdomId),isRulingClan,
+                actualFiefs))
                 errors.Add("native_start_type_mismatch");
 
             bool requiresKingdom = desiredNativeStartType == "vassal" ||
