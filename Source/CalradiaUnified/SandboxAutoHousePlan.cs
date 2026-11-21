@@ -21,7 +21,11 @@ namespace CalradiaUnified
             plan.SpouseBackground=
                 (plan.Role=="Lord" || plan.Role=="King")?
                 "NobleRandom":"Commoner";
-            if(SandboxCustomLifeRolePolicy.IsLandless(plan.Role))
+            // Only native landed vassal/ruler starts can initially promise
+            // a permanent owned estate. Others are explicitly unhomed.
+            if(SandboxCustomLifeRolePolicy.IsLandless(plan.Role) ||
+                (plan.Role!="King" && plan.Role!="Lord" &&
+                 plan.Role!="Knight"))
                 plan.FamilyHomeMode="None";
             plan.FamilyScenario=plan.Role=="Admiral"?
                 "Seafaring":SandboxStartingLifePolicy.FamilyScenario(

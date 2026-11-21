@@ -990,30 +990,6 @@ namespace CalradiaUnified
                         "none" : Clan.PlayerClan.Kingdom.StringId) +
                     "|status=" + affiliation);
 
-                // Soldier and Knight require a real commanding noble.
-                // The native vassal or mercenary kingdom allegiance remains.
-                Hero patron;
-                string patronStatus=SandboxServicePatron.TryAssign(
-                    profile,hero,out patron);
-                if(patron!=null)
-                {
-                    servicePatronHeroId=patron.StringId;
-                    servicePatronName=patron.Name.ToString();
-                    Notify(profile.Role+" service confirmed under "+
-                        servicePatronName+" of "+
-                        patron.Clan.Name.ToString()+
-                        ". The kingdom contract remains native.");
-                }
-                DiagnosticJournal.Event("cu_service_start_status",
-                    "role="+profile.Role+
-                    "|result="+patronStatus+
-                    "|patron_id="+servicePatronHeroId+
-                    "|patron_name="+servicePatronName);
-                if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
-                    patron==null)
-                    Notify(profile.Role+" start has no verified "+
-                        "commanding lord: "+patronStatus);
-
                 // Native ASO is the authority for king/vassal/mercenary
                 // affiliation. A role label must never forge king status.
                 if (profile.Role == "King" &&
@@ -1028,21 +1004,6 @@ namespace CalradiaUnified
                      Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan))
                     DiagnosticJournal.Event("sandbox_origin_role_mismatch",
                         "Lord requires native Vassal Advanced Start");
-
-                // Named fiefs are resolved only after the game exists.
-                // A startup castle/town choice is consent-gated and must
-                // belong to the actual selected starting kingdom.
-                string fiefOutcome = SandboxStartingFief.TryApply(profile,hero);
-                DiagnosticJournal.Event("sandbox_start_fief_result",
-                    "mode=" + profile.StartingFiefMode +
-                    "|requested_id=" + profile.StartingFiefId +
-                    "|result=" + fiefOutcome);
-                if (fiefOutcome.StartsWith("refused:",
-                    StringComparison.Ordinal) ||
-                    fiefOutcome.StartsWith("failed:",
-                    StringComparison.Ordinal))
-                    Notify("Starting fief request could not be fulfilled: " +
-                        fiefOutcome);
 
                 // Native Advanced Start can supply independent companions.
                 // They are not the player's requested spouse or children.
@@ -1140,7 +1101,6 @@ namespace CalradiaUnified
                 // Explicitly requested family is created after the native
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
-                RegisterFamilyUpbringings(profile,hero,family);
                 bool finalSonRankValid=true;
                 if(SandboxNobleStartPolicy.IsSonOrigin(
                     profile.NobleBirthPosition) && elder!=null)
@@ -1179,6 +1139,85 @@ namespace CalradiaUnified
                 }
                 DiagnosticJournal.Event("cu_family_creation_status",
                     "requested=" + profile.RealFamilyEnabled + "|result=" + family);
+                // Read the actual native parentage and household result before
+                // granting a castle, gold, renown, troops, items or officers.
+                // A partial family cannot be turned into a "successful" life
+                // by unrelated resources. Phase 8 still cannot be rolled back.
+                string postFamilyGate=SandboxStartContract.PostFamilyGrantGate(
+                    profile.RealFamilyEnabled,family,finalSonRankValid,
+                    SandboxNobleStartPolicy.RequiresNobleElder(
+                        profile.NobleBirthPosition),dynasty);
+                if(postFamilyGate.Length>0)
+                {
+                    DiagnosticJournal.Event("cu_post_family_grants_refused",
+                        "reason="+postFamilyGate+
+                        "|family="+family+"|dynasty="+dynasty+
+                        "|native_stage8_retained=true"+
+                        "|no_new_fief_gold_items_or_retinue=true");
+                    DiagnosticJournal.Event("sandbox_start_contract",
+                        "result=FAIL|reason="+postFamilyGate+
+                        "|native_stage8_retained=true"+
+                        "|additional_grants_skipped=true");
+                    Notify("Starting Life incomplete: "+postFamilyGate+
+                        ". Further custom grants were withheld. "+
+                        "The native start is unchanged.");
+                    return;
+                }
+                RegisterFamilyUpbringings(profile,hero,family);
+
+                // Soldier and Knight require a real commanding noble.
+                // The native vassal or mercenary kingdom allegiance remains.
+                Hero patron;
+                string patronStatus=SandboxServicePatron.TryAssign(
+                    profile,hero,out patron);
+                if(patron!=null)
+                {
+                    servicePatronHeroId=patron.StringId;
+                    servicePatronName=patron.Name.ToString();
+                    Notify(profile.Role+" service confirmed under "+
+                        servicePatronName+" of "+
+                        patron.Clan.Name.ToString()+
+                        ". The kingdom contract remains native.");
+                }
+                DiagnosticJournal.Event("cu_service_start_status",
+                    "role="+profile.Role+
+                    "|result="+patronStatus+
+                    "|patron_id="+servicePatronHeroId+
+                    "|patron_name="+servicePatronName);
+                if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
+                    patron==null)
+                    Notify(profile.Role+" start has no verified "+
+                        "commanding lord: "+patronStatus);
+
+                // A failed service binding blocks unrelated custom rewards.
+                // Do not grant land or household officers after that failure.
+                if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
+                    patron==null)
+                {
+                    DiagnosticJournal.Event("sandbox_start_contract",
+                        "result=FAIL|reason=commanding_lord_not_bound"+
+                        "|patron="+patronStatus+
+                        "|additional_grants_skipped=true");
+                    Notify("Starting Life incomplete: commanding lord "+
+                        "not bound. Additional custom grants were withheld.");
+                    return;
+                }
+
+                // Named fiefs are resolved only after the game exists.
+                // A startup castle/town choice is consent-gated and must
+                // belong to the actual selected starting kingdom.
+                string fiefOutcome = SandboxStartingFief.TryApply(profile,hero);
+                DiagnosticJournal.Event("sandbox_start_fief_result",
+                    "mode=" + profile.StartingFiefMode +
+                    "|requested_id=" + profile.StartingFiefId +
+                    "|result=" + fiefOutcome);
+                if (fiefOutcome.StartsWith("refused:",
+                    StringComparison.Ordinal) ||
+                    fiefOutcome.StartsWith("failed:",
+                    StringComparison.Ordinal))
+                    Notify("Starting fief request could not be fulfilled: " +
+                        fiefOutcome);
+
                 // Native spouse and parent links must be verified first.
                 // Place the family at an OWNED castle/town only after the
                 // genuine marriage and children have been created.
@@ -1190,10 +1229,11 @@ namespace CalradiaUnified
                     "result=" + familyHome +
                     "|requested_mode=" + profile.FamilyHomeMode +
                     "|requested_id=" + profile.FamilyHomeId);
-                if ((profile.FamilyHomeMode=="SpecificOwned" &&
-                    familyHome.StartsWith("skipped:",StringComparison.Ordinal)) ||
-                    familyHome.StartsWith("failed:",StringComparison.Ordinal) ||
-                    familyHome.StartsWith("refused:",StringComparison.Ordinal))
+                string homeContractError=
+                    SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                        profile.FamilyHomeMode,profile.SpouseEnabled,
+                        familyHome);
+                if(homeContractError.Length>0)
                     Notify("Family home could not be established: " +
                         familyHome);
                 if (profile.RealFamilyEnabled && (
@@ -1288,6 +1328,8 @@ namespace CalradiaUnified
                      family.StartsWith("invalid",StringComparison.Ordinal)))
                     failures=failures.Concat(new[]{
                         "family_creation_incomplete"}).ToArray();
+                if(homeContractError.Length>0)
+                    failures=failures.Concat(new[]{homeContractError}).ToArray();
                 if(profile.StartingFiefMode!="Native" &&
                     (fiefOutcome.StartsWith("refused:",StringComparison.Ordinal) ||
                      fiefOutcome.StartsWith("failed:",StringComparison.Ordinal)))
@@ -1398,6 +1440,7 @@ namespace CalradiaUnified
                     "|fiefs=" + (observedClan.Settlements == null ?
                         0 : observedClan.Settlements.Count) +
                     "|fief_request=" + fiefOutcome +
+                    "|family_home=" + familyHome +
                     "|spouse_present=" + (hero.Spouse != null) +
                     "|requested_children=" + profile.ChildCount +
                     "|children=" + (hero.Children == null ?

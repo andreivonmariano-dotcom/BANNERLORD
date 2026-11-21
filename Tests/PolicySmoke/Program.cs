@@ -1423,6 +1423,38 @@ internal static class Program
             NativeCreatorParityPolicy.CanAddFaceWorkshop(true, true,
                 false, true, NativeCreatorParityPolicy.RequiredNativeStages));
 
+        Check("phase-9 grants accept a verified native spouse household",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "spouse=verified_hero|children=2|siblings=1",
+                true,false,"independent")=="");
+        Check("resource-only starts do not require fabricated family",
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,false,"independent")=="");
+        Check("partial native family never unlocks starting fief or gold",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "partial:InvalidOperationException:children=1/2",
+                true,false,"independent")=="family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "refused:native_marriage",true,false,"independent")==
+                    "family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "failed:family_reference_mismatch",true,false,"independent")==
+                    "family_creation_incomplete" &&
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "not_enabled",true,false,"independent")==
+                    "family_creation_incomplete");
+        Check("changed noble birth rank blocks late custom grants",
+            SandboxStartContract.PostFamilyGrantGate(true,
+                "spouse=none|children=0|siblings=2",
+                false,true,"bound:father_x")==
+                    "noble_birth_rank_changed_after_house");
+        Check("missing native noble family stops fief and retinue",
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,true,"refused:no_valid_native_father")==
+                    "native_noble_lineage_not_bound" &&
+            SandboxStartContract.PostFamilyGrantGate(false,
+                "not_enabled",true,true,"bound:lord_x")=="");
+
         Check("start contract accepts genuine Vlandian Lord with fief and spouse",
             SandboxStartContract.Validate("vassal","vassal","vlandia",
                 "vlandia",false,1,true,true,0,0).Length == 0);
@@ -1517,8 +1549,26 @@ internal static class Program
         Check("family home defaults to a safe owned fief",
             new SandboxOriginProfile().FamilyHomeMode=="OwnedFief");
         Check("family home refuses unknown mode",
-            SandboxFamilyHomePolicy.ValidateRequest("None","",true) ==
+            SandboxFamilyHomePolicy.ValidateRequest("UnknownMode","",true) ==
                 "family_home_mode_invalid");
+        Check("no fixed home is a supported explicit option",
+            SandboxFamilyHomePolicy.ValidateRequest("None","",true) == "" &&
+            SandboxFamilyHomePolicy.ValidateRequest("None","",false) == "" &&
+            SandboxOriginProfile.Parse("SpouseEnabled=true\n"+
+                "FamilyHomeMode=None").FamilyHomeMode=="None");
+        Check("requested family home requires confirmed native placement",
+            SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                "OwnedFief",true,"placed:castle_vlandia_1:children=2")=="" &&
+            SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                "OwnedFief",true,"partial:castle_vlandia_1:children=1")==
+                    "requested_family_home_unfulfilled" &&
+            SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                "SpecificOwned",true,"skipped:no_safe_owned_town_or_castle")==
+                    "requested_family_home_unfulfilled" &&
+            SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                "None",true,"not_requested:no_fixed_home")=="" &&
+            SandboxFamilyHomePolicy.ValidateObservedPlacement(
+                "OwnedFief",false,"skipped:no_registered_player_family")=="");
         Check("family home exact settlement requires ID",
             SandboxFamilyHomePolicy.ValidateRequest("SpecificOwned","",true) ==
                 "family_home_id_required");
@@ -1561,6 +1611,32 @@ internal static class Program
         Check("new campaign resets family home choice",
             familyHomeProfile.FamilyHomeMode=="OwnedFief" &&
             familyHomeProfile.FamilyHomeId=="");
+        var landlessHouse=new SandboxOriginProfile{
+            Role="HouseholdKnight",StartingKingdomId="vlandia",
+            SpouseEnabled=true,FamilyHomeMode="None"
+        };
+        Check("landless spouse can start without false owned home",
+            landlessHouse.IsValid(30,out var landlessHomeError) &&
+            SandboxOriginProfile.Parse(landlessHouse.Serialize())
+                .FamilyHomeMode=="None" &&
+            SandboxFamilyHomePolicy.ValidateRoleRequest(
+                "HouseholdKnight","None",true)=="");
+        landlessHouse.FamilyHomeMode="OwnedFief";
+        Check("landless spouse cannot promise a native owned fief",
+            !landlessHouse.IsValid(30,out var impossibleHomeError) &&
+            impossibleHomeError=="landless_cannot_start_with_owned_home" &&
+            SandboxFamilyHomePolicy.ValidateRoleRequest(
+                "NobleCadet","SpecificOwned",true)==
+                    "landless_cannot_start_with_owned_home" &&
+            SandboxFamilyHomePolicy.ValidateRoleRequest(
+                "Recruit","OwnedFief",true)==
+                    "landless_cannot_start_with_owned_home");
+        var commonerHouse=new SandboxOriginProfile{Role="Trader"};
+        SandboxAutoHousePlan.Prepare(commonerHouse,"vlandia",30,false,"Trader");
+        Check("non-landed automatic House plan retains no fixed home",
+            commonerHouse.FamilyHomeMode=="None" &&
+            SandboxOriginProfile.Parse(commonerHouse.Serialize())
+                .FamilyHomeMode=="None");
         Check("native fresh NotSpawned hero is refused",
             SandboxGeneratedMarriagePolicy.Check(
                 true,false,true,false,true,true,true) ==

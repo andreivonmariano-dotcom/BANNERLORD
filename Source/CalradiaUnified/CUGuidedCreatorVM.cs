@@ -274,7 +274,7 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeMode",
                     "Household residence",
-                    "Choose a valid clan-owned town or castle. A child is never placed in a party.",
+                    "None means no owned home is promised. A permanent residence requires a clan-owned safe town or castle.",
                     choices:SandboxFamilyHomePolicy.Modes,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeId",
                     "Exact family residence",
@@ -692,6 +692,14 @@ namespace CalradiaUnified
             }
             error=SandboxFamilyHomePolicy.ValidateRequest(
                 candidate.FamilyHomeMode,candidate.FamilyHomeId,
+                candidate.SpouseEnabled);
+            if(error.Length!=0)
+            {
+                Report("Family residence: "+error);
+                return;
+            }
+            error=SandboxFamilyHomePolicy.ValidateRoleRequest(
+                candidate.Role,candidate.FamilyHomeMode,
                 candidate.SpouseEnabled);
             if(error.Length!=0)
             {

@@ -11,6 +11,31 @@ namespace CalradiaUnified
     /// </summary>
     public static class SandboxStartContract
     {
+        /// <summary>
+        /// The irreversible native phase-8 start cannot be undone here.
+        /// Refuse all ADDITIONAL CU grants if family or lineage creation
+        /// did not produce its verified game-backed result.
+        /// </summary>
+        public static string PostFamilyGrantGate(
+            bool familyRequested,string familyResult,
+            bool exactBirthRankValid,bool nobleLineageRequested,
+            string nativeLineageResult)
+        {
+            if(familyRequested &&
+                (familyResult==null ||
+                 !familyResult.StartsWith("spouse=",
+                     StringComparison.Ordinal)))
+                return "family_creation_incomplete";
+            if(!exactBirthRankValid)
+                return "noble_birth_rank_changed_after_house";
+            if(nobleLineageRequested &&
+                (nativeLineageResult==null ||
+                 !nativeLineageResult.StartsWith("bound:",
+                     StringComparison.Ordinal)))
+                return "native_noble_lineage_not_bound";
+            return "";
+        }
+
         public static string[] Validate(
             string desiredNativeStartType,
             string actualNativeStartType,
