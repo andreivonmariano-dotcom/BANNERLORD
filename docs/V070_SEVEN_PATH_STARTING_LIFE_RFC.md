@@ -71,6 +71,9 @@ These are starting **life paths**, not seven native engine StartType IDs. The cu
 - The player must hold **verified native ruling-clan status** over a valid kingdom with the appropriate royal estate and political relations. The King option cannot be satisfied by setting a title string.
 - Spouse, children and siblings optional, with succession custom controlling heir ranking. An older brother normally makes the founding-king claim contested, not a silent automatic overthrow. Default founding monarchy restricts older male siblings, with a future advanced Disputed Claim option only after tested succession.
 - Royal household officers, guards, council and income must match actual native authority. A regent may act for an underage heir only through a tested regency system.
+- The guided King uses exact native `king` Advanced Start, selected kingdom, real `Kingdom.RulingClan == Clan.PlayerClan`, player-led clan and party, non-mercenary status, and at least one genuinely owned native fief. No invented crown, kingdom, extra castle, stipend, treasury or army.
+- Its two culturally trained native officers are Marshal and Chamberlain. Both must be real clan and party Heroes. Older King profiles retain their historical retinue configuration.
+- `KingSuccessionRule` ranks verified biological children by `EldestChild` or `MalePreference` household priority. A childless king has no designated heir. These saved, observed preferences never decide native monarchy succession, change settlement ownership or create an untested regency.
 - Do not silently kill, reparent or replace an established native sovereign to install the player. If the native starting provider cannot establish the requested ruler status, block the start prior to irreversible finalization.
 
 ## Family eligibility and inheritance contract
