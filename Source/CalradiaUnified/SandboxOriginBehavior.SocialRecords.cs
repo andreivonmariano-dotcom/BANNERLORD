@@ -51,6 +51,10 @@ namespace CalradiaUnified
                 x.ResolvedDay>=0)
                 .OrderByDescending(x=>x.ResolvedDay)
                 .Take(3).ToArray();
+            result+="\nNative vassalage witnessed: "+
+                (militaryWitness.VassalDay>=0?"yes":"no")+
+                " | Army command: "+
+                (militaryWitness.ArmyCommandDay>=0?"yes":"no");
             result+="\nRecent personal matters:";
             if(deeds.Length==0)
                 result+=" none verified";
