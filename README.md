@@ -1,3 +1,19 @@
+# Calradia Unified: latest verified installer candidate (v0.69f)
+
+**Current compiled development build:** **v0.69f** ([Windows run 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228), 907 C# policy checks passed, 0 compiler warnings/errors). [Download the exact compiled but game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491). The game module's `SubModule.xml` still carries the **historical v0.38.0 manifest**. The installer now displays the development build label independently, so the manifest's old version no longer hides which compiled candidate was selected.
+
+**PowerShell 5.1, list the latest pinned build:**
+
+```powershell
+$Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/42238c276cea8c9e6519ea83c2f520663dcaf18f/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
+& $Installer -ShowLatest
+```
+
+Download that run's ZIP from the linked artifact page. The installer accepts `-LatestVerified -GameRoot "YOUR_BANNERLORD_FOLDER" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting` and checks SHA-256 **`3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684`** before replacing the module. [Exact install commands and audit instructions](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). The candidate has **not** passed live Bannerlord visual, gameplay or native save/reload acceptance. Do not treat it as a game-tested release.
+
+---
+
 # Calradia Unified v0.47 development: native artwork and original creator screens
 
 **Native-first:** Original culture, appearance/3D, life story, banner, clan, review and difficulty screens retain Bannerlord's graphics and callbacks. The extra CU chapter rail, replacement culture chooser and native 3D dock are suppressed on accepted Sandbox starts.
