@@ -1504,6 +1504,59 @@ namespace CalradiaUnified
                     return;
                 }
 
+                // A guided Lord receives two named, culturally-equipped
+                // genuine Hero companions, never a fictional court list.
+                // Both must exist in the actual native clan and main party.
+                if(profile.LordGuidedStart)
+                {
+                    var lordOfficers=Clan.PlayerClan.Companions.ToArray();
+                    bool nativeHeroes=lordOfficers.All(o=>
+                        o!=null && o.IsActive && o.IsAlive &&
+                        o.Occupation==Occupation.Lord &&
+                        o.CharacterObject!=null &&
+                        o.Clan==Clan.PlayerClan &&
+                        o.CompanionOf==Clan.PlayerClan);
+                    bool cultural=lordOfficers.All(o=>
+                        o!=null && o.Culture==hero.Culture);
+                    bool inParty=MobileParty.MainParty!=null &&
+                        lordOfficers.All(o=>o!=null &&
+                            o.CharacterObject!=null &&
+                            MobileParty.MainParty.MemberRoster
+                                .GetTroopCount(o.CharacterObject)==1);
+                    bool offices=lordOfficers.Length==2 &&
+                        lordOfficers.Count(o=>o!=null &&
+                            o.Name.ToString().EndsWith(
+                                "(Master of Arms)",
+                                StringComparison.Ordinal))==1 &&
+                        lordOfficers.Count(o=>o!=null &&
+                            o.Name.ToString().EndsWith(
+                                "(Knight)",StringComparison.Ordinal))==1;
+                    string lordRetinue=SandboxLordStartPolicy
+                        .ValidateOfficers(retinue,lordOfficers.Length,
+                            !offices,cultural,nativeHeroes,
+                            inParty,offices);
+                    DiagnosticJournal.Event(
+                        "cu_lord_native_household_officers",
+                        "result="+(lordRetinue.Length==0?"PASS":"FAIL")+
+                        "|reason="+lordRetinue+
+                        "|native_receipt="+retinue+
+                        "|count="+lordOfficers.Length+
+                        "|same_culture="+cultural+
+                        "|real_hero_companions="+nativeHeroes+
+                        "|native_party_members="+inParty+
+                        "|master_of_arms_and_knight="+offices);
+                    if(lordRetinue.Length>0)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL|reason=lord_officers:"+
+                            lordRetinue+
+                            "|no_extra_grants_applied=true");
+                        Notify("Starting Lord officers could not be "+
+                            "verified: "+lordRetinue);
+                        return;
+                    }
+                }
+
                 // The new Outlaw starts with a single real band lieutenant.
                 // A title or creator choice does not establish a native
                 // companion, and an unrelated starting wanderer must not
@@ -1849,6 +1902,37 @@ namespace CalradiaUnified
                             MobileParty.MainParty.LeaderHero==hero)+
                         "|salary_and_term_owned_by_native=true"+
                         "|not_enlisted_in_foreign_party=true");
+                }
+                if(profile.LordGuidedStart)
+                {
+                    string lordFinal=SandboxLordStartPolicy
+                        .ValidateNativeHouse(actualStart,
+                            profile.StartingKingdomId,
+                            observedKingdom==null?"":observedKingdom.StringId,
+                            observedClan.Leader==hero,
+                            MobileParty.MainParty!=null &&
+                                MobileParty.MainParty.LeaderHero==hero,
+                            observedKingdom!=null &&
+                                observedKingdom.RulingClan==observedClan,
+                            observedClan.IsUnderMercenaryService,
+                            !observedClan.IsMinorFaction &&
+                                !observedClan.IsBanditFaction &&
+                                !observedClan.IsRebelClan && hero.IsLord,
+                            observedClan.IsEliminated,
+                            observedClan.Settlements==null?0:
+                                observedClan.Settlements.Count);
+                    if(lordFinal.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_lord_contract_unverified:"+lordFinal
+                        }).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_lord_native_final_verification",
+                        "result="+(lordFinal.Length==0?"PASS":"FAIL")+
+                        "|reason="+lordFinal+
+                        "|player_leads_clan="+(observedClan.Leader==hero)+
+                        "|actual_fiefs="+observedClan.Settlements.Count+
+                        "|native_vassal_not_king=true"+
+                        "|fief_transfer_not_requested=true");
                 }
                 if(profile.RetinueMode=="FamilyOnly" &&
                     (profile.WandererNoHouseStart && profile.Role=="Wanderer" ?
