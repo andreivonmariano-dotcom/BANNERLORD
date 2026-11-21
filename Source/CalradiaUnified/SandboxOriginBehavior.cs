@@ -29,6 +29,8 @@ namespace CalradiaUnified
         private bool characterCreationComplete;
         private SandboxFamilyGrowthState familyGrowth =
             new SandboxFamilyGrowthState();
+        private SandboxLifeHistoryState livingPersons=
+            new SandboxLifeHistoryState();
         private CharacterCreationManager observedNativeCreator;
         private SandboxOriginProfile editing;
         private string returnMenu = "town";
@@ -315,6 +317,9 @@ namespace CalradiaUnified
             string packed=familyGrowth.Serialize();
             store.SyncData("CU_v052_family_growth",ref packed);
             familyGrowth=SandboxFamilyGrowthState.Parse(packed);
+            string biographies=livingPersons.Serialize();
+            store.SyncData("CU_v064_living_persons",ref biographies);
+            livingPersons=SandboxLifeHistoryState.Parse(biographies);
         }
 
         private static void Notify(string text)
@@ -777,6 +782,26 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("sandbox_origin_invalid", reason);
                 return;
             }
+            // The native start has run at phase 8. Refuse a custom grant
+            // plan that cannot satisfy its promised noble family or patron.
+            // We cannot roll back the native king/vassal/mercenary start.
+            string lifeGate=SandboxStartingLifePreflight.Check(
+                profile,hero);
+            DiagnosticJournal.Event("cu_starting_life_preflight",
+                "result="+(lifeGate.Length==0?"PASS":"FAIL")+
+                "|reason="+lifeGate+
+                "|role="+profile.Role+
+                "|noble_birth="+profile.NobleBirthPosition);
+            if(lifeGate.Length>0)
+            {
+                DiagnosticJournal.Event("sandbox_start_contract",
+                    "result=FAIL|reason=preflight_"+lifeGate+
+                    "|no_custom_grants_applied=true");
+                Notify("The selected Starting Life could not be "+
+                    "established: "+lifeGate+
+                    ". Native campaign status was left unchanged.");
+                return;
+            }
             try
             {
                 // The player start was already applied by native ASO at
@@ -896,19 +921,15 @@ namespace CalradiaUnified
                             .OrderByDescending(h=>h.Age).ToArray();
                         dynasticFatherHeroId=father.StringId;
                         dynasticMotherHeroId=mother.StringId;
+                        // House has not yet created the older male
+                        // siblings chosen in Advanced. A partial count
+                        // here must not masquerade as final birth rank.
                         dynasticOlderSons=String.Join(",",
                             elderSons.Select(h=>h.StringId));
-                        if(elderSons.Length>0)
-                        {
-                            dynasticElderHeroId=elderSons[0].StringId;
-                            dynasticElderName=elderSons[0].Name.ToString();
-                        }
-                        Notify("Your native noble family: father "+
-                            father.Name.ToString()+", mother "+
-                            mother.Name.ToString()+", older brother"+
-                            (elderSons.Length==1?" ":"s ")+
-                            String.Join(", ",elderSons.Select(
-                                h=>h.Name.ToString()))+".");
+                        Notify("Noble parents linked: "+
+                            father.Name.ToString()+" and "+
+                            mother.Name.ToString()+
+                            ". Birth order is checked after House.");
                         DiagnosticJournal.Event("cu_dynastic_son_verified",
                             "father="+dynasticFatherHeroId+
                             "|mother="+dynasticMotherHeroId+
@@ -946,6 +967,42 @@ namespace CalradiaUnified
                 // character and start kingdom exist.
                 string family = SandboxFamilyCreator.TryCreate(profile,hero);
                 RegisterFamilyUpbringings(profile,hero,family);
+                bool finalSonRankValid=true;
+                if(SandboxNobleStartPolicy.IsSonOrigin(
+                    profile.NobleBirthPosition) && elder!=null)
+                {
+                    var senior=hero.Father.Children.Where(h=>h!=null &&
+                        h!=hero && h.IsAlive && !h.IsFemale &&
+                        h.Mother==hero.Mother && h.Age>hero.Age)
+                        .OrderByDescending(h=>h.Age)
+                        .ThenBy(h=>h.StringId,StringComparer.Ordinal)
+                        .ToArray();
+                    int required=SandboxNobleStartPolicy.RequiredOlderSons(
+                        profile.NobleBirthPosition);
+                    finalSonRankValid=
+                        SandboxHouseholdLineagePolicy.ExactFinalRank(
+                            required,senior.Length);
+                    dynasticOlderSons=String.Join(",",
+                        senior.Select(h=>h.StringId));
+                    if(senior.Length>0)
+                    {
+                        dynasticElderHeroId=senior[0].StringId;
+                        dynasticElderName=senior[0].Name.ToString();
+                    }
+                    DiagnosticJournal.Event("cu_dynastic_final_birth_rank",
+                        "expected="+required+
+                        "|actual="+senior.Length+
+                        "|result="+(finalSonRankValid?"PASS":"FAIL")+
+                        "|father="+dynasticFatherHeroId+
+                        "|mother="+dynasticMotherHeroId+
+                        "|older_ids="+dynasticOlderSons);
+                    if(finalSonRankValid)
+                        Notify("Noble birth verified: "+
+                            hero.Father.Name.ToString()+" is your father; "+
+                            String.Join(", ",senior.Select(
+                                h=>h.Name.ToString()))+
+                            " stand before you in the family.");
+                }
                 DiagnosticJournal.Event("cu_family_creation_status",
                     "requested=" + profile.RealFamilyEnabled + "|result=" + family);
                 // Native spouse and parent links must be verified first.
@@ -1023,6 +1080,16 @@ namespace CalradiaUnified
                     Notify("Starting household officers: "+retinue);
 
                 ApplyExistingItems(profile);
+                try
+                {
+                    SandboxLivingPersons.Capture(profile,hero,patron,
+                        livingPersons);
+                }
+                catch(Exception lifeError)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_living_persons_capture_failed",lifeError);
+                }
 
                 // Acceptance is based on observed Bannerlord state, not a
                 // serialized choice, click handler or successful compilation.
@@ -1078,6 +1145,39 @@ namespace CalradiaUnified
                     "|actual_children="+(hero.Children==null?
                         0:hero.Children.Count)+
                     "|child_identities_ages_match="+allChildAgesMatch);
+                // Verify exact generated siblings and native parentage,
+                // not just the requested children or selected birth label.
+                bool siblingsMatch=true;
+                if(profile.SiblingCount>0)
+                {
+                    var remaining=hero.Father==null ||
+                        hero.Father.Children==null?
+                        new Hero[0].ToList():
+                        hero.Father.Children.Where(h=>h!=null &&
+                            h!=hero && h.Mother==hero.Mother).ToList();
+                    foreach(var expectedSibling in profile.Siblings.Take(
+                        profile.SiblingCount))
+                    {
+                        var actual=remaining.FirstOrDefault(h=>
+                            h.Name.ToString()==expectedSibling.Name &&
+                            h.IsFemale==(expectedSibling.Gender=="Female") &&
+                            SandboxFamilyAgePolicy.MatchesRequestedAge(
+                                h.Age,expectedSibling.Age));
+                        if(actual==null)
+                        {
+                            siblingsMatch=false;
+                            break;
+                        }
+                        remaining.Remove(actual);
+                    }
+                    if(!siblingsMatch ||
+                        !family.Contains("|siblings="+profile.SiblingCount))
+                        failures=failures.Concat(new[]{
+                            "requested_native_siblings_missing"}).ToArray();
+                }
+                if(!finalSonRankValid)
+                    failures=failures.Concat(new[]{
+                        "noble_birth_rank_changed_after_house"}).ToArray();
                 // A resource-only PASS must not mask the user's selected
                 // lineage or lord-service start failing to materialize.
                 if(SandboxNobleStartPolicy.RequiresNobleElder(
