@@ -8,9 +8,9 @@ namespace CalradiaUnified
         public static string Goal(string culture,string station,
             string occupation,bool sibling,bool inPlayerParty)
         {
-            if(sibling && inPlayerParty)return "ProtectSharedHousehold";
-            if(sibling && station=="BirthClanMember")
-                return "PreserveFamilyPosition";
+            if(sibling)
+                return inPlayerParty?"ProtectSharedHousehold":
+                    "PreserveFamilyPosition";
             if(occupation=="Factor")return "BuildTradingContacts";
             if(occupation=="Navigator")return "MapSafePassages";
             if(occupation=="Squire")return "GainMilitaryTraining";
