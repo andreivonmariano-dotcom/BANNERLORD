@@ -26,7 +26,8 @@ assert house.index('"NobleBirthPosition"') < house.index('"SpouseEnabled"')
 assert '"NobleElderHeroId"' in house
 assert 'candidate.RetinueMode=candidate.WandererNoHouseStart?' in vm
 assert '"FamilyOnly":candidate.OutlawGuidedStart?' in vm
-assert '"RoleBased":candidate.MercenaryGuidedStart ||' in vm
+assert '"RoleBased":candidate.KnightGuidedStart ?' in vm
+assert '"RoleBased":candidate.MercenaryGuidedStart ?' in vm
 assert 'candidate.SoldierGuidedStart ?' in vm
 assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'SandboxAutoHousePlan.Prepare(profile' in vm
