@@ -40,3 +40,16 @@ The old code simply refused if the native start contained more than one companio
 - Start **Lord / Vlandia / Independent** at age 40, spouse age 38, children 9 and 7, siblings 38 and 44, Retinue RoleBased. Inspect actual player Clan and Family screens. The two newly synthesized parent Heroes must not be active court members or party officers. They remain genealogical references.
 - Verify **no native wanderers remain in the player's companion roster**, and exactly the intended same-culture **Master of Arms and Knight** exist, with their native Hero IDs, equipment and trained skills. Require `cu_cultural_retinue_replacement` with the true native count dismissed, and `sandbox_start_contract|result=PASS`.
 - Save, quit, reload and verify spouse, both children, siblings, court officers and landed status. The saved family should not duplicate, and no new grants should run on load. Check the true game interface rather than trusting a log line.
+
+## Compiled candidate and audit result
+
+[Windows CI run 44870808703](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44870808703) **PASSED** against pinned Bannerlord v1.5.7 references. Source and simulator results:
+
+- New v0.69i two-session source regression **PASS**. Original noble-birth safeguard and guided creator regressions **PASS**.
+- **949** C# gameplay-policy checks **PASS**.
+- 96×730-day campaign simulator **PASS** with **1,441,129 checks**. The 210,240 modeled audit days **PASS**, with **1,159,206 assertions**. These are deterministic policy/model results, not a Bannerlord graphical campaign.
+- Actual module compilation against reference assemblies: **0 warnings, 0 errors**. Package verification and synthetic installer tests **PASS**.
+
+**Exact candidate:** [CalradiaUnified-v0.38.0-compiled-untested, artifact 14693354411](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44870808703/artifacts/14693354411). Historical module manifest remains `v0.38.0`; the development name is `v0.69i`. DLL size **597,504 bytes**, DLL SHA-256 `0d6017064c10a86bb9e893afcc753100f32ca0b099657e5195b8cb953111d317`. Inner module runtime ZIP SHA-256 `aa4f90967661cb92602161bd9c76752142a49a54c6003682166d6a6402c9234f`. No changes were made to the older pinned `-LatestVerified` installer reference. Use the exact downloaded artifact with explicit expected DLL hash and keep the prior module backed up.
+
+**Acceptance status: not game-tested.** Prior sessions used DLL SHA-256 `58203d10407a96651e022749911228b1d3861d23e2411e1d255a373d433b246c`. A new native playthrough and save/quit/reload are required to verify that an unavailable noble choice no longer causes House loops, that independent ancestral Heroes remain inactive and do not appear as living court officers, and that both original wanderers are truly dismissed and replaced by a Master of Arms and Knight. An eligible existing elder must still be found for a true YoungerBrotherOfLord start. Draft PR #93 stays unmerged.
