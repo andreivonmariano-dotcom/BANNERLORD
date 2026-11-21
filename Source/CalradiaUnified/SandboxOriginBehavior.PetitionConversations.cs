@@ -51,6 +51,7 @@ namespace CalradiaUnified
             if(actor==null || kind.Length==0)return;
             if(agencyDecisions.Propose(actor.StringId,kind))
             {
+                RememberPetitionStory(actor,kind);
                 livingPersons.Remember("IndependentCharacterRequest",
                     actor.StringId,Hero.MainHero.StringId,
                     "kind="+kind+
