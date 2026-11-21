@@ -90,8 +90,6 @@ namespace CalradiaUnified
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKingSuccessionDaily);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
-                this, ObserveKingsguardDaily);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -384,14 +382,10 @@ namespace CalradiaUnified
             string royal=kingSuccession.Serialize();
             store.SyncData("CU_v070l_native_royal_household",ref royal);
             kingSuccession=SandboxKingSuccessionState.Parse(royal);
-            string guard=kingsguard.Serialize();
-            store.SyncData("CU_v070n_kingsguard_actual_native_troops",
-                ref guard);
-            kingsguard=SandboxKingsguardState.Parse(guard);
-            store.SyncData("CU_v070n_royal_council_day",
-                ref lastNativeRoyalCouncilDay);
-            store.SyncData("CU_v070n_royal_council_meetings",
-                ref nativeRoyalCouncilMeetings);
+            string council=royalCouncil.Serialize();
+            store.SyncData("CU_v070n_single_hero_royal_council",
+                ref council);
+            royalCouncil=SandboxRoyalCouncilState.Parse(council);
             string economy=roleEconomy.Serialize();
             store.SyncData("CU_v069d_role_economy",ref economy);
             roleEconomy=SandboxRoleEconomyState.Parse(economy);
@@ -2142,7 +2136,7 @@ namespace CalradiaUnified
                         if(profile.KingGuidedStart)
                         {
                             string council=BeginNativeRoyalCouncil(hero);
-                            if(council!="native_kingsguard_commissioned")
+                            if(council!="native_royal_hero_council_commissioned")
                             {
                                 DiagnosticJournal.Event(
                                     "sandbox_start_contract",
