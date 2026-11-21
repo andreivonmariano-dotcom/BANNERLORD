@@ -76,7 +76,8 @@ assert 'ChangeGovernorAction.Apply(seat.Town,minister);' in nativeMinistry
 assert 'seat.Town.Governor==minister' in nativeMinistry
 assert 'minister.GovernorOf==seat.Town' in nativeMinistry
 assert 's.OwnerClan==clan' in nativeMinistry
-assert 's.Town.Governor==null' in nativeMinistry
+assert 'seat.Town.Governor==null' in nativeMinistry
+assert 'VerifiedRoyalCourtSeat()' in nativeMinistry
 assert 'if(ministryFief==null)' in preflight
 assert 'royal_minister' in behavior
 assert 'kingsguard' in behavior
