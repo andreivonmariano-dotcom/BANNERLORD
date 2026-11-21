@@ -65,8 +65,9 @@ assert "if(viewModel!=null) viewModel.ExecuteBack();" in src, "Escape must navig
 assert "SandboxNativeStartOptions.TryPrepare" in src
 aso=(ROOT/"Source/CalradiaUnified/SandboxNativeStartOptions.cs").read_text()
 assert "AdvancedStartOptionsManager.CreateCampaignStartOptions()" in aso
-assert '"Lord": return "vassal"' not in aso or 'case "Lord": return "vassal"' in aso
-assert 'case "Lord": return "vassal"' in aso or 'case "Lord": return "vassal";' in aso or ('case "Lord": return "vassal"' in aso) or ('case "Lord":' in aso and 'case "Knight":' in aso)
+role_matrix=(ROOT/"Source/CalradiaUnified/SandboxRoleConsistencyPolicy.cs").read_text()
+assert "SandboxRoleConsistencyPolicy.NativeType(role)" in aso
+assert 'case "Lord":return "vassal";' in role_matrix and 'case "Knight":' in role_matrix
 assert "new CUSandboxNoIntroGameManager(" in src
 assert "public override void OnLoadFinished()" in (
     ROOT/"Source/CalradiaUnified/CUSandboxNoIntroGameManager.cs").read_text(encoding="utf-8")
