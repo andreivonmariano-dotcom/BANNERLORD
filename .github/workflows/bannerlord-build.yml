@@ -40,6 +40,9 @@ jobs:
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress new Outlaw paid native band, real fourteen-day wages and food
+        shell: pwsh
+        run: python scripts/test_v070c_outlaw_paid_band_and_payroll.py
       - name: Regress new Wanderer no-House and one loyal wage-free companion
         shell: pwsh
         run: python scripts/test_v070b_wanderer_single_companion_no_house.py
