@@ -48,3 +48,13 @@ Keep PR #93 draft, the default installer unchanged and Gate C–E blocked until 
 ## v0.70x acceptance extension
 
 Knight, Lord and King now require `cu_native_household_dossier_attached` scoped to their exact campaign role. The on-screen release gate separately requires `ui_gauntlet_dossier_after_reload=true` and `ui_gauntlet_dossier_back_escape=true`, alongside the existing native UI screenshot, clipping and identity proof. Synthetic tests reject the false movie flag and a dossier event from another noble role.
+
+## v0.70y | Explicit user decision: BUTR becomes required
+
+The user explicitly revoked the previous optional-but-supported BUTR plan. The draft module now **requires** `Bannerlord.Harmony`, `Bannerlord.ButterLib`, `Bannerlord.UIExtenderEx`, and `Bannerlord.MBOptionScreen` in `SubModule.xml`. The C# build compiles against UIExtenderEx **3.0.3** with its analyzer, and registers three native patches/mixins on `Clan`, `Party`, and `Kingdom` movies at module load. These are real native ViewModel targets, not settlement menu surrogates.
+
+The native Clan/Party/Kingdom extension buttons show current game-owned household, native companion count and political state and open the existing full read-only Gauntlet dossier. The exact movie names, selector positions, collisions with other mod patches, actual focus and native close behavior still need a game test. UIExtenderEx patches do not introduce independent political authority or fictional troops.
+
+The artifact installer requires all four BUTR modules both in the candidate manifest and in the game's `Modules` directory before it changes an installed mod. A missing dependency is an error rather than a fallback. No BUTR runtime binaries are copied into the project or artifact. Testers must install compatible releases from their own official distribution and load them before Calradia Unified. The old `-LatestVerified` pin remains historical until a live release is accepted, so the installer refuses a historical artifact lacking the new required module declarations.
+
+**Source gate:** `test_v070y_butr_required_native_integration.py` verifies the four mandatory IDs, real extension registration, all three native movie mixins, build package, no fake native power, and install-time fail-closed checks. Gate B compilation is not native screen-rendering proof.

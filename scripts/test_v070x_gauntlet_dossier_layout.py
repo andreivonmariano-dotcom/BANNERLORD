@@ -107,16 +107,18 @@ assert 'ScreenManager.TrySetFocus(layer)' in gallery_source
 assert 'Input.IsKeyReleased(InputKey.Escape)' in gallery_source
 assert 'Input.IsKeyReleased(InputKey.Escape)' in settings
 assert 'CloseSafely()' in settings
-# New dossiers and gallery consume our own prefabs. Do not quietly
-# insert an untested BUTR dependency into the existing release.
+# The required BUTR modules are launcher-enforced. UIExtenderEx
+# patches native screens and must never ship copied third-party DLLs.
 module=read(ROOT/"Modules"/"CalradiaUnified"/"SubModule.xml")
 project=read(SRC/"CalradiaUnified.csproj")
-assert "Bannerlord.UIExtenderEx" not in module+project
-assert "Bannerlord.ButterLib" not in module+project
-assert "Bannerlord.MCM" not in module+project
+for dep in ("Bannerlord.Harmony","Bannerlord.ButterLib",
+            "Bannerlord.UIExtenderEx","Bannerlord.MBOptionScreen"):
+    assert '<DependedModule Id="'+dep+'"' in module,dep
+assert 'Include="Bannerlord.UIExtenderEx" Version="3.0.3"' in project
+assert 'ExcludeAssets="runtime"' in project
 for path in UI.glob("*.xml"):
     ET.parse(path)
 print("PASS v0.70x STATIC: structured read-only Gauntlet dossier, "+
       "720p-safe family gallery bounds and eight-slot roster, "+
-      "bound ViewModel fields, Escape/Back, fallback and no "+
-      "untested BUTR dependency. Live visual acceptance is separate.")
+      "bound ViewModel fields, Escape/Back, fallback and required BUTR "+
+      "framework stack. Live visual acceptance is separate.")

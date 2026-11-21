@@ -103,6 +103,53 @@ try {
         [string]$manifest.Module.SubModules.SubModule.DLLName.value -ne "CalradiaUnified.dll") {
         throw "The module manifest ID, version or DLL name did not match."
     }
+    # The four BUTR modules are mandatory for this UI-integrated line.
+    # Refuse unmodernized artifacts and missing runtime dependencies
+    # BEFORE moving or backing up an installed Calradia Unified module.
+    $requiredButr = @(
+        "Bannerlord.Harmony",
+        "Bannerlord.ButterLib",
+        "Bannerlord.UIExtenderEx",
+        "Bannerlord.MBOptionScreen"
+    )
+    $declared = @($manifest.Module.DependedModules.DependedModule |
+        ForEach-Object { [string]$_.Id.value })
+    foreach ($dependency in $requiredButr) {
+        if ($declared -notcontains $dependency) {
+            throw ("Artifact is not a required-BUTR build: missing " +
+                $dependency + " in its SubModule.xml.")
+        }
+    }
+    $installedDependencies = @{}
+    Get-ChildItem -LiteralPath $mods -Directory | ForEach-Object {
+        $folder = $_.FullName
+        $files = @(
+            (Join-Path $folder "SubModule.xml"),
+            (Join-Path $folder "_Module\SubModule.xml")
+        )
+        foreach ($file in $files) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+            try {
+                [xml]$modInfo = Get-Content -LiteralPath $file -Raw
+                $id = [string]$modInfo.Module.Id.value
+                if (-not [string]::IsNullOrWhiteSpace($id)) {
+                    $installedDependencies[$id] = $folder
+                }
+            }
+            catch {
+                throw ("Invalid Bannerlord dependency manifest: " + $file)
+            }
+        }
+    }
+    foreach ($dependency in $requiredButr) {
+        if (-not $installedDependencies.ContainsKey($dependency)) {
+            throw ("Required BUTR module not installed: " + $dependency +
+                ". Install and activate Harmony, ButterLib, UIExtenderEx " +
+                "and Mod Configuration Menu before Calradia Unified.")
+        }
+    }
+    Write-Output ("BUTR PRECHECK PASS: " +
+        ($requiredButr -join ", "))
     $dllRelative = "bin\Win64_Shipping_Client\CalradiaUnified.dll"
     $sourceDll = Join-Path $source $dllRelative
     if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf)) {
