@@ -44,7 +44,7 @@ assert 'if(!nearNativePatronParty)' in escort
 assert 'CompletedEscorts++' in escort
 assert 'Serialize()' in escort and 'Parse(string text)' in escort
 assert 'private void ObserveKnightEscortDaily()' in dialogue
-assert 'lordParty.Position2D.Distance(playerParty.Position2D)' in dialogue
+assert 'lordParty.GetPosition2D.Distance(playerParty.GetPosition2D)' in dialogue
 assert 'lordParty.LeaderHero==patron' in dialogue
 assert 'native_hero_party=' in dialogue
 assert '"cu_knight_native_escort_completed"' in dialogue
