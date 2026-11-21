@@ -71,7 +71,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="213"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="15" Text="@Presence" Color="#D5BC91FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="337"
+                        WidthSizePolicy="Fixed" SuggestedWidth="333"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                   </Children>
                 </ListPanel>
