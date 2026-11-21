@@ -177,7 +177,8 @@ namespace CalradiaUnified
                 args=>
                 {
                     var patron=KnightOathPatron();
-                    Notify("Oath: "+knightOath.Status+
+                    ShowNativeDetail("Knight | Sworn service",
+                        "Oath: "+knightOath.Status+
                         ". Patron: "+(patron==null?
                             knightOath.PatronId:patron.Name.ToString())+
                         " of "+(patron==null || patron.Clan==null?

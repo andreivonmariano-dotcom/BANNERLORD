@@ -132,7 +132,8 @@ namespace CalradiaUnified
                 args=>
                 {
                     ObserveLordInheritanceDaily();
-                    Notify("Lord household custom: "+
+                    ShowNativeDetail("Lord household | Inheritance",
+                        "Lord household custom: "+
                         lordInheritance.Rule+
                         ". First living verified child: "+
                         NativeHeroDisplayName(

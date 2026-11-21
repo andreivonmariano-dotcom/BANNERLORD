@@ -177,7 +177,8 @@ namespace CalradiaUnified
                 args=>
                 {
                     var seat=RecordedRoyalSeat();
-                    Notify("Verified royal court seat: "+seat.Name+
+                    ShowNativeDetail("Royal council | Current court",
+                        "Verified royal court seat: "+seat.Name+
                         ". Native Minister governor: "+
                         NativeHeroDisplayName(royalCouncil.MinisterId)+
                         ". Marshal: "+

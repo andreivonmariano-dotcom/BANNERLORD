@@ -104,7 +104,8 @@ namespace CalradiaUnified
                 args=>
                 {
                     ObserveKingSuccessionDaily();
-                    Notify("Royal household rule: "+kingSuccession.Rule+
+                    ShowNativeDetail("Royal household | Succession",
+                        "Royal household rule: "+kingSuccession.Rule+
                         ". Preferred verified native child: "+
                         NativeHeroDisplayName(
                             kingSuccession.PreferredHeirId)+

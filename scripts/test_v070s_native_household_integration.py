@@ -25,6 +25,10 @@ assert 'native_read_only=true' in view
 assert 'ShowNativeDetail("Starting household | "+type,' in view
 assert 'MBObjectManager.Instance' in view
 assert 'Hero.MainHero' in view and 'Clan.PlayerClan' in view
+assert 'ShowNativeDetail("Knight | Sworn service",' in knight
+assert 'ShowNativeDetail("Lord household | Inheritance",' in lord
+assert 'ShowNativeDetail("Royal household | Succession",' in king
+assert 'ShowNativeDetail("Royal council | Current court",' in council
 assert 'NativeHeroDisplayName(' in lord
 assert 'NativeHeroDisplayNames(' in lord
 assert 'NativeHeroDisplayName(' in king
