@@ -50,12 +50,38 @@ namespace CalradiaUnified
         {
             var e=Get(id);
             if(e==null)return "unknown";
-            if(String.IsNullOrEmpty(observedHome))return "no_evidence";
+            if(String.IsNullOrEmpty(observedHome))
+            {
+                // An old verified home must not masquerade as the Hero's
+                // presently confirmed residence. Unknown is not a move.
+                if(e.HomeId.Length==0 && e.HomeEvidence=="Unverified")
+                    return "same";
+                e.HomeId="";
+                e.HomeEvidence="Unverified";
+                return "residence_no_longer_verified";
+            }
             if(e.HomeId==observedHome && e.HomeEvidence==evidence)
                 return "same";
             e.HomeId=observedHome;
             e.HomeEvidence=evidence??"NativeObserved";
             return "native_home_changed";
+        }
+        public string ObserveNativeGoal(string id,string inferredGoal,
+            string nativeOccupation,string nativeClanId)
+        {
+            var e=Get(id);
+            if(e==null || String.IsNullOrWhiteSpace(inferredGoal))
+                return "no_evidence";
+            bool changed=e.Goal!=inferredGoal;
+            e.CurrentOccupation=nativeOccupation??"";
+            e.ClanId=nativeClanId??"";
+            if(!changed)return "same";
+            e.Goal=inferredGoal;
+            e.ConsecutiveDaysTogether=0;
+            e.AwardProposed=false;
+            // Persist the inferred goal, never invent a personal decision
+            // or spend a relation award without the actual game action.
+            return "goal_reassessed_from_native_context";
         }
         public int ObserveComradeship(string id,bool sameRealParty,
             bool adult,bool verifiedSharedParents,int nativeRelation)
