@@ -107,7 +107,7 @@ namespace CalradiaUnified
                     () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
                     "role=" + profile.Role + "|type=" +
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role) +
+                    SandboxNativeStartOptions.StartTypeForProfile(profile) +
                     "|kingdom=" + profile.StartingKingdomId +
                     "|scenario=" + profile.StartingScenario);
             }
@@ -448,8 +448,10 @@ namespace CalradiaUnified
             string key=field.Key;
             if (page=="Review") return false;
             if (key == "StartingKingdomId")
-                return SandboxNativeStartOptions.RequiresKingdom(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+                return profile.SoldierGuidedStart ||
+                    SandboxNativeStartOptions.RequiresKingdom(
+                        SandboxNativeStartOptions.StartTypeForProfile(
+                            profile));
             // Native compositing is now selected automatically for every
             // accepted CU Sandbox start. No experimental toggle is exposed
             // in the player-facing five-chapter form. The native fallback

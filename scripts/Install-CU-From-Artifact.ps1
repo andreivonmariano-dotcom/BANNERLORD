@@ -1,14 +1,64 @@
 # Install Calradia Unified from a direct mod ZIP or GitHub's ZIP-wrapped ZIP.
 # Does not run the game, change game settings, or touch saves.
+# -ShowLatest displays the latest pinned, CI-verified DEVELOPMENT candidate.
+# -LatestVerified checks the exact pinned DLL before any existing mod moves.
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory=$true)][string]$GameRoot,
-    [Parameter(Mandatory=$true)][string]$ArtifactZip,
+    [string]$GameRoot = "",
+    [string]$ArtifactZip = "",
     [string]$ExpectedVersion = "v0.38.0",
     [string]$ExpectedDllSha256 = "",
-    [switch]$ReplaceExisting
+    [switch]$ReplaceExisting,
+    [switch]$ShowLatest,
+    [switch]$LatestVerified
 )
 $ErrorActionPreference = "Stop"
+
+# This pinned candidate was verified by the Windows pipeline. It was NOT
+# play-tested in Bannerlord. Keep the historic module manifest version
+# separate from this source-development version for save compatibility.
+$latestLabel = "v0.69g"
+$latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
+$latestRun = "44867186334"
+$latestCommit = "8c2382461522907db63d5890e2204864a336e056"
+$latestManifest = "v0.38.0"
+$latestDllSha256 = "d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274"
+
+function Write-LatestBuild {
+    Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
+    Write-Output ("Development version: " + $latestLabel)
+    Write-Output ("Verification: " + $latestStatus)
+    Write-Output ("Windows CI run: " + $latestRun)
+    Write-Output ("Compiled source commit: " + $latestCommit)
+    Write-Output ("Download artifact page: " + $latestArtifactPage)
+    Write-Output ("Expected DLL SHA256: " + $latestDllSha256)
+    Write-Output ("Internal Bannerlord manifest version: " + $latestManifest + " (historical)")
+    Write-Output "Download the ZIP from the Actions artifact page, then run this installer:"
+    Write-Output '  .\Install-CU-From-Artifact.ps1 -GameRoot "C:\Path\To\Bannerlord" -ArtifactZip "C:\Path\To\Downloaded.zip" -LatestVerified -ReplaceExisting'
+    Write-Output "The latest candidate is not a released or game-tested build."
+}
+
+# Listing works even on a machine where Bannerlord is not installed.
+if ($ShowLatest -or ($PSBoundParameters.Count -eq 0)) {
+    Write-LatestBuild
+    return
+}
+if ($LatestVerified) {
+    if ($ExpectedVersion -ne $latestManifest -or
+        ($ExpectedDllSha256 -and
+         $ExpectedDllSha256.Trim().ToLowerInvariant() -ne $latestDllSha256)) {
+        throw "The selected version/hash conflicts with the latest pinned CI candidate."
+    }
+    $ExpectedVersion = $latestManifest
+    $ExpectedDllSha256 = $latestDllSha256
+    Write-Output ("Selected pinned development build " + $latestLabel +
+        " (CI " + $latestRun + "; game-untested).")
+}
+if ([string]::IsNullOrWhiteSpace($GameRoot) -or
+    [string]::IsNullOrWhiteSpace($ArtifactZip)) {
+    throw "Supply both -GameRoot and -ArtifactZip. Use -ShowLatest to view the pinned build and download URL."
+}
 $game = [IO.Path]::GetFullPath($GameRoot)
 $download = [IO.Path]::GetFullPath($ArtifactZip)
 $trustedHash = $ExpectedDllSha256.Trim().ToLowerInvariant()
@@ -53,6 +103,53 @@ try {
         [string]$manifest.Module.SubModules.SubModule.DLLName.value -ne "CalradiaUnified.dll") {
         throw "The module manifest ID, version or DLL name did not match."
     }
+    # The four BUTR modules are mandatory for this UI-integrated line.
+    # Refuse unmodernized artifacts and missing runtime dependencies
+    # BEFORE moving or backing up an installed Calradia Unified module.
+    $requiredButr = @(
+        "Bannerlord.Harmony",
+        "Bannerlord.ButterLib",
+        "Bannerlord.UIExtenderEx",
+        "Bannerlord.MBOptionScreen"
+    )
+    $declared = @($manifest.Module.DependedModules.DependedModule |
+        ForEach-Object { [string]$_.GetAttribute("Id") })
+    foreach ($dependency in $requiredButr) {
+        if ($declared -notcontains $dependency) {
+            throw ("Artifact is not a required-BUTR build: missing " +
+                $dependency + " in its SubModule.xml.")
+        }
+    }
+    $installedDependencies = @{}
+    Get-ChildItem -LiteralPath $mods -Directory | ForEach-Object {
+        $folder = $_.FullName
+        $files = @(
+            (Join-Path $folder "SubModule.xml"),
+            (Join-Path $folder "_Module\SubModule.xml")
+        )
+        foreach ($file in $files) {
+            if (-not (Test-Path -LiteralPath $file -PathType Leaf)) { continue }
+            try {
+                [xml]$modInfo = Get-Content -LiteralPath $file -Raw
+                $id = [string]$modInfo.Module.Id.value
+                if (-not [string]::IsNullOrWhiteSpace($id)) {
+                    $installedDependencies[$id] = $folder
+                }
+            }
+            catch {
+                throw ("Invalid Bannerlord dependency manifest: " + $file)
+            }
+        }
+    }
+    foreach ($dependency in $requiredButr) {
+        if (-not $installedDependencies.ContainsKey($dependency)) {
+            throw ("Required BUTR module not installed: " + $dependency +
+                ". Install and activate Harmony, ButterLib, UIExtenderEx " +
+                "and Mod Configuration Menu before Calradia Unified.")
+        }
+    }
+    Write-Output ("BUTR PRECHECK PASS: " +
+        ($requiredButr -join ", "))
     $dllRelative = "bin\Win64_Shipping_Client\CalradiaUnified.dll"
     $sourceDll = Join-Path $source $dllRelative
     if (-not (Test-Path -LiteralPath $sourceDll -PathType Leaf)) {
@@ -91,6 +188,11 @@ try {
         throw "Installed DLL does not match the selected CI SHA-256."
     }
     Write-Output ("INSTALL PASS: " + $destination)
+    if ($LatestVerified) {
+        Write-Output ("Installed selected development candidate: " + $latestLabel)
+        Write-Output ("Verified Windows CI run: " + $latestRun)
+        Write-Output "Game runtime acceptance: NOT TESTED"
+    }
     Write-Output ("Manifest version: " + $manifest.Module.Version.value)
     Write-Output ("Installed DLL SHA256: " + $actual)
     if ($trustedHash) {

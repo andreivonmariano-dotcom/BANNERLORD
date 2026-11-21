@@ -26,6 +26,7 @@ namespace CalradiaUnified
         private static bool bannerSeen, clanSeen, completed;
         private static bool closeRequested, backRequested;
         private static bool houseWasShown;
+        private static bool skipHouseForWanderer;
         private static bool returnToHousePending;
         private static int returnToReviewAttempts;
         private static string previousNativeStage="";
@@ -43,7 +44,21 @@ namespace CalradiaUnified
             {
                 Clear();
                 trackedManager=manager;
+                var chosen=SandboxOriginProfile.Load(
+                    SandboxOriginProfile.UserPath);
+                skipHouseForWanderer=chosen.Enabled &&
+                    chosen.Role=="Wanderer" &&
+                    chosen.WandererNoHouseStart;
+                if(skipHouseForWanderer)
+                    DiagnosticJournal.Event(
+                        "cu_wanderer_house_stage_skipped",
+                        "role=Wanderer|house_overlay_attached=false"+
+                        "|native_stats_retained=true"+
+                        "|companion_chosen_in_world=true");
             }
+            // Leave the native Review/Options and all custom stat pages
+            // entirely intact. House never attaches for new Wanderers.
+            if(skipHouseForWanderer)return;
             string stage=manager.CurrentStage==null ? "" :
                 manager.CurrentStage.GetType().Name;
 
@@ -351,6 +366,7 @@ namespace CalradiaUnified
             closeRequested=false;
             backRequested=false;
             houseWasShown=false;
+            skipHouseForWanderer=false;
             returnToHousePending=false;
             returnToReviewAttempts=0;
             previousNativeStage="";

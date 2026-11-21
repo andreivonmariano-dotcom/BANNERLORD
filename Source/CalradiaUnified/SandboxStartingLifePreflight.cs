@@ -1,5 +1,7 @@
+using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Extensions;
+using TaleWorlds.CampaignSystem.Party;
 
 namespace CalradiaUnified
 {
@@ -21,23 +23,194 @@ namespace CalradiaUnified
             if(campaign==null || campaign.AdvancedStartData==null ||
                 clan==null)return "native_start:missing_native_context";
             var kingdom=clan.Kingdom;
+            string actualType=campaign.AdvancedStartData.GetStartType();
+            string expectedType=SandboxNativeStartOptions
+                .StartTypeForProfile(p);
+            int fiefs=clan.Settlements==null?0:clan.Settlements.Count;
+            bool ruling=kingdom!=null && kingdom.RulingClan==clan;
+            bool nativeNobleHouse=SandboxNativeNobleHandoffPolicy
+                .HasVerifiedNativeNobleAuthority(actualType,
+                    kingdom!=null,clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    clan.IsBanditFaction,clan.IsRebelClan,fiefs);
+            // Collect requested versus native-observed values even if the
+            // gate fails. Older session reports omitted the native type,
+            // preventing diagnosis of default/changed-option differences.
+            DiagnosticJournal.Event("cu_native_start_preflight_snapshot",
+                "role="+p.Role+
+                "|expected_type="+(expectedType??"<null>")+
+                "|actual_type="+(String.IsNullOrEmpty(actualType)?
+                    "<empty>":actualType)+
+                "|native_type_matches="+
+                    SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                        expectedType,actualType,kingdom!=null,ruling,fiefs)+
+                "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                "|fiefs="+fiefs+
+                "|ruling="+ruling);
             var nativeErrors=SandboxStartContract.Validate(
-                SandboxNativeStartOptions.StartTypeForRole(p.Role),
-                campaign.AdvancedStartData.GetStartType(),
-                p.StartingKingdomId,
+                expectedType,
+                actualType,
+                (p.SoldierGuidedStart || p.KnightGuidedStart)?
+                    "":p.StartingKingdomId,
                 kingdom==null?"":kingdom.StringId,
-                kingdom!=null && kingdom.RulingClan==clan,
-                clan.Settlements==null?0:clan.Settlements.Count,
+                ruling,fiefs,
                 false,false,0,0);
             if(nativeErrors.Length>0)
                 return "native_start:"+nativeErrors[0];
-            string stationError=SandboxRoleConsistencyPolicy.CheckNativeStation(
-                p.Role,campaign.AdvancedStartData.GetStartType(),
-                kingdom!=null,kingdom!=null &&
-                kingdom.RulingClan==clan,
-                clan.Settlements==null?0:clan.Settlements.Count);
+            string stationError=p.KnightGuidedStart?
+                SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                    actualType,kingdom!=null,fiefs,
+                    clan.IsUnderMercenaryService,clan.Leader==player):
+                p.SoldierGuidedStart?
+                SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                    actualType,kingdom!=null,fiefs!=0,
+                    clan.IsUnderMercenaryService):
+                SandboxRoleConsistencyPolicy.CheckNativeStation(
+                    p.Role,campaign.AdvancedStartData.GetStartType(),
+                    kingdom!=null,kingdom!=null &&
+                    kingdom.RulingClan==clan,
+                    clan.Settlements==null?0:clan.Settlements.Count);
             if(stationError.Length>0)
                 return "native_station:"+stationError;
+            if(p.KingGuidedStart)
+            {
+                string crown=SandboxKingStartPolicy.ValidateNativeCrown(
+                    actualType,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    nativeNobleHouse,
+                    clan.IsEliminated,fiefs);
+                DiagnosticJournal.Event("cu_king_native_preflight",
+                    "result="+(crown.Length==0?"PASS":"FAIL")+
+                    "|reason="+crown+
+                    "|native_type="+actualType+
+                    "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|actual_native_ruling_clan="+ruling+
+                    "|actual_native_fiefs="+fiefs+
+                    "|native_noble_authority="+nativeNobleHouse+
+                    "|hero_is_lord_at_handoff="+player.IsLord+
+                    "|clan_minor_flag="+clan.IsMinorFaction+
+                    "|clan_bandit_flag="+clan.IsBanditFaction+
+                    "|clan_rebel_flag="+clan.IsRebelClan+
+                    "|clan_eliminated_flag="+clan.IsEliminated+
+                    "|no_fief_or_crown_mutation=true");
+                if(crown.Length>0)return "king:"+crown;
+                var ministryFief=SandboxKingNativeMinistry
+                    .VacantOwnedFief();
+                DiagnosticJournal.Event("cu_king_native_governor_preflight",
+                    "result="+(ministryFief==null?"FAIL":"PASS")+
+                    "|owned_native_vacant_fief="+
+                    (ministryFief==null?"none":ministryFief.StringId)+
+                    "|incumbent_not_replaced=true"+
+                    "|native_royal_minister_required=true");
+                if(ministryFief==null)
+                    return "king:native_royal_governor_seat_missing";
+            }
+            if(p.LordGuidedStart)
+            {
+                string lord=SandboxLordStartPolicy.ValidateNativeHouse(
+                    actualType,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player,
+                    ruling,clan.IsUnderMercenaryService,
+                    nativeNobleHouse,
+                    clan.IsEliminated,fiefs);
+                DiagnosticJournal.Event("cu_lord_native_preflight",
+                    "result="+(lord.Length==0?"PASS":"FAIL")+
+                    "|reason="+lord+
+                    "|native_type="+actualType+
+                    "|kingdom="+(kingdom==null?"none":kingdom.StringId)+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|native_vassal="+(!ruling &&
+                        !clan.IsUnderMercenaryService)+
+                    "|native_fiefs="+fiefs+
+                    "|native_noble_authority="+nativeNobleHouse+
+                    "|hero_is_lord_at_handoff="+player.IsLord+
+                    "|clan_minor_flag="+clan.IsMinorFaction+
+                    "|clan_bandit_flag="+clan.IsBanditFaction+
+                    "|clan_rebel_flag="+clan.IsRebelClan+
+                    "|clan_eliminated_flag="+clan.IsEliminated+
+                    "|no_fief_transfer=true");
+                if(lord.Length>0)return "lord:"+lord;
+            }
+            if(p.SoldierGuidedStart)
+            {
+                // SaS owns the real soldier role and the commander. A
+                // kingdom or clan affiliation does NOT prove enlistment.
+                var native=SandboxSaSBridge.Read();
+                string service=SandboxSoldierEnlistmentPolicy
+                    .ValidateEnlisted(native.Available,native.Enlisted,
+                        p.StartingKingdomId,p.ServicePatronHeroId,
+                        native.LordId,native.LordKingdomId,
+                        native.RankId,
+                        native.LordIsNativeLord &&
+                            native.NativeHostPartyLedByLord,
+                        clan.IsUnderMercenaryService,fiefs>0);
+                string rank=SandboxSoldierEnlistmentPolicy
+                    .ValidateRequestedEntryRank(
+                        p.SoldierEntryRank,native.RankId);
+                if(service.Length==0 && rank.Length>0)
+                    service=rank;
+                // RankId is the stable SaS public proof. Integer Rank
+                // indexing is not yet verified for installed v1.5.7,
+                // so never reject a genuine rank on a 0/1-base guess.
+                DiagnosticJournal.Event("cu_soldier_real_enlistment_preflight",
+                    "result="+(service.Length==0?"PASS":"FAIL")+
+                    "|reason="+service+
+                    "|requested_rank="+p.SoldierEntryRank+
+                    "|actual_rank="+native.RankId+
+                    "|lord_id="+native.LordId+
+                    "|lord_kingdom="+native.LordKingdomId+
+                    "|host_party_led_by_lord="+
+                        native.NativeHostPartyLedByLord+
+                    "|native_wage="+native.Wage+
+                    "|native_progression_owned_by_sas=true");
+                if(service.Length>0)return "soldier:"+service;
+            }
+            // The native mercenary START ID alone is insufficient:
+            // verify genuine mercenary-clan service, own commander,
+            // correct employer and no landed lord status.
+            if(p.MercenaryGuidedStart)
+            {
+                string contract=SandboxMercenaryStartPolicy.Validate(
+                    p.Role,p.StartingKingdomId,
+                    kingdom==null?"":kingdom.StringId,
+                    clan.IsUnderMercenaryService,
+                    clan.Leader==player,
+                    MobileParty.MainParty!=null &&
+                    MobileParty.MainParty.LeaderHero==player,
+                    ruling,fiefs);
+                DiagnosticJournal.Event("cu_mercenary_native_preflight",
+                    "result="+(contract.Length==0?"PASS":"FAIL")+
+                    "|reason="+contract+
+                    "|native_type="+actualType+
+                    "|contract_kingdom="+
+                        (kingdom==null?"none":kingdom.StringId)+
+                    "|mercenary_service="+
+                        clan.IsUnderMercenaryService+
+                    "|player_leads_clan="+(clan.Leader==player)+
+                    "|player_leads_party="+(
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==player)+
+                    "|fiefs="+fiefs+
+                    "|native_salary_not_invented=true");
+                if(contract.Length>0)
+                    return "mercenary:"+contract;
+            }
             if(SandboxCustomLifeRolePolicy.IsLandless(p.Role) &&
                 (Clan.PlayerClan==null ||
                  !SandboxCustomLifeRolePolicy.NativeLandlessContract(
@@ -59,6 +232,20 @@ namespace CalradiaUnified
             if(SandboxServicePolicy.NeedsPatron(p.Role) &&
                 !SandboxServicePatron.HasNativePatron(p,player))
                 return "service:no_eligible_native_patron";
+            if(p.LordGuidedStart)
+            {
+                string inlaws=SandboxGeneratedSpouseOrigin
+                    .PreflightGuidedLord(p,player);
+                DiagnosticJournal.Event("cu_lord_native_inlaws_preflight",
+                    "result="+(inlaws.Length==0?"PASS":"FAIL")+
+                    "|reason="+inlaws+
+                    "|background="+p.SpouseBackground+
+                    "|chosen_clan="+p.SpouseBirthClanId+
+                    "|real_native_birth_clan_required=true"+
+                    "|unrecorded_native_parents_permitted=true"+
+                    "|no_marriage_or_clan_changes=true");
+                if(inlaws.Length>0)return "lord_noble_spouse:"+inlaws;
+            }
             if(p.SpouseEnabled && !player.CanMarry())
                 return "marriage:native_player_not_eligible";
             return "";

@@ -18,8 +18,18 @@ fields=vm.split("private List<Field> BuildFields()",1)[1]
 world=fields.split("if(preCampaign)",1)[1].split("\n            else\n            {",1)[0]
 house=fields.split("\n            else\n            {",1)[1].split("return list;",1)[0]
 assert '"NobleBirthPosition"' in world and '"NobleElderHeroId"' in world
-assert '"NobleBirthPosition"' not in house and '"SiblingCount"' in house
-assert 'candidate.RetinueMode=SandboxServicePolicy.DefaultRetinue(' in vm
+# The source-only v0.61 assertion expected World-only noble birth.
+# A real v0.69f game session proved this can strand the player after native
+# Age/Culture discovery. House may now *correct the existing choice*.
+assert '"NobleBirthPosition"' in house and '"SiblingCount"' in house
+assert house.index('"NobleBirthPosition"') < house.index('"SpouseEnabled"')
+assert '"NobleElderHeroId"' in house
+assert 'candidate.RetinueMode=candidate.WandererNoHouseStart?' in vm
+assert '"FamilyOnly":candidate.OutlawGuidedStart?' in vm
+assert '"RoleBased":candidate.KnightGuidedStart ?' in vm
+assert '"RoleBased":candidate.MercenaryGuidedStart ?' in vm
+assert 'candidate.SoldierGuidedStart ?' in vm
+assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'SandboxAutoHousePlan.Prepare(profile' in vm
 assert 'if(!profile.AutoHouseNamesPrepared)' in vm
 assert 'houseDraft=SandboxOriginProfile.Parse(profile.Serialize())' in vm
@@ -31,7 +41,14 @@ for key in ("SpouseEnabled","ChildCount","SiblingCount"):
 for key in ("SpouseName","SpouseAge","SpouseGender","SpouseBackground",
             "FamilyScenario","FamilyHomeMode","RetinueMode","Gold","Influence"):
     start=house.index(f'"{key}"')
-    assert 'advanced:true' in house[start:house.index('));',start)],key
+    field=house[start:house.index('));',start)]
+    # The new guided Lord requires a spouse, so the first spouse name
+    # is a normal House step. Older life paths keep this field Advanced.
+    if key=="SpouseName":
+        assert 'advanced:!(profile.LordGuidedStart ||' in field,key
+        assert 'profile.KingGuidedStart)' in field,key
+    else:
+        assert 'advanced:true' in field,key
 for culture in ("vlandia","sturgia","battania","empire","aserai","khuzait"):
     assert f'case "{culture}"' in names,culture
 assert "SandboxCulturalNames.Suggest" in auto

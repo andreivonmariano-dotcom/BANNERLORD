@@ -637,70 +637,87 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "Calradia Unified | People & Lineage. "+
-                "This uses the vanilla settlement menu. The vanilla Clan "+
-                "and Kingdom screens retain political and family authority.",
+                "Your house and its people. Consider family ties, "+
+                "household duties, private petitions and inheritance. "+
+                "The Clan and Kingdom ledgers hold the official record.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
             starter.AddGameMenu("cu_people_household",
-                "Household Register | Actual Hero records, observed homes, "+
-                "occupations, personal goals and native relationships.",
+                "The household roll. Names, places and ambitions "+
+                "belong to people living in your campaign.",
                 args=>{});
             starter.AddGameMenu("cu_people_requests",
-                "Personal Matters | Character-initiated requests. "+
-                "Gold and relationships change only through native actions.",
+                "Private petitions from people close to your house. "+
+                "Your reply can change actual denars and relationships.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
             starter.AddGameMenu("cu_people_claim",
-                "Family Council | Cultural claim review, contested "+
-                "petitions and conditional native estate grants.",
+                "Family council. Hear claims to estates, review "+
+                "inheritance custom and seek a lawful settlement.",
                 args=>{});
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
-                // Visible even if a failed family never reached the
-                // successful Living Persons capture. No repair action
-                // is issued automatically on save/load or menu opening.
-                starter.AddGameMenuOption(from,
-                    "cu_partial_family_review_"+from,
-                    "CU: Review incomplete Starting Life",
-                    args=>familyRecovery.NeedsReview &&
-                        Hero.MainHero!=null,
-                    args=>ShowNativeDetail(
-                        "Starting Life | Native family review",
-                        familyRecovery.Describe()),false);
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "CU: People & Lineage",
-                    args=>livingPersons.People.Count>0 &&
-                        Hero.MainHero!=null,
+                    "Household and personal affairs",
+                    args=>Hero.MainHero!=null &&
+                        (livingPersons.People.Count>0 ||
+                         knightOath.IsConfigured ||
+                         lordInheritance.IsRecorded ||
+                         kingSuccession.IsRecorded ||
+                         familyRecovery.NeedsReview ||
+                         roleEconomy.Started ||
+                         successionInterest.IsRecorded),
                     args=>{
                         affairsReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_lineage");
                     },false);
             }
+            // Recoverable failures are still accessible, but never
+            // occupy a separate top-level settlement option.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_partial_family_review",
+                "Review incomplete starting household",
+                args=>familyRecovery.NeedsReview &&
+                    Hero.MainHero!=null,
+                args=>ShowNativeDetail(
+                    "Starting Life | Native family review",
+                    familyRecovery.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_role_economy_observed",
-                "Livelihood, duties and native denar evidence",
+                "My livelihood and obligations",
                 args=>roleEconomy.Started,
                 args=>ShowNativeDetail(
                     "Starting Role | Verified livelihood record",
                     roleEconomy.Describe()),false);
+            // This is a real, read-only native inquiry. Its spouse,
+            // child, companion and service status comes from live Heroes
+            // and saved campaign records, not an old creator .ini file.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_starting_household_native_status",
+                "My household and present calling",
+                args=>Hero.MainHero!=null &&
+                    (knightOath.IsConfigured ||
+                     lordInheritance.IsRecorded ||
+                     kingSuccession.IsRecorded ||
+                     roleEconomy.Started),
+                args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
-                "Household register and character ambitions",
+                "People of my household",
                 args=>livingPersons.People.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_requests",
-                "Personal matters and character requests",
+                "Private petitions and favors",
                 args=>characterAgendas.Entries.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_claim",
-                "Family council and native estate claims",
+                "Family council and inheritance",
                 args=>successionInterest.IsRecorded,
                 args=>GameMenu.SwitchToMenu("cu_people_claim"),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_exit","Return to vanilla settlement menu",
+                "cu_people_exit","Return to settlement",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(affairsReturnMenu),false);
 

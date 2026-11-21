@@ -37,14 +37,17 @@ assert 'familyRecovery=SandboxFamilyRecoveryState.Parse(recovery)' in behavior
 assert 'RecordFailedNativeFamily(profile,hero,postFamilyGate)' in behavior
 assert 'RecordFailedNativeFamily(profile,hero,' in behavior
 assert 'familyRecovery.Observe(recoveryPlayer.StringId' in behavior
-assert 'cu_partial_family_review_' in menu
+assert 'cu_partial_family_review' in menu
+assert 'cu_partial_family_review_'+chr(34) not in menu
 assert 'No new Heroes or starting gifts' in recovery
 assert 'NativeCountsMatchReviewStillRequired' in recovery
 assert 'no_matching_partial_start' in recovery
 
 assert 'CU_v069d_role_economy' in behavior
 assert 'SandboxRoleEconomyState.Parse(economy)' in behavior
-assert 'roleEconomy.Start(profile.Role,hero.Gold' in behavior
+assert 'roleEconomy.Start(' in behavior
+assert '"EnlistedSoldier":profile.Role' in behavior
+assert 'hero.Gold,agencyDecisions.Day' in behavior
 assert 'roleEconomy.Observe(' in behavior
 assert 'verifiedExternalDailyWage' not in economy
 assert 'VerifiedExternalDailyWage' in economy
@@ -73,7 +76,10 @@ after_staging=retinue.index('for(int i=0;i<staged.Count;i++)')
 officer_confirm=retinue.index('if(!confirmed)',after_staging)
 replacement=retinue.index('if(replace)',after_staging)
 assert after_staging < officer_confirm < replacement
-assert 'multi_companion_dismissal_not_atomic' in retinue
+assert 'multi_companion_dismissal_not_atomic' not in retinue
+assert 'replaced!=existing.Length' in retinue
+assert 'failed_removal_reported_partial=true' in retinue
+assert 'native.Length>16' in retinue
 assert 'pending.PartyBelongedTo!=null' in retinue
 assert 'registered_preserved=' in retinue
 

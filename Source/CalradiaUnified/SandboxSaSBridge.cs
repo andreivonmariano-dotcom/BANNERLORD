@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Party;
 
 namespace CalradiaUnified
 {
@@ -15,8 +16,9 @@ namespace CalradiaUnified
         internal sealed class Snapshot
         {
             public bool Available,Enlisted,InsideHostParty;
-            public string LordId="",RankId="",DutyId="";
-            public int Wage,Days,TermDaysLeft;
+            public bool NativeHostPartyLedByLord,LordIsNativeLord;
+            public string LordId="",LordKingdomId="",RankId="",DutyId="";
+            public int RankNumber,Wage,Days,TermDaysLeft;
         }
         private static Type ApiType()
         {
@@ -89,7 +91,17 @@ namespace CalradiaUnified
                     return result;
                 }
                 var lord=Field(snap,"Lord") as Hero;
-                var host=Field(snap,"HostParty");
+                var host=Field(snap,"HostParty") as MobileParty;
+                result.LordIsNativeLord=lord!=null &&
+                    lord.IsAlive && lord.IsActive && lord.IsLord &&
+                    lord.Clan!=null;
+                result.LordKingdomId=lord!=null &&
+                    lord.Clan!=null && lord.Clan.Kingdom!=null ?
+                    lord.Clan.Kingdom.StringId:"";
+                result.NativeHostPartyLedByLord=
+                    host!=null && lord!=null &&
+                    host.LeaderHero==lord;
+                result.RankNumber=Num(Field(snap,"Rank"));
                 result.InsideHostParty=host!=null &&
                     Field(snap,"IsPlayerInsideHostParty") is bool &&
                     (bool)Field(snap,"IsPlayerInsideHostParty");

@@ -1,0 +1,116 @@
+using MCM.Abstractions.Attributes;
+using MCM.Abstractions.Attributes.v2;
+using MCM.Abstractions.Base.Global;
+
+namespace CalradiaUnified
+{
+    /// <summary>
+    /// The required MCM v5 options surface. Existing INI persistence
+    /// remains authoritative, preserving old profiles and save keys.
+    /// New campaign behaviors read changes when they next initialize.
+    /// </summary>
+    public sealed class CUBUTRMCMSettings :
+        AttributeGlobalSettings<CUBUTRMCMSettings>
+    {
+        public override string Id => "CalradiaUnified";
+        public override string DisplayName => "Calradia Unified";
+        public override string FolderName => "CalradiaUnified";
+        public override string FormatType => "none";
+
+        private static bool Read(string key)
+        {
+            var descriptor=SettingsCatalog.Find(key);
+            return descriptor!=null &&
+                SettingsCatalog.Read(Settings.Load(),descriptor)=="true";
+        }
+        private static void Set(string key,bool enabled)
+        {
+            var profile=Settings.Load();
+            string error;
+            if(!profile.TrySetMenuValue(
+                    key,enabled?"true":"false",out error))
+                DiagnosticJournal.Event("cu_mcm_setting_failed",
+                    "setting="+key+"|error="+error);
+        }
+
+        [SettingPropertyBool("Diagnostics",Order=0,
+            RequireRestart=true,
+            HintText="Record campaign events and errors. Takes effect after restart.")]
+        [SettingPropertyGroup("Diagnostics")]
+        public bool EnableDiagnostics
+        {
+            get=>Read("EnableDiagnostics");
+            set=>Set("EnableDiagnostics",value);
+        }
+
+        [SettingPropertyBool("Automatic session reports",Order=1,
+            RequireRestart=true,
+            HintText="Create diagnostic ZIP reports for real gameplay acceptance.")]
+        [SettingPropertyGroup("Diagnostics")]
+        public bool AutoSessionReports
+        {
+            get=>Read("AutoSessionReports");
+            set=>Set("AutoSessionReports",value);
+        }
+
+        [SettingPropertyBool("Supply warnings",Order=2,
+            RequireRestart=true,
+            HintText="Show supply and food warnings in the current campaign.")]
+        [SettingPropertyGroup("Campaign")]
+        public bool EnableSupplyWarnings
+        {
+            get=>Read("EnableSupplyWarnings");
+            set=>Set("EnableSupplyWarnings",value);
+        }
+
+        [SettingPropertyBool("Native civic transactions",Order=3,
+            RequireRestart=true,
+            HintText="Permit real item and roster civic actions at eligible holdings.")]
+        [SettingPropertyGroup("Campaign")]
+        public bool EnableCivicSystems
+        {
+            get=>Read("EnableCivicSystems");
+            set=>Set("EnableCivicSystems",value);
+        }
+
+        [SettingPropertyBool("Garrison training",Order=4,
+            RequireRestart=true,
+            HintText="Allow guarded native training of existing troops.")]
+        [SettingPropertyGroup("Estates")]
+        public bool EnableGarrisonTraining
+        {
+            get=>Read("EnableGarrisonTraining");
+            set=>Set("EnableGarrisonTraining",value);
+        }
+
+        [SettingPropertyBool("Player-clan advisory",Order=5,
+            RequireRestart=true,
+            HintText="Display read-only clan and settlement advice.")]
+        [SettingPropertyGroup("Campaign")]
+        public bool EnableNpcAdvisory
+        {
+            get=>Read("EnableNpcAdvisory");
+            set=>Set("EnableNpcAdvisory",value);
+        }
+
+        [SettingPropertyBool("Kingdom levies",Order=6,
+            RequireRestart=true,
+            HintText="Permit native kingdom levy recruitment with real resources.")]
+        [SettingPropertyGroup("Kingdom")]
+        public bool EnableKingdomLevies
+        {
+            get=>Read("EnableKingdomLevies");
+            set=>Set("EnableKingdomLevies",value);
+        }
+
+        [SettingPropertyBool("Physical supply convoys",Order=7,
+            RequireRestart=true,
+            HintText="Experimental. Use real native parties; subject to gameplay checks.")]
+        [SettingPropertyGroup("Estates")]
+        public bool EnablePhysicalConvoys
+        {
+            get=>Read("EnablePhysicalConvoys");
+            set=>Set("EnablePhysicalConvoys",value);
+        }
+    }
+}

@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#100D0A99"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"/>
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="960"
+                HeightSizePolicy="Fixed" SuggestedHeight="620"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center">
+          <Children>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#231910FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="954"
+                    HeightSizePolicy="Fixed" SuggestedHeight="614"
+                    PositionXOffset="3" PositionYOffset="3"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#403024FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="930"
+                    HeightSizePolicy="Fixed" SuggestedHeight="97"
+                    PositionXOffset="15" PositionYOffset="15"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="930"
+                    HeightSizePolicy="Fixed" SuggestedHeight="3"
+                    PositionXOffset="15" PositionYOffset="116"/>
+            <TextWidget Brush.FontSize="29" Text="@Title"
+                    Color="#FFE6B8FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="874" HeightSizePolicy="Fixed"
+                    SuggestedHeight="43" PositionXOffset="35"
+                    PositionYOffset="28"/>
+            <TextWidget Brush.FontSize="16" Text="@Clan"
+                    Color="#E2C496FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="874" HeightSizePolicy="Fixed"
+                    SuggestedHeight="28" PositionXOffset="35"
+                    PositionYOffset="77"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="439"
+                    HeightSizePolicy="Fixed" SuggestedHeight="239"
+                    PositionXOffset="33" PositionYOffset="135"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="439"
+                    HeightSizePolicy="Fixed" SuggestedHeight="239"
+                    PositionXOffset="488" PositionYOffset="135"/>
+            <TextWidget Text="@SectionFamilyTitle" Brush.FontSize="22"
+                    Brush.TextHorizontalAlignment="Left"
+                    Color="#EAC991FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="397" HeightSizePolicy="Fixed"
+                    SuggestedHeight="36" PositionXOffset="48"
+                    PositionYOffset="150"/>
+            <TextWidget Text="@SectionOfficersTitle" Brush.FontSize="22"
+                    Brush.TextHorizontalAlignment="Left"
+                    Color="#EAC991FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="398" HeightSizePolicy="Fixed"
+                    SuggestedHeight="36" PositionXOffset="503"
+                    PositionYOffset="150"/>
+            <ListPanel DataSource="{FamilyMembers}"
+                    WidthSizePolicy="Fixed" SuggestedWidth="390"
+                    HeightSizePolicy="Fixed" SuggestedHeight="144"
+                    StackLayout.LayoutMethod="VerticalTopToBottom"
+                    PositionXOffset="48"
+                    PositionYOffset="190">
+              <ItemTemplate>
+                <ButtonWidget Brush="ButtonBrush"
+                    Command.Click="ExecuteInspect"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="384"
+                    HeightSizePolicy="Fixed" SuggestedHeight="47">
+                  <Children>
+                    <ImageIdentifierWidget DataSource="{Portrait}"
+                        WidthSizePolicy="Fixed" SuggestedWidth="43"
+                        HeightSizePolicy="Fixed" SuggestedHeight="43"
+                        PositionXOffset="5" PositionYOffset="2"
+                        AdditionalArgs="@AdditionalArgs"
+                        ImageId="@Id"
+                        TextureProviderName="@TextureProviderName"/>
+                    <TextWidget Text="@Name" Brush.FontSize="16"
+                        Color="#FFE6C8FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="317"
+                        HeightSizePolicy="Fixed" SuggestedHeight="25"
+                        PositionXOffset="56" PositionYOffset="3"/>
+                    <TextWidget Text="@Relationship" Brush.FontSize="13"
+                        Color="#CCB59AFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="317"
+                        HeightSizePolicy="Fixed" SuggestedHeight="18"
+                        PositionXOffset="56" PositionYOffset="27"/>
+                  </Children>
+                </ButtonWidget>
+              </ItemTemplate>
+            </ListPanel>
+            <ListPanel DataSource="{OfficerMembers}"
+                    WidthSizePolicy="Fixed" SuggestedWidth="390"
+                    HeightSizePolicy="Fixed" SuggestedHeight="144"
+                    StackLayout.LayoutMethod="VerticalTopToBottom"
+                    PositionXOffset="503"
+                    PositionYOffset="190">
+              <ItemTemplate>
+                <ButtonWidget Brush="ButtonBrush"
+                    Command.Click="ExecuteInspect"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="384"
+                    HeightSizePolicy="Fixed" SuggestedHeight="47">
+                  <Children>
+                    <ImageIdentifierWidget DataSource="{Portrait}"
+                        WidthSizePolicy="Fixed" SuggestedWidth="43"
+                        HeightSizePolicy="Fixed" SuggestedHeight="43"
+                        PositionXOffset="5" PositionYOffset="2"
+                        AdditionalArgs="@AdditionalArgs"
+                        ImageId="@Id"
+                        TextureProviderName="@TextureProviderName"/>
+                    <TextWidget Text="@Name" Brush.FontSize="16"
+                        Color="#FFE6C8FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="317"
+                        HeightSizePolicy="Fixed" SuggestedHeight="25"
+                        PositionXOffset="56" PositionYOffset="3"/>
+                    <TextWidget Text="@Relationship" Brush.FontSize="13"
+                        Color="#CCB59AFF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="317"
+                        HeightSizePolicy="Fixed" SuggestedHeight="18"
+                        PositionXOffset="56" PositionYOffset="27"/>
+                  </Children>
+                </ButtonWidget>
+              </ItemTemplate>
+            </ListPanel>
+            <TextWidget Text="@Family" Brush.FontSize="14"
+                    Brush.TextHorizontalAlignment="Left"
+                    Brush.TextVerticalAlignment="Top"
+                    Color="#D4C4AFFF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="398" HeightSizePolicy="Fixed"
+                    SuggestedHeight="35" PositionXOffset="48"
+                    PositionYOffset="336"/>
+            <TextWidget Text="@Officers" Brush.FontSize="14"
+                    Brush.TextHorizontalAlignment="Left"
+                    Brush.TextVerticalAlignment="Top"
+                    Color="#D4C4AFFF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="398" HeightSizePolicy="Fixed"
+                    SuggestedHeight="35" PositionXOffset="503"
+                    PositionYOffset="336"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="894"
+                    HeightSizePolicy="Fixed" SuggestedHeight="152"
+                    PositionXOffset="33" PositionYOffset="385"/>
+            <TextWidget Text="@SectionDutyTitle" Brush.FontSize="22"
+                    Brush.TextHorizontalAlignment="Left"
+                    Color="#EAC991FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="838" HeightSizePolicy="Fixed"
+                    SuggestedHeight="33" PositionXOffset="48"
+                    PositionYOffset="396"/>
+            <TextWidget Text="@Duty" Brush.FontSize="17"
+                    Brush.TextHorizontalAlignment="Left"
+                    Brush.TextVerticalAlignment="Top"
+                    Color="#EDE2CFFF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="847" HeightSizePolicy="Fixed"
+                    SuggestedHeight="102" PositionXOffset="48"
+                    PositionYOffset="430"/>
+            <TextWidget Text="@Footer" Brush.FontSize="13"
+                    Brush.TextHorizontalAlignment="Left"
+                    Color="#CFBEA8FF" WidthSizePolicy="Fixed"
+                    SuggestedWidth="882" HeightSizePolicy="Fixed"
+                    SuggestedHeight="17" PositionXOffset="36"
+                    PositionYOffset="542"/>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="218"
+                    HeightSizePolicy="Fixed" SuggestedHeight="44"
+                    PositionXOffset="34" PositionYOffset="562"
+                    Command.Click="ExecuteOpenFamily">
+              <Children>
+                <TextWidget Text="View family portraits"
+                        Brush.FontSize="16" Color="#FFEED6FF"
+                        WidthSizePolicy="StretchToParent"
+                        HeightSizePolicy="StretchToParent"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="218"
+                    HeightSizePolicy="Fixed" SuggestedHeight="44"
+                    PositionXOffset="268" PositionYOffset="562"
+                    Command.Click="ExecuteHearPetition">
+              <Children>
+                <TextWidget Text="Hear a petition"
+                        Brush.FontSize="16" Color="#FFEED6FF"
+                        WidthSizePolicy="StretchToParent"
+                        HeightSizePolicy="StretchToParent"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="218"
+                    HeightSizePolicy="Fixed" SuggestedHeight="44"
+                    PositionXOffset="502" PositionYOffset="562"
+                    Command.Click="ExecuteRoleAction">
+              <Children>
+                <TextWidget Text="@RoleActionLabel"
+                        Brush.FontSize="16" Color="#FFEED6FF"
+                        WidthSizePolicy="StretchToParent"
+                        HeightSizePolicy="StretchToParent"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="184"
+                    HeightSizePolicy="Fixed" SuggestedHeight="44"
+                    PositionXOffset="733" PositionYOffset="562"
+                    Command.Click="ExecuteClose">
+              <Children>
+                <TextWidget Text="Return"
+                        Brush.FontSize="16" Color="#FFEED6FF"
+                        WidthSizePolicy="StretchToParent"
+                        HeightSizePolicy="StretchToParent"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

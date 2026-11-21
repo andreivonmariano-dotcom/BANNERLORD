@@ -26,7 +26,8 @@ namespace CalradiaUnified
             if(kingdom==null)return null;
             if(requireExistingKingdom &&
                 (Clan.PlayerClan==null ||
-                 (SandboxCustomLifeRolePolicy.IsLandless(p.Role)?
+                 ((p.KnightGuidedStart && p.Role=="Knight") ||
+                   SandboxCustomLifeRolePolicy.IsLandless(p.Role)?
                     (Clan.PlayerClan.Kingdom!=null ||
                      Clan.PlayerClan.Settlements.Count>0):
                     Clan.PlayerClan.Kingdom!=kingdom)))
@@ -55,6 +56,22 @@ namespace CalradiaUnified
         public static bool HasNativePatron(SandboxOriginProfile p,
             Hero player)
         {
+            if(p!=null && p.SoldierGuidedStart)
+            {
+                var native=SandboxSaSBridge.Read();
+                return native.Available && native.Enlisted &&
+                    native.LordIsNativeLord &&
+                    native.NativeHostPartyLedByLord &&
+                    SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                        native.Available,native.Enlisted,
+                        p.StartingKingdomId,p.ServicePatronHeroId,
+                        native.LordId,native.LordKingdomId,
+                        native.RankId,native.NativeHostPartyLedByLord,
+                        Clan.PlayerClan!=null &&
+                            Clan.PlayerClan.IsUnderMercenaryService,
+                        Clan.PlayerClan!=null &&
+                            Clan.PlayerClan.Settlements.Count>0)=="";
+            }
             return Select(p,player,true)!=null;
         }
 
@@ -62,6 +79,11 @@ namespace CalradiaUnified
         {
             if(p==null || !SandboxServicePolicy.NeedsPatron(p.Role))
                 return "No personal lord required for this start";
+            if(p.SoldierGuidedStart)
+                return String.IsNullOrEmpty(p.ServicePatronHeroId)?
+                    "Actual SaS commanding lord: verified at enlistment":
+                    "Must match native SaS lord ID: "+
+                        p.ServicePatronHeroId;
             var lord=Select(p,player,false);
             if(lord==null)
                 return "No eligible native commanding lord found";
@@ -77,6 +99,38 @@ namespace CalradiaUnified
             if(p==null || player==null ||
                 !SandboxServicePolicy.NeedsPatron(p.Role))
                 return "not_requested";
+            if(p.SoldierGuidedStart)
+            {
+                var native=SandboxSaSBridge.Read();
+                string status=SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                    native.Available,native.Enlisted,p.StartingKingdomId,
+                    p.ServicePatronHeroId,native.LordId,
+                    native.LordKingdomId,native.RankId,
+                    native.NativeHostPartyLedByLord,
+                    Clan.PlayerClan!=null &&
+                        Clan.PlayerClan.IsUnderMercenaryService,
+                    Clan.PlayerClan!=null &&
+                        Clan.PlayerClan.Settlements.Count>0);
+                if(status.Length>0)
+                    return "refused:"+status;
+                patron=Hero.AllAliveHeroes.FirstOrDefault(h=>
+                    h!=null && h.StringId==native.LordId &&
+                    h.IsAlive && h.IsActive && h.IsLord &&
+                    h.Clan!=null && h.Clan.Kingdom!=null &&
+                    h.Clan.Kingdom.StringId==p.StartingKingdomId);
+                if(patron==null)
+                    return "refused:actual_lord_not_resolved";
+                DiagnosticJournal.Event("cu_soldier_real_lord_bound",
+                    "result=PASS|lord_id="+patron.StringId+
+                    "|lord_name="+patron.Name.ToString()+
+                    "|clan="+patron.Clan.StringId+
+                    "|kingdom="+patron.Clan.Kingdom.StringId+
+                    "|real_enlisted_rank="+native.RankId+
+                    "|real_daily_wage="+native.Wage+
+                    "|host_party_leader_verified=true"+
+                    "|no_fake_relation_or_command_granted=true");
+                return "enlisted:"+patron.StringId;
+            }
             var lord=Select(p,player,true);
             if(lord==null)
             {
@@ -102,7 +156,8 @@ namespace CalradiaUnified
                     "|kingdom="+lord.Clan.Kingdom.StringId+
                     "|relation_before="+before+
                     "|relation_after="+player.GetRelation(lord)+
-                    "|native_contract=retained"+
+                    "|native_contract="+(p.KnightGuidedStart?
+                        "none_personal_patron_only":"retained")+
                     "|enlisted_troop=false|automatic_orders=false");
                 return "bound:"+lord.StringId;
             }

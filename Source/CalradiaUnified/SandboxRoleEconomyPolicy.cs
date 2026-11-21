@@ -14,7 +14,10 @@ namespace CalradiaUnified
                 case "King":return "NativeKingdomAndFiefEconomy";
                 case "Lord":
                 case "Knight":return "NativeFiefAndClanEconomy";
-                case "Soldier":return "NativeMercenaryContract";
+                case "Soldier":case "Mercenary":
+                    return "NativeMercenaryContract";
+                case "EnlistedSoldier":
+                    return "ExternalEnlistedSoldierWage";
                 case "Admiral":return "NativeFleetAndKingdomEconomy";
                 case "Trader":return "NativeTradeTransactions";
                 case "Outlaw":return "NativeLootAndCommerce";
@@ -33,7 +36,10 @@ namespace CalradiaUnified
                 case "King":return "RuleAndDefendNativeRealm";
                 case "Lord":return "MaintainClanAndNativeFiefs";
                 case "Knight":return "NativeVassalObligations";
-                case "Soldier":return "NativeMercenaryService";
+                case "Soldier":case "Mercenary":
+                    return "NativeMercenaryService";
+                case "EnlistedSoldier":
+                    return "ServiceUnderActualNativeLord";
                 case "Admiral":return "NativeNavalCommand";
                 case "Trader":return "NativeCommerceAndClanUpkeep";
                 case "Outlaw":return "NativeBandSurvival";
@@ -55,10 +61,14 @@ namespace CalradiaUnified
                 case "Recruit":
                     return verifiedEnlisted?"ExternalEnlistmentVerified":
                         "EnlistmentNotVerified";
+                case "EnlistedSoldier":
+                    return verifiedEnlisted?"ExternalEnlistmentVerified":
+                        "EnlistedRankNotVerified";
                 case "HouseholdKnight":
                     return verifiedEnlisted?"ExternalServiceVerified":
                         "PersonalPatronNotFormalEmployment";
                 case "Soldier":
+                case "Mercenary":
                     return nativeMercenary && nativeKingdom?
                         "NativeMercenaryVerified":"MercenaryUnverified";
                 case "King":

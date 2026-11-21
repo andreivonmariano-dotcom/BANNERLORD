@@ -16,7 +16,7 @@ namespace CalradiaUnified
         private void RegisterGarrisonMenu(CampaignGameStarter starter, string menu)
         {
             starter.AddGameMenuOption(menu, "cu_garrison_train",
-                "CU: Train 2 garrison defenders (250 gold + 5 depot grain)",
+                "Train defenders (250 denars, 5 grain)",
                 x => CanVisit() && CanTrainGarrison(), x => Safe(TrainGarrison), false);
         }
         private MobileParty CurrentGarrison()

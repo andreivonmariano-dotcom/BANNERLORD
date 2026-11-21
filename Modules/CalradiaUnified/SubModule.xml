@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Module>
-  <Name value="Calradia Unified - Responsive Native UI and 3D Face Dock Trial" />
+  <Name value="Calradia Unified" />
   <Id value="CalradiaUnified" />
   <Version value="v0.38.0" />
   <SingleplayerModule value="true" />
@@ -9,7 +9,18 @@
     <DependedModule Id="Native" />
     <DependedModule Id="SandBoxCore" />
     <DependedModule Id="Sandbox" />
+    <!-- Required BUTR UI integration stack. Never silently downgrade. -->
+    <DependedModule Id="Bannerlord.Harmony" />
+    <DependedModule Id="Bannerlord.ButterLib" />
+    <DependedModule Id="Bannerlord.UIExtenderEx" />
+    <DependedModule Id="Bannerlord.MBOptionScreen" />
   </DependedModules>
+  <DependedModuleMetadatas>
+    <DependedModuleMetadata id="Bannerlord.Harmony" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.ButterLib" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.UIExtenderEx" order="LoadBeforeThis" />
+    <DependedModuleMetadata id="Bannerlord.MBOptionScreen" order="LoadBeforeThis" />
+  </DependedModuleMetadatas>
   <SubModules>
     <SubModule>
       <Name value="Calradia Unified Core" />

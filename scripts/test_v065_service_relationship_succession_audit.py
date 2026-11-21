@@ -18,7 +18,9 @@ succession=text("SandboxSuccessionInterestState.cs")
 start=text("SandboxStartingLifePolicy.cs")
 assert 'profile.StartingScenario=="twofactionwar"' in vm
 assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
-assert 'case "Soldier":return "mercenary";' in role_matrix
+assert 'case "Soldier":' in role_matrix
+assert 'case "Mercenary":return "mercenary";' in role_matrix
+assert 'case "Outlaw":return "outlaw";' in role_matrix
 assert 'case "Knight":' in role_matrix and 'case "Lord":return "vassal";' in role_matrix
 assert '"Independent mercenary captain, not an enlisted soldier"' in start
 assert '"Knight holding a native vassal fief"' in start
@@ -57,7 +59,7 @@ assert bh.index("SandboxLivingPersons.Capture(") > bh.index(
     'DiagnosticJournal.Event("sandbox_start_contract",')
 # v0.67 groups the old status action under the native People & Lineage menu.
 native_affairs=text("SandboxOriginBehavior.LivingMenus.cs")
-assert '"CU: People & Lineage"' in native_affairs
+assert '"Household and personal affairs"' in native_affairs
 assert '"cu_people_household"' in native_affairs
 assert 'RegisterPeopleAndLineageMenus(starter);' in bh
 print("PASS: World visibility, native career tracking, observed social changes, succession interests and no false start PASS (SOURCE ONLY)")

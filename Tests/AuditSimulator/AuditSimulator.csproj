@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../Source/CalradiaUnified/CUNativeStatsNavigationPolicy.cs" Link="Policies/CUNativeStatsNavigationPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/CUNativeHouseNavigationPolicy.cs" Link="Policies/CUNativeHouseNavigationPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxStatsPagePolicy.cs" Link="Policies/SandboxStatsPagePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="Policies/SandboxFamilyAgePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleConsistencyPolicy.cs" Link="Policies/SandboxRoleConsistencyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxStartContract.cs" Link="Policies/SandboxStartContract.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxNativeEffectProof.cs" Link="Policies/SandboxNativeEffectProof.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyRecoveryState.cs" Link="Policies/SandboxFamilyRecoveryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyState.cs" Link="Policies/SandboxRoleEconomyState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyPolicy.cs" Link="Policies/SandboxRoleEconomyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionState.cs" Link="Policies/SandboxAgencyDecisionState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionPolicy.cs" Link="Policies/SandboxAgencyDecisionPolicy.cs" />
+  </ItemGroup>
+</Project>

@@ -13,7 +13,7 @@ namespace CalradiaUnified
         private void RegisterFeudalMenu(CampaignGameStarter starter, string menu)
         {
             starter.AddGameMenuOption(menu, "cu_feudal_budget",
-                "CU: Review castle and village wage budget (estimate)",
+                "Review estate accounts",
                 x => CanVisit() && Owned() &&
                     Settlement.CurrentSettlement.IsCastle,
                 x => Safe(ShowFeudalBudget), false);

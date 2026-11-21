@@ -15,18 +15,18 @@ namespace CalradiaUnified
         private void RegisterCastleManagementMenu(CampaignGameStarter starter, string menu)
         {
             starter.AddGameMenuOption(menu, "cu_castle_staffing_report",
-                "CU: Review castle staffing and modeled wage affordability",
+                "Review garrison strength and wages",
                 x => OwnedCastle(), x => Safe(ShowCastleStaffing), false);
             starter.AddGameMenuOption(menu, "cu_castle_deposit_recruits",
-                "CU: Move 5 owned local recruits into castle garrison",
+                "Post five recruits to the garrison",
                 x => CanTransferRecruits(true),
                 x => Safe(() => TransferRecruits(true)), false);
             starter.AddGameMenuOption(menu, "cu_castle_withdraw_recruits",
-                "CU: Move 5 local recruits back to player party",
+                "Recall five recruits from the garrison",
                 x => CanTransferRecruits(false),
                 x => Safe(() => TransferRecruits(false)), false);
             starter.AddGameMenuOption(menu, "cu_castle_manual_wage_limit",
-                "CU: Apply affordable castle wage cap (no troop layoffs)",
+                "Adjust the garrison wage allowance",
                 x => CanApplyManualWageLimit(), x => Safe(ApplyManualWageLimit), false);
         }
         private void ShowCastleStaffing()

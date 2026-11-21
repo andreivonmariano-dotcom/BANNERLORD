@@ -15,10 +15,12 @@ namespace CalradiaUnified
     {
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
+        // The first three are reviewed new-game life paths. Legacy
+        // entries remain selectable until each later path is rebuilt.
         public static readonly string[] Roles =
-            { "Wanderer", "Recruit", "Soldier", "HouseholdKnight",
-              "Knight", "NobleCadet", "Lord", "King", "Admiral",
-              "Trader", "Outlaw", "Beggar" };
+            { "Wanderer", "Outlaw", "Mercenary", "Soldier", "Recruit",
+              "HouseholdKnight", "Knight", "NobleCadet", "Lord",
+              "King", "Admiral", "Trader", "Beggar" };
         public static readonly string[] Kits =
             { "Vanilla", "Traveler", "Soldier", "Knight", "Royal", "Custom" };
         public static readonly string[] Attributes =
@@ -122,6 +124,35 @@ namespace CalradiaUnified
         // Native keeps original companions. RoleBased replaces them with
         // same-culture officers. ReplaceNative remains a legacy saved alias.
         public string RetinueMode = "Native";
+        // New guided Wanderer only. Legacy profiles keep their House flow.
+        public bool WandererNoHouseStart;
+        // New guided Outlaw only. Keep legacy Outlaw save semantics intact.
+        public bool OutlawGuidedStart;
+        // v0.70d is a new, kingdom-contracted company. Old Soldier
+        // profiles retain their historical native mercenary meaning.
+        public bool MercenaryGuidedStart;
+        // v0.70g: Soldier is genuine native external enlistment, never
+        // a second mercenary captain. Legacy Soldier profiles opt out.
+        public bool SoldierGuidedStart;
+        public string SoldierEntryRank = "Recruit";
+        public bool KnightGuidedStart;
+        public string KnightOrigin = "SwornHouse";
+        // New Lord requires the real pinned native vassal start.
+        // Old Lord profiles keep their historical behavior.
+        public bool LordGuidedStart;
+        // A saved family claim rule, not an action that changes the
+        // kingdom's native election, clan leader or settlement owners.
+        public string LordSuccessionRule="EldestChild";
+        // The new King must be the ACTUAL native ruler; court and heirs
+        // never fabricate sovereignty in legacy King profiles.
+        public bool KingGuidedStart;
+        public string KingSuccessionRule="EldestChild";
+        public bool WandererCompanionEnabled;
+        public string WandererCompanionName = "Taran";
+        public int WandererCompanionAge = 25;
+        public string WandererCompanionGender = "Male";
+        public string WandererCompanionSpecialty = "Guard";
+        public int WandererCompanionSkill = 100;
 
         // Explicit overrides only; absent entry means retain the game's value.
         // Native is the safe default. The dedicated post-origins editor
@@ -133,6 +164,10 @@ namespace CalradiaUnified
         // The player and spouse editors must never share stat state.
         public readonly SortedDictionary<string, int> SpouseOverrides =
             new SortedDictionary<string, int>(StringComparer.Ordinal);
+        // Independent target: the optional single Wanderer companion.
+        // Never overwrite the player's or spouse's stats.
+        public readonly SortedDictionary<string,int> WandererCompanionOverrides=
+            new SortedDictionary<string,int>(StringComparer.Ordinal);
         // Up to 12 exact, engine-resolved item IDs; missing IDs are never granted.
         public readonly SortedDictionary<int, string> ItemIds =
             new SortedDictionary<int, string>();
@@ -202,12 +237,32 @@ namespace CalradiaUnified
             NobleElderHeroId="";
             ServicePatronHeroId="";
             RetinueMode="Native";
+            WandererNoHouseStart=false;
+            OutlawGuidedStart=false;
+            MercenaryGuidedStart=false;
+            SoldierGuidedStart=false;
+            SoldierEntryRank="Recruit";
+            KnightGuidedStart=false;
+            KnightOrigin="SwornHouse";
+            LordGuidedStart=false;
+            LordSuccessionRule="EldestChild";
+            KingGuidedStart=false;
+            KingSuccessionRule="EldestChild";
+            if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)
+                Role="Wanderer";
+            WandererCompanionEnabled=false;
+            WandererCompanionName="Taran";
+            WandererCompanionAge=25;
+            WandererCompanionGender="Male";
+            WandererCompanionSpecialty="Guard";
+            WandererCompanionSkill=100;
             FamilyScenario="Natural";
             foreach(var child in Children)
                 child.Upbringing="FamilyTradition";
             ProgressionMode="Native";
             Overrides.Clear();
             SpouseOverrides.Clear();
+            WandererCompanionOverrides.Clear();
             ItemIds.Clear();
             // Never carry hidden pregame bonuses, resources or world
             // modifiers into a new campaign before explicit confirmation.
@@ -448,6 +503,74 @@ namespace CalradiaUnified
                 case "RetinueMode":
                     if(!SandboxNobleStartPolicy.IsRetinueMode(value))return false;
                     RetinueMode=value;return true;
+                case "WandererNoHouseStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    WandererNoHouseStart=b;return true;
+                case "OutlawGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    OutlawGuidedStart=b;return true;
+                case "MercenaryGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    MercenaryGuidedStart=b;return true;
+                case "SoldierGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    SoldierGuidedStart=b;return true;
+                case "KnightGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    KnightGuidedStart=b;return true;
+                case "KnightOrigin":
+                    if(!SandboxKnightStartPolicy.IsOrigin(value))return false;
+                    KnightOrigin=value;return true;
+                case "LordGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    LordGuidedStart=b;return true;
+                case "LordSuccessionRule":
+                    if(!SandboxLordSuccessionPolicy.IsRule(value))
+                        return false;
+                    LordSuccessionRule=value;return true;
+                case "KingGuidedStart":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    KingGuidedStart=b;return true;
+                case "KingSuccessionRule":
+                    if(!SandboxLordSuccessionPolicy.IsRule(value))
+                        return false;
+                    KingSuccessionRule=value;return true;
+                case "SoldierEntryRank":
+                    if(!SandboxSoldierEnlistmentPolicy.IsEntryRank(value))
+                        return false;
+                    SoldierEntryRank=value;return true;
+                case "WandererCompanionEnabled":
+                    if(!Boolean.TryParse(value,out b))return false;
+                    WandererCompanionEnabled=b;return true;
+                case "WandererCompanionName":
+                    if(!PersonName(value))return false;
+                    WandererCompanionName=value;return true;
+                case "WandererCompanionAge":
+                    if(!Number(value,18,70,out n))return false;
+                    WandererCompanionAge=n;return true;
+                case "WandererCompanionGender":
+                    if(value!="Male" && value!="Female")return false;
+                    WandererCompanionGender=value;return true;
+                case "WandererCompanionSpecialty":
+                    if(!new[]{"Guard","Scout","Healer","Steward","Trader"}
+                        .Contains(value,StringComparer.Ordinal))return false;
+                    WandererCompanionSpecialty=value;return true;
+                case "WandererCompanionSkill":
+                    if(!Number(value,0,220,out n))return false;
+                    WandererCompanionSkill=n;return true;
+            }
+            if (key.StartsWith("WandererCompanionStat.",
+                StringComparison.Ordinal))
+            {
+                string subkey=key.Substring(
+                    "WandererCompanionStat.".Length);
+                if(!SandboxStatBudgetPolicy.IsStatKey(subkey) ||
+                    !Int32.TryParse(value,NumberStyles.Integer,
+                        CultureInfo.InvariantCulture,out n) ||
+                    !SandboxStatBudgetPolicy.InRange(subkey,n))
+                    return false;
+                WandererCompanionOverrides[subkey]=n;
+                return true;
             }
             if (key.StartsWith("SpouseStat.",StringComparison.Ordinal))
             {
@@ -549,6 +672,151 @@ namespace CalradiaUnified
                 error="Choose a supported early household and ambition.";
                 return false;
             }
+            if(KingGuidedStart)
+            {
+                string king=SandboxKingStartPolicy.ValidateRequest(
+                    Role,StartingKingdomId,NobleBirthPosition,
+                    NobleElderHeroId,ServicePatronHeroId,
+                    RoleAffiliationsEnabled,RetinueMode,StartingFiefMode,
+                    StartingFiefId,AllowStartingFiefTransfer,Gold,
+                    Influence,Troops,KingSuccessionRule);
+                if(king.Length==0)
+                    king=SandboxKingStartPolicy.ValidateRequiredRoyalFamily(
+                        SpouseEnabled,ChildCount);
+                if(king.Length!=0 || LordGuidedStart ||
+                   KnightGuidedStart || SoldierGuidedStart ||
+                   MercenaryGuidedStart || OutlawGuidedStart ||
+                   WandererNoHouseStart)
+                {
+                    error="Guided King: "+(king.Length==0?
+                        "cannot combine incompatible life starts":king);
+                    return false;
+                }
+            }
+            if(LordGuidedStart)
+            {
+                string lord=SandboxLordStartPolicy.ValidateRequest(
+                    Role,StartingKingdomId,NobleBirthPosition,
+                    RetinueMode,StartingFiefMode,StartingFiefId,
+                    AllowStartingFiefTransfer,Gold,Influence,Troops,
+                    RoleAffiliationsEnabled,NobleElderHeroId,
+                    ServicePatronHeroId);
+                if(lord.Length==0)
+                    lord=SandboxLordStartPolicy.ValidateRequiredFamily(
+                        SpouseEnabled,ChildCount);
+                if(lord.Length==0)
+                    lord=SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                        SpouseBackground,SpouseBirthClanId);
+                if(lord.Length==0 &&
+                    !SandboxLordSuccessionPolicy.IsRule(LordSuccessionRule))
+                    lord="unknown_lord_succession_custom";
+                if(lord.Length!=0 || KnightGuidedStart ||
+                   SoldierGuidedStart || MercenaryGuidedStart ||
+                   OutlawGuidedStart || WandererNoHouseStart)
+                {
+                    error="Guided Lord: "+(lord.Length==0?
+                        "cannot combine incompatible life starts":lord);
+                    return false;
+                }
+            }
+            if(KnightGuidedStart)
+            {
+                string knight=SandboxKnightStartPolicy.ValidateRequest(
+                    KnightOrigin,StartingKingdomId,SiblingCount);
+                if(Role!="Knight" || SoldierGuidedStart ||
+                   MercenaryGuidedStart || OutlawGuidedStart ||
+                   WandererNoHouseStart || RoleAffiliationsEnabled ||
+                   NobleBirthPosition!="Independent" ||
+                   !String.IsNullOrEmpty(NobleElderHeroId) ||
+                   StartingFiefMode!="Native" ||
+                   !String.IsNullOrEmpty(StartingFiefId) ||
+                   AllowStartingFiefTransfer ||
+                   (RetinueMode!="FamilyOnly" && RetinueMode!="RoleBased") ||
+                   Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                   (SpouseEnabled && FamilyHomeMode!="None") ||
+                   knight.Length!=0)
+                {
+                    error="Guided Knight: "+(knight.Length==0?
+                        "independent sworn house needs no native fief, "
+                        +"political title or invented subsidy":knight);
+                    return false;
+                }
+            }
+            if(SoldierGuidedStart &&
+                (Role!="Soldier" || MercenaryGuidedStart ||
+                 OutlawGuidedStart || WandererNoHouseStart ||
+                 KnightGuidedStart || SiblingCount!=0 ||
+                 !SandboxSoldierEnlistmentPolicy.IsEntryRank(
+                     SoldierEntryRank) ||
+                 String.IsNullOrEmpty(StartingKingdomId) ||
+                 RoleAffiliationsEnabled ||
+                 NobleBirthPosition!="Independent" ||
+                 !String.IsNullOrEmpty(NobleElderHeroId) ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native" ||
+                 !String.IsNullOrEmpty(StartingFiefId) ||
+                 AllowStartingFiefTransfer ||
+                 Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Soldier requires a real external enlisted "+
+                    "lord, three valid requested entry ranks and an "+
+                    "independent landless native start. SaS owns rank "+
+                    "and wages. No invented troops or noble residence.";
+                return false;
+            }
+            if(MercenaryGuidedStart &&
+                (Role!="Mercenary" || WandererNoHouseStart ||
+                 OutlawGuidedStart || RoleAffiliationsEnabled ||
+                 String.IsNullOrEmpty(StartingKingdomId) ||
+                 NobleBirthPosition!="Independent" ||
+                 !String.IsNullOrEmpty(NobleElderHeroId) ||
+                 !String.IsNullOrEmpty(ServicePatronHeroId) ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native" ||
+                 !String.IsNullOrEmpty(StartingFiefId) ||
+                 AllowStartingFiefTransfer ||
+                 Gold!=-1 || Influence!=-1 || Troops!=0 ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Mercenary needs a named kingdom, genuine "+
+                    "native paid-company contract, no fief or custom "+
+                    "troop subsidy, and no invented noble residence.";
+                return false;
+            }
+            if(OutlawGuidedStart &&
+                (Role!="Outlaw" || WandererNoHouseStart ||
+                 NobleBirthPosition!="Independent" ||
+                 StartingKingdomId!="" ||
+                 StartingFiefMode!="Native" ||
+                 AllowStartingFiefTransfer ||
+                 RetinueMode!="RoleBased" || Troops!=0 ||
+                 (SpouseEnabled && FamilyHomeMode!="None")))
+            {
+                error="Guided Outlaw must begin as an independent "+
+                    "landless bandit with one verified lieutenant. "+
+                    "Family has no owned estate at start.";
+                return false;
+            }
+            if(WandererNoHouseStart &&
+                (Role!="Wanderer" || RealFamilyEnabled ||
+                 SpouseEnabled || ChildCount!=0 || SiblingCount!=0 ||
+                 NobleBirthPosition!="Independent" ||
+                 RetinueMode!="FamilyOnly" ||
+                 StartingFiefMode!="Native"))
+            {
+                error="Wanderer-only start cannot request a House, "+
+                    "noble lineage, fief or native court.";
+                return false;
+            }
+            if(WandererCompanionEnabled &&
+                (!WandererNoHouseStart || Role!="Wanderer" ||
+                 !PersonName(WandererCompanionName)))
+            {
+                error="Optional Wanderer companion needs the new "+
+                    "Wanderer start and a valid name.";
+                return false;
+            }
             int playerAge = PlayerAge >= 18 ? PlayerAge : actualPlayerAge;
             if (playerAge < 18 || playerAge > 100)
             {
@@ -576,6 +844,14 @@ namespace CalradiaUnified
             if(homeStationError.Length>0)
             {
                 error=homeStationError;
+                return false;
+            }
+            if(WandererCompanionOverrides.Any(kv=>
+                !SandboxStatBudgetPolicy.InRange(kv.Key,kv.Value)) ||
+                (WandererCompanionOverrides.Count>0 &&
+                 (!WandererNoHouseStart || !WandererCompanionEnabled)))
+            {
+                error="Invalid optional Wanderer companion stats.";
                 return false;
             }
             if (SpouseOverrides.Any(kv=>
@@ -644,6 +920,11 @@ namespace CalradiaUnified
                 ", ambition=" + PersonalAmbition +
                 ", household_scenario=" + FamilyScenario +
                 ", children=" + ChildCount + ", siblings=" + SiblingCount +
+                ", knight_origin=" + (KnightGuidedStart?KnightOrigin:"legacy") +
+                ", guided_lord=" + LordGuidedStart +
+                ", lord_succession_rule=" + LordSuccessionRule +
+                ", guided_king=" + KingGuidedStart +
+                ", king_succession_rule=" + KingSuccessionRule +
                 ", noble_birth=" + NobleBirthPosition +
                 ", commanding_lord=" + ServicePatronHeroId +
                 ", retinue=" + RetinueMode +
@@ -726,12 +1007,40 @@ namespace CalradiaUnified
                 "NobleBirthPosition=" + NobleBirthPosition,
                 "NobleElderHeroId=" + NobleElderHeroId,
                 "ServicePatronHeroId=" + ServicePatronHeroId,
-                "RetinueMode=" + RetinueMode
+                "RetinueMode=" + RetinueMode,
+                "WandererNoHouseStart=" +
+                    WandererNoHouseStart.ToString().ToLowerInvariant(),
+                "OutlawGuidedStart=" +
+                    OutlawGuidedStart.ToString().ToLowerInvariant(),
+                "MercenaryGuidedStart=" +
+                    MercenaryGuidedStart.ToString().ToLowerInvariant(),
+                "SoldierGuidedStart=" +
+                    SoldierGuidedStart.ToString().ToLowerInvariant(),
+                "SoldierEntryRank=" + SoldierEntryRank,
+                "KnightGuidedStart=" +
+                    KnightGuidedStart.ToString().ToLowerInvariant(),
+                "KnightOrigin=" + KnightOrigin,
+                "LordGuidedStart=" +
+                    LordGuidedStart.ToString().ToLowerInvariant(),
+                "LordSuccessionRule=" + LordSuccessionRule,
+                "KingGuidedStart=" +
+                    KingGuidedStart.ToString().ToLowerInvariant(),
+                "KingSuccessionRule=" + KingSuccessionRule,
+                "WandererCompanionEnabled=" +
+                    WandererCompanionEnabled.ToString().ToLowerInvariant(),
+                "WandererCompanionName=" + WandererCompanionName,
+                "WandererCompanionAge=" + WandererCompanionAge,
+                "WandererCompanionGender=" + WandererCompanionGender,
+                "WandererCompanionSpecialty=" + WandererCompanionSpecialty,
+                "WandererCompanionSkill=" + WandererCompanionSkill
             };
             foreach (var pair in Overrides)
                 lines.Add(pair.Key + "=" + pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach(var pair in SpouseOverrides)
                 lines.Add("SpouseStat."+pair.Key+"="+
+                    pair.Value.ToString(CultureInfo.InvariantCulture));
+            foreach(var pair in WandererCompanionOverrides)
+                lines.Add("WandererCompanionStat."+pair.Key+"="+
                     pair.Value.ToString(CultureInfo.InvariantCulture));
             foreach (var pair in ItemIds)
                 lines.Add("Item." + pair.Key + "=" + pair.Value);
