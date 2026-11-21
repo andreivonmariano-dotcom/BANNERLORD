@@ -49,6 +49,9 @@ jobs:
       - name: Regress v064 Starting Life dossier, genealogy preflight and Living Persons
         shell: pwsh
         run: python scripts/test_v064_life_dossier_and_family_integrity.py
+      - name: Regress v065 starting flow, native career, relationship memory and succession
+        shell: pwsh
+        run: python scripts/test_v065_service_relationship_succession_audit.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |

@@ -211,6 +211,57 @@ internal static class Program
             replayedChronicle.Serialize()==packedChronicle &&
             SandboxLifeHistoryState.Parse("invalid version")
                 .People.Count==0);
+        var career=new SandboxServiceCareerState();
+        career.Start("Soldier","lord_vlandia","vlandia");
+        string careerMilestone="";
+        for(int d=0;d<30;d++)
+            careerMilestone=career.Observe(true,true,100+d*5);
+        Check("native service contract records tenure, never invents wages",
+            career.Status=="Active" &&
+            career.DaysInService==30 &&
+            careerMilestone=="thirty_days_service_recorded" &&
+            career.Milestone==30 &&
+            career.PayAuthority=="NativeGame" &&
+            career.LastObservedGoldChange==5);
+        var careerSaved=SandboxServiceCareerState.Parse(
+            career.Serialize());
+        Check("service tenure survives save and detects lost native patronage",
+            careerSaved.PatronId=="lord_vlandia" &&
+            careerSaved.DaysInService==30 &&
+            careerSaved.Observe(true,false,120)=="native_contract_changed" &&
+            careerSaved.Status=="NativeContractChanged" &&
+            SandboxServiceCareerState.Parse("wrong").IsConfigured==false);
+        var observed=new SandboxSocialObservationState();
+        var firstObservation=observed.Observe("family_sibling",42);
+        var changedRelation=observed.Observe("family_sibling",55);
+        Check("social memory records observed native changes only",
+            firstObservation==null &&
+            changedRelation!=null &&
+            changedRelation.Before==42 &&
+            changedRelation.After==55 &&
+            observed.Observe("family_sibling",55)==null &&
+            SandboxSocialObservationState.Parse(observed.Serialize())
+                .NativeRelations["family_sibling"]==55);
+        var potentialClaim=new SandboxSuccessionInterestState();
+        potentialClaim.Record("younger_son","native_father",
+            "native_mother","father_clan",1,true);
+        Check("succession stays an expectation, never transfers estates",
+            potentialClaim.IsRecorded &&
+            potentialClaim.Status=="PotentialFamilyInterest" &&
+            potentialClaim.Observe(false)==
+                "parent_death_observed_native_ownership_unchanged" &&
+            potentialClaim.Status=="ReviewNativeSuccession" &&
+            SandboxSuccessionInterestState.Parse(
+                potentialClaim.Serialize()).Status=="ReviewNativeSuccession");
+        var recentlyObserved=new SandboxLifeHistoryState();
+        for(int e=0;e<SandboxLifeHistoryState.MaxEvents+7;e++)
+            recentlyObserved.Remember("Observed"+e,"hero","lord","native");
+        Check("long campaigns keep recent memories instead of freezing",
+            recentlyObserved.Events.Count==SandboxLifeHistoryState.MaxEvents &&
+            recentlyObserved.Events[0].Kind=="Observed7" &&
+            recentlyObserved.Events[
+                SandboxLifeHistoryState.MaxEvents-1].Kind==
+                    "Observed"+(SandboxLifeHistoryState.MaxEvents+6));
         var autoHouse=new SandboxOriginProfile();
         autoHouse.Role="Lord";
         SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");
