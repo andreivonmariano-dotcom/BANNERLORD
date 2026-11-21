@@ -186,7 +186,7 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
-                    "Wanderer, Outlaw / Bandit and Mercenary are the three reviewed starts. Mercenary serves a chosen kingdom with a real native contract. Other roles remain legacy selections.",
+                    "Wanderer, Outlaw / Bandit, Mercenary and Soldier are the four reviewed starts. Soldier is true enlisted service through the native SaS provider, not a mercenary clan. Other roles are legacy selections.",
                     choices:SandboxOriginProfile.Roles));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "SoldierEntryRank","Requested service entry",
