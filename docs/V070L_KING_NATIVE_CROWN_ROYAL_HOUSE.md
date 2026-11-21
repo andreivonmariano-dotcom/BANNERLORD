@@ -55,3 +55,21 @@ The read-only `SandboxKingSuccessionState` persists native founder Hero ID, init
 - If a verified native API does not support direct succession, keep the no-transfer boundary and report it accurately.
 
 **Build result is Gate B only** until live native acceptance. PR #93 stays draft. Do not merge, rename the historical v0.38.0 compiled package as a live verified release or update the installed installer pin.
+
+## v0.70m | Mandatory dynasty and three-office court, pinned Windows gate
+
+The user revised King after v0.70l: marriage and **at least one native biological child are mandatory**, not optional. The normal House flow presets both requirements and exposes the spouse name and first child name. Profiles and House confirmation refuse a childless or unmarried guided King. After native family creation and before any governor/court grants, a separate King family gate verifies a living reciprocal spouse, same player clan, and each requested child's real `Hero.Mother`, `Hero.Father`, reciprocal parent `Children`, culture-compatible generated identity and exact requested birth age. Older King profiles remain unchanged.
+
+The guided court is now three **distinct native Hero companions**: a culturally trained Marshal and Kingsguard in the main party, and a Royal Minister at a genuine native governorship. The minister is recruited into the clan but not inserted into the party troop roster. The game-native `ChangeGovernorAction.Apply` is used on a deterministic unoccupied town or castle already held by the ruling clan. `Hero.GovernorOf` and `Town.Governor` must agree, the fief remains owned by the player clan, and the minister remains a real active clan companion. If every native player fief already has a governor, the guided King start is refused at preflight without firing an existing governor. The office names and combat/stewardship training are culture-specific. Only native action results count, not a decorative court title.
+
+- **Final pinned Windows CI:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44892404942
+- **Exact compiled source:** `80d3ea6986b132dc341ab91eb275aeaea8611a09`
+- **Independent gameplay-policy checks:** **1,057 passed**.
+- **New King native-crown, required-family, three-office and governor source regression:** **passed**.
+- **Deterministic campaign-model audit:** **210,240 modeled campaign days, 1,159,206 assertions and 7,488 checkpoints**.
+- **Pinned game-reference compiler:** **0 errors and 0 warnings**.
+- **DLL SHA256:** `a8559e967162aef92f5649ed318e7cf929fd26d23d354c6f1b37d725e9f6b856`.
+- **Compiled, game-untested candidate:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44892404942/artifacts/14702815878 . The historical internal v0.38.0 label has not changed.
+- **Gate remains B:** No live Bannerlord new-game start, real governor settlement placement, native army role, royal biological family, real crown succession, capture/death or save/quit/reload has been verified. The Marshal and Kingsguard are native party Hero companions, not automatically assigned independent army command or a permanent bodyguard unit. Royal Minister's governor link compiles and is source checked but must be observed in game. No vassal, fief, sovereign or regency rewrite is claimed.
+
+PR #93 remains draft and unmerged. The installed candidate pin is unchanged, and no new live-tested release is declared.
