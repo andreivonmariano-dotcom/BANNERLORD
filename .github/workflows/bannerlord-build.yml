@@ -52,6 +52,9 @@ jobs:
       - name: Regress v065 starting flow, native career, relationship memory and succession
         shell: pwsh
         run: python scripts/test_v065_service_relationship_succession_audit.py
+      - name: Regress v066 native landless careers, external enlistment and simulated culture contracts
+        shell: pwsh
+        run: python scripts/test_v066_realistic_life_paths.py
       - name: Self-test native Review screenshot chrome comparison
         shell: pwsh
         run: |

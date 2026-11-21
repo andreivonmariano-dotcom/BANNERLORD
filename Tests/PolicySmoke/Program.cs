@@ -262,6 +262,147 @@ internal static class Program
             recentlyObserved.Events[
                 SandboxLifeHistoryState.MaxEvents-1].Kind==
                     "Observed"+(SandboxLifeHistoryState.MaxEvents+6));
+        Check("native landless beginnings never confer a fief or kingdom",
+            SandboxCustomLifeRolePolicy.IsLandless("NobleCadet") &&
+            SandboxCustomLifeRolePolicy.IsLandless("Recruit") &&
+            SandboxCustomLifeRolePolicy.IsLandless("HouseholdKnight") &&
+            !SandboxCustomLifeRolePolicy.IsLandless("Lord") &&
+            SandboxCustomLifeRolePolicy.NativeLandlessContract(false,0) &&
+            !SandboxCustomLifeRolePolicy.NativeLandlessContract(true,0) &&
+            !SandboxCustomLifeRolePolicy.NativeLandlessContract(false,1) &&
+            SandboxNobleStartPolicy.ValidForRole(
+                "SecondSonOfLord","NobleCadet") &&
+            !SandboxNobleStartPolicy.ValidForRole(
+                "Independent","NobleCadet"));
+        var landlessPlan=new SandboxOriginProfile();
+        landlessPlan.TrySet("Role","NobleCadet");
+        landlessPlan.TrySet("StartingKingdomId","vlandia");
+        landlessPlan.TrySet("NobleBirthPosition","SecondSonOfLord");
+        Check("native landless cadet keeps valid birth without a fief",
+            landlessPlan.IsValid(20,out var landlessError) &&
+            SandboxOriginProfile.Parse(landlessPlan.Serialize())
+                .Role=="NobleCadet" &&
+            SandboxStartingLifePolicy.Station("NobleCadet",
+                "SecondSonOfLord")=="UnlandedDynasticCadet" &&
+            SandboxStartingLifePolicy.Dossier("NobleCadet",
+                "SecondSonOfLord","Auto","Auto").Contains("Landless"));
+        var recruitPlan=new SandboxOriginProfile();
+        recruitPlan.TrySet("Role","Recruit");
+        recruitPlan.TrySet("StartingKingdomId","vlandia");
+        Check("recruit and household knight are independent applicants",
+            recruitPlan.IsValid(20,out var recruitError) &&
+            SandboxServicePolicy.NeedsPatron("Recruit") &&
+            SandboxServicePolicy.NeedsPatron("HouseholdKnight") &&
+            SandboxServicePolicy.DefaultRetinue("Recruit")=="FamilyOnly" &&
+            SandboxServicePolicy.DefaultRetinue("HouseholdKnight")==
+                "FamilyOnly" &&
+            SandboxStartingLifePolicy.Station("Recruit","Independent")==
+                "ProspectiveEnlistedRecruit");
+        var pending=new SandboxServiceCareerState();
+        pending.Start("Recruit","native_lord","vlandia");
+        Check("pending recruit receives no fake wages tenure or rank",
+            pending.IsConfigured &&
+            pending.Status=="PendingEnlistment" &&
+            pending.Observe(true,true,500)=="pending_enlistment" &&
+            pending.DaysInService==0 &&
+            pending.Milestone==0);
+        Check("external API alone verifies actual enlisted rank and wage",
+            pending.ObserveExternal("native_lord","private",
+                "guard_duty",12,7,83,true)==
+                "external_enlistment_verified" &&
+            pending.Status=="EnlistedActive" &&
+            pending.VerifiedExternalEnlistment &&
+            pending.PayAuthority=="ServeAsSoldier" &&
+            pending.ExternalDailyWage==12 &&
+            pending.DaysInService==7 &&
+            pending.ExternalInsideHostParty);
+        var afterEnlist=SandboxServiceCareerState.Parse(
+            pending.Serialize());
+        Check("verified external service survives saved dossier",
+            afterEnlist.IsConfigured &&
+            afterEnlist.ExternalRank=="private" &&
+            afterEnlist.ExternalDuty=="guard_duty" &&
+            afterEnlist.ExternalDailyWage==12 &&
+            afterEnlist.Serialize()==pending.Serialize() &&
+            afterEnlist.ObserveExternalAbsent()==
+                "external_service_ended_observed" &&
+            !afterEnlist.VerifiedExternalEnlistment);
+        var firstKinGoal=SandboxGeneratedCharacterGoalPolicy.Goal(
+            "vlandia","RecordedSibling","HouseholdSoldier",true,true);
+        var siblingAgenda=new SandboxCharacterAgendaState();
+        siblingAgenda.Register("brother","ProtectSharedHousehold","",
+            "Unverified","HouseholdSoldier","vlandia","clanA");
+        int friendship=0;
+        for(int day=0;day<150;day++)
+            friendship+=siblingAgenda.ObserveComradeship(
+                "brother",true,true,true,10+friendship);
+        Check("family companionship influences bounded native relations",
+            firstKinGoal=="ProtectSharedHousehold" &&
+            friendship==5 &&
+            siblingAgenda.Get("brother").ComradeshipAwards==5 &&
+            SandboxCharacterAgendaState.Parse(
+                siblingAgenda.Serialize()).Get("brother")
+                    .ComradeshipAwards==5);
+        var fixedHomes=new SandboxCharacterAgendaState();
+        fixedHomes.Register("sister","PreserveFamilyPosition",
+            "castle_a","NativeHomeSettlement",
+            "HouseholdNoble","vlandia","birth_clan");
+        Check("real household homes update from native location",
+            fixedHomes.ObserveHome("sister","castle_b",
+                "NativeCurrentSettlement")=="native_home_changed" &&
+            SandboxCharacterAgendaState.Parse(
+                fixedHomes.Serialize()).Get("sister")
+                    .HomeId=="castle_b" &&
+            fixedHomes.ObserveComradeship(
+                "sister",true,true,true,10)==0);
+        Check("six cultures use distinct succession expectations without transfer",
+            new[]{"vlandia","sturgia","battania","empire",
+                "aserai","khuzait"}
+                .Select(SandboxCulturalInheritancePolicy.Model)
+                .Distinct().Count()==6 &&
+            !SandboxCulturalInheritancePolicy
+                .CanTransferEstateWithoutNativeAction() &&
+            SandboxCulturalInheritancePolicy.ClaimPriority(
+                "vlandia",0,true,true,50,30) >
+            SandboxCulturalInheritancePolicy.ClaimPriority(
+                "vlandia",2,true,true,50,30));
+        var culturalClaim=new SandboxSuccessionInterestState();
+        culturalClaim.Record("cadet","father","mother",
+            "birth_clan",1,true);
+        culturalClaim.SetCulture("khuzait",3);
+        Check("culture-specific claim survives save and legacy migration",
+            culturalClaim.CustomaryModel=="ClanCoalition" &&
+            culturalClaim.PriorityScore==-1 &&
+            SandboxSuccessionInterestState.Parse(
+                culturalClaim.Serialize()).CustomaryModel==
+                    "ClanCoalition" &&
+            SandboxSuccessionInterestState.Parse(
+                "CU_SUCCESSION_1\\ncadet|father|mother|clan|1|True|PotentialFamilyInterest")
+                .IsRecorded);
+        var medievalStress=SandboxMedievalLifeSimulation.Run(96,3650);
+        Console.WriteLine("MEDIEVAL LIFE SIMULATION "+
+            (medievalStress.Failures==0?"PASS":"FAIL")+
+            " | seeds="+medievalStress.Seeds+
+            " | days_per_seed="+medievalStress.Days+
+            " | checks="+medievalStress.Checks+
+            " | landless_cases="+medievalStress.LandlessCases+
+            " | regions="+medievalStress.RegionCases+
+            " | external_enlistments="+medievalStress.ExternalEnlistments+
+            " | shared_service_awards="+medievalStress.ComradeshipAwards+
+            " | parent_deaths="+medievalStress.ParentDeaths+
+            " | reloads="+medievalStress.SaveReloads+
+            " | first_failure="+medievalStress.FirstFailure);
+        Check("96 seeds through 3650 days satisfy medieval start invariants",
+            medievalStress.Failures==0 &&
+            medievalStress.Checks>600000 &&
+            medievalStress.LandlessCases==72 &&
+            medievalStress.RegionCases==96 &&
+            medievalStress.ExternalEnlistments==24 &&
+            medievalStress.ParentDeaths==96 &&
+            medievalStress.ComradeshipAwards>0 &&
+            medievalStress.SaveReloads>5000 &&
+            medievalStress.NativeWagesGranted==0 &&
+            medievalStress.NativeFiefsTransferred==0);
         var autoHouse=new SandboxOriginProfile();
         autoHouse.Role="Lord";
         SandboxAutoHousePlan.Prepare(autoHouse,"vlandia",43,false,"Cassian");
