@@ -31,6 +31,9 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Simulate active creator controls and hit boxes at three viewports
+        shell: pwsh
+        run: python scripts/simulate_v069e_creator_hitboxes.py
       - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
         shell: pwsh
         run: python scripts/test_v060_noble_start_and_retinue.py
@@ -306,6 +309,16 @@ jobs:
         run: |
           dotnet run --project Tests/CampaignSimulator/CampaignSimulator.csproj --configuration Release -- --seed 157 --runs 40 --days 365 --json BuildResults/campaign-simulation.json 2>&1 | Tee-Object -FilePath BuildResults/campaign-simulation.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Simulate existing campaign systems for 96 seeds x 730 model days
+        shell: pwsh
+        run: |
+          dotnet run --no-build --project Tests/CampaignSimulator/CampaignSimulator.csproj --configuration Release -- --seed 20261121 --runs 96 --days 730 --json BuildResults/audit-campaign-stress.json 2>&1 | Tee-Object -FilePath BuildResults/audit-campaign-stress.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Simulate 12-role creator and family-NPC save policy stability
+        shell: pwsh
+        run: |
+          dotnet run --project Tests/AuditSimulator/AuditSimulator.csproj --configuration Release -- --json BuildResults/audit-personal-stress.json 2>&1 | Tee-Object -FilePath BuildResults/audit-personal-stress.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore pinned game references from NuGet
         shell: pwsh
         run: |
@@ -436,6 +449,11 @@ jobs:
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
+            BuildResults/audit-campaign-stress.json
+            BuildResults/audit-campaign-stress.log
+            BuildResults/audit-personal-stress.json
+            BuildResults/audit-personal-stress.log
+            BuildResults/v069e_creator_hitbox_simulation.json
             BuildResults/policy-tests.log
           if-no-files-found: ignore
       - name: Upload build diagnostics
