@@ -1205,6 +1205,32 @@ namespace CalradiaUnified
                     (hero.Spouse!=null &&
                      SandboxFamilyAgePolicy.MatchesRequestedAge(
                          hero.Spouse.Age,profile.SpouseAge));
+                bool spouseIdentityMatches=!profile.SpouseEnabled ||
+                    (hero.Spouse!=null &&
+                     hero.Spouse.Name.ToString()==profile.SpouseName);
+                if(!spouseIdentityMatches)
+                    failures=failures.Concat(new[]{
+                        "requested_spouse_identity_mismatch"}).ToArray();
+                if(profile.RealFamilyEnabled &&
+                    (family.StartsWith("partial:",StringComparison.Ordinal) ||
+                     family.StartsWith("refused:",StringComparison.Ordinal) ||
+                     family.StartsWith("invalid",StringComparison.Ordinal)))
+                    failures=failures.Concat(new[]{
+                        "family_creation_incomplete"}).ToArray();
+                if(profile.StartingFiefMode!="Native" &&
+                    (fiefOutcome.StartsWith("refused:",StringComparison.Ordinal) ||
+                     fiefOutcome.StartsWith("failed:",StringComparison.Ordinal)))
+                    failures=failures.Concat(new[]{
+                        "starting_fief_request_unfulfilled"}).ToArray();
+                if((profile.RetinueMode=="RoleBased" ||
+                    profile.RetinueMode=="ReplaceNative") &&
+                    !retinue.StartsWith("officers=",StringComparison.Ordinal))
+                    failures=failures.Concat(new[]{
+                        "cultural_retinue_not_applied"}).ToArray();
+                if(profile.RetinueMode=="FamilyOnly" &&
+                    !retinue.StartsWith("officers=0",StringComparison.Ordinal))
+                    failures=failures.Concat(new[]{
+                        "family_only_retinue_not_applied"}).ToArray();
                 var unmatched=hero.Children==null ?
                     new Hero[0].ToList() :
                     hero.Children.Where(x=>x!=null).ToList();
