@@ -68,3 +68,15 @@ The guided Lord creator now preselects **married** and **one child**. The spouse
 **Native political boundary:** These rules rank household claims, not legal entitlements or actual property ownership. `Clan.Leader`, settlement ownership, kingdom-election systems and native regency are not silently rewritten. On the founder's death, the mod reports whether the observed native clan leader is the preferred child, someone else, or unverified, without inventing a transfer. A tested, safe native succession action and live save/reload proof are still required for an enforced transfer. The guided Lord's status remains Gate B until true game acceptance.
 
 **Extra live checks:** Vlandian and other cultures with eligible married native in-laws, NobleChosen exact-clan selection, no eligible native parents (must refuse), noble parent death, both inheritance customs, eldest daughter and younger son, minor inheritor, claimant death, native leadership change, founder death, and save/quit/reload. Verify no second clan owner, no fief or political standing granted by household claim order, and no mutation of unrelated noble families.
+
+## v0.70k | Pinned Windows verification (21 November 2026)
+
+- **Final passing source run:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44889522117
+- **Exact compiled source commit:** `ffaaeee47b84c3c590d7a1be8072c746e41f7e9c`.
+- **Source-only regressions:** the new native noble-marriage and save-backed heir rule check passed, together with the earlier Lord, Knight, Soldier, Mercenary, Outlaw and Wanderer checks.
+- **C# independent gameplay policies:** **1,037 checks passed**.
+- **Model audit:** 210,240 modeled campaign days, 1,159,206 assertions and 7,488 checkpoints.
+- **Pinned Bannerlord reference compile:** **0 errors, 0 warnings**.
+- **Compiled DLL SHA-256:** `74d724975ca7e0fbdb4f88b01324323f22291a485587924a493e4e679b48acf1`.
+- **Compiled, game-untested artifact:** https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44889522117/artifacts/14700839648
+- **Exact acceptance limit:** Gate B. The separate experimental native-clan reflection probe remains inconclusive, and the required Lord noble in-laws, Native Hero origin-clan retention, character-creator UI, young-heir claims, live death succession, and actual campaign save/reload still require real-game evidence. No automatic clan/fief transfer has been implemented. Draft PR #93 remains unmerged, and the installed artifact pin remains unchanged.
