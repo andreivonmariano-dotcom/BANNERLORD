@@ -179,6 +179,19 @@ namespace CalradiaUnified
             if(SandboxServicePolicy.NeedsPatron(p.Role) &&
                 !SandboxServicePatron.HasNativePatron(p,player))
                 return "service:no_eligible_native_patron";
+            if(p.LordGuidedStart)
+            {
+                string inlaws=SandboxGeneratedSpouseOrigin
+                    .PreflightGuidedLord(p,player);
+                DiagnosticJournal.Event("cu_lord_native_inlaws_preflight",
+                    "result="+(inlaws.Length==0?"PASS":"FAIL")+
+                    "|reason="+inlaws+
+                    "|background="+p.SpouseBackground+
+                    "|chosen_clan="+p.SpouseBirthClanId+
+                    "|native_married_noble_parents_required=true"+
+                    "|no_marriage_or_clan_changes=true");
+                if(inlaws.Length>0)return "lord_noble_spouse:"+inlaws;
+            }
             if(p.SpouseEnabled && !player.CanMarry())
                 return "marriage:native_player_not_eligible";
             return "";
