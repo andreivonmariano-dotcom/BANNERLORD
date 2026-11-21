@@ -1,6 +1,6 @@
 # v0.69e | Q1 Q2 Q3 | Existing features simulated QA
 
-**Decision, 21 November 2026:** User requested all three audit tracks by **simulations** before adding new gameplay. This is a test-only continuation of the [current feature and visual acceptance freeze](V069E_CURRENT_FEATURES_GAME_UI_AUDIT_GATE.md). No new C# mod behavior, Gauntlet prefab, game start, character feature, native world modifier or module manifest change is requested or implemented here.
+**Decision, 21 November 2026:** User requested all three audit tracks by **simulations** before adding new gameplay. This is a test-only continuation of the [current feature and visual acceptance freeze](V069E_CURRENT_FEATURES_GAME_UI_AUDIT_GATE.md). No new gameplay feature, Gauntlet prefab, character option, native world modifier or module manifest is introduced. A later source audit uncovered one bounded P1 **existing grant-validation defect**, now repaired in the runtime's pure Start Contract policy. See the stabilization follow-up below.
 
 ## Evidence classes
 
@@ -44,3 +44,14 @@ Compiled pinned Bannerlord 1.5.7.125802 module: **0 compiler warnings, 0 errors*
 - [Full run and job steps](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44862791276)
 
 **Audit verdict:** All configured models, policy assertions, generated XML hitbox cases, compilation and Windows packaging tests passed. Highest completed actual-gate level remains **B**. No live game boot, actual rendered screenshot, Gauntlet focus/click/drag, native party traversal, in-game 30-day run or game save/quit/reload was exercised by CI. All applicable gate C–G in-game tests remain **NOT RUN**. Keep PR #93 draft, preserve the user-requested feature freeze and gather current-version actual game evidence before repairing unconfirmed visual problems or resuming Q1/Q2/Q3 feature growth.
+
+
+## Stabilization follow-up: P1 retinue grant-validation defect
+
+**Source-confirmed finding:** The older `SandboxStartContract.RetinueReadyForOtherGrants` accepted any nonzero string starting with `officers=` as a completed custom retinue. It did not demand the native `native_companions_dismissed` and `same_culture` success fields. That weakened the phase-9 fail-closed protection for optional starting money, troops and equipment. The older `FamilyOnly` check likewise accepted `officers=0|` without requiring `family_only=true` or a valid native dismissal count.
+
+**Scoped repair:** `SandboxStartContract` now accepts only the actual three-field receipts produced by `SandboxCulturalRetinue.TryCreate`: exact `native_companions_preserved` for Native, `officers=0|native_companions_dismissed=0/1|family_only=true` for FamilyOnly, or strictly positive officer count plus `native_companions_dismissed=0/1|same_culture=true` for RoleBased/ReplaceNative. Malformed, partial, extra-field, invalid-count and unknown-mode results refuse later discretionary grants. No new clan companion creation, dismissal, reward, screen or player-facing feature was added.
+
+**New regression coverage:** The C# policy smoke suite exercises valid and invalid receipts. `Tests/AuditSimulator` includes the actual `SandboxStartContract.cs` and tests **20,000** model combinations across positive, incomplete, extended and wrong-mode receipts. The phase-9 Python source order gate now checks the full receipt parse. Windows CI rechecks the existing campaign, UI XML and game-assembly build.
+
+**Verification status at authoring:** A new CI head with this scoped runtime change is pending. The earlier successful 44862791276 artifact predates this repair and must not be described as containing it. Replace the evidence hashes only with values from a newer successful compiled run. Real in-game companion replacement and later grants still require direct Windows game acceptance.
