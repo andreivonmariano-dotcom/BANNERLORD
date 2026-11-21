@@ -133,6 +133,7 @@ namespace CalradiaUnified
                 if(kind.Length==0)continue;
                 if(agencyDecisions.Propose(hero.StringId,kind))
                 {
+                    RememberPetitionStory(hero,kind);
                     livingPersons.Remember("IndependentCharacterRequest",
                         hero.StringId,player.StringId,
                         "kind="+kind+
@@ -280,6 +281,8 @@ namespace CalradiaUnified
                 "|relation_proof="+relationProof+
                 "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
+            ResolvePetitionStory(actor,accept,kind,
+                giftProof=="confirmed",actualRelation,relationProof);
             // A confirmed payment must never be duplicated if a following
             // native relation action fails. The choice is terminal.
             agencyDecisions.Dismiss(relationProof?
