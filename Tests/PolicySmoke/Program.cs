@@ -855,7 +855,7 @@ internal static class Program
             "Soldier","Recruit","HouseholdKnight","Knight",
             "NobleCadet","Lord","King","Admiral","Trader","Beggar"};
         var auditStarts=new[]{"default","outlaw","mercenary",
-            "default","mercenary","default","vassal","default",
+            "mercenary","default","default","vassal","default",
             "vassal","king","fleetadmiral","trader","beggar"};
         Check("all 13 compatible roles map to one exact native start",
             SandboxOriginProfile.Roles.Length==auditRoles.Length &&
