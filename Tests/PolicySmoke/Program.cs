@@ -125,6 +125,16 @@ internal static class Program
                 "lord_child_required" &&
             !guidedLord.IsValid(30,out _));
         guidedLord.ChildCount=1;
+        Check("guided Lord rejects commoner spouse and invalid noble ID",
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "Commoner","")=="lord_spouse_requires_native_noble_house" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleChosen","")=="lord_named_noble_house_required" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleRandom","")=="" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleChosen","clan_royal")=="");
+        guidedLord.SpouseBackground="NobleRandom";
         Check("guided Lord needs real marriage and exact native parentage",
             SandboxLordStartPolicy.ValidateRequiredFamily(true,1)=="" &&
             SandboxLordStartPolicy.ValidateObservedFamily(
@@ -135,6 +145,24 @@ internal static class Program
                 true,false,1,1)=="native_lord_marriage_missing" &&
             SandboxLordStartPolicy.ValidateObservedFamily(
                 true,true,2,1)=="native_lord_children_or_parentage_missing");
+        Check("guided Lord native in-laws cannot be decorative",
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                false,true,true,true,true)==
+                    "native_noble_birth_house_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,true,true,true)==
+                    "native_noble_married_parents_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,false,true,true)==
+                    "native_noble_parentage_unverified" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,false,true)==
+                    "native_noble_origin_clan_mismatch" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,true,false)==
+                    "native_chosen_noble_house_mismatch");
         Check("guided Lord profile is independently valid and save-backed",
             guidedLord.IsValid(30,out _) &&
             SandboxOriginProfile.Parse(guidedLord.Serialize())
@@ -166,9 +194,90 @@ internal static class Program
         guidedLord.Siblings[0].Gender="Female";
         Check("guided Lord permits older sister and preserves family",
             guidedLord.IsValid(30,out _));
+        var heirDaughter=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter_1",20,true,0,true,true,true);
+        var heirSon=new SandboxLordSuccessionPolicy.Candidate(
+            "son_1",17,false,1,true,true,true);
+        var heirOther=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter_2",15,true,2,true,true,true);
+        var heirInvalid=new SandboxLordSuccessionPolicy.Candidate(
+            "unrelated",30,false,3,true,true,false);
+        var successors=new[]{heirDaughter,heirSon,heirOther,
+            heirInvalid};
+        Check("Lord eldest-child claim honors birth age regardless sex",
+            SandboxLordSuccessionPolicy.Order("EldestChild",
+                successors).Select(c=>c.Id).SequenceEqual(
+                    new[]{"daughter_1","son_1","daughter_2"}) &&
+            SandboxLordSuccessionPolicy.Order("unknown",
+                successors).Length==0);
+        Check("Lord male-preference ranks real sons then daughters",
+            SandboxLordSuccessionPolicy.Order("MalePreference",
+                successors).Select(c=>c.Id).SequenceEqual(
+                    new[]{"son_1","daughter_1","daughter_2"}) &&
+            !SandboxLordSuccessionPolicy.CanSetNativeClanLeader() &&
+            !SandboxLordSuccessionPolicy.CanTransferNativeFief() &&
+            !SandboxLordSuccessionPolicy.HasNativeRegency());
+        Check("Lord young heir has claim only, not adult or crown",
+            SandboxLordSuccessionPolicy.Status(
+                true,true,"founder",heirSon)==
+                    "MinorHouseholdClaimOnly" &&
+            SandboxLordSuccessionPolicy.Status(
+                false,false,"other",heirSon)==
+                    "MinorClaimNativeDecisionPending" &&
+            SandboxLordSuccessionPolicy.Status(
+                false,false,"daughter_1",heirDaughter)==
+                    "NativeHeirLeadershipObserved");
+        var inheritance=new SandboxLordInheritanceState();
+        Check("Lord inheritance record begins from real living child",
+            inheritance.Begin("founder","spouse","house","vlandia",
+                "EldestChild",successors,100)==
+                    "native_household_heirs_recorded" &&
+            inheritance.PrimaryHeirId=="daughter_1" &&
+            inheritance.Status=="AdultHouseholdClaimOnly" &&
+            inheritance.Begin("founder","spouse","house","vlandia",
+                "EldestChild",successors,100)=="already_recorded");
+        Check("Lord inheritance is saved with native child order",
+            SandboxLordInheritanceState.Parse(inheritance.Serialize())
+                .Serialize()==inheritance.Serialize() &&
+            SandboxLordInheritanceState.Parse(inheritance.Serialize())
+                .PrimaryHeirId=="daughter_1");
+        Check("Lord read-only succession observes real native leadership",
+            inheritance.Observe(101,true,"founder",successors)==
+                "native_succession_unchanged" &&
+            inheritance.Observe(102,false,"other",successors)==
+                "native_succession_observation_changed" &&
+            inheritance.Status==
+                "NativeSuccessionNotFollowingHouseholdOrder" &&
+            inheritance.NativeLeaderId=="other" &&
+            inheritance.Observe(103,false,"daughter_1",
+                successors)=="native_succession_observation_changed" &&
+            inheritance.Status=="NativeHeirLeadershipObserved");
+        Check("Lord dead heir changes claim without native property grant",
+            inheritance.Observe(104,false,"other",
+                new[]{heirSon,heirOther})==
+                    "native_succession_observation_changed" &&
+            inheritance.PrimaryHeirId=="son_1" &&
+            inheritance.Status=="MinorClaimNativeDecisionPending" &&
+            SandboxLordSuccessionPolicy.Order("EldestChild",
+                new[]{heirInvalid}).Length==0);
+        Check("Lord heir corrupt saves fail shut",
+            !SandboxLordInheritanceState.Parse(
+                "CU_LORD_HEIRS_1\ninvalid").IsRecorded &&
+            !SandboxLordInheritanceState.Parse(
+                inheritance.Serialize()+"|extra").IsRecorded &&
+            inheritance.Observe(1,false,"other",successors)==
+                "invalid_observation_day");
+        Check("Lord birth claims remain optional for old Lord profiles",
+            guidedLord.LordSuccessionRule=="EldestChild" &&
+            guidedLord.TrySet("LordSuccessionRule",
+                "MalePreference") &&
+            guidedLord.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .LordSuccessionRule=="MalePreference");
         guidedLord.ResetForNewCampaign();
         Check("guided Lord flags reset but legacy Lord ID retained",
             !guidedLord.LordGuidedStart &&
+            guidedLord.LordSuccessionRule=="EldestChild" &&
             guidedLord.Role=="Lord" &&
             SandboxOriginProfile.Roles.Contains("Lord"));
         Check("legacy Lord still reads without guided restrictions",
