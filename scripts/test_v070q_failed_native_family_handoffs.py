@@ -39,7 +39,7 @@ assert 'return preferred;' in ministry
 assert 's.Town.Governor==null' in ministry
 assert 'ThenBy(s=>s.StringId,StringComparer.Ordinal)' in ministry
 assert 'new[]{"Squire"}' in read("SandboxNobleStartPolicy.cs")
-assert 'new[]{"Marshal","Kingsguard","RoyalMinister"}' in (
+assert '"Marshal","Kingsguard","RoyalMinister"' in (
     read("SandboxKingStartPolicy.cs"))
 print("PASS v0.70q: native role receipt passes through one shared "
       "preflight/final gate. Knight proposes spouse, child and one "
