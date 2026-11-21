@@ -1,0 +1,441 @@
+using System;
+using System.Linq;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Actions;
+using TaleWorlds.CampaignSystem.GameMenus;
+using TaleWorlds.CampaignSystem.Settlements;
+
+namespace CalradiaUnified
+{
+    /// <summary>
+    /// Small, native-style settlement menu. Vanilla Clan, Kingdom, game
+    /// dialogue and encyclopedia screens retain their own authority.
+    /// Actions are offered only with a real campaign and observed Heroes.
+    /// </summary>
+    public sealed partial class SandboxOriginBehavior
+    {
+        private Hero FindLivingPerson(string id)
+        {
+            if(String.IsNullOrEmpty(id))return null;
+            return Hero.AllAliveHeroes.FirstOrDefault(h=>h!=null &&
+                h.StringId==id && h.IsAlive);
+        }
+        private static bool SamePlace(Hero player,Hero other)
+        {
+            if(player==null || other==null || player==other)return false;
+            if(player.PartyBelongedTo!=null &&
+                player.PartyBelongedTo==other.PartyBelongedTo)
+                return true;
+            var settlement=Settlement.CurrentSettlement;
+            return settlement!=null &&
+                (other.StayingInSettlement==settlement ||
+                 other.HomeSettlement==settlement &&
+                    other.StayingInSettlement==null);
+        }
+        private Hero RequestedCharacter()
+        {
+            var target=FindLivingPerson(agencyDecisions.PendingHeroId);
+            return SamePlace(Hero.MainHero,target)?target:null;
+        }
+        private bool HasRequest()
+        {
+            return agencyDecisions.HasPending &&
+                RequestedCharacter()!=null;
+        }
+        private void ObserveAgencyDaily(Hero player)
+        {
+            agencyDecisions.Tick();
+            if(agencyDecisions.HasPending &&
+                FindLivingPerson(agencyDecisions.PendingHeroId)==null)
+            {
+                livingPersons.Remember("CharacterRequestExpired",
+                    agencyDecisions.PendingHeroId,"",
+                    "actor_no_longer_alive_or_loaded");
+                agencyDecisions.Dismiss("Unavailable");
+            }
+            if(agencyDecisions.Day<15 ||
+                agencyDecisions.Day%5!=0 || agencyDecisions.HasPending)
+                return;
+            OfferLocalCharacterRequest(player);
+        }
+        private void OfferLocalCharacterRequest(Hero player)
+        {
+            if(player==null || agencyDecisions.HasPending)return;
+            foreach(var record in characterAgendas.Entries
+                .OrderBy(a=>a.Id,StringComparer.Ordinal))
+            {
+                var hero=FindLivingPerson(record.Id);
+                if(hero==null || hero==player ||
+                    !SamePlace(player,hero) || hero.Age<18f)
+                    continue;
+                if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
+                    continue;
+                var prior=agencyDecisions.For(hero.StringId);
+                string kind=SandboxAgencyDecisionPolicy.Choose(
+                    record.Goal,true,true,player.GetRelation(hero),
+                    prior==null?0:prior.RequestsMade,
+                    prior==null?1000:
+                        agencyDecisions.Day-prior.LastDay);
+                if(kind.Length==0)continue;
+                if(agencyDecisions.Propose(hero.StringId,kind))
+                {
+                    livingPersons.Remember("IndependentCharacterRequest",
+                        hero.StringId,player.StringId,
+                        "kind="+kind+
+                        "|source=character_goal_and_native_presence");
+                    DiagnosticJournal.Event("cu_character_request_offered",
+                        "hero="+hero.StringId+"|kind="+kind+
+                        "|day="+agencyDecisions.Day);
+                }
+                break;
+            }
+        }
+        private void DescribeCharacterRequest()
+        {
+            OfferLocalCharacterRequest(Hero.MainHero);
+            var actor=RequestedCharacter();
+            if(actor==null)
+            {
+                Notify("No reachable character has an outstanding request. "+
+                    "Known people may bring matters to your attention "+
+                    "after spending time together.");
+                return;
+            }
+            int amount=SandboxAgencyDecisionPolicy.Amount(
+                agencyDecisions.PendingKind);
+            Notify(actor.Name.ToString()+" asks for "+
+                (agencyDecisions.PendingKind=="Recognition"?
+                    "public acknowledgment of their work":
+                    amount+" denars of household support")+
+                ". Their personal goal is "+
+                (characterAgendas.Get(actor.StringId)==null?"unknown":
+                    characterAgendas.Get(actor.StringId).Goal)+
+                ". This is a new request, not a fabricated earlier promise.");
+        }
+        private void AnswerCharacterRequest(bool accept)
+        {
+            var player=Hero.MainHero;
+            var actor=RequestedCharacter();
+            if(player==null || actor==null)
+            {
+                Notify("That person is not physically available here.");
+                return;
+            }
+            string kind=agencyDecisions.PendingKind;
+            int amount=SandboxAgencyDecisionPolicy.Amount(kind);
+            if(amount<0)return;
+            int relation=SandboxAgencyDecisionPolicy.RelationDelta(
+                kind,accept);
+            if(accept && amount>0)
+            {
+                if(!SandboxAgencyDecisionPolicy.NativeTransferPermitted(
+                    kind,true,player.Gold,actor.IsAlive))
+                {
+                    Notify("You lack the denars for this support request.");
+                    return;
+                }
+                int goldBefore=player.Gold;
+                try
+                {
+                    GiveGoldAction.ApplyBetweenCharacters(
+                        player,actor,amount,false);
+                }
+                catch(Exception error)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_character_native_gift_failed",error);
+                    Notify("The native gold transfer did not complete.");
+                    return;
+                }
+                if(player.Gold>goldBefore-amount)
+                {
+                    Notify("The native gold transfer could not be verified.");
+                    return;
+                }
+            }
+            if(relation!=0)
+            {
+                try
+                {
+                    ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
+                        player,actor,relation,false);
+                }
+                catch(Exception error)
+                {
+                    DiagnosticJournal.Exception(
+                        "cu_character_request_relation_failed",error);
+                }
+            }
+            livingPersons.Remember(
+                accept?"CharacterRequestAccepted":"CharacterRequestDeclined",
+                actor.StringId,player.StringId,
+                "kind="+kind+"|real_gold_transferred="+
+                    (accept?amount:0)+"|native_relation_delta="+relation);
+            DiagnosticJournal.Event("cu_character_request_resolved",
+                "actor="+actor.StringId+
+                "|choice="+(accept?"accepted":"declined")+
+                "|type="+kind+
+                "|gold="+(accept?amount:0));
+            agencyDecisions.Dismiss(accept?"Accepted":"Declined");
+            Notify(actor.Name.ToString()+": request "+
+                (accept?"accepted.":"declined.")+
+                (accept && amount>0?
+                    " A native gold transfer was confirmed.":""));
+        }
+        private Clan RecordedBirthClan()
+        {
+            var player=Hero.MainHero;
+            if(player==null || player.Father==null ||
+                !successionInterest.IsRecorded ||
+                player.StringId!=successionInterest.ClaimantId ||
+                player.Father.StringId!=successionInterest.ParentId)
+                return null;
+            var clan=player.Father.Clan;
+            return clan!=null &&
+                clan.StringId==successionInterest.BirthClanId?
+                    clan:null;
+        }
+        private static int NativeBirthHoldings(Clan clan)
+        {
+            return clan==null?0:clan.Settlements.Count(s=>s!=null &&
+                s.IsFortification && s.OwnerClan==clan);
+        }
+        private Settlement CandidateClanGrant()
+        {
+            var clan=RecordedBirthClan();
+            var current=Settlement.CurrentSettlement;
+            if(clan==null || current==null ||
+                !current.IsFortification ||
+                current.OwnerClan!=clan)return null;
+            // Retain the first native family stronghold for the senior
+            // branch. The claimant may petition for a secondary holding.
+            var primary=clan.Settlements.Where(s=>s!=null &&
+                s.OwnerClan==clan && s.IsFortification)
+                .OrderBy(s=>s.StringId,StringComparer.Ordinal)
+                .FirstOrDefault();
+            return current==primary?null:current;
+        }
+        private bool SameNativeRealm(Clan clan)
+        {
+            return clan!=null && Clan.PlayerClan!=null &&
+                Clan.PlayerClan!=clan &&
+                clan.Kingdom!=null &&
+                Clan.PlayerClan.Kingdom==clan.Kingdom;
+        }
+        private void DescribeFamilyClaim()
+        {
+            var clan=RecordedBirthClan();
+            var player=Hero.MainHero;
+            if(clan==null || player==null)
+            {
+                Notify("No verified native family claim exists.");
+                return;
+            }
+            string leader=clan.Leader==null?"none":
+                clan.Leader.Name.ToString();
+            Notify("Your native birth clan: "+clan.Name.ToString()+
+                ". Family custom: "+successionInterest.CustomaryModel+
+                ". Older sons at origin: "+
+                successionInterest.EarlierSonsAtStart+
+                ". Living strongholds: "+NativeBirthHoldings(clan)+
+                ". Current clan head: "+leader+
+                ". Claim: "+inheritanceNegotiation.Status+
+                ". A cadet must first join the same native kingdom "+
+                "through normal game politics. Family grants require "+
+                "death, clan-head consent, a secondary estate, and "+
+                "your explicit confirmation.");
+        }
+        private void PetitionFamilyCouncil()
+        {
+            var player=Hero.MainHero;
+            var clan=RecordedBirthClan();
+            if(player==null || clan==null)
+            {
+                Notify("Your native birth clan is unavailable.");
+                return;
+            }
+            var leader=clan.Leader;
+            var estate=CandidateClanGrant();
+            bool parentDead=player.Father!=null &&
+                !player.Father.IsAlive;
+            string outcome=SandboxInheritanceNegotiationPolicy.Evaluate(
+                successionInterest.IsRecorded,parentDead,
+                leader!=null && leader.IsAlive,
+                estate!=null,SameNativeRealm(clan),
+                NativeBirthHoldings(clan),
+                successionInterest.EarlierSonsAtStart,
+                leader==null? -100:player.GetRelation(leader),
+                successionInterest.CultureId);
+            string status=inheritanceNegotiation.Petition(
+                outcome,estate==null?"":estate.StringId,
+                leader==null?"":leader.StringId,
+                clan.StringId,successionInterest.CustomaryModel,
+                agencyDecisions.Day);
+            livingPersons.Remember("FamilyCouncilPetition",
+                player.StringId,
+                leader==null?"":leader.StringId,
+                "outcome="+outcome+"|culture="+
+                    successionInterest.CustomaryModel+
+                "|native_estate_transferred=false");
+            DiagnosticJournal.Event("cu_native_family_petition",
+                "result="+status+
+                "|reason="+outcome+
+                "|birth_clan="+clan.StringId+
+                "|native_transfer=false");
+            Notify("Family petition: "+status+
+                ". "+(status=="ClanHeadConsents"?
+                    "The modeled clan-head decision permits a secondary "+
+                    "family grant. Review and explicitly confirm the "+
+                    "native transfer at this same estate.":
+                    "No property has changed. The native kingdom and "+
+                    "clan rules remain in force."));
+        }
+        private bool CanConfirmFamilyGrant()
+        {
+            var clan=RecordedBirthClan();
+            var player=Hero.MainHero;
+            var estate=Settlement.CurrentSettlement;
+            if(player==null || clan==null || estate==null ||
+                !inheritanceNegotiation.Authorized ||
+                estate.StringId!=inheritanceNegotiation.SettlementId ||
+                clan.StringId!=inheritanceNegotiation.BirthClanId ||
+                clan.Leader==null ||
+                !clan.Leader.IsAlive ||
+                clan.Leader.StringId!=inheritanceNegotiation.LeaderId)
+                return false;
+            int relation=player.GetRelation(clan.Leader);
+            string outcome=SandboxInheritanceNegotiationPolicy.Evaluate(
+                true,player.Father!=null && !player.Father.IsAlive,
+                true,CandidateClanGrant()==estate,
+                SameNativeRealm(clan),NativeBirthHoldings(clan),
+                successionInterest.EarlierSonsAtStart,relation,
+                successionInterest.CultureId);
+            return outcome=="ClanHeadConsents" &&
+                SandboxInheritanceNegotiationPolicy.TransferGate(
+                    true,inheritanceNegotiation.Authorized,
+                    clan.StringId,estate.OwnerClan==null?"":
+                        estate.OwnerClan.StringId,
+                    SameNativeRealm(clan),
+                    player.Father!=null && !player.Father.IsAlive,
+                    NativeBirthHoldings(clan));
+        }
+        private void ConfirmFamilyGrant()
+        {
+            if(!CanConfirmFamilyGrant())
+            {
+                inheritanceNegotiation.Cancel();
+                Notify("The native family, leader, allegiance or holding "+
+                    "has changed. Clan consent must be reviewed again.");
+                return;
+            }
+            var player=Hero.MainHero;
+            var estate=Settlement.CurrentSettlement;
+            var priorClan=estate.OwnerClan;
+            try
+            {
+                ChangeOwnerOfSettlementAction.ApplyByDefault(
+                    player,estate);
+                bool confirmed=estate.OwnerClan==Clan.PlayerClan &&
+                    estate.OwnerClan!=priorClan;
+                string result=inheritanceNegotiation.Complete(confirmed);
+                livingPersons.Remember(
+                    confirmed?"NativeFamilyGrantCompleted":
+                        "NativeFamilyGrantUnconfirmed",
+                    player.StringId,estate.StringId,
+                    "result="+result+"|old_owner="+priorClan.StringId+
+                    "|native_action=ChangeOwnerOfSettlementAction");
+                DiagnosticJournal.Event("cu_family_native_fief_grant",
+                    "result="+result+
+                    "|settlement="+estate.StringId+
+                    "|from="+priorClan.StringId+
+                    "|to="+(estate.OwnerClan==null?"none":
+                        estate.OwnerClan.StringId));
+                Notify(confirmed?
+                    "Native family grant confirmed. "+
+                        estate.Name.ToString()+
+                        " now belongs to your clan.":
+                    "The native owner did not change. No inheritance "+
+                        "completion has been recorded.");
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_family_native_grant_action_failed",error);
+                Notify("Native ownership action failed. The proposed "+
+                    "estate was not recorded as inherited.");
+            }
+        }
+        private void RegisterPeopleAndLineageMenus(
+            CampaignGameStarter starter)
+        {
+            starter.AddGameMenu("cu_people_lineage",
+                "Calradia Unified | People & Lineage. "+
+                "Your clan, relationships and holdings remain native "+
+                "Bannerlord records. Requests and claims appear here "+
+                "only after a starting life is established.",
+                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+            foreach(string location in new[]{"town","castle"})
+            {
+                string from=location;
+                starter.AddGameMenuOption(from,
+                    "cu_people_lineage_entry_"+from,
+                    "CU: People, households and family claims",
+                    args=>livingPersons.People.Count>0 &&
+                        Hero.MainHero!=null,
+                    args=>{
+                        affairsReturnMenu=from;
+                        GameMenu.SwitchToMenu("cu_people_lineage");
+                    },false);
+            }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_review",
+                "Review my household and character goals",
+                args=>livingPersons.People.Count>0,
+                args=>{
+                    Notify("Known people: "+livingPersons.People.Count+
+                        ". Verified native bonds: "+
+                        livingPersons.Bonds.Count+
+                        ". Personal goals: "+
+                        characterAgendas.Entries.Count+
+                        ". Observed events: "+
+                        livingPersons.Events.Count+".");
+                    DescribeCharacterRequest();
+                },false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_request","Hear a character's request",
+                args=>HasRequest(),
+                args=>DescribeCharacterRequest(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_accept","Accept this person's request",
+                args=>HasRequest(),
+                args=>AnswerCharacterRequest(true),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_decline","Decline this person's request",
+                args=>HasRequest(),
+                args=>AnswerCharacterRequest(false),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_claim_review","Review native family claim",
+                args=>successionInterest.IsRecorded,
+                args=>DescribeFamilyClaim(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_petition",
+                "Petition clan head for a secondary family holding",
+                args=>successionInterest.IsRecorded &&
+                    !inheritanceNegotiation.Authorized &&
+                    inheritanceNegotiation.Attempts<3 &&
+                    inheritanceNegotiation.Status!=
+                        "NativeGrantCompleted" &&
+                    CandidateClanGrant()!=null,
+                args=>PetitionFamilyCouncil(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_grant",
+                "Confirm negotiated native family estate grant",
+                args=>CanConfirmFamilyGrant(),
+                args=>ConfirmFamilyGrant(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_back","Return to the settlement",
+                args=>true,
+                args=>GameMenu.SwitchToMenu(affairsReturnMenu),false);
+        }
+    }
+}
