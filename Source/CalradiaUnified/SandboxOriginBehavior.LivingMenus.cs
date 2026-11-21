@@ -637,21 +637,21 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "Calradia Unified | People & Lineage. "+
-                "This uses the vanilla settlement menu. The vanilla Clan "+
-                "and Kingdom screens retain political and family authority.",
+                "Your house and its people. Consider family ties, "+
+                "household duties, private petitions and inheritance. "+
+                "The Clan and Kingdom ledgers hold the official record.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
             starter.AddGameMenu("cu_people_household",
-                "Household Register | Actual Hero records, observed homes, "+
-                "occupations, personal goals and native relationships.",
+                "The household roll. Names, places and ambitions "+
+                "belong to people living in your campaign.",
                 args=>{});
             starter.AddGameMenu("cu_people_requests",
-                "Personal Matters | Character-initiated requests. "+
-                "Gold and relationships change only through native actions.",
+                "Private petitions from people close to your house. "+
+                "Your reply can change actual denars and relationships.",
                 args=>{OfferLocalCharacterRequest(Hero.MainHero);});
             starter.AddGameMenu("cu_people_claim",
-                "Family Council | Cultural claim review, contested "+
-                "petitions and conditional native estate grants.",
+                "Family council. Hear claims to estates, review "+
+                "inheritance custom and seek a lawful settlement.",
                 args=>{});
             foreach(string location in new[]{"town","castle"})
             {
@@ -684,7 +684,7 @@ namespace CalradiaUnified
                     familyRecovery.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_role_economy_observed",
-                "Livelihood, duties and native denar evidence",
+                "My livelihood and obligations",
                 args=>roleEconomy.Started,
                 args=>ShowNativeDetail(
                     "Starting Role | Verified livelihood record",
@@ -702,21 +702,21 @@ namespace CalradiaUnified
                 args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
-                "Household register and character ambitions",
+                "People of my household",
                 args=>livingPersons.People.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_requests",
-                "Personal matters and character requests",
+                "Private petitions and favors",
                 args=>characterAgendas.Entries.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_claim",
-                "Family council and native estate claims",
+                "Family council and inheritance",
                 args=>successionInterest.IsRecorded,
                 args=>GameMenu.SwitchToMenu("cu_people_claim"),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_exit","Return to vanilla settlement menu",
+                "cu_people_exit","Return to settlement",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(affairsReturnMenu),false);
 
