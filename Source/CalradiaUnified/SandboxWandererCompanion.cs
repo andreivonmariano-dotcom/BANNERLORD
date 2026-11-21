@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
+using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.CharacterDevelopment;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.Core;
@@ -26,6 +28,99 @@ namespace CalradiaUnified
                 case "Steward":return "Steward";
                 case "Trader":return "Trade";
                 default:return "";
+            }
+        }
+
+        private static void ApplyCustomStats(
+            SandboxOriginProfile profile,Hero companion)
+        {
+            var flags=BindingFlags.Public|BindingFlags.Static;
+            foreach(var entry in profile.WandererCompanionOverrides)
+            {
+                if(!SandboxStatBudgetPolicy.InRange(
+                    entry.Key,entry.Value))
+                    throw new InvalidOperationException(
+                        "Invalid companion stat: "+entry.Key);
+                string[] parts=entry.Key.Split('.');
+                if(parts.Length!=2)
+                    throw new InvalidOperationException(
+                        "Companion stat key invalid: "+entry.Key);
+                int requested=entry.Value;
+                if(parts[0]=="Skill" || parts[0]=="Focus")
+                {
+                    var skill=SandboxNativeSkillCatalog.Find(parts[1]);
+                    if(skill==null)
+                        throw new InvalidOperationException(
+                            "Companion native skill unavailable: "+parts[1]);
+                    if(parts[0]=="Skill")
+                    {
+                        companion.HeroDeveloper.SetInitialSkillLevel(
+                            skill,requested);
+                        if(companion.GetSkillValue(skill)!=requested)
+                            throw new InvalidOperationException(
+                                "Companion skill override failed");
+                    }
+                    else
+                    {
+                        int delta=requested-
+                            companion.HeroDeveloper.GetFocus(skill);
+                        if(delta!=0)
+                            companion.HeroDeveloper.AddFocus(
+                                skill,delta,false);
+                        if(companion.HeroDeveloper.GetFocus(skill)!=requested)
+                            throw new InvalidOperationException(
+                                "Companion focus override failed");
+                    }
+                }
+                else if(parts[0]=="Attribute")
+                {
+                    var info=typeof(DefaultCharacterAttributes)
+                        .GetProperty(parts[1],flags);
+                    var attr=info==null?null:
+                        info.GetValue(null,null) as CharacterAttribute;
+                    if(attr==null)
+                        throw new InvalidOperationException(
+                            "Companion native attribute missing");
+                    int delta=requested-
+                        companion.GetAttributeValue(attr);
+                    if(delta!=0)
+                        companion.HeroDeveloper.AddAttribute(
+                            attr,delta,false);
+                    if(companion.GetAttributeValue(attr)!=requested)
+                        throw new InvalidOperationException(
+                            "Companion attribute override failed");
+                }
+                else if(parts[0]=="Trait")
+                {
+                    var info=typeof(DefaultTraits).GetProperty(parts[1],flags);
+                    var trait=info==null?null:
+                        info.GetValue(null,null) as TraitObject;
+                    if(trait==null)
+                        throw new InvalidOperationException(
+                            "Companion native trait missing");
+                    companion.SetTraitLevel(trait,requested);
+                    if(companion.GetTraitLevel(trait)!=requested)
+                        throw new InvalidOperationException(
+                            "Companion trait override failed");
+                }
+                else if(parts[0]=="Level" && parts[1]=="Character")
+                {
+                    if(!SandboxFamilyLevelPolicy.Valid(requested))
+                        throw new InvalidOperationException(
+                            "Companion level outside native range");
+                    companion.Level=requested;
+                    companion.HeroDeveloper.SetInitialLevel(requested);
+                    if(companion.Level!=requested)
+                        throw new InvalidOperationException(
+                            "Companion level override failed");
+                }
+                else throw new InvalidOperationException(
+                    "Companion override type unsupported: "+entry.Key);
+                DiagnosticJournal.Event("cu_wanderer_companion_stat_applied",
+                    "hero="+companion.StringId+
+                    "|key="+entry.Key+
+                    "|requested="+requested+
+                    "|native_verified=true");
             }
         }
 
@@ -103,6 +198,9 @@ namespace CalradiaUnified
                     profile.WandererCompanionSkill)
                     throw new InvalidOperationException(
                         "Exact companion specialty skill not established");
+                // The same editor used for the player's own native stats
+                // now edits this independent companion override dictionary.
+                ApplyCustomStats(profile,provisional);
 
                 // Native same-culture equipment from the donor template.
                 if(provisional.BattleEquipment!=null &&
@@ -133,8 +231,14 @@ namespace CalradiaUnified
                     player.SetPersonalRelation(provisional,100);
                 if(provisional.GetRelation(player)!=100)
                     provisional.SetPersonalRelation(player,100);
+                int targetSkill;
+                if(!profile.WandererCompanionOverrides.TryGetValue(
+                    "Skill."+skillId,out targetSkill))
+                    targetSkill=profile.WandererCompanionSkill;
                 if(player.GetRelation(provisional)!=100 ||
                    provisional.GetRelation(player)!=100 ||
+                   provisional.GetSkillValue(skill)!=targetSkill ||
+                   provisional.IsFemale!=female ||
                    Clan.PlayerClan.Companions.Count!=1 ||
                    !Clan.PlayerClan.Companions.Contains(provisional) ||
                    provisional.CompanionOf!=Clan.PlayerClan ||
@@ -152,8 +256,10 @@ namespace CalradiaUnified
                     "|culture="+created.Culture.StringId+
                     "|specialty="+profile.WandererCompanionSpecialty+
                     "|skill="+skillId+
-                    "|requested_skill="+profile.WandererCompanionSkill+
+                    "|requested_skill="+targetSkill+
                     "|actual_skill="+created.GetSkillValue(skill)+
+                    "|manual_stat_overrides="+
+                        profile.WandererCompanionOverrides.Count+
                     "|player_relation="+player.GetRelation(created)+
                     "|reverse_relation="+created.GetRelation(player)+
                     "|native_companion_count="+
