@@ -28,6 +28,10 @@
     <Compile Include="../../Source/CalradiaUnified/SettingsCatalog.cs" Link="SettingsCatalog.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxOriginProfile.cs" Link="SandboxOriginProfile.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyCreationSafetyPolicy.cs" Link="SandboxFamilyCreationSafetyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxFamilyRecoveryState.cs" Link="SandboxFamilyRecoveryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxNativeEffectProof.cs" Link="SandboxNativeEffectProof.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyPolicy.cs" Link="SandboxRoleEconomyPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyState.cs" Link="SandboxRoleEconomyState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRoleConsistencyPolicy.cs" Link="SandboxRoleConsistencyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStartingLifePolicy.cs" Link="SandboxStartingLifePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxHouseholdLineagePolicy.cs" Link="SandboxHouseholdLineagePolicy.cs" />
