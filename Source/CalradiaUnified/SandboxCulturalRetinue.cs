@@ -86,7 +86,8 @@ namespace CalradiaUnified
         private static string OfficerName(string culture,
             string office,int index)
         {
-            bool female=office=="Chamberlain" || office=="Navigator";
+            bool female=office=="Chamberlain" ||
+                office=="RoyalMinister" || office=="Navigator";
             return SandboxCulturalNames.Suggest(culture,female,index+2,
                 new string[0])+" ("+office.Replace("Of"," of ")+")";
         }
