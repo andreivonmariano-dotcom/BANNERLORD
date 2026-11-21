@@ -188,6 +188,35 @@ namespace CalradiaUnified
                     "Your occupation and native start",
                     "Recruit seeks real enlistment; HouseholdKnight and NobleCadet start landless. Soldier remains a mercenary captain.",
                     choices:SandboxOriginProfile.Roles));
+                // New Wanderer collects its sole companion here, before
+                // the native player stats and appearance sequence. There
+                // is deliberately NO House or Fortune page afterward.
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionEnabled",
+                    "Begin with a loyal companion?",
+                    "Optional. Exactly one starting companion, relation 100, "+
+                    "no wages charged to your character.", "boolean"));
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionName","Companion name",
+                    "A unique named native Hero, not a random hired wanderer.",
+                    "text"));
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionAge","Companion age",
+                    "Choose an adult companion aged 18 to 70.",
+                    "number",min:18,max:70));
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionGender","Companion gender",
+                    "Choose the generated companion's sex.",
+                    choices:new[]{"Male","Female"}));
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionSpecialty","Companion specialty",
+                    "Choose Guard, Scout, Healer, Steward or Trader.",
+                    choices:new[]{"Guard","Scout","Healer","Steward","Trader"}));
+                list.Add(new Field("CHAPTER II | YOUR COMPANION",
+                    "WandererCompanionSkill","Primary specialty skill",
+                    "Exact starting skill from 0 to 220; this does not "+
+                    "change the player's native stat editor.",
+                    "number",min:0,max:220,step:5,advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "EarlyHousehold","The household that raised you",
                     "Childhood shapes suggested family traditions and your biography. It does not invent ancestry.",
@@ -347,6 +376,12 @@ namespace CalradiaUnified
         {
             if(field.Advanced && !advanced) return false;
             string key=field.Key;
+            if(key=="WandererCompanionEnabled")
+                return preCampaign && profile.Role=="Wanderer";
+            if(key.StartsWith("WandererCompanion",
+                StringComparison.Ordinal))
+                return preCampaign && profile.Role=="Wanderer" &&
+                    profile.WandererCompanionEnabled;
             if(key=="ScenarioFaction1")
                 return profile.StartingScenario=="LastStand" ||
                     profile.StartingScenario=="InvasionId" ||
@@ -739,10 +774,27 @@ namespace CalradiaUnified
             // Keep the real native 3D camera/scene untouched by default.
             candidate.NativeFaceDockTrialEnabled=false;
             candidate.RealFamilyEnabled=false;
+            candidate.WandererNoHouseStart=candidate.Role=="Wanderer";
+            if(candidate.WandererNoHouseStart)
+            {
+                // A new Wanderer never inherits a hidden old House.
+                candidate.SpouseEnabled=false;
+                candidate.ChildCount=0;
+                candidate.SiblingCount=0;
+                candidate.NobleBirthPosition="Independent";
+                candidate.NobleElderHeroId="";
+                candidate.StartingFiefMode="Native";
+                candidate.StartingFiefId="";
+                candidate.AllowStartingFiefTransfer=false;
+                candidate.FamilyHomeMode="OwnedFief";
+                candidate.FamilyHomeId="";
+            }
+            else candidate.WandererCompanionEnabled=false;
             // Soldier begins without unrelated companions. Advanced House
             // can request a named Sergeant or retain the native roster.
-            candidate.RetinueMode=SandboxServicePolicy.DefaultRetinue(
-                candidate.Role);
+            candidate.RetinueMode=candidate.WandererNoHouseStart?
+                "FamilyOnly":SandboxServicePolicy.DefaultRetinue(
+                    candidate.Role);
             if(!SandboxServicePolicy.NeedsPatron(candidate.Role))
                 candidate.ServicePatronHeroId="";
             if(!SandboxNobleStartPolicy.ValidForRole(
@@ -775,7 +827,9 @@ namespace CalradiaUnified
                     candidate.Role,candidate.NobleBirthPosition)+
                 "|service_patron_request="+candidate.ServicePatronHeroId+
                 "|noble_birth="+candidate.NobleBirthPosition+
-                "|family_requested=false|native_state_next=true");
+                "|family_requested=false|native_state_next=true"+
+                "|wanderer_no_house="+candidate.WandererNoHouseStart+
+                "|wanderer_companion="+candidate.WandererCompanionEnabled);
             if(complete!=null)complete();
         }
 
@@ -1098,6 +1152,15 @@ namespace CalradiaUnified
         {
             get
             {
+                if(preCampaign && profile.Role=="Wanderer")
+                    return "Wanderer | independent native start\n"+
+                        "House screen: removed\n"+
+                        "Companion: "+(profile.WandererCompanionEnabled?
+                            profile.WandererCompanionName+" | "+
+                            profile.WandererCompanionSpecialty+
+                            " | 100 relation | no wage":"none")+
+                        "\nNative appearance, attributes, skills and "+
+                        "traits remain editable.";
                 if(preCampaign)
                     return SandboxStartingLifePolicy.Dossier(
                             profile.Role,profile.NobleBirthPosition,
