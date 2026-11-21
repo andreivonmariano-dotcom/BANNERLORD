@@ -27,7 +27,7 @@ csproj=(root/"Tests"/"PolicySmoke"/"PolicySmoke.csproj").read_text(
     encoding="utf-8")
 tests=(root/"Tests"/"PolicySmoke"/"Program.cs").read_text(
     encoding="utf-8")
-assert '"Soldier","Recruit"' in profile, "Soldier must be fourth choice"
+assert '"Soldier", "Recruit"' in profile, "Soldier must be fourth choice"
 assert 'public bool SoldierGuidedStart;' in profile
 assert 'public string SoldierEntryRank = "Recruit";' in profile
 assert 'SoldierGuidedStart=false;' in profile
