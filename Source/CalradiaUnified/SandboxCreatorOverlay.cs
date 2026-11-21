@@ -107,7 +107,7 @@ namespace CalradiaUnified
                     () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
                     "role=" + profile.Role + "|type=" +
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role) +
+                    SandboxNativeStartOptions.StartTypeForProfile(profile) +
                     "|kingdom=" + profile.StartingKingdomId +
                     "|scenario=" + profile.StartingScenario);
             }
