@@ -1,5 +1,39 @@
 # Calradia Unified: mandatory PowerShell install and playthrough test standard
 
+## Current installer selection | v0.69f (21 November 2026)
+
+The current **CI-verified development candidate** is **v0.69f**, based on source commit `eec666c252f468cd92475e8abc86731d16da3a4f`. It passed [Windows CI 44864139228](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228): **907 executable C# policy checks**, 0 compiler warnings/errors, plus simulated campaign and creator checks. It has **not** been verified inside an installed Bannerlord game.
+
+The legacy in-game `SubModule.xml` still says **v0.38.0**. That is *manifest metadata*, not the source-development version. The PowerShell installer now prints both separately and selects the exact pinned candidate using its DLL hash. Do **not** rename the ZIP or rewrite `SubModule.xml` to make it look like v0.69f.
+
+- [Download the v0.69f compiled, game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44864139228/artifacts/14690729491) from GitHub Actions (sign-in can be needed).
+- Exact DLL SHA-256: `3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684`.
+- Installer source pinned independently at [commit 42238c2](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/42238c276cea8c9e6519ea83c2f520663dcaf18f/scripts/Install-CU-From-Artifact.ps1).
+- **List the candidate first, with no game path needed**: `-ShowLatest`. Install a downloaded artifact with `-LatestVerified`, which pins the exact expected manifest and DLL hash without manually copying the hash.
+
+```powershell
+$Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
+$Source = 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/42238c276cea8c9e6519ea83c2f520663dcaf18f/scripts/Install-CU-From-Artifact.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Installer
+Set-ExecutionPolicy -Scope Process Bypass -Force
+
+# Shows v0.69f, exact artifact page, Windows CI run, SHA-256 and legacy manifest
+& $Installer -ShowLatest
+
+# After downloading the exact Actions artifact ZIP, set its actual path.
+$GameRoot = 'D:\Steam\steamapps\common\Mount & Blade II Bannerlord'
+$Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.38.0-compiled-untested.zip'
+if (-not (Test-Path -LiteralPath $Zip -PathType Leaf)) {
+    throw 'Download the pinned GitHub Actions artifact and set its actual ZIP filename.'
+}
+
+# The previous module is backed up. Saves are not touched.
+& $Installer -GameRoot $GameRoot -ArtifactZip $Zip -LatestVerified -ReplaceExisting
+```
+
+After installation, fully close and reopen the game and launcher. Installation is file- and hash-verified only. It does **not** establish that Calradia Unified loads, displays correctly, or preserves real campaign saves. The earlier v0.29.0 instructions below are retained as **historical examples**, not the current release.
+
+
 **Standing project decision:** Windows PowerShell 5.1 is the default player-facing method for installing the compiled Calradia Unified module, checking its exact identity, inspecting the latest campaign diagnostics, and collecting a private diagnostic ZIP. This replaces one-off chat-only install snippets. Follow it in every future BANNERLORD chat and every compiled test milestone.
 
 **Game baseline:** Mount & Blade II: Bannerlord PC v1.5.7.125802.
