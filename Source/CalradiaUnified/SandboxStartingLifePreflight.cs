@@ -12,6 +12,24 @@ namespace CalradiaUnified
         internal static string Check(SandboxOriginProfile p,Hero player)
         {
             if(p==null || player==null)return "missing_start_context";
+            // Native Advanced Start has already run at phase 8. Check its
+            // actual political and fief result BEFORE changing any CU
+            // kinship, relation, property, officer or starter resource.
+            var campaign=Campaign.Current;
+            var clan=Clan.PlayerClan;
+            if(campaign==null || campaign.AdvancedStartData==null ||
+                clan==null)return "native_start:missing_native_context";
+            var kingdom=clan.Kingdom;
+            var nativeErrors=SandboxStartContract.Validate(
+                SandboxNativeStartOptions.StartTypeForRole(p.Role),
+                campaign.AdvancedStartData.GetStartType(),
+                p.StartingKingdomId,
+                kingdom==null?"":kingdom.StringId,
+                kingdom!=null && kingdom.RulingClan==clan,
+                clan.Settlements==null?0:clan.Settlements.Count,
+                false,false,0,0);
+            if(nativeErrors.Length>0)
+                return "native_start:"+nativeErrors[0];
             if(SandboxCustomLifeRolePolicy.IsLandless(p.Role) &&
                 (Clan.PlayerClan==null ||
                  !SandboxCustomLifeRolePolicy.NativeLandlessContract(
