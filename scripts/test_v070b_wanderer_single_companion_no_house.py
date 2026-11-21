@@ -36,7 +36,16 @@ assert 'candidate.RetinueMode=candidate.WandererNoHouseStart?' in vm
 assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'key=="WandererCompanionEnabled"' in vm
 assert 'profile.WandererCompanionEnabled' in vm
-assert 'profile.WandererCompanionSkill' in vm
+assert '"WandererCompanionSkill","Primary specialty skill"' in vm
+assert 'profile.WandererCompanionOverrides' in stats
+assert 'EditingWandererCompanion' in stats
+assert 'IsSecondaryStatsTargetVisible' in stats
+assert 'SecondaryStatsTargetLabel' in stats
+assert 'ApplyCustomStats(profile,provisional);' in comp
+assert 'cu_wanderer_companion_stat_applied' in comp
+assert 'WandererCompanionOverrides.Clear();' in p
+assert '"WandererCompanionStat."+pair.Key' in p
+assert 'case "WandererCompanionSkill":' in p
 
 # This must bypass House at the native Review, not skip the real age,
 # custom attributes, skills, focus/traits, FaceGen or Review/Options.
