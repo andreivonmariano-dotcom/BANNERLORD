@@ -38,6 +38,13 @@ namespace CalradiaUnified
             LastObservedDay=day;FirstTownId="";SecondTownId="";
             return "native_patron_order_accepted";
         }
+        public string Expire(int day)
+        {
+            if(!Active || day<=DueDay)return "order_not_expired";
+            Status="Expired";
+            if(MissedOrders<10000)MissedOrders++;
+            return "native_order_expired";
+        }
         public string Observe(int day,bool partyReady,string townId,
             bool belongsToPatronRealm)
         {
