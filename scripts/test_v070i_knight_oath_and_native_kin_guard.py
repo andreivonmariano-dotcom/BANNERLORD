@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Source-only guard. Native game clan transfer and oath actions remain untested."""
 from pathlib import Path
+import re
 root=Path(__file__).resolve().parents[1]
 src=root/"Source"/"CalradiaUnified"
 get=lambda name:(src/name).read_text(encoding="utf-8")
@@ -42,8 +43,8 @@ for token in ('MusterDays=30','MusterWindowDays=7','Status="SuccessionPending"',
               'Serialize()','Parse(string text)'):
     assert token in state,token
 for text in (native,origin):
-    assert 'Hero.MainHero.Clan=' not in text
-    assert 'Clan.PlayerClan=' not in text
+    assert not re.search(r'\\bHero\\.MainHero\\.Clan\\s*=(?!=)',text)
+    assert not re.search(r'\\bClan\\.PlayerClan\\s*=(?!=)',text)
     assert 'ChangeClanLeaderAction' not in text
 print("PASS v0.70i SOURCE: save-backed, one-shot Knight oath with "
       "native relation actions; unsupported clan reparent remains blocked. "
