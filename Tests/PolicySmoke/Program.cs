@@ -153,6 +153,58 @@ internal static class Program
             failedFamily.Observe("player",true,2,1)=="same" &&
             SandboxFamilyRecoveryState.Parse(failedFamily.Serialize())
                 .Status=="NativeCountsMatchReviewStillRequired");
+        var wandererDefault=new SandboxOriginProfile();
+        Check("legacy Wanderer retains House path unless explicitly migrated",
+            wandererDefault.Role=="Wanderer" &&
+            !wandererDefault.WandererNoHouseStart &&
+            !wandererDefault.WandererCompanionEnabled);
+        var soloWanderer=new SandboxOriginProfile();
+        Check("new Wanderer has no House and is independent",
+            soloWanderer.TrySet("WandererNoHouseStart","true") &&
+            soloWanderer.TrySet("RetinueMode","FamilyOnly") &&
+            soloWanderer.IsValid(30,out _) &&
+            !soloWanderer.SpouseEnabled &&
+            soloWanderer.ChildCount==0 &&
+            soloWanderer.SiblingCount==0);
+        Check("Wanderer companion choices round-trip exactly",
+            soloWanderer.TrySet("WandererCompanionEnabled","true") &&
+            soloWanderer.TrySet("WandererCompanionName","Elira") &&
+            soloWanderer.TrySet("WandererCompanionAge","29") &&
+            soloWanderer.TrySet("WandererCompanionGender","Female") &&
+            soloWanderer.TrySet("WandererCompanionSpecialty","Healer") &&
+            soloWanderer.TrySet("WandererCompanionSkill","185") &&
+            soloWanderer.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionEnabled &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionName=="Elira" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionAge==29 &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionGender=="Female" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionSpecialty=="Healer" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionSkill==185);
+        Check("new Wanderer rejects House family, invalid skills and titles",
+            !soloWanderer.TrySet("WandererCompanionSkill","221") &&
+            !soloWanderer.TrySet("WandererCompanionSpecialty","RoyalAdvisor") &&
+            !soloWanderer.TrySet("WandererCompanionName","Companion 1") &&
+            soloWanderer.TrySet("SpouseEnabled","true") &&
+            !soloWanderer.IsValid(30,out _) &&
+            soloWanderer.TrySet("SpouseEnabled","false") &&
+            soloWanderer.TrySet("NobleBirthPosition","YoungerBrotherOfLord") &&
+            !soloWanderer.IsValid(30,out _) &&
+            soloWanderer.TrySet("NobleBirthPosition","Independent"));
+        Check("new Wanderer flags never leak into later campaigns",
+            soloWanderer.IsValid(30,out _) &&
+            soloWanderer.WandererCompanionEnabled);
+        soloWanderer.ResetForNewCampaign();
+        Check("new-game reset clears single-companion and no-House flags",
+            !soloWanderer.WandererNoHouseStart &&
+            !soloWanderer.WandererCompanionEnabled &&
+            soloWanderer.WandererCompanionName=="Taran" &&
+            soloWanderer.RetinueMode=="Native");
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
