@@ -131,7 +131,8 @@ namespace CalradiaUnified
                     campaignStarter.AddBehavior(new CivicBehavior(config));
                     campaignStarter.AddBehavior(new KingdomAutonomyBehavior(config));
                     campaignStarter.AddBehavior(new DiagnosticBehavior(config));
-                    campaignStarter.AddBehavior(new NativeSettingsBehavior(config));
+                    // Settings are now in required BUTR MCM Mod Options,
+                    // not registered as a tab in every town/castle.
                     campaignStarter.AddBehavior(new SandboxOriginBehavior());
                     Log.Write("Campaign supply, civic depots, recruitment, economy and diplomacy behaviors registered; player-only foraging="
                         + config.EnablePlayerForaging);
