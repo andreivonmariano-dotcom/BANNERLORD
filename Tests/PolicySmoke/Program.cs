@@ -26,7 +26,7 @@ internal static class Program
         // v0.69h source/model matrix audit. A passing assertion does not
         // prove a Bannerlord campaign start or saved native Hero state.
         var nativeRoles=new [] {
-            "Wanderer","Outlaw","Mercenary","Recruit","Soldier",
+            "Wanderer","Outlaw","Mercenary","Soldier","Recruit",
             "HouseholdKnight","Knight","NobleCadet","Lord","King",
             "Admiral","Trader","Beggar"
         };
