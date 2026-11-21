@@ -1514,7 +1514,9 @@ namespace CalradiaUnified
                     "|result="+retinue);
                 if(retinue.StartsWith("refused:",StringComparison.Ordinal) ||
                    retinue.StartsWith("partial:",StringComparison.Ordinal))
-                    Notify("Starting household officers: "+retinue);
+                    Notify("Household officer assignment incomplete. "+
+                        "Inspect your actual Clan and Party screens; "+
+                        "the full cause is recorded in diagnostics.");
 
                 if(!SandboxStartContract.RetinueReadyForOtherGrants(
                     profile.RetinueMode,retinue))
@@ -1525,8 +1527,9 @@ namespace CalradiaUnified
                         "result=FAIL|reason=retinue_not_verified"+
                         "|retinue="+retinue+
                         "|no_discretionary_gold_troops_items_or_renown=true");
-                    Notify("The chosen retinue could not be verified. "+
-                        "Optional Starting Life grants were withheld.");
+                    Notify("Starting Life is incomplete: not all "+
+                        "officers joined the native household. "+
+                        "Extra starting grants were withheld.");
                     return;
                 }
 
@@ -1606,8 +1609,9 @@ namespace CalradiaUnified
                             "sandbox_start_contract",
                             "result=FAIL|reason=royal_court:"+court+
                             "|no_discretionary_grants=true");
-                        Notify("Royal court or actual governor could not "+
-                            "be verified: "+court);
+                        Notify("Royal court is incomplete. Check "+
+                            "your Royal Minister in the native settlement "+
+                            "governor screen. Details are in diagnostics.");
                         return;
                     }
                 }
@@ -1659,8 +1663,9 @@ namespace CalradiaUnified
                             "result=FAIL|reason=lord_officers:"+
                             lordRetinue+
                             "|no_extra_grants_applied=true");
-                        Notify("Starting Lord officers could not be "+
-                            "verified: "+lordRetinue);
+                        Notify("Lord household officers are incomplete. "+
+                            "Check Master of Arms and Knight in your "+
+                            "native Clan and Party screens.");
                         return;
                     }
                 }
