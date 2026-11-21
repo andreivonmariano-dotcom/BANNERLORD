@@ -46,9 +46,9 @@ namespace CalradiaUnified
             // remain executable behind native-style administrative groups.
             Log.Write("Civic actions grouped behind the local-administration menu.");
             starter.AddGameMenu("cu_civic_administration",
-                "Local administration. Actual inventory, native parties, "+
-                "fief ownership and kingdom authority are checked by "+
-                "each action.", args=>{});
+                "The castellan's ledgers record stores, garrison "+
+                "and correspondence. Only holdings and orders under "+
+                "your actual authority can be changed.", args=>{});
             starter.AddGameMenu("cu_civic_stores",
                 "Stores, supplies and physical trade at this settlement.",
                 args=>{});
