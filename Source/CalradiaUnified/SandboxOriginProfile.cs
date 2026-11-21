@@ -571,6 +571,13 @@ namespace CalradiaUnified
                 error="Select the kingdom of your family or service patron.";
                 return false;
             }
+            string homeStationError=SandboxFamilyHomePolicy.ValidateRoleRequest(
+                Role,FamilyHomeMode,SpouseEnabled);
+            if(homeStationError.Length>0)
+            {
+                error=homeStationError;
+                return false;
+            }
             if (SpouseOverrides.Any(kv=>
                     !SandboxStatBudgetPolicy.InRange(kv.Key,kv.Value)))
             {
