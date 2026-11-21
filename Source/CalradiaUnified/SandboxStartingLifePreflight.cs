@@ -71,7 +71,9 @@ namespace CalradiaUnified
                     .ValidateEnlisted(native.Available,native.Enlisted,
                         p.StartingKingdomId,p.ServicePatronHeroId,
                         native.LordId,native.LordKingdomId,
-                        native.RankId,native.NativeHostPartyLedByLord,
+                        native.RankId,
+                        native.LordIsNativeLord &&
+                            native.NativeHostPartyLedByLord,
                         clan.IsUnderMercenaryService,fiefs>0);
                 string rank=SandboxSoldierEnlistmentPolicy
                     .ValidateRequestedEntryRank(
