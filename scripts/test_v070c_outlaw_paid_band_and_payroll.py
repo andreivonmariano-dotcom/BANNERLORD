@@ -26,7 +26,8 @@ assert 'candidate.OutlawGuidedStart=candidate.Role=="Outlaw";' in vm
 assert 'candidate.Troops=0;' in vm
 assert 'candidate.FamilyHomeMode="None";' in vm
 assert 'candidate.RetinueMode="RoleBased";' in vm
-assert '"RoleBased":SandboxServicePolicy.DefaultRetinue(' in vm
+assert '"RoleBased":candidate.MercenaryGuidedStart?' in vm
+assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'key=="Troops"' in vm
 assert 'Retinue: one culturally trained band lieutenant' not in vm
 assert 'Band: six low-tier native bandits' in vm
