@@ -196,14 +196,28 @@ internal static class Program
             soloWanderer.TrySet("NobleBirthPosition","YoungerBrotherOfLord") &&
             !soloWanderer.IsValid(30,out _) &&
             soloWanderer.TrySet("NobleBirthPosition","Independent"));
-        Check("new Wanderer flags never leak into later campaigns",
+        Check("Wanderer full companion native stats survive profile save",
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Skill.Medicine","180") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Attribute.Intelligence","8") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Focus.Medicine","5") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Level.Character","25") &&
             soloWanderer.IsValid(30,out _) &&
-            soloWanderer.WandererCompanionEnabled);
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionOverrides.Count==4 &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionOverrides["Skill.Medicine"]==180 &&
+            !soloWanderer.TrySet(
+                "WandererCompanionStat.Skill.Medicine","400"));
         soloWanderer.ResetForNewCampaign();
         Check("new-game reset clears single-companion and no-House flags",
             !soloWanderer.WandererNoHouseStart &&
             !soloWanderer.WandererCompanionEnabled &&
             soloWanderer.WandererCompanionName=="Taran" &&
+            soloWanderer.WandererCompanionOverrides.Count==0 &&
             soloWanderer.RetinueMode=="Native");
         Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
