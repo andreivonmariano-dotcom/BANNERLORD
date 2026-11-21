@@ -344,8 +344,13 @@ internal static class Program
             "Unverified","HouseholdSoldier","vlandia","clanA");
         int friendship=0;
         for(int day=0;day<150;day++)
-            friendship+=siblingAgenda.ObserveComradeship(
+        {
+            int proposed=siblingAgenda.ObserveComradeship(
                 "brother",true,true,true,10+friendship);
+            if(proposed>0 && siblingAgenda.ConfirmComradeshipAward(
+                "brother",10+friendship,10+friendship+proposed))
+                friendship+=proposed;
+        }
         Check("family companionship influences bounded native relations",
             firstKinGoal=="ProtectSharedHousehold" &&
             friendship==5 &&
@@ -353,6 +358,36 @@ internal static class Program
             SandboxCharacterAgendaState.Parse(
                 siblingAgenda.Serialize()).Get("brother")
                     .ComradeshipAwards==5);
+        var failedKinAction=new SandboxCharacterAgendaState();
+        failedKinAction.Register("brother","ProtectSharedHousehold","",
+            "Unverified","HouseholdSoldier","vlandia","clanA");
+        int proposedAt30=0;
+        for(int day=0;day<30;day++)
+            proposedAt30=failedKinAction.ObserveComradeship(
+                "brother",true,true,true,25);
+        Check("failed native relation action does not spend kinship reward",
+            proposedAt30==1 &&
+            !failedKinAction.ConfirmComradeshipAward(
+                "brother",25,25) &&
+            !failedKinAction.ConfirmComradeshipAward(
+                "brother",25,24) &&
+            failedKinAction.Get("brother").ComradeshipAwards==0 &&
+            SandboxCharacterAgendaState.Parse(
+                failedKinAction.Serialize()).Get("brother")
+                    .ComradeshipAwards==0);
+        int proposedAt60=0;
+        for(int day=30;day<60;day++)
+            proposedAt60=failedKinAction.ObserveComradeship(
+                "brother",true,true,true,25);
+        Check("verified native relation action credits kinship on retry",
+            proposedAt60==1 &&
+            failedKinAction.ConfirmComradeshipAward("brother",25,26) &&
+            !failedKinAction.ConfirmComradeshipAward(
+                "brother",25,26) &&
+            failedKinAction.Get("brother").ComradeshipAwards==1 &&
+            SandboxCharacterAgendaState.Parse(
+                failedKinAction.Serialize()).Get("brother")
+                    .ComradeshipAwards==1);
         var fixedHomes=new SandboxCharacterAgendaState();
         fixedHomes.Register("sister","PreserveFamilyPosition",
             "castle_a","NativeHomeSettlement",
