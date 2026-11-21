@@ -80,6 +80,8 @@ def fixtures(role):
                     "|actual_kingsguard_hero=guard_id")
         if context=="cu_king_royal_minister_native_governor":
             extras="|minister=minister_id|settlement=royal_fief"
+        if context=="cu_native_household_dossier_attached":
+            extras="|role="+role
         events.append(row(role,context,receipt+extras))
     events.append(row(role,"sandbox_start_contract",
                       "result=PASS|role="+role))
@@ -102,6 +104,9 @@ def proof_for(role):
         ui_no_duplicate_settlement_actions=True,
         ui_actions_match_native_context=True,
         ui_legacy_new_game_editor_hidden=True)
+    if role in module.ROLE_UI_SCREENSHOTS:
+        proof.update(ui_gauntlet_dossier_after_reload=True,
+                     ui_gauntlet_dossier_back_escape=True)
     if role=="King":
         proof.update(
             royal_seat_id_after_reload="royal_fief",
@@ -150,6 +155,14 @@ with tempfile.TemporaryDirectory() as folder:
     assert "unverified_cu_knight_oath_start" in (
         module.audit_role("Knight",mutate("Knight",
             "cu_knight_oath_start","result=PASS|native_personal_oath"),native)["missing"])
+    assert "unverified_cu_native_household_dossier_attached" in (
+        module.audit_role("Knight",mutate("Knight",
+            "cu_native_household_dossier_attached",
+            "native_gauntlet_movie_loaded=false|layout=family_officers_service|native_read_only=true|role=Knight"),native)["missing"])
+    assert "missing_cu_native_household_dossier_attached" in (
+        module.audit_role("Knight",mutate("Knight",
+            "cu_native_household_dossier_attached",
+            "native_gauntlet_movie_loaded=true|layout=family_officers_service|native_read_only=true|role=King"),native)["missing"])
     assert "unverified_cu_knight_patron_conversation_muster" in (
         module.audit_role("Knight",mutate("Knight",
             "cu_knight_patron_conversation_muster",

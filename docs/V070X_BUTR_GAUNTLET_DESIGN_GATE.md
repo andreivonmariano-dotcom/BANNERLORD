@@ -44,3 +44,7 @@ Native acceptance remains blocked until **actual** screenshots at 1280x720, 1650
 The live game does not yet have a BUTR-embedded Clan/Party/Kingdom tab. Nor is the Knight's field commission a native QuestBase journal entry, the Lord's household Knight a native battlefield officer, or the King's council a real political voting system. These are separate functional milestones. Their design and legal game authority must be implemented and tested before making them visually prominent or claiming them complete.
 
 Keep PR #93 draft, the default installer unchanged and Gate C–E blocked until game proof.
+
+## v0.70x acceptance extension
+
+Knight, Lord and King now require `cu_native_household_dossier_attached` scoped to their exact campaign role. The on-screen release gate separately requires `ui_gauntlet_dossier_after_reload=true` and `ui_gauntlet_dossier_back_escape=true`, alongside the existing native UI screenshot, clipping and identity proof. Synthetic tests reject the false movie flag and a dossier event from another noble role.

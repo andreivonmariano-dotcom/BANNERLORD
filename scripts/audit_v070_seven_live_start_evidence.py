@@ -51,14 +51,16 @@ REQUIRED={
  "Knight":("cu_starting_life_preflight",
            "cu_knight_oath_start",
            "cu_knight_patron_conversation_muster",
-           "cu_knight_native_escort_completed"),
+           "cu_knight_native_escort_completed",
+            "cu_native_household_dossier_attached"),
  "Lord":("cu_starting_life_preflight",
          "cu_lord_native_preflight",
          "cu_lord_native_family_verification",
          "cu_lord_native_noble_inlaws",
          "cu_lord_native_household_officers",
          "cu_lord_native_final_verification",
-         "cu_lord_master_native_garrison_order"),
+         "cu_lord_master_native_garrison_order",
+          "cu_native_household_dossier_attached"),
  "King":("cu_starting_life_preflight",
          "cu_king_native_preflight",
          "cu_king_native_dynasty_verification",
@@ -67,10 +69,13 @@ REQUIRED={
          "cu_king_royal_minister_native_governor",
          "cu_royal_court_native_commission",
          "cu_king_native_council_meeting",
-         "cu_king_marshal_native_court_order"),
+         "cu_king_marshal_native_court_order",
+          "cu_native_household_dossier_attached"),
 }
 # Details for these already represent status rather than a strict PASS tag.
 GOOD={
+ "cu_native_household_dossier_attached":(
+     "native_gauntlet_movie_loaded=true|layout=family_officers_service|native_read_only=true",),
  "cu_starting_life_preflight":("result=PASS",),
  "cu_outlaw_band_start_contract":("result=PASS",),
  "cu_outlaw_lieutenant_start_contract":("result=PASS",),
@@ -193,6 +198,8 @@ def audit_role(role,rows,evidence_root):
     required=REQUIRED[role]
     for context in required:
         matches=[x for x in group if x.get("context")==context]
+        if context=="cu_native_household_dossier_attached":
+            matches=[x for x in matches if detail(x).get("role")==role]
         if not matches:
             problems.append("missing_"+context)
             continue
@@ -233,6 +240,11 @@ def audit_role(role,rows,evidence_root):
     for filename in ROLE_UI_SCREENSHOTS.get(role,()):
         if not screenshot_ok(evidence_root/filename):
             problems.append("missing_native_ui_"+filename)
+    if role in ROLE_UI_SCREENSHOTS:
+        for field in ("ui_gauntlet_dossier_after_reload",
+                      "ui_gauntlet_dossier_back_escape"):
+            if evidence.get(field) is not True:
+                problems.append("native_ui_unverified_"+field)
     # Every Knight, Lord and King player must ACTUALLY open the native
     # live-Hero household inquiry, proving the menu can be reached.
     if role in ROLE_UI_SCREENSHOTS:
