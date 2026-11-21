@@ -18,7 +18,7 @@ namespace CalradiaUnified
         // The first three are reviewed new-game life paths. Legacy
         // entries remain selectable until each later path is rebuilt.
         public static readonly string[] Roles =
-            { "Wanderer", "Outlaw", "Mercenary", "Recruit", "Soldier",
+            { "Wanderer", "Outlaw", "Mercenary", "Soldier", "Recruit",
               "HouseholdKnight", "Knight", "NobleCadet", "Lord",
               "King", "Admiral", "Trader", "Beggar" };
         public static readonly string[] Kits =
