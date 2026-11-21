@@ -84,6 +84,8 @@ namespace CalradiaUnified
                 this, AdvanceFamilyUpbringing);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, RefundWandererCompanionWage);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightOathDaily);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -367,6 +369,9 @@ namespace CalradiaUnified
             string service=serviceCareer.Serialize();
             store.SyncData("CU_v065_service_career",ref service);
             serviceCareer=SandboxServiceCareerState.Parse(service);
+            string oath=knightOath.Serialize();
+            store.SyncData("CU_v070i_knight_personal_oath",ref oath);
+            knightOath=SandboxKnightOathState.Parse(oath);
             string economy=roleEconomy.Serialize();
             store.SyncData("CU_v069d_role_economy",ref economy);
             roleEconomy=SandboxRoleEconomyState.Parse(economy);
@@ -403,6 +408,7 @@ namespace CalradiaUnified
             TryApplyOnce();
             if (starter == null || !IsStandaloneSandbox()) return;
             RegisterPeopleAndLineageMenus(starter);
+            RegisterKnightOathMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -1906,6 +1912,25 @@ namespace CalradiaUnified
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
                             socialObservations,hero);
+                        if(profile.KnightGuidedStart &&
+                            profile.KnightOrigin=="SwornHouse" &&
+                            patron!=null && patron.Clan!=null &&
+                            patron.Clan.Kingdom!=null)
+                        {
+                            int oathDay=CurrentOathDay();
+                            string oathStatus=knightOath.Begin(
+                                hero.StringId,patron.StringId,
+                                patron.Clan.StringId,
+                                patron.Clan.Kingdom.StringId,oathDay);
+                            DiagnosticJournal.Event(
+                                "cu_knight_oath_start",
+                                "result="+oathStatus+
+                                "|patron="+patron.StringId+
+                                "|patron_clan="+patron.Clan.StringId+
+                                "|player_clan="+Clan.PlayerClan.StringId+
+                                "|independent_house=true"+
+                                "|native_vassalage=false");
+                        }
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)
                         {
