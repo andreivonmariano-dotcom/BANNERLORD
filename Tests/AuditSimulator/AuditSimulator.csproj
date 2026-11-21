@@ -11,6 +11,7 @@
     <Compile Include="../../Source/CalradiaUnified/CUNativeHouseNavigationPolicy.cs" Link="Policies/CUNativeHouseNavigationPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxStatsPagePolicy.cs" Link="Policies/SandboxStatsPagePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyAgePolicy.cs" Link="Policies/SandboxFamilyAgePolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxStartContract.cs" Link="Policies/SandboxStartContract.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxNativeEffectProof.cs" Link="Policies/SandboxNativeEffectProof.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxFamilyRecoveryState.cs" Link="Policies/SandboxFamilyRecoveryState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyState.cs" Link="Policies/SandboxRoleEconomyState.cs" />
