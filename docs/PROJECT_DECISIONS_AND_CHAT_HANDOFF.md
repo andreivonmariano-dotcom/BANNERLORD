@@ -58,6 +58,19 @@ Do not advance the feature scope ahead of Q1 integrity gates.
 5. Make sibling/elder binding, birth-order, spouse birth clan, home and retinue acceptance evidence-based across all 12 roles.
 6. Run the actual installed Bannerlord new-game, UI, 30-day and save/reload tests. Validate compatibility with the exact compiled artifact.
 
+## v0.69c: Q1 family safety, Q2 all-role contract and Q3 history-backed goals (21 November 2026)
+
+**User request:** execute Q1, Q2 and Q3 directly and stepwise. [Draft PR #91](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/91), branch `fix/v069c-family-safety-role-matrix-observed-agendas`, stacked on draft PR #90. This is another **partial** milestone rather than an assertion that all three long-term goals are finished.
+
+- **Q1:** Previously `SandboxFamilyCreator` could run an orphan spouse cleanup after `HeroCreator.CreateChild` allocated a native child but before `madeChildren` increased. Track returned allocated children immediately. Guard disabled cleanup with `SandboxFamilyCreationSafetyPolicy`, skip native spouse/parent/child/party/resident Heroes, track uncommitted parents and siblings separately, and confirm native disable **before** removing any parent link. Preserve committed native ties even on failure.
+- **Q2:** One `SandboxRoleConsistencyPolicy` maps all 12 supported starts and validates observed start type, political standing, kingdom and fiefs. `SandboxNativeStartOptions` uses its mapping. `SandboxStartingLifePreflight` checks the role matrix before custom grants. The matrix tests native-game contracts, not cultural medieval laws or actual game-engine character creation.
+- **Q3:** `SandboxGeneratedCharacterGoalPolicy` now distinguishes siblings with and without shared actual party service. `SandboxLivingPersons.ObserveAgenda` sees real native family, occupation, clan, party and home evidence. `SandboxCharacterAgendaState` persists revised inferred goals through `CU_AGENDA_1`. `SandboxAgencyDecisionPolicy.Choose` can then change the type of later native-presence-gated NPC request. Unverified residence is cleared rather than left as current fact. No NPC speech, thoughts, or independent actions are claimed without actual engine behavior.
+- **Tests:** added executable C# regressions for provisional cleanup, all 12 native starts, observed goal transitions, save/reload and request category changes, plus `scripts/test_v069c_family_role_persona_contracts.py` on Windows CI. Updated older source regressions to verify the new centralized role mapping. For exact implementation and in-game scenarios, read [v0.69c acceptance](V069C_SAFE_KIN_ROLE_MATRIX_LIVING_AGENDAS.md).
+
+**CI status:** Pending a fully successful Windows run at the time of authoring. All runtime compile and game claims must be revised from the exact latest successful Actions run. The last fully verified branch base was v0.69 step 2, run 44858890901. Live game and save/reload remain unverified.
+
+**Unresolved after v0.69c:** irreversible native phase 8, reconciliation of already linked family members after a later failure, partial retinue compensation, native dual-entry gift/relation verification, full per-role medieval economic duties, actual autonomous NPC choices, full live-game and save/reload gate C–G.
+
 ## Rules for future BANNERLORD chats
 
 Read this record, the source Google Doc, `AGENTS.md`, `PROJECT_INSTRUCTIONS.md`, the relevant current source, latest open PRs and Actions runs at the start of a development request. Do not assume `main` is newest: recent features are a stacked chain of draft PRs. Distinguish **requested**, **planned**, **committed**, **compiled**, and **verified live in game**. Update this record after each concrete milestone, including SHA, changed files, C# check counts, Actions ID, artifact hash, remaining blockers and next action. Keep all verified evidence links. Never insert untested claims into release notes.
