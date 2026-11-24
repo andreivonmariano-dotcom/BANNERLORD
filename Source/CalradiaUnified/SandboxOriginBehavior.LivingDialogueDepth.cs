@@ -258,13 +258,14 @@ namespace CalradiaUnified
             int day=CurrentHouseholdDay();
             string role=careerCharge.Role,kind=careerCharge.Kind,target=careerCharge.TargetId;
             // Existing career receipt is the only progression record.
-            if(!recurringCareerReviews.Record(player.StringId,role,day,true))
-                return "The deed is witnessed. Let us enter it in the chronicle when the next weekly review is due.";
-            careerCharge.Close(player.StringId,day);
+            if(!careerCharge.Close(player.StringId,day))
+                return "We have already settled that matter.";
+            bool formalReview=recurringCareerReviews.Record(player.StringId,role,day,true);
             livingPersons.Remember("CareerReviewObserved",player.StringId,target,
                 "role="+role+"|charge="+kind+"|day="+day+"|native_evidence=true");
             DiagnosticJournal.Event("cu_career_charge_completed","hero="+player.StringId+
-                "|role="+role+"|kind="+kind+"|target="+target+"|day="+day+"|extra_reward=false");
+                "|role="+role+"|kind="+kind+"|target="+target+"|day="+day+
+                "|weekly_review="+formalReview+"|extra_reward=false");
             return "You have carried out the charge. It stands in the chronicle. We shall consider another duty on a later day.";
         }
 
@@ -276,6 +277,65 @@ namespace CalradiaUnified
             return "Then we set that plan aside. No deed has been entered as accomplished.";
         }
 
+        private string educationChildId="";
+        private string educationReply="";
+        private Hero EducationChild(int index)
+        {
+            var player=Hero.MainHero;
+            var spouse=Hero.OneToOneConversationHero;
+            if(!CanSpeakSocially() || spouse!=player.Spouse ||
+                spouse.Spouse!=player || player.GetRelation(spouse)<0 ||
+                player.Children==null)return null;
+            return player.Children.Where(h=>h!=null && h.IsAlive && h.Age<18f &&
+                (h.Father==player || h.Mother==player) &&
+                (h.Father==spouse || h.Mother==spouse) &&
+                familyGrowth.UpbringingFor(h.StringId).Length>0)
+                .OrderBy(h=>h.StringId,StringComparer.Ordinal).Skip(index).FirstOrDefault();
+        }
+        private Hero SelectedEducationChild()
+        {
+            for(int i=0;i<6;i++)
+            {
+                var child=EducationChild(i);
+                if(child!=null && child.StringId==educationChildId)return child;
+            }
+            return null;
+        }
+        private bool PrepareEducationOption(int index)
+        {
+            var child=EducationChild(index);
+            if(child==null)return false;
+            MBTextManager.SetTextVariable("CU_EDUCATION_CHILD_"+index,new TextObject(child.Name.ToString()));
+            return true;
+        }
+        private bool PrepareEducationDiscussion()
+        {
+            var child=SelectedEducationChild();
+            string reply=child==null?"Let us speak of this another time.":
+                "What shall we encourage in "+child.Name+"? "+
+                SandboxPetitionVoicePolicy.Opinion(PersonalVoice(Hero.OneToOneConversationHero),"Family");
+            MBTextManager.SetTextVariable("CU_EDUCATION_DISCUSSION",new TextObject(reply));
+            return true;
+        }
+        private void ChooseEducation(string plan)
+        {
+            var child=SelectedEducationChild();
+            educationReply="There is nothing to change just now.";
+            if(child==null)return;
+            if(familyGrowth.ReviseUpbringing(child.StringId,plan,(int)child.Age))
+            {
+                educationReply=SandboxPetitionVoicePolicy.DecisionReply(
+                    PersonalVoice(Hero.OneToOneConversationHero),true,true)+
+                    " We shall keep this in mind as "+child.Name+" grows.";
+                DiagnosticJournal.Event("cu_family_upbringing_revised","hero="+child.StringId+
+                    "|plan="+plan+"|no_immediate_skill_grant=true|prior_milestones_preserved=true");
+            }
+        }
+        private bool PrepareEducationReply()
+        {
+            MBTextManager.SetTextVariable("CU_EDUCATION_REPLY",new TextObject(educationReply));
+            return true;
+        }
         private bool PreparePersonalTopic(string topic)
         {
             var actor=Hero.OneToOneConversationHero;
@@ -287,7 +347,7 @@ namespace CalradiaUnified
                 int relation=player.GetRelation(actor);
                 string tone=PersonalVoice(actor);
                 if(topic=="Opinions")
-                    reply=SandboxPetitionVoicePolicy.Opinion(tone,"Service");
+                    reply=SandboxPetitionVoicePolicy.Opinion(tone,"Opinions");
                 else if(topic=="Ambitions")
                 {
                     string goal=agenda==null?"":agenda.Goal;
@@ -404,6 +464,38 @@ namespace CalradiaUnified
                     "cu_personal_matters_topics","{CU_PERSONAL_TOPIC_REPLY}",
                     ()=>PreparePersonalTopic(topic),null,100);
             }
+            for(int i=0;i<6;i++)
+            {
+                int slot=i;
+                starter.AddPlayerLine("cu_family_education_child_"+slot,"cu_personal_matters_topics",
+                    "cu_family_education_discussion","Let us speak of {CU_EDUCATION_CHILD_"+slot+"}'s upbringing.",
+                    ()=>PrepareEducationOption(slot),()=>
+                    {
+                        var child=EducationChild(slot);
+                        educationChildId=child==null?"":child.StringId;
+                    },95);
+            }
+            starter.AddDialogLine("cu_family_education_discussion","cu_family_education_discussion",
+                "cu_family_education_choices","{CU_EDUCATION_DISCUSSION}",()=>PrepareEducationDiscussion(),null,100);
+            foreach(string choice in new[]{"Kind","Martial","Scholarly","Mercantile","Seafaring","Independent"})
+            {
+                string plan=choice;
+                string words=plan=="Kind"?"Let us teach kindness and generosity.":
+                    plan=="Martial"?"Let us encourage the practice of arms.":
+                    plan=="Scholarly"?"Let us encourage study and learning.":
+                    plan=="Mercantile"?"Let us teach the ways of trade.":
+                    plan=="Seafaring"?"Let us encourage knowledge of the sea.":
+                    "Let us encourage independent judgment.";
+                starter.AddPlayerLine("cu_family_education_choose_"+plan,"cu_family_education_choices",
+                    "cu_family_education_reply",words,
+                    ()=>SelectedEducationChild()!=null &&
+                        familyGrowth.UpbringingFor(educationChildId)!=plan,
+                    ()=>ChooseEducation(plan),100);
+            }
+            starter.AddDialogLine("cu_family_education_reply","cu_family_education_reply",
+                "cu_personal_matters_topics","{CU_EDUCATION_REPLY}",()=>PrepareEducationReply(),null,100);
+            starter.AddPlayerLine("cu_family_education_leave","cu_family_education_choices",
+                "cu_personal_matters_topics","Let us leave the matter for now.",null,null,80);
             starter.AddPlayerLine("cu_personal_charge_agree","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us agree on our next duty.",
                 ()=>CanOfferCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
