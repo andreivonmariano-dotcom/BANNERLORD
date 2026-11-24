@@ -161,6 +161,7 @@ namespace CalradiaUnified
                 !livingPersons.HasRecentConversationChoice(player.StringId,actor.StringId,topic,day)).ToArray();
             if(eligible.Length==0)return "";
             if(eligible.Contains("Concerns"))return "Concerns"; // Actual siege is urgent.
+            if(CanDiscussStory(StoryTopic()))return StoryTopic();
             return eligible[dialogueVariety.Variant(player.StringId,actor.StringId,"Initiative",eligible.Length)];
         }
 
@@ -949,6 +950,7 @@ namespace CalradiaUnified
                     reply=PersonalMemoryText();
                     if(reply.Length==0)reply="There is nothing further I can recall with certainty.";
                 }
+                if(CanDiscussStory(topic))reply+=" "+StoryWords();
                 string opinion=topic=="Opinions" || topic=="Memory"?"":SandboxPetitionVoicePolicy.PersonalReflection(topic,tone,personalTopicVariant);
                 if(opinion.Length==0 && topic!="Opinions" && topic!="Memory")opinion=SandboxPetitionVoicePolicy.Opinion(tone,topic);
                 if(opinion.Length>0 && topic!="Concerns" && !reply.Contains(opinion))reply+=" "+opinion;
@@ -1022,6 +1024,16 @@ namespace CalradiaUnified
             starter.AddPlayerLine("cu_personal_relationship_care","cu_personal_followup_choices",
                 "cu_personal_followup_reply","I value what we share.",
                 ()=>CanExpressRelationshipIntention(false),()=>ExpressRelationshipIntention(false),96);
+            foreach(string choice in new[]{"Listen","Caution","Defer","Finish"})
+            {
+                string response=choice;
+                string words=response=="Listen"?"Tell me more. I would hear your concerns.":
+                    response=="Caution"?"Take care before deciding what to do.":
+                    response=="Defer"?"Let us leave this matter here.":"How do you see the matter now?";
+                starter.AddPlayerLine("cu_personal_story_"+response,"cu_personal_followup_choices",
+                    "cu_personal_followup_reply",words,()=>CanAnswerStory(response=="Finish"),
+                    ()=>AnswerStory(response),110);
+            }
             starter.AddPlayerLine("cu_personal_followup_back","cu_personal_followup_choices",
                 "cu_personal_followup_back_reply","Let us speak of something else.",null,null,85);
             starter.AddDialogLine("cu_personal_followup_back_reply","cu_personal_followup_back_reply",
