@@ -104,7 +104,9 @@ namespace CalradiaUnified
             if(!PetitionsBelongToCurrentPlayer())return null;
             var target=FindLivingPerson(id??agencyDecisions.PendingHeroId);
             return target!=null && target.IsActive && !target.IsPrisoner &&
-                target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
+                target.Age>=18f && (SamePlace(Hero.MainHero,target) ||
+                    (NativeRoyalCouncilPresent(true) && (LocalRoyalGuest(target) ||
+                        GroupParticipantPresent(target,"cu_native_royal_council"))))?target:null;
         }
         private bool HasRequest()
         {
@@ -281,6 +283,54 @@ namespace CalradiaUnified
             }
         }
 
+        // Explicit terms only. Consume the exact speaker's invitation before
+        // any native action, so an uncertain effect cannot be replayed.
+        private void ResolveNegotiatedAudience(string term)
+        {
+            petitionDecisionReply="No agreement was confirmed.";
+            if(answeringCharacterRequest || !CanNegotiateAudience(term))return;
+            answeringCharacterRequest=true;
+            try
+            {
+                var actor=Hero.OneToOneConversationHero;
+                var player=Hero.MainHero;
+                if(actor==null || player==null || !agencyDecisions.SelectPending(actor.StringId))return;
+                string kind=agencyDecisions.PendingKind;
+                bool royal=term=="Garrison" && KingMarshalAvailable();
+                int payerBefore=player.Gold,recipientBefore=actor.Gold,relationBefore=player.GetRelation(actor);
+                agencyDecisions.Dismiss("NegotiatedTermAttempt");
+                bool rosterProof=false;
+                try
+                {
+                    if(term=="Goodwill")ChangeRelationAction.ApplyRelationChangeBetweenHeroes(player,actor,1,false);
+                    else if(term=="Stipend")GiveGoldAction.ApplyBetweenCharacters(player,actor,
+                        SandboxAgencyDecisionPolicy.EstatePersonalStipend,false);
+                    else if(term=="Garrison")rosterProof=TransferExistingTroopsByOfficer(royal);
+                }
+                catch(Exception error){DiagnosticJournal.Exception("cu_negotiated_audience_effect_failed",error);}
+                int relationAfter=player.GetRelation(actor);
+                bool relationProof=term=="Goodwill" && SandboxNativeEffectProof.RelationDirectionObserved(relationBefore,relationAfter,1);
+                bool paymentProof=term=="Stipend" && SandboxNativeEffectProof.GiftResult(payerBefore,player.Gold,
+                    recipientBefore,actor.Gold,SandboxAgencyDecisionPolicy.EstatePersonalStipend)=="confirmed";
+                bool confirmed=relationProof || paymentProof || rosterProof;
+                int relationDelta=relationProof?SandboxNativeEffectProof.ObservedDelta(relationBefore,relationAfter):0;
+                if(confirmed)petitionStories.Resolve(actor.StringId,true,CurrentHouseholdDay(),paymentProof,relationDelta);
+                else petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed");
+                livingPersons.Remember("NegotiatedAudience",actor.StringId,player.StringId,
+                    "kind="+kind+"|term="+term+"|confirmed="+confirmed+"|native_relation_delta="+relationDelta+
+                    "|personal_denars="+(paymentProof?SandboxAgencyDecisionPolicy.EstatePersonalStipend:0)+
+                    "|existing_recruits="+(rosterProof?5:0)+"|no_native_treaty_or_estate_grant=true");
+                DiagnosticJournal.Event("cu_negotiated_audience_result","actor="+actor.StringId+"|kind="+kind+
+                    "|term="+term+"|confirmed="+confirmed+"|relation_delta="+relationDelta+
+                    "|personal_denars="+(paymentProof?SandboxAgencyDecisionPolicy.EstatePersonalStipend:0)+
+                    "|existing_recruits="+(rosterProof?5:0));
+                petitionDecisionReply=relationProof?"Your goodwill has been received. Our personal standing has changed.":
+                    paymentProof?"I have received the 200 denars personally. This is not a deposit into the estate treasury.":
+                    rosterProof?"Five of our existing recruits are now accounted for in the garrison.":
+                    "The intended effect was not confirmed. Check the native records before issuing another order.";
+            }
+            finally{answeringCharacterRequest=false;}
+        }
         private void AnswerCharacterRequestCore(bool accept)
         {
             petitionDecisionReply="Let us leave that matter unsettled for now.";

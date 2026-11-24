@@ -265,3 +265,12 @@ assert 'day<peerPauseUntil' in peer
 assert 'peerLastMilliseconds>5.0 && day<=1999997' in peer
 assert 'scope=optional_peer_pass' in peer
 print("PASS observed peer story identity, sampled reputation and optional-pass timing bounds. SOURCE ONLY.")
+
+# Negotiation is a separate explicit choice; consume only the selected petition before effects.
+negotiation=living[living.index("private void ResolveNegotiatedAudience"):living.index("private void AnswerCharacterRequestCore")]
+assert 'agencyDecisions.SelectPending(actor.StringId)' in negotiation
+assert negotiation.index('agencyDecisions.Dismiss("NegotiatedTermAttempt")')<negotiation.index('ChangeRelationAction.ApplyRelationChangeBetweenHeroes')
+assert 'SandboxNativeEffectProof.GiftResult(' in negotiation and 'SandboxNativeEffectProof.RelationDirectionObserved(' in negotiation
+assert 'petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed")' in negotiation
+assert 'visitingParty.CurrentSettlement==seat' in group and 'person.Clan.Kingdom!=clan.Kingdom' in group
+assert 'All(h=>people.Contains(h))' in group

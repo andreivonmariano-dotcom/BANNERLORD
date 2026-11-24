@@ -57,6 +57,20 @@ namespace CalradiaUnified
                 person.GovernorOf.Settlement==seat;
         }
 
+        private bool LocalRoyalGuest(Hero person)
+        {
+            var clan=Clan.PlayerClan;var seat=Settlement.CurrentSettlement;
+            if(person==null || clan==null || clan.Kingdom==null || seat==null ||
+                person==Hero.MainHero || !person.IsAlive || !person.IsActive || person.IsPrisoner ||
+                person.Age<18f || person.CharacterObject==null || person.Clan==null ||
+                person.Clan==clan || person.Clan.Kingdom!=clan.Kingdom || person.Clan.Leader!=person ||
+                person.Clan.IsEliminated || person.Clan.IsUnderMercenaryService || person.CurrentSettlement!=seat)return false;
+            var visitingParty=person.PartyBelongedTo;
+            return visitingParty==null?person.StayingInSettlement==seat:
+                visitingParty.LeaderHero==person && visitingParty.CurrentSettlement==seat &&
+                visitingParty.MapEvent==null && visitingParty.MemberRoster!=null &&
+                visitingParty.MemberRoster.GetTroopCount(person.CharacterObject)==1;
+        }
         private List<Hero> AvailableGroupParticipants(string parent,bool includeAll=false)
         {
             var result=new List<Hero>();
@@ -69,7 +83,17 @@ namespace CalradiaUnified
                     NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")})
                     if(GroupParticipantPresent(officer,parent) && !result.Contains(officer))
                         result.Add(officer);
-                return result.Count==3?result:new List<Hero>();
+                if(result.Count!=3)return new List<Hero>();
+                // Native visiting vassals only, never an order to travel.
+                var visitors=clan.Kingdom.Clans.Where(c=>c!=null && c!=clan)
+                    .Select(c=>c.Leader).Where(LocalRoyalGuest).Distinct()
+                    .OrderBy(h=>h.StringId,StringComparer.Ordinal);
+                foreach(var visitor in visitors)
+                {
+                    if(!result.Contains(visitor))result.Add(visitor);
+                    if(!includeAll && result.Count>=4)break;
+                }
+                return result;
             }
             var candidates=new List<Hero>();
             if(player.Spouse!=null && player.Spouse.Spouse==player)candidates.Add(player.Spouse);
@@ -143,7 +167,7 @@ namespace CalradiaUnified
             {
                 var hero=ResolveCampaignHero(id);
                 lines.Add((hero==null?id:hero.Name.ToString())+": "+
-                    (p.Accepted.Contains(id)?"willing to attend if present":"declined the invitation")+
+                    (p.Accepted.Contains(id)?"modeled willingness to attend if present":"modeled decline of the invitation")+
                     (p.Status=="Held"?(p.Attended.Contains(id)?" | attended":" | did not attend"):""));
             }
             ShowNativeDetail("Gathering arrangements",String.Join("\n",lines));
@@ -155,7 +179,9 @@ namespace CalradiaUnified
                 !gatheringPlan.IsDue(player.StringId,parent,seat.StringId,CurrentHouseholdDay()))
                 return new List<Hero>();
             var people=AvailableGroupParticipants(parent,true).Where(h=>gatheringPlan.Accepted.Contains(h.StringId)).ToList();
-            if(parent=="cu_native_royal_council" && people.Count!=3)return new List<Hero>();
+            if(parent=="cu_native_royal_council" && (people.Count<3 || people.Count>4 ||
+                !new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")}
+                    .All(h=>people.Contains(h))))return new List<Hero>();
             return people;
         }
         private void AttendPlannedGathering(string parent)

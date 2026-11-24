@@ -67,13 +67,13 @@ namespace CalradiaUnified
                     CurrentLordInheritanceDay() &&
                 CanNativeOfficerTransfer(RecordedRoyalSeat());
         }
-        private void TransferExistingTroopsByOfficer(bool royal)
+        private bool TransferExistingTroopsByOfficer(bool royal)
         {
             MBTextManager.SetTextVariable("CU_OFFICER_TRANSFER_REPLY",new TextObject(
                 "The order cannot be carried out just now. No transfer has been confirmed."));
             bool permitted=royal?
                 KingMarshalAvailable():LordMasterAvailable();
-            if(!permitted)return;
+            if(!permitted)return false;
             var seat=royal?RecordedRoyalSeat():
                 Settlement.CurrentSettlement;
             var troop=seat.Culture.BasicTroop;
@@ -122,6 +122,7 @@ namespace CalradiaUnified
                     "in "+seat.Name+"'s native garrison.":
                 "The native transfer was not confirmed. "+
                     "Check both rosters before issuing another order.");
+            return confirmed;
         }
         private void RegisterNobleOfficerConversations(
             CampaignGameStarter starter)

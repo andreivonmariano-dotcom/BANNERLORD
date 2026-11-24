@@ -91,8 +91,8 @@ namespace CalradiaUnified
         {
             if(kind!="Audience" && kind!="Recognition")return kind;
             if(!noble)return kind;
-            if(office=="Marshal" || office=="Kingsguard" || office=="MasterOfArms" || office=="Captain")return "DefenseAudience";
-            if(office=="RoyalMinister" || office=="Steward" || office=="HouseholdSteward")return "EstateAudience";
+            if(office=="Marshal" || office=="Kingsguard" || office=="MasterOfArms" || office=="Master of Arms" || office=="Captain")return "DefenseAudience";
+            if(office=="RoyalMinister" || office=="Royal Minister" || office=="Steward" || office=="HouseholdSteward" || office=="Household Steward")return "EstateAudience";
             if(kin)return "FamilyAudience";
             if(visitingLord)return "DiplomaticAudience";
             return kind;
@@ -119,6 +119,15 @@ namespace CalradiaUnified
                 case "Audience":return "Political";
                 default:return "Personal";
             }
+        }
+        public const int EstatePersonalStipend=200;
+        public static bool NegotiatedTermAllowed(string kind,string term,bool currentNoble,bool relevantSpeaker,
+            int gold,bool nativeGarrisonOrderAvailable)
+        {
+            if(!currentNoble || !relevantSpeaker)return false;
+            return (kind=="DiplomaticAudience" || kind=="Audience") && term=="Goodwill" ||
+                kind=="EstateAudience" && term=="Stipend" && gold>=EstatePersonalStipend ||
+                kind=="DefenseAudience" && term=="Garrison" && nativeGarrisonOrderAvailable;
         }
         public static int Amount(string kind)
         {

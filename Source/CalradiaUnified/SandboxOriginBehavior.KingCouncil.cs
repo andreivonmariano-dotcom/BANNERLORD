@@ -213,8 +213,15 @@ namespace CalradiaUnified
             var keep=complex==null?null:complex.GetLocationWithId("lordshall");
             if(keep==null){ShowNativeDetail("Royal hall","No native hall is available.");return;}
             var officers=new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")};
+            var attendees=officers.Where(h=>h!=null).ToList();
+            if(gatheringPlan.IsDue(Hero.MainHero.StringId,"cu_native_royal_council",royalCouncil.SeatId,CurrentHouseholdDay()))
+                foreach(var id in gatheringPlan.Accepted)
+                {
+                    var guest=ResolveCampaignHero(id);
+                    if(LocalRoyalGuest(guest) && !attendees.Contains(guest) && attendees.Count<4)attendees.Add(guest);
+                }
             int assigned=0;
-            foreach(var person in officers.Where(h=>h!=null))
+            foreach(var person in attendees)
             {
                 try
                 {
@@ -229,7 +236,7 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_royal_keep_prepared","seat="+royalCouncil.SeatId+
                 "|assigned="+assigned+"|created_agents=0|campaign_heroes_moved=0");
             ShowNativeDetail("Royal hall","Native hall assignments confirmed: "+assigned+
-                " of 3 officers. Return to the settlement and enter the keep normally. Actual rendered attendance remains to be checked.");
+                " of "+attendees.Count+" eligible officers and invited guests. Return to the settlement and enter the keep normally. Actual rendered attendance remains to be checked.");
         }
         private bool PrepareRoyalOfficerAudience()
         {

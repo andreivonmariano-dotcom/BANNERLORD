@@ -3652,6 +3652,16 @@ internal static class Program
             new[]{"DefenseAudience","EstateAudience","FamilyAudience","DiplomaticAudience"}.All(k=>
                 SandboxAgencyDecisionPolicy.IsAudience(k) && SandboxAgencyDecisionPolicy.Amount(k)==0 &&
                 SandboxAgencyDecisionPolicy.RelationDelta(k,true)==0));
+        Check("explicit noble negotiation terms require authority, exact relevant speaker and native resources",
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DiplomaticAudience","Goodwill",true,true,0,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DiplomaticAudience","Goodwill",false,true,0,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("EstateAudience","Stipend",true,true,199,false) &&
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("EstateAudience","Stipend",true,true,200,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,true,0,false) &&
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,true,0,true) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,false,0,true) &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Royal Minister",false,false)=="EstateAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Master of Arms",false,false)=="DefenseAudience");
         var pendingQueue=new SandboxAgencyDecisionState{Day=15};
         pendingQueue.Enqueue("first","HouseholdAid");
         pendingQueue.Day=20;

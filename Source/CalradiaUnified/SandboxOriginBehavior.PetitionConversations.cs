@@ -34,7 +34,7 @@ namespace CalradiaUnified
             if(!applied || !PetitionsBelongToCurrentPlayer() || player==null || actor==null ||
                 (!agencyDecisions.HasRoom || agencyDecisions.PendingFor(actor.StringId)!=null) || !actor.IsAlive ||
                 !actor.IsActive || actor.IsPrisoner ||
-                actor.Age<18f || !SamePlace(player,actor) ||
+                actor.Age<18f || RequestedCharacter(actor.StringId)!=actor ||
                 !livingPersons.People.Any(p=>p.Id==actor.StringId))
                 return "";
             var agenda=characterAgendas.Get(actor.StringId);
@@ -62,9 +62,25 @@ namespace CalradiaUnified
             string contact=CorrespondenceContact(player,actor);
             string office=EffectiveHouseholdDuty(actor);
             bool visitingLord=actor.Clan!=null && actor.Clan!=Clan.PlayerClan &&
-                actor.Clan.Leader==actor && SamePlace(player,actor);
+                actor.Clan.Leader==actor && RequestedCharacter(actor.StringId)==actor;
             return SandboxAgencyDecisionPolicy.Specialize(kind,noble,office,
                 contact=="Spouse" || contact=="Kin",visitingLord);
+        }
+        private bool CanNegotiateAudience(string term)
+        {
+            if(!SpeakingWithPendingPetitioner())return false;
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            bool noble=CurrentNobleAuthority(true) || CurrentNobleAuthority(false);
+            string office=EffectiveHouseholdDuty(actor);
+            bool garrison=term=="Garrison" && (KingMarshalAvailable() || LordMasterAvailable());
+            bool relevant=term=="Goodwill"?actor.Clan!=null && actor.Clan!=Clan.PlayerClan &&
+                actor.Clan.Leader==actor && player.GetRelation(actor)<100:
+                term=="Stipend"?actor.Clan==Clan.PlayerClan &&
+                    (office=="Royal Minister" || office=="Steward" || office=="Household Steward"):
+                garrison;
+            return SandboxAgencyDecisionPolicy.NegotiatedTermAllowed(SpeakingPetitionKind(),term,noble,
+                relevant,player.Gold,garrison);
         }
         private bool PrepareAudienceConcern()
         {
@@ -232,6 +248,15 @@ namespace CalradiaUnified
                     PetitionerStyle()=="Direct",null,120);
             starter.AddDialogLine("cu_petition_personal_reason_reply_cu_safe_exit","cu_petition_personal_reason_reply",
                 "close_window","We can speak again another time.",null,null,1);
+            starter.AddPlayerLine("cu_petition_negotiate_goodwill","cu_petition_answers","cu_petition_accept_reply",
+                "Let our houses part on better terms. I offer my personal goodwill.",
+                ()=>CanNegotiateAudience("Goodwill"),()=>ResolveNegotiatedAudience("Goodwill"),135);
+            starter.AddPlayerLine("cu_petition_negotiate_stipend","cu_petition_answers","cu_petition_accept_reply",
+                "Accept 200 denars as a personal stipend for your work.",
+                ()=>CanNegotiateAudience("Stipend"),()=>ResolveNegotiatedAudience("Stipend"),135);
+            starter.AddPlayerLine("cu_petition_negotiate_garrison","cu_petition_answers","cu_petition_accept_reply",
+                "Station five of our existing recruits in the garrison here.",
+                ()=>CanNegotiateAudience("Garrison"),()=>ResolveNegotiatedAudience("Garrison"),135);
             starter.AddPlayerLine(
                 "cu_petition_accept_audience","cu_petition_answers",
                 "cu_petition_accept_reply",
