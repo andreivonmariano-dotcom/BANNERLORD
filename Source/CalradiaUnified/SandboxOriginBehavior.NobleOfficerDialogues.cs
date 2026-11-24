@@ -37,7 +37,8 @@ namespace CalradiaUnified
             var officer=NativeCourtOfficer(title);
             var party=MobileParty.MainParty;
             var clan=Clan.PlayerClan;
-            return officer!=null && clan!=null &&
+            return officer!=null && clan!=null && officer.IsAlive &&
+                officer.IsActive && !officer.IsPrisoner &&
                 Hero.OneToOneConversationHero==officer &&
                 officer.CompanionOf==clan && officer.Clan==clan &&
                 party!=null && party.MemberRoster!=null &&
