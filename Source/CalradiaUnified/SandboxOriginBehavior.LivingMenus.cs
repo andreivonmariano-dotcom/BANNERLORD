@@ -786,13 +786,16 @@ namespace CalradiaUnified
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
                     "Attend to local affairs",
-                    args=>applied && Hero.MainHero!=null &&
-                        Clan.PlayerClan!=null &&
-                        Settlement.CurrentSettlement!=null &&
-                        Settlement.CurrentSettlement.IsFortification &&
-                        !Settlement.CurrentSettlement.IsUnderSiege &&
-                        Settlement.CurrentSettlement.OwnerClan==
-                            Clan.PlayerClan,
+                    args=>{
+                        args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                        return applied && Hero.MainHero!=null &&
+                            Clan.PlayerClan!=null &&
+                            Settlement.CurrentSettlement!=null &&
+                            Settlement.CurrentSettlement.IsFortification &&
+                            !Settlement.CurrentSettlement.IsUnderSiege &&
+                            Settlement.CurrentSettlement.OwnerClan==
+                                Clan.PlayerClan;
+                    },
                     args=>{
                         affairsReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_lineage");
@@ -803,13 +806,16 @@ namespace CalradiaUnified
                 starter.AddGameMenuOption(from,
                     "cu_birth_family_council_entry_"+from,
                     "Request an audience with my birth family",
-                    args=>successionInterest.IsRecorded &&
-                        RecordedBirthClan()!=null &&
-                        Settlement.CurrentSettlement!=null &&
-                        Settlement.CurrentSettlement.IsFortification &&
-                        !Settlement.CurrentSettlement.IsUnderSiege &&
-                        Settlement.CurrentSettlement.OwnerClan==
-                            RecordedBirthClan(),
+                    args=>{
+                        args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                        return successionInterest.IsRecorded &&
+                            RecordedBirthClan()!=null &&
+                            Settlement.CurrentSettlement!=null &&
+                            Settlement.CurrentSettlement.IsFortification &&
+                            !Settlement.CurrentSettlement.IsUnderSiege &&
+                            Settlement.CurrentSettlement.OwnerClan==
+                                RecordedBirthClan();
+                    },
                     args=>{
                         claimReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_claim");

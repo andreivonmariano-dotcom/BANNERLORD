@@ -272,15 +272,16 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_first_audience_reply",
                 "cu_knight_patron_first_audience_reply",
-                "hero_main_options",
+                "close_window",
                 "{CU_PATRON_REPLY}",
                 ()=>PreparePatronReply(),null,200);
+            starter.AddDialogLine("cu_knight_patron_first_audience_reply_cu_safe_exit","cu_knight_patron_first_audience_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_ceremony_defer","cu_knight_ceremony_choices",
-                "hero_main_options",
+                "close_window",
                 "I must settle my affairs before I speak the pledge.",
-                ()=>SpeakingWithSwornPatron() &&
-                    knightOath.LastMusterDay<0,null,80);
+                null,null,80);
             starter.AddPlayerLine(
                 "cu_knight_patrontalk_start",
                 "hero_main_options","cu_knight_patron_answer",
@@ -291,6 +292,8 @@ namespace CalradiaUnified
                 "cu_knight_patron_options",
                 "{CU_PATRON_GREETING}",
                 ()=>PreparePatronGreeting(),null,100);
+            starter.AddDialogLine("cu_knight_patron_answer_cu_safe_exit","cu_knight_patron_answer",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_patron_muster","cu_knight_patron_options",
                 "cu_knight_patron_muster_reply",
@@ -299,9 +302,11 @@ namespace CalradiaUnified
                 ()=>RecordNativePatronAudience(),100);
             starter.AddDialogLine(
                 "cu_knight_patron_muster_reply",
-                "cu_knight_patron_muster_reply","hero_main_options",
+                "cu_knight_patron_muster_reply","close_window",
                 "{CU_PATRON_REPLY}",
                 ()=>PreparePatronReply(),null,100);
+            starter.AddDialogLine("cu_knight_patron_muster_reply_cu_safe_exit","cu_knight_patron_muster_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_patron_expectations","cu_knight_patron_options",
                 "cu_knight_patron_expectations_reply",
@@ -310,7 +315,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_expectations_reply",
                 "cu_knight_patron_expectations_reply",
-                "hero_main_options",
+                "close_window",
                 "Keep your household ready and return for service review. "+
                 "Your house is not yet a vassal clan of my kingdom.",
                 null,null,100);
@@ -322,9 +327,11 @@ namespace CalradiaUnified
                 ()=>AcceptKnightFieldEscort(),100);
             starter.AddDialogLine(
                 "cu_knight_patron_escort_reply",
-                "cu_knight_patron_escort_reply","hero_main_options",
+                "cu_knight_patron_escort_reply","close_window",
                 "{CU_PATRON_REPLY}",
                 ()=>PreparePatronReply(),null,100);
+            starter.AddDialogLine("cu_knight_patron_escort_reply_cu_safe_exit","cu_knight_patron_escort_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_patron_release","cu_knight_patron_options",
                 "cu_knight_patron_release_reply",
@@ -333,12 +340,14 @@ namespace CalradiaUnified
                 ()=>ReleaseByPatronConversation(),100);
             starter.AddDialogLine(
                 "cu_knight_patron_release_reply",
-                "cu_knight_patron_release_reply","hero_main_options",
+                "cu_knight_patron_release_reply","close_window",
                 "{CU_PATRON_REPLY}",
                 ()=>PreparePatronReply(),null,100);
+            starter.AddDialogLine("cu_knight_patron_release_reply_cu_safe_exit","cu_knight_patron_release_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_patron_nevermind","cu_knight_patron_options",
-                "hero_main_options","I have nothing further to report.",
+                "close_window","I have nothing further to report.",
                 null,null,100);
             starter.AddPlayerLine(
                 "cu_knight_successor_talk","hero_main_options",
@@ -357,12 +366,14 @@ namespace CalradiaUnified
                 ()=>RenewOathInConversation(),100);
             starter.AddDialogLine(
                 "cu_knight_successor_reply","cu_knight_successor_reply",
-                "hero_main_options",
+                "close_window",
                 "{CU_PATRON_REPLY}",
                 ()=>PreparePatronReply(),null,100);
+            starter.AddDialogLine("cu_knight_successor_reply_cu_safe_exit","cu_knight_successor_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_successor_decline","cu_knight_successor_options",
-                "hero_main_options","Not today.",null,null,100);
+                "close_window","Not today.",null,null,100);
         }
     }
 }

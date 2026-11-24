@@ -123,7 +123,7 @@ namespace CalradiaUnified
                 ()=>LordMasterAvailable(),
                 ()=>TransferExistingTroopsByOfficer(false),100);
             starter.AddDialogLine("cu_lord_master_order_reply",
-                "cu_lord_master_order_reply","hero_main_options",
+                "cu_lord_master_order_reply","close_window",
                 "I will post your existing soldiers to the garrison.",
                 null,null,100);
             starter.AddPlayerLine("cu_king_marshal_order",
@@ -132,7 +132,7 @@ namespace CalradiaUnified
                 ()=>KingMarshalAvailable(),
                 ()=>TransferExistingTroopsByOfficer(true),100);
             starter.AddDialogLine("cu_king_marshal_order_reply",
-                "cu_king_marshal_order_reply","hero_main_options",
+                "cu_king_marshal_order_reply","close_window",
                 "I will move your own recruits to our royal holding.",
                 null,null,100);
         }

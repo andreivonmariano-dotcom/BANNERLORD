@@ -279,7 +279,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_order_scout_reply",
                 "cu_knight_order_scout_reply",
-                "hero_main_options",
+                "close_window",
                 "Report what you actually find. I have "+
                 "no need of tales you cannot witness.",
                 null,null,100);
@@ -293,7 +293,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_order_muster_reply",
                 "cu_knight_order_muster_reply",
-                "hero_main_options",
+                "close_window",
                 "Keep your company under your own "+
                 "banner. Return in three days and "+
                 "let me inspect your strength.",
@@ -301,7 +301,7 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_knight_order_defer",
                 "cu_knight_order_select",
-                "hero_main_options",
+                "close_window",
                 "I must first settle my household affairs.",
                 null,null,75);
             starter.AddPlayerLine(
@@ -314,7 +314,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_order_report_reply",
                 "cu_knight_order_report_reply",
-                "hero_main_options",
+                "close_window",
                 "Your report is witnessed. You have "+
                 "earned my greater trust. Keep your "+
                 "household fit for the next duty.",
@@ -330,7 +330,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_review_new",
                 "cu_knight_service_review_reply",
-                "hero_main_options",
+                "close_window",
                 "You have sworn your sword. Keep faith and "+
                 "show what your household can do.",
                 ()=>KnightVerifiedStanding()=="Newly sworn knight",
@@ -338,7 +338,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_review_proven",
                 "cu_knight_service_review_reply",
-                "hero_main_options",
+                "close_window",
                 "Your proven work has reached my notice. "+
                 "I expect your banner to answer when called.",
                 ()=>KnightVerifiedStanding()=="Proven sworn sword",
@@ -346,7 +346,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_review_trusted",
                 "cu_knight_service_review_reply",
-                "hero_main_options",
+                "close_window",
                 "Your service, conduct and reputation "+
                 "have earned my trust. Continue to serve well.",
                 ()=>KnightVerifiedStanding()=="Trusted household knight",
@@ -354,11 +354,13 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_review_veteran",
                 "cu_knight_service_review_reply",
-                "hero_main_options",
+                "close_window",
                 "Few have a longer record of dependable "+
                 "service to this house. Your honor is your own.",
                 ()=>KnightVerifiedStanding()=="Veteran retainer",
                 null,100);
+            starter.AddDialogLine("cu_knight_service_review_reply_cu_safe_exit","cu_knight_service_review_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_knight_request_recommendation",
                 "cu_knight_patron_options",
@@ -369,7 +371,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_recommendation_reply",
                 "cu_knight_recommendation_reply",
-                "hero_main_options",
+                "close_window",
                 "Your household has earned a hearing. "+
                 "Seek our ruler in person. I will acknowledge "+
                 "the service you have completed under my banner.",
@@ -384,7 +386,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_royal_hearing_reply",
                 "cu_knight_royal_hearing_reply",
-                "hero_main_options",
+                "close_window",
                 "Your service under your sworn lord has been heard. "+
                 "Any formal entry into this kingdom must follow "+
                 "the law of the crown and its existing clans.",
@@ -399,7 +401,7 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_lawful_vassalage_reply",
                 "cu_knight_lawful_vassalage_reply",
-                "hero_main_options",
+                "close_window",
                 "Your personal service is acknowledged, but "+
                 "the crown's ordinary terms for joining the realm "+
                 "remain in force. A hearing grants no land or title.",

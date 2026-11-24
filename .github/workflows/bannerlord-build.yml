@@ -83,6 +83,8 @@ jobs:
         run: python scripts/test_v071c_career_chapters_and_household_duties.py
       - name: Immersive household access and face-to-face petition source gate
         run: python scripts/test_v071d_immersive_household_context.py
+      - name: Reject conversation traps and technical settlement entries
+        run: python scripts/test_v074_dialogue_exit_safety.py
       - name: Native household camp, petitioner stories and knight service orders
         run: python scripts/test_v071e_camp_petition_stories_knight_orders.py
       - name: Illustrated 2D camp, personality petitions and verified knight standing

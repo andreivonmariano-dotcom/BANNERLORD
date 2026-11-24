@@ -389,6 +389,8 @@ namespace CalradiaUnified
                 "cu_family_house_audience_reply","cu_personal_matters_topics",
                 "{CU_FAMILY_CONVERSATION_REPLY}",
                 ()=>PrepareFamilyConversationReply(),null,110);
+            starter.AddDialogLine("cu_family_house_audience_reply_cu_safe_exit","cu_family_house_audience_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_family_house_gift","cu_personal_matters_topics",
                 "cu_family_house_gift_reply",
@@ -399,6 +401,8 @@ namespace CalradiaUnified
                 "cu_family_house_gift_reply","cu_personal_matters_topics",
                 "{CU_FAMILY_GIFT_REPLY}",
                 ()=>PrepareFamilyGiftReply(),null,100);
+            starter.AddDialogLine("cu_family_house_gift_reply_cu_safe_exit","cu_family_house_gift_reply",
+                "close_window","We can speak again another time.",null,null,1);
 
             foreach(var officeName in new[]{"Steward","Captain","Envoy"})
             {
@@ -419,12 +423,18 @@ namespace CalradiaUnified
                     "cu_personal_matters_topics",
                     "{CU_APPOINTMENT_REPLY}",
                     ()=>PrepareAppointmentReply(),null,100);
+            starter.AddDialogLine("cu_household_appoint_reply__cu_safe_exit"+
+                        office.ToLowerInvariant(),"cu_household_appoint_reply_"+
+                        office.ToLowerInvariant(),
+                "close_window","We can speak again another time.",null,null,1);
             }
             starter.AddPlayerLine("cu_household_duty_release","cu_personal_matters_topics",
                 "cu_household_duty_release_reply","I release you from your household duty.",
                 ()=>CanReleaseHouseholdDuty(),()=>ReleaseHouseholdDuty(),100);
             starter.AddDialogLine("cu_household_duty_release_reply","cu_household_duty_release_reply",
                 "cu_personal_matters_topics","{CU_APPOINTMENT_REPLY}",()=>PrepareAppointmentReply(),null,100);
+            starter.AddDialogLine("cu_household_duty_release_reply_cu_safe_exit","cu_household_duty_release_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_household_duty_report","cu_personal_matters_topics",
                 "cu_household_duty_report_reply",
@@ -436,6 +446,8 @@ namespace CalradiaUnified
                 "cu_household_duty_report_reply","cu_personal_matters_topics",
                 "{CU_HOUSEHOLD_DUTY_REPLY}",
                 ()=>PrepareHouseholdDutyReply(),null,100);
+            starter.AddDialogLine("cu_household_duty_report_reply_cu_safe_exit","cu_household_duty_report_reply",
+                "close_window","We can speak again another time.",null,null,1);
         }
         private void ShowHouseholdDutyLedger()
         {

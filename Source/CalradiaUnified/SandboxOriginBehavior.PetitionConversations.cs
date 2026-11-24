@@ -157,6 +157,8 @@ namespace CalradiaUnified
                 ()=>SpeakingWithPendingPetitioner() &&
                     agencyDecisions.PendingKind=="LivelihoodAid",
                 null,120);
+            starter.AddDialogLine("cu_petition_open_cu_safe_exit","cu_petition_open",
+                "close_window","We can speak again another time.",null,null,1);
             // Asking for a reason changes no gold or relationship.
             // The reply comes from recorded ambition, current
             // relation and real native Hero traits.
@@ -205,6 +207,8 @@ namespace CalradiaUnified
                 "the work ahead will be mine to do.",
                 ()=>SpeakingWithPendingPetitioner() &&
                     PetitionerStyle()=="Direct",null,120);
+            starter.AddDialogLine("cu_petition_personal_reason_reply_cu_safe_exit","cu_petition_personal_reason_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_accept_audience","cu_petition_answers",
                 "cu_petition_accept_reply",
@@ -222,6 +226,8 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics",
                 "{CU_PETITION_DECISION_REPLY}",
                 ()=>PreparePetitionDecisionReply(),null,120);
+            starter.AddDialogLine("cu_petition_accept_reply_cu_safe_exit","cu_petition_accept_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_refuse","cu_petition_answers",
                 "cu_petition_refuse_reply",
@@ -233,17 +239,21 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics",
                 "{CU_PETITION_DECISION_REPLY}",
                 ()=>PreparePetitionDecisionReply(),null,110);
+            starter.AddDialogLine("cu_petition_refuse_reply_cu_safe_exit","cu_petition_refuse_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_no_coin","cu_petition_answers",
-                "cu_personal_matters_topics",
+                "cu_petition_no_coin_reply",
                 "I have not the silver to offer you.",
                 ()=>CannotAffordPetitionInConversation(),
                 null,80);
             starter.AddPlayerLine(
                 "cu_petition_defer","cu_petition_answers",
-                "cu_personal_matters_topics",
+                "close_window",
                 "Let us speak of this another time.",
-                ()=>SpeakingWithPendingPetitioner(),null,70);
+                null,null,70);
+            starter.AddDialogLine("cu_petition_no_coin_reply","cu_petition_no_coin_reply",
+                "cu_personal_matters_topics","We can speak of it another day.",null,null,80);
         }
     }
 }

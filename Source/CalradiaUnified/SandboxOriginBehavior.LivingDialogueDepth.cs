@@ -517,6 +517,8 @@ namespace CalradiaUnified
                 ()=>CanSpeakSocially(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
                 "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
+            starter.AddDialogLine("cu_personal_matters_intro_cu_safe_exit","cu_personal_matters_intro",
+                "close_window","We can speak again another time.",null,null,1);
             foreach(string topicName in new[]{"Opinions","Concerns","Ambitions","Family","Finances","Estate","Service","Standing","Memory"})
             {
                 string topic=topicName;
@@ -534,6 +536,8 @@ namespace CalradiaUnified
                 starter.AddDialogLine("cu_personal_topic_reply_"+topic,"cu_personal_topic_reply_"+topic,
                     "cu_personal_matters_topics","{CU_PERSONAL_TOPIC_REPLY}",
                     ()=>PreparePersonalTopic(topic),null,100);
+            starter.AddDialogLine("cu_personal_topic_reply__cu_safe_exit"+topic,"cu_personal_topic_reply_"+topic,
+                "close_window","We can speak again another time.",null,null,1);
             }
             for(int i=0;i<6;i++)
             {
@@ -548,6 +552,8 @@ namespace CalradiaUnified
             }
             starter.AddDialogLine("cu_family_education_discussion","cu_family_education_discussion",
                 "cu_family_education_choices","{CU_EDUCATION_DISCUSSION}",()=>PrepareEducationDiscussion(),null,100);
+            starter.AddDialogLine("cu_family_education_discussion_cu_safe_exit","cu_family_education_discussion",
+                "close_window","We can speak again another time.",null,null,1);
             foreach(string choice in new[]{"Kind","Martial","Scholarly","Mercantile","Seafaring","Independent"})
             {
                 string plan=choice;
@@ -565,8 +571,14 @@ namespace CalradiaUnified
             }
             starter.AddDialogLine("cu_family_education_reply","cu_family_education_reply",
                 "cu_personal_matters_topics","{CU_EDUCATION_REPLY}",()=>PrepareEducationReply(),null,100);
+            starter.AddDialogLine("cu_family_education_reply_cu_safe_exit","cu_family_education_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine("cu_family_education_leave","cu_family_education_choices",
-                "cu_personal_matters_topics","Let us leave the matter for now.",null,null,80);
+                "cu_family_education_back_reply","Let us leave the matter for now.",null,null,80);
+            starter.AddDialogLine("cu_family_education_back_reply","cu_family_education_back_reply",
+                "cu_personal_matters_topics","Very well. What else is on your mind?",null,null,80);
+            starter.AddPlayerLine("cu_family_education_end","cu_family_education_choices",
+                "close_window","That is all for now.",null,null,70);
             starter.AddPlayerLine("cu_personal_charge_agree","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us agree on our next duty.",
                 ()=>CanOfferCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
@@ -589,8 +601,10 @@ namespace CalradiaUnified
                 ()=>chargeReply=WithdrawCareerCharge(),90);
             starter.AddDialogLine("cu_personal_charge_reply","cu_personal_charge_reply",
                 "cu_personal_matters_topics","{CU_CHARGE_REPLY}",()=>PrepareChargeReply(),null,100);
+            starter.AddDialogLine("cu_personal_charge_reply_cu_safe_exit","cu_personal_charge_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine("cu_personal_matters_return","cu_personal_matters_topics",
-                "hero_main_options","That is all for now.",null,null,80);
+                "close_window","That is all for now.",null,null,80);
         }
     }
 }

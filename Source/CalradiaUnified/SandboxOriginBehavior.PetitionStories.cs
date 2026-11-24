@@ -173,6 +173,8 @@ namespace CalradiaUnified
                 "Your support gave me a chance to keep working "+
                 "toward my livelihood. I have not forgotten it.",
                 ()=>PetitionStoryKind("LivelihoodAid"),null,115);
+            starter.AddDialogLine("cu_petition_story_supported_reply_cu_safe_exit","cu_petition_story_supported_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_story_return_refused",
                 "cu_personal_matters_topics",
@@ -194,6 +196,8 @@ namespace CalradiaUnified
                 "I have made what plans I can. "+
                 "We may still speak, even after a refusal.",
                 ()=>PetitionerStyle()!="Guarded",null,110);
+            starter.AddDialogLine("cu_petition_story_refused_reply_cu_safe_exit","cu_petition_story_refused_reply",
+                "close_window","We can speak again another time.",null,null,1);
         }
     }
 }

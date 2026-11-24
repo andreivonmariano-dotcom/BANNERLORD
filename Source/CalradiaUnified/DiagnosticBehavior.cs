@@ -39,12 +39,8 @@ namespace CalradiaUnified
         {
             if (settings.EnableDiagnostics)
                 DiagnosticJournal.Event("campaign_session_launched", "version="+typeof(SubModule).Assembly.GetName().Version);
-            if (starter == null) return;
-            foreach (var menu in new[] { "town", "castle" })
-                starter.AddGameMenuOption(menu, "cu_export_diagnostics",
-                    "CU: Export campaign economy and crash diagnostics",
-                    args => settings.EnableDiagnostics,
-                    args => ExportFromMenu(), false);
+            // Keep automatic telemetry; private export is performed using
+            // the existing external diagnostics script, not a settlement action.
         }
 
         private static string N(int n)
