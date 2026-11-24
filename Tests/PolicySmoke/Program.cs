@@ -150,6 +150,40 @@ internal static class Program
             restoredTalk.RecordConversationChoice("player","spouse","Memory",false,14) &&
             restoredTalk.HasRecentConversationChoice("player","spouse","Memory",14) &&
             restoredTalk.SharedConversationMemory("player","spouse").Detail=="day=6|topic=Family|stance=disagreed");
+        Check("council preferences reflect distinct office goal and native standing",
+            SandboxPetitionVoicePolicy.GroupPreference("Marshal","","Plain",20)=="Security" &&
+            SandboxPetitionVoicePolicy.GroupPreference("Royal Minister","","Plain",20)=="Reserve" &&
+            SandboxPetitionVoicePolicy.GroupPreference("","SupportHousehold","Warm",20)=="Welfare" &&
+            SandboxPetitionVoicePolicy.GroupPreference("Marshal","","Bold",-20)=="Reserve");
+        Check("council arguments and cross-speaker response are bounded and distinct",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.Select(p=>SandboxPetitionVoicePolicy.GroupArgument(t,p)).Distinct().Count()==3) &&
+            SandboxPetitionVoicePolicy.GroupArgument("unknown","Security")=="" &&
+            SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",-20,true)!=
+                SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",30,true) &&
+            SandboxPetitionVoicePolicy.GroupResponse("Security","Security",30,true)!=
+                SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",30,true));
+        Check("council choice preserves dissent rather than forcing unanimous support",
+            SandboxPetitionVoicePolicy.GroupDecisionReply("Security","Security","Bold")!=
+                SandboxPetitionVoicePolicy.GroupDecisionReply("Welfare","Security","Bold") &&
+            SandboxPetitionVoicePolicy.GroupDecisionReply("Security","unknown","Bold")=="");
+        var courtTalk=new SandboxLifeHistoryState();
+        Check("council choice records only a valid pair and one declaration per day",
+            !courtTalk.RecordGroupDiscussion("player","player","Family","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","unknown","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Defense","unknown",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Defense","Security",-1) &&
+            courtTalk.RecordGroupDiscussion("player","marshal","Defense","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Family","Welfare",1) &&
+            courtTalk.RecordGroupDiscussion("player","minister","Defense","Security",1));
+        var savedCourtTalk=SandboxLifeHistoryState.Parse(courtTalk.Serialize());
+        Check("council declaration survives save with no inherited or absent participant memory",
+            savedCourtTalk.LatestGroupDiscussion("player","marshal").Detail=="day=1|topic=Defense|priority=Security" &&
+            savedCourtTalk.LatestGroupDiscussion("player","minister").Detail=="day=1|topic=Defense|priority=Security" &&
+            savedCourtTalk.LatestGroupDiscussion("successor","marshal")==null &&
+            savedCourtTalk.LatestGroupDiscussion("player","absent")==null &&
+            !savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",1) &&
+            savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",2));
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
