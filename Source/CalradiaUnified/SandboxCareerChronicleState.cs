@@ -368,6 +368,13 @@ namespace CalradiaUnified
                 default:return "";
             }
         }
+        public static bool IsKindForRole(string role,string kind)
+        {
+            return DefaultKind(role).Length>0 &&
+                (kind==DefaultKind(role) ||
+                 ((role=="Lord" || role=="King") &&
+                  (kind=="VisitEstate" || kind=="StrengthenGarrison")));
+        }
         public static string Label(string kind)
         {
             switch(kind)
@@ -386,7 +393,7 @@ namespace CalradiaUnified
         private static bool Valid(string hero,string role,string kind,string target,int day,int baseline)
         {
             return Id(hero) && DefaultKind(role).Length>0 &&
-                (kind==DefaultKind(role) || (role=="Lord" && kind=="StrengthenGarrison")) &&
+                IsKindForRole(role,kind) &&
                 Id(target) && day>=0 && day<=2000000 && baseline>=-1 && baseline<=2000000;
         }
         public bool Start(string hero,string role,string kind,string target,int day,int baseline,bool verified)
