@@ -33,8 +33,10 @@ namespace CalradiaUnified
                 "|accepted="+accepted+
                 "|social_receipt="+socialRecorded+
                 "|native_relation_not_overridden=true");
-            RememberPetitionStory(person,kind);
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            var story=petitionStories.For(person.StringId);
+            if(story==null || story.Kind!=kind ||
+                (long)day-story.StartedDay>=SandboxAgencyDecisionPolicy.ExpiryDays)return;
             if(petitionStories.Resolve(person.StringId,accepted,
                 day,paymentVerified,relationDelta))
                 DiagnosticJournal.Event("cu_petition_personal_story_decision",
@@ -55,8 +57,8 @@ namespace CalradiaUnified
             var story=petitionStories.For(person.StringId);
             return story!=null &&
                 story.Outcome==(supported?"Supported":"Declined") &&
-                petitionStories.CanFollowUp(person.StringId,
-                    (int)Math.Floor(CampaignTime.Now.ToDays));
+                story.ResolvedDay>=0 &&
+                (long)CurrentHouseholdDay()-story.ResolvedDay>=SandboxPetitionStoryState.FollowUpDays;
         }
         private void CompletePetitionStoryFollowUp()
         {
@@ -101,7 +103,7 @@ namespace CalradiaUnified
             if(speaker==null)return false;
             var story=petitionStories.For(speaker.StringId);
             return story!=null && story.Kind==kind &&
-                story.FollowUpDay>=0;
+                story.ResolvedDay>=0;
         }
 
         private void RegisterPetitionStoryConversations(
@@ -120,8 +122,7 @@ namespace CalradiaUnified
                 "cu_petition_story_supported_reply",
                 "hero_main_options",
                 "You recognized the work I had done. "+
-                "That mattered to me, and I have continued "+
-                "to carry out my duties.",
+                "I remember it. My duties and hopes are still my own.",
                 ()=>PetitionStoryKind("Recognition"),null,115);
             starter.AddDialogLine(
                 "cu_petition_story_household_reply",
