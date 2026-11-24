@@ -99,6 +99,10 @@ assert 'SandboxRetinueOfficePolicy.DutyFocus(office,owned,' in duties
 assert 'dutyReplyVariant=NextDialogueVariant(person,"OfficerDuty",2);' in duties
 assert 's=="OfficerDuty"' in variety
 assert 'e.Kind=="CourtDutyConsulted"' in duties
-assert 'e.Actor==person.StringId && e.Target==Hero.MainHero.StringId && e.Detail==detail' in duties
+assert 'e.Actor==person.StringId && e.Target==Hero.MainHero.StringId &&' in duties
+assert 'e.Detail.StartsWith(dayKey+"|",StringComparison.Ordinal)' in duties
+assert 'NativeOfficerSkills(person,recorded)' in duties
+assert 'officer.GetSkillValue(x.Skill)' in duties
+assert 'SetInitialSkillLevel' not in duties
 assert 'recent recorded consultations:' in duties
 print("PASS bounded native family branch review and office-specific consultation contracts. SOURCE ONLY.")
