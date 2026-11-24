@@ -19,7 +19,7 @@ namespace CalradiaUnified
             // Latest non-transactional letter per tracked person. The owner
             // is the actual recipient, not a transferable household asset.
             public string NewsRecipient="",NewsText="",NewsGoal="";
-            public int NewsDay=-1,NewsStanding;
+            public int NewsDay=-1,NewsStanding,NewsReadDay=-1;
             // One transient proposal per daily observation. A proposal
             // is never serialized as a confirmed native relationship.
             public bool AwardProposed;
@@ -152,10 +152,42 @@ namespace CalradiaUnified
             if(!CanWriteNews(sender,recipient,day,nativeRelation) ||
                 String.IsNullOrWhiteSpace(text) || text.Length>180)return false;
             var entry=Get(sender);
-            entry.NewsRecipient=recipient;entry.NewsDay=day;
+            entry.NewsRecipient=recipient;entry.NewsDay=day;entry.NewsReadDay=-1;
             entry.NewsStanding=StandingBand(nativeRelation);
             entry.NewsGoal=entry.Goal;entry.NewsText=text;
             return true;
+        }
+        public bool IsNewsUnread(string sender,string recipient,int day)
+        {
+            var e=Get(sender);
+            return e!=null && e.NewsRecipient==recipient && e.NewsDay==day && day>=0 &&
+                e.NewsText.Length>0 && e.NewsReadDay!=day;
+        }
+        public bool MarkNewsRead(string sender,string recipient,int day)
+        {
+            if(!IsNewsUnread(sender,recipient,day))return false;
+            Get(sender).NewsReadDay=day;return true;
+        }
+        // Separate optional save field leaves old agenda rows unchanged.
+        public string SerializeNewsReads()
+        {
+            return "CU_NEWS_READ_1"+String.Concat(Entries.Where(e=>e.NewsDay>=0 &&
+                e.NewsReadDay==e.NewsDay && e.NewsRecipient.Length>0)
+                .OrderBy(e=>e.Id,StringComparer.Ordinal)
+                .Select(e=>"\n"+E(e.Id)+"|"+E(e.NewsRecipient)+"|"+e.NewsDay));
+        }
+        public void RestoreNewsReads(string value)
+        {
+            foreach(var e in Entries)e.NewsReadDay=-1;
+            if(String.IsNullOrEmpty(value) || value.Length>131072)return;
+            var rows=value.Replace("\r","").Split('\n');
+            if(rows[0]!="CU_NEWS_READ_1" || rows.Length>MaxEntries+1)return;
+            foreach(var row in rows.Skip(1))
+            {
+                var fields=row.Split('|');int day;
+                if(fields.Length==3 && Int32.TryParse(fields[2],out day))
+                    MarkNewsRead(D(fields[0]),D(fields[1]),day);
+            }
         }
         private static string E(string value)
         {

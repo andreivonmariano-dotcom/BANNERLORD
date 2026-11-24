@@ -92,8 +92,11 @@ print("PASS v0.71d STATIC: court belongs to native owned estates, "+
 affairs=(src/"SandboxOriginBehavior.Affairs.cs").read_text(encoding="utf-8")
 assert 'ScreenManager.PushScreen(new CUAffairsScreen' not in affairs
 assert 'b.ShowAffairsNativePage(all,0)' in affairs
-assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more,' in affairs
-assert '"Close",more?"Next matter":null' in affairs
+assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,' in affairs
+assert '"Close",unread?(more?"Mark read & next":"Mark read")' in affairs
+assert 'characterAgendas.MarkNewsRead(item.HeroId,Hero.MainHero.StringId,item.Day)' in affairs
+assert 'if(RoyalAudienceAvailableToday())count++;' in affairs
+assert 'store.SyncData("CU_news_read_1",ref newsReads);' in origin
 assert 'if(PendingAffairsGathering(day))count++;' in affairs
 assert 'bool pending=PendingAffairsGathering(day);' in affairs
 assert 'gatheringPlan.Owner==Hero.MainHero.StringId' in affairs

@@ -175,6 +175,24 @@ namespace CalradiaUnified
                 new TextObject("I accept the household designation. We can restore the court when all its members are present."));
         }
 
+        // Actual one-to-one native conversation, not a scene-spawn action.
+        private bool CanHearRoyalOfficerInPerson()
+        {
+            var speaker=Hero.OneToOneConversationHero;
+            return applied && IsStandaloneSandbox() && NativeRoyalCouncilPresent(true) &&
+                speaker!=null && (speaker.StringId==royalCouncil.MarshalId ||
+                    speaker.StringId==royalCouncil.MinisterId || speaker.StringId==royalCouncil.KingsguardHeroId) &&
+                CanDiscussHouseholdDuty();
+        }
+        private bool PrepareRoyalOfficerAudience()
+        {
+            if(!CanHearRoyalOfficerInPerson())
+            {
+                MBTextManager.SetTextVariable("CU_HOUSEHOLD_DUTY_REPLY",new TextObject("We must speak again when the court is present."));
+                return true;
+            }
+            return PrepareHouseholdDutyReply();
+        }
         private void RegisterRoyalOfficerReplacement(CampaignGameStarter starter)
         {
             foreach(string key in SandboxKingStartPolicy.CourtOffices)
@@ -241,6 +259,13 @@ namespace CalradiaUnified
         {
             if(starter==null)return;
             RegisterRoyalOfficerReplacement(starter);
+            starter.AddPlayerLine("cu_royal_officer_audience","hero_main_options",
+                "cu_royal_officer_audience_reply","Give me your counsel on the affairs of our court.",
+                ()=>CanHearRoyalOfficerInPerson(),()=>{if(CanHearRoyalOfficerInPerson())DiscussHouseholdDuty();},114);
+            starter.AddDialogLine("cu_royal_officer_audience_reply","cu_royal_officer_audience_reply",
+                "close_window","{CU_HOUSEHOLD_DUTY_REPLY}",()=>PrepareRoyalOfficerAudience(),null,110);
+            starter.AddDialogLine("cu_royal_officer_audience_exit","cu_royal_officer_audience_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddGameMenu("cu_native_royal_council",
                 "Royal court at an actual player-owned seat. The Royal "+
                 "Minister governs this holding. Marshal and one real "+

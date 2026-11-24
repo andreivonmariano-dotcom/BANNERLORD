@@ -21,17 +21,17 @@ namespace CalradiaUnified
         // Weak reference avoids keeping a native map VM alive across campaigns.
         private static WeakReference<CUMapNotificationAffairsMixin> current;
         private static float elapsed;
-        private int count=-1;
+        private int count=-1,unread=-1;
         public CUMapNotificationAffairsMixin(MapNotificationVM vm):base(vm)
         {current=new WeakReference<CUMapNotificationAffairsMixin>(this);}
-        [DataSourceProperty] public bool CUHasPendingAffairs{get{return count>0;}}
-        [DataSourceProperty] public string CUAffairsNotice{get{return count==1?"1 matter awaits your attention":count+" matters await your attention";}}
+        [DataSourceProperty] public bool CUHasPendingAffairs{get{return count>0 || unread>0;}}
+        [DataSourceProperty] public string CUAffairsNotice{get{return Math.Max(0,count)+" pending | "+Math.Max(0,unread)+" unread";}}
         [DataSourceMethod] public void ExecuteCUAffairsNotice()
         {SandboxOriginBehavior.OpenCampaignAffairs();}
-        private void UpdateNotice(int pending)
+        private void UpdateNotice(int pending,int unreadLetters)
         {
-            if(count==pending)return;
-            count=pending;
+            if(count==pending && unread==unreadLetters)return;
+            count=pending;unread=unreadLetters;
             OnPropertyChangedWithValue(CUHasPendingAffairs,"CUHasPendingAffairs");
             OnPropertyChangedWithValue(CUAffairsNotice,"CUAffairsNotice");
         }
@@ -43,7 +43,7 @@ namespace CalradiaUnified
             elapsed=0f;
             CUMapNotificationAffairsMixin target;
             if(current==null || !current.TryGetTarget(out target))return;
-            try{target.UpdateNotice(SandboxOriginBehavior.PendingAffairsCount());}
+            try{target.UpdateNotice(SandboxOriginBehavior.PendingAffairsCount(),SandboxOriginBehavior.UnreadAffairsCount());}
             catch(Exception error)
             {
                 current=null;

@@ -439,7 +439,10 @@ namespace CalradiaUnified
             successionInterest=SandboxSuccessionInterestState.Parse(claim);
             string agenda=characterAgendas.Serialize();
             store.SyncData("CU_v066_character_agendas",ref agenda);
+            string newsReads=characterAgendas.SerializeNewsReads();
+            store.SyncData("CU_news_read_1",ref newsReads);
             characterAgendas=SandboxCharacterAgendaState.Parse(agenda);
+            characterAgendas.RestoreNewsReads(newsReads);
             string requests=agencyDecisions.Serialize();
             store.SyncData("CU_v067_character_requests",ref requests);
             agencyDecisions=SandboxAgencyDecisionState.Parse(requests);

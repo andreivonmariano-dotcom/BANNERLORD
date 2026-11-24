@@ -57,6 +57,21 @@ internal static class Program
             savedNews.Get("family_a").NewsDay==15 && savedNews.Get("family_a").NewsStanding==1 &&
             savedNews.Get("family_a").NewsGoal=="SupportHousehold" &&
             SandboxCharacterAgendaState.Parse("CU_AGENDA_1\nP|old|SupportHousehold||||||0|1").Get("old").NewsDay==-1);
+        Check("unread letters require exact sender recipient and issue day",
+            savedNews.IsNewsUnread("family_a","player",15) &&
+            !savedNews.MarkNewsRead("family_a","successor",15) &&
+            !savedNews.MarkNewsRead("family_a","player",14) &&
+            savedNews.MarkNewsRead("family_a","player",15) &&
+            !savedNews.IsNewsUnread("family_a","player",15) &&
+            savedNews.IsNewsUnread("family_b","player",29));
+        var restoredReads=SandboxCharacterAgendaState.Parse(savedNews.Serialize());
+        restoredReads.RestoreNewsReads(savedNews.SerializeNewsReads());
+        Check("read receipt round trip preserves unrelated unread letters and new issue remains unread",
+            !restoredReads.IsNewsUnread("family_a","player",15) &&
+            restoredReads.IsNewsUnread("family_b","player",29) &&
+            restoredReads.RecordNews("family_a","player",75,40,familyNews) &&
+            restoredReads.IsNewsUnread("family_a","player",75) &&
+            !restoredReads.MarkNewsRead("family_a","player",15));
         Check("ordinary relationship dialogue follows observed native score without inventing friend or enemy flags",
             new[]{-40,-5,0,25,60}.Select(SandboxPetitionVoicePolicy.StandingReply).Distinct().Count()==5 &&
             SandboxCharacterAgendaState.StandingBand(-30)==-2 &&

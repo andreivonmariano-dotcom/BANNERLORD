@@ -108,3 +108,11 @@ assert '!retinueOffices.CanRegisterNew(person.StringId,office)' in council
 assert 'public bool IsRevoked(string id)' in registry
 assert '!HasIdentity(id) && offices.Count<32' in registry
 print("PASS royal vacancy persistence and capacity guards; SOURCE ONLY.")
+
+# Native one-to-one counsel, no manufactured scene attendance.
+assert 'NativeRoyalCouncilPresent(true) &&' in council
+assert 'speaker.StringId==royalCouncil.MarshalId' in council
+assert 'speaker.StringId==royalCouncil.MinisterId' in council
+assert 'speaker.StringId==royalCouncil.KingsguardHeroId' in council
+assert '()=>CanHearRoyalOfficerInPerson(),()=>{if(CanHearRoyalOfficerInPerson())DiscussHouseholdDuty();}' in council
+assert '"cu_royal_officer_audience_exit"' in council

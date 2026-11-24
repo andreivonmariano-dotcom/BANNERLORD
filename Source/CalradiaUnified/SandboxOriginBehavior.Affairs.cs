@@ -25,6 +25,17 @@ namespace CalradiaUnified
             var b=AffairsBehavior();
             return b==null?0:b.CountPendingAffairs();
         }
+        public static int UnreadAffairsCount()
+        {
+            var b=AffairsBehavior();
+            return b==null?0:b.characterAgendas.Entries.Count(e=>
+                b.characterAgendas.IsNewsUnread(e.Id,Hero.MainHero.StringId,e.NewsDay));
+        }
+        private bool RoyalAudienceAvailableToday()
+        {
+            return royalCouncil.IsRecorded && royalCouncil.LastMeetingDay<CurrentLordInheritanceDay() &&
+                NativeRoyalCouncilPresent(true);
+        }
         private int affairFollowUpCacheDay=-1;
         private HashSet<string> livingFollowUpPeople=new HashSet<string>(StringComparer.Ordinal);
         private bool LivingFollowUp(string id,int day)
@@ -72,6 +83,7 @@ namespace CalradiaUnified
             if(oath && knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)count++;
             if(OpenAffairsClaim())count++;
             if(PendingAffairsGathering(day))count++;
+            if(RoyalAudienceAvailableToday())count++;
             var clan=Clan.PlayerClan;
             if(clan.Settlements!=null)
                 count+=clan.Settlements.Count(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
@@ -88,7 +100,7 @@ namespace CalradiaUnified
                 // Keep the custom movie unreachable until native UI acceptance.
                 var all=b.BuildAffairs().Where(x=>x!=null).GroupBy(x=>x.Id,StringComparer.Ordinal)
                     .Select(g=>g.First()).OrderByDescending(x=>x.Pending)
-                    .ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
+                    .ThenByDescending(x=>x.Unread).ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
                 DiagnosticJournal.Event("cu_campaign_affairs_native_open","records="+all.Length+
                     "|pending="+all.Count(x=>x.Pending)+"|custom_movie=false");
                 b.ShowAffairsNativePage(all,0);
@@ -116,8 +128,16 @@ namespace CalradiaUnified
             string body=item.Category+" | "+item.Title+"\n"+item.Status+
                 (item.Pending?" | Attention required":"")+
                 (item.Day>=0?" | Day "+item.Day:"")+"\n\n"+item.Detail;
-            InformationManager.ShowInquiry(new InquiryData(title,body,true,more,
-                "Close",more?"Next matter":null,()=>{},more?(Action)(()=>ShowAffairsNativePage(records,index+1)):null),true);
+            bool unread=item.Unread && characterAgendas.IsNewsUnread(item.HeroId,Hero.MainHero.StringId,item.Day);
+            InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,
+                "Close",unread?(more?"Mark read & next":"Mark read"):(more?"Next matter":null),
+                ()=>{},(more || unread)?(Action)(()=>
+                {
+                    if(AffairsBehavior()!=this)return;
+                    if(unread && characterAgendas.MarkNewsRead(item.HeroId,Hero.MainHero.StringId,item.Day))
+                        DiagnosticJournal.Event("cu_correspondence_read","sender="+item.HeroId+"|recipient="+Hero.MainHero.StringId+"|day="+item.Day);
+                    if(more)ShowAffairsNativePage(records,index+1);
+                }):null),true);
         }
         internal static Hero ResolveAffairHero(string id)
         {
@@ -214,8 +234,9 @@ namespace CalradiaUnified
                 var historical=livingPersons.People.FirstOrDefault(x=>x.Id==news.Id);
                 string name=sender!=null?AffairPerson(sender):historical==null?"Recorded correspondent":historical.Name;
                 rows.Add(new SandboxAffair{Id="news:"+news.Id,Category="Letters",HeroId=news.Id,
-                    Title=name+" | Personal letter",Status="No reply required",Day=news.NewsDay,
-                    Pending=false,Detail=news.NewsText+"\n\n"+AffairLocation(sender)});
+                    Title=name+" | Personal letter",Status=characterAgendas.IsNewsUnread(news.Id,player.StringId,news.NewsDay)?
+                        "Unread | No reply required":"Read | No reply required",Day=news.NewsDay,
+                    Pending=false,Unread=characterAgendas.IsNewsUnread(news.Id,player.StringId,news.NewsDay),Detail=news.NewsText+"\n\n"+AffairLocation(sender)});
             }
             if(IsPersonalChargeActive())
                 rows.Add(new SandboxAffair{Id="charge",Category="Service",Title="Your agreed duty",
@@ -254,6 +275,11 @@ namespace CalradiaUnified
                         Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title.\n"+AffairLocation(ruler)});
                 }
             }
+            if(RoyalAudienceAvailableToday())
+                rows.Add(new SandboxAffair{Id="royal-council-today",Category="Household",
+                    SettlementId=royalCouncil.SeatId,Title="Royal court available",
+                    Status="Optional audience today",Pending=true,Day=day,
+                    Detail="Your verified court is present at the recorded seat. Speak directly to your officers or convene through local affairs. No native vote is made here."});
             if(gatheringPlan.Owner==player.StringId && gatheringPlan.Status.Length>0)
             {
                 var place=Settlement.Find(gatheringPlan.Seat);
