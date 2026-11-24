@@ -268,7 +268,7 @@ namespace CalradiaUnified
             var player=Hero.MainHero;
             var actor=RequestedCharacter();
             if(player==null || actor==null ||
-                Hero.OneToOneConversationHero!=actor)
+                Hero.OneToOneConversationHero!=actor || !SpeakingWithPendingPetitioner())
             {
                 Notify("Speak with the person directly to answer "+
                     "their petition. No remote decision was made.");
@@ -366,6 +366,11 @@ namespace CalradiaUnified
                 relationBefore,relationAfter,requestedRelation);
             int actualRelation=SandboxNativeEffectProof.ObservedDelta(
                 relationBefore,relationAfter);
+            // Consume the choice before supplementary story/diagnostic UI work.
+            // A confirmed payment must not be replayed if story recording fails.
+            agencyDecisions.Dismiss(relationProof?
+                (accept?"Accepted":"Declined"):
+                "NativeRelationUnverified");
             livingPersons.Remember(
                 relationProof?
                     (accept?"CharacterRequestAccepted":
@@ -389,11 +394,6 @@ namespace CalradiaUnified
                 "|relation_proof="+relationProof+
                 "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
-            // Consume the choice before supplementary story/diagnostic UI work.
-            // A confirmed payment must not be replayed if story recording fails.
-            agencyDecisions.Dismiss(relationProof?
-                (accept?"Accepted":"Declined"):
-                "NativeRelationUnverified");
             petitionDecisionReply=SandboxPetitionVoicePolicy.DecisionReply(
                 PersonalVoice(actor),accept,relationProof || (accept && giftProof=="confirmed"));
             ResolvePetitionStory(actor,accept,kind,
