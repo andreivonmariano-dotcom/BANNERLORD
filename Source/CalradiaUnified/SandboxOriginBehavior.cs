@@ -403,6 +403,9 @@ namespace CalradiaUnified
             string plannedGathering=gatheringPlan.Serialize();
             store.SyncData("CU_gathering_plan_1",ref plannedGathering);
             gatheringPlan=SandboxGatheringPlan.Parse(plannedGathering);
+            string variety=dialogueVariety.Serialize();
+            store.SyncData("CU_dialogue_variety_1",ref variety);
+            dialogueVariety=SandboxDialogueVarietyState.Parse(variety);
             string social=socialObservations.Serialize();
             store.SyncData("CU_v065_social_observations",ref social);
             socialObservations=SandboxSocialObservationState.Parse(social);
