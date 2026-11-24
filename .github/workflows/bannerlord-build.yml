@@ -1,6 +1,16 @@
 name: Calradia Unified 1.5.7 - v0.38.0 native culture and FaceGen bridge
 on:
   workflow_dispatch:
+  pull_request:
+    branches:
+      - "audit/v069e-current-gameplay-and-visual-acceptance"
+    paths:
+      - "Source/**"
+      - "Data/**"
+      - "Tests/**"
+      - "Modules/**"
+      - "scripts/**"
+      - ".github/workflows/bannerlord-build.yml"
   push:
     paths:
       - "Source/**"
