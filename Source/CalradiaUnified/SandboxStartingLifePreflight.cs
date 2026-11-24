@@ -246,6 +246,11 @@ namespace CalradiaUnified
                     "|no_marriage_or_clan_changes=true");
                 if(inlaws.Length>0)return "lord_noble_spouse:"+inlaws;
             }
+            if(p.KingGuidedStart)
+            {
+                string spouseOrigin=SandboxGeneratedSpouseOrigin.PreflightGuidedKing(p,player);
+                if(spouseOrigin.Length>0)return "king_spouse_origin:"+spouseOrigin;
+            }
             if(p.LordGuidedStart || p.KingGuidedStart)
             {
                 string home=SandboxFamilyHome.PreflightNativeHome(p);
