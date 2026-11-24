@@ -23,6 +23,34 @@ internal static class Program
     }
     private static void Main()
     {
+        var recurringLife=new SandboxCareerReviewState();
+        foreach(string path in SandboxStartingLifePolicy.SevenPaths)
+            Check("recurring review "+path+" requires evidence and respects interval",
+                SandboxCareerReviewState.Activity(path).Length>0 &&
+                !recurringLife.Record("hero_1",path,0,false) &&
+                recurringLife.Record("hero_1",path,0,true) &&
+                !recurringLife.Record("hero_1",path,6,true) &&
+                recurringLife.Record("hero_1",path,7,true));
+        var restoredLife=SandboxCareerReviewState.Parse(recurringLife.Serialize());
+        Check("recurring review receipts persist separately by career and hero",
+            restoredLife.For("hero_1","Knight").Count==2 &&
+            !restoredLife.Record("hero_1","Knight",7,true) &&
+            restoredLife.Record("heir_2","Knight",7,true) &&
+            !restoredLife.Record("hero_1","Admiral",14,true));
+        Check("recurring reviews reject impossible and duplicate rows",
+            SandboxCareerReviewState.Parse("CU_CAREER_REVIEWS_1\nhero_1|Knight|1|2").For("hero_1","Knight")==null &&
+            SandboxCareerReviewState.Parse("CU_CAREER_REVIEWS_1\nhero_1|Knight|7|2\nhero_1|Knight|7|2").For("hero_1","Knight")==null);
+        var independentMarriage=new SandboxLifeHistoryState();
+        Check("native marriage observation requires reciprocal link",
+            !independentMarriage.ObserveMarriage("npc_1","npc_2",false) &&
+            independentMarriage.Events.Count==0 &&
+            independentMarriage.ObserveMarriage("npc_1","npc_2",true));
+        var restoredMarriage=SandboxLifeHistoryState.Parse(independentMarriage.Serialize());
+        Check("NPC marriage is recorded once across both directions and reload",
+            !restoredMarriage.ObserveMarriage("npc_2","npc_1",true) &&
+            restoredMarriage.Bonds.Count==2 && restoredMarriage.Events.Count==1 &&
+            restoredMarriage.RecentFor("npc_2",5).Length==1 &&
+            restoredMarriage.RecentFor("unrelated",5).Length==0);
         // Stabilization pass 2: guided identities and honest recovery.
         var guidedSoldierLabel=new SandboxOriginProfile{
             Role="Soldier",SoldierGuidedStart=true};
