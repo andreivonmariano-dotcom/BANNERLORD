@@ -52,6 +52,26 @@ namespace CalradiaUnified
                 if(storyDirector.Open(player.StringId,candidate.Item1,candidate.Item2,candidate.Item3,day))break;
             }
         }
+        private void ObservePeerStory(Hero player,Hero a,Hero b,int before,int after,int day)
+        {
+            if(player==null || !PeerSamePlace(a,b) || !storyDirector.CanOpen(day) ||
+                Math.Abs(after-before)<10)return;
+            EnsureDialogueSeed();
+            bool reverse=dialogueVariety.Variant(player.StringId,a.StringId+"_"+b.StringId,"PeerStory",2)==1;
+            var actor=reverse?b:a;var peer=reverse?a:b;
+            string kind=after>before?"PeerRapport":"PeerTension";
+            string fingerprint=SandboxStoryDirectorState.Fingerprint(player.StringId+"|"+a.StringId+"|"+b.StringId,
+                kind,before.ToString()+"|"+after.ToString());
+            storyDirector.Open(player.StringId,actor.StringId,kind,fingerprint,day,peer.StringId);
+        }
+        private Hero StoryPeer()
+        {
+            if(storyDirector.Peer.Length==0)return null;
+            var actor=Hero.OneToOneConversationHero;
+            var peer=ResolveCampaignHero(storyDirector.Peer);
+            if(actor==null || !PeerAvailable(peer) || peer==actor)return null;
+            return peer;
+        }
         private string StoryTopic()
         {
             return storyDirector.Kind=="ChangedAmbition" || storyDirector.Kind=="ChangedClan"?
@@ -62,7 +82,7 @@ namespace CalradiaUnified
             if(!CanSpeakSocially() || SpeakingWithPendingPetitioner() || topic!=StoryTopic())return false;
             var player=Hero.MainHero;var actor=Hero.OneToOneConversationHero;
             return storyDirector.CanDiscuss(player.StringId,actor.StringId,CurrentHouseholdDay()) &&
-                CanDiscussPersonalTopic(topic);
+                (storyDirector.Peer.Length==0 || StoryPeer()!=null) && CanDiscussPersonalTopic(topic);
         }
         private string StoryWords()
         {
@@ -72,6 +92,14 @@ namespace CalradiaUnified
                 return storyDirector.Response=="Listen"?
                     "You gave me a hearing when we last spoke of this. I would like to return to the matter without pretending it has been settled.":
                     "You urged caution when we spoke of this. I have not taken that as a promise or an order.";
+            var peer=StoryPeer();
+            if(peer!=null)
+            {
+                int peerRelation=actor.GetRelation(peer);
+                return peerRelation<=-10?"I have concerns about my dealings with "+peer.Name+". I would hear your counsel, without asking you to take sides.":
+                    peerRelation>=20?"My standing with "+peer.Name+" is good. I would consider how we can work together without making promises for them.":
+                    "My dealings with "+peer.Name+" deserve thought. I would rather speak plainly than presume what they intend.";
+            }
             if(storyDirector.Kind=="ChangedAmbition")
                 return "My circumstances have changed. I would like to speak about the course ahead, rather than merely repeat what I hoped for before.";
             if(storyDirector.Kind=="ChangedClan")
@@ -106,7 +134,9 @@ namespace CalradiaUnified
             string words=storyDirector.Detail==0?"Quiet: no new director threads or peer samples.":
                 storyDirector.Detail==1?"Balanced: peer samples at most every three days, new threads after a fourteen-day cooldown.":
                 "Detailed: peer samples at most daily, new threads after a seven-day cooldown.";
-            ShowNativeDetail("Social simulation",words+" Existing conversations, pending stories and native campaign systems remain available.");
+            ShowNativeDetail("Social simulation",words+" Existing conversations, pending stories and native campaign systems remain available. "+
+                "Last optional peer pass: "+peerLastMilliseconds.ToString("F3",System.Globalization.CultureInfo.InvariantCulture)+" ms. "+
+                (CurrentHouseholdDay()<peerPauseUntil?"Temporary peer sampling pause until day "+peerPauseUntil+".":"No temporary sampling pause.")+" This is not a frame-rate measurement.");
         }
         private void RegisterStoryDetailMenus(CampaignGameStarter starter)
         {
