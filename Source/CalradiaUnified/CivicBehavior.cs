@@ -46,9 +46,9 @@ namespace CalradiaUnified
             // remain executable behind native-style administrative groups.
             Log.Write("Civic actions grouped behind the local-administration menu.");
             starter.AddGameMenu("cu_civic_administration",
-                "The castellan's ledgers record stores, garrison "+
-                "and correspondence. Only holdings and orders under "+
-                "your actual authority can be changed.", args=>{});
+                "The castellan's ledgers provide read-only estate "+
+                "and garrison reports during compatibility acceptance. "+
+                "Legacy transactions are held.", args=>{});
             starter.AddGameMenu("cu_civic_stores",
                 "Stores, supplies and physical trade at this settlement.",
                 args=>{});
@@ -333,6 +333,8 @@ namespace CalradiaUnified
             try
             {
                 bool own = party.ActualClan == Clan.PlayerClan;
+                if(!own || !party.IsLordParty ||
+                    advisorCount>=settings.MaxDailyCouncilReports)return;
                 bool eventActive = party.MapEvent != null;
                 bool hasArmy = party.Army != null;
                 bool settlement = party.CurrentSettlement != null;
