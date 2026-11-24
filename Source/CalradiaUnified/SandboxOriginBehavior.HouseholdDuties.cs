@@ -264,6 +264,7 @@ namespace CalradiaUnified
                 speaker.Age>=18f &&
                 ((speaker==player.Spouse &&
                   speaker.Spouse==player) ||
+                 speaker==player.Father || speaker==player.Mother ||
                  (player.Children!=null &&
                   player.Children.Contains(speaker) &&
                   (speaker.Mother==player || speaker.Father==player)) ||
@@ -278,8 +279,10 @@ namespace CalradiaUnified
             if(person!=null && player!=null && SpeakingWithAdultFamily())
             {
                 var home=person.StayingInSettlement ?? person.CurrentSettlement;
-                int children=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive);
-                int minors=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive && h.Age<18f);
+                var shared=player.Children==null?new Hero[0]:player.Children.Where(h=>h!=null && h.IsAlive &&
+                    (h.Father==person || h.Mother==person)).ToArray();
+                int children=shared.Length;
+                int minors=shared.Count(h=>h.Age<18f);
                 int relation=player.GetRelation(person);
                 reply=relation<0?"We have matters between us yet to settle. ":
                     relation>=50?"I am glad to have you here. ":
@@ -370,6 +373,8 @@ namespace CalradiaUnified
                 "|amount_requested=100"+
                 "|native_result="+proof+
                 "|no_automatic_salary_or_free_gold=true");
+            if(proof=="confirmed")livingPersons.Remember("FamilyGiftConfirmed",player.StringId,
+                recipient.StringId,"day="+day+"|denars=100|native_transfer_confirmed=true");
             familyGiftReply=SandboxPetitionVoicePolicy.DecisionReply(
                 PersonalVoice(recipient),true,proof=="confirmed");
             if(proof!="confirmed")Notify("The transfer could not be confirmed.");
