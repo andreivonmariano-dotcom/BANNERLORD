@@ -153,6 +153,8 @@ namespace CalradiaUnified
                 (person.Spouse!=null && person.Spouse.Spouse==person?
                     NativePersonName(person.Spouse):"not verified")+
                 (person==player?"":"\n"+SocialBondDescription(person))+
+                "\n\n"+HouseholdAccountText(person)+
+                "\n\n"+LifetimeCareerText(person)+
                 "\n\n"+PersonalHistoryText(person));
         }
 
