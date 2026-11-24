@@ -246,6 +246,15 @@ namespace CalradiaUnified
             if(!Register(newId,office))return false;
             return Revoke(oldId);
         }
+        // A previously revoked commission may be filled only when no
+        // active holder exists. Caller verifies the original commission
+        // identity and permanent native vacancy.
+        public bool FillRevokedVacancy(string oldId,string newId,string office)
+        {
+            if(oldId==newId || !HasIdentity(oldId) || offices[oldId]!="Revoked" ||
+                HasIdentity(newId) || ActiveIds().Any(id=>OfficeFor(id)==office))return false;
+            return Register(newId,office);
+        }
         public string Serialize()
         {
             return Version+String.Concat(offices.OrderBy(x=>x.Key,StringComparer.Ordinal)
