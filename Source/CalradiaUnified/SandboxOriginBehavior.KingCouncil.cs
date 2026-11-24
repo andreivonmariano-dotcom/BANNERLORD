@@ -4,6 +4,8 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace CalradiaUnified
 {
@@ -151,16 +153,16 @@ namespace CalradiaUnified
 
         private void ReplaceRoyalOfficer(string office)
         {
-            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
-                new TaleWorlds.Localization.TextObject("The appointment cannot be confirmed."));
+            MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
+                new TextObject("The appointment cannot be confirmed."));
             if(!CanReplaceRoyalOfficer(office))return;
             var person=Hero.OneToOneConversationHero;
             string prior=VacantRecordedRoyalOffice(office);
             if(!retinueOffices.Replace(prior,person.StringId,office))return;
             DiagnosticJournal.Event("cu_royal_officer_replaced","office="+office+
                 "|previous="+prior+"|current="+person.StringId+"|native_appointments_unchanged=true");
-            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
-                new TaleWorlds.Localization.TextObject("I accept the household designation. We can restore the court when all its members are present."));
+            MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
+                new TextObject("I accept the household designation. We can restore the court when all its members are present."));
         }
 
         private void RegisterRoyalOfficerReplacement(CampaignGameStarter starter)
