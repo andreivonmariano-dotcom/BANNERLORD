@@ -75,3 +75,29 @@ for token in (
 print("PASS v0.70n SOURCE: Kingsguard is ONE native Hero companion "
       "with culturally equipped native kit, not recruitable troops. "
       "Royal Minister uses actual governor action; live native play untested.")
+
+# Court continuity changes only the local record after live proof.
+assert 'kingdom!=KingdomId || day<0' in state
+assert 'day<=LastMeetingDay || !verifiedNativeAuthorityAndPresence' in state
+assert 'public string Rebind(' in state
+assert 'SeatId=seat;KingId=king;MarshalId=marshal;' in state
+assert 'Clan.PlayerClan.StringId==kingSuccession.RulingClanId' in council
+assert 'Clan.PlayerClan.Kingdom.StringId==royalCouncil.KingdomId' in council
+assert 'royalCouncil.Rebind(Clan.PlayerClan.Kingdom.StringId,' in council
+assert 'if(!present)' in council
+assert 'incumbent!=null && (!incumbent.IsAlive ||' in council
+assert 'retinueOffices.HasIdentity(person.StringId) || EffectiveHouseholdDuty(person).Length>0' in council
+assert 'if(!CanReplaceRoyalOfficer(office))return;' in council
+assert 'retinueOffices.Replace(prior,person.StringId,office)' in council
+assert 'RegisterRoyalOfficerReplacement(starter);' in council
+assert '"{CU_REPLACE_ROYAL_OFFICER}",null,null,110' in council
+registry=read("SandboxRetinueOfficePolicy.cs")
+assert 'public bool Replace(string oldId,string newId,string office)' in registry
+assert 'if(!Register(newId,office))return false;' in registry
+assert 'return Revoke(oldId);' in registry
+creator=read("CUGuidedCreatorVM.cs")
+assert 'new[]{"None","OwnedFief","ClanHome"}:SandboxFamilyHomePolicy.Modes' in creator
+assert 'key=="FamilyHomeMode" && value=="SpecificOwned"' in creator
+assert 'candidate.FamilyHomeMode=="SpecificOwned"' in creator
+assert 'SandboxFamilyPolicy.ResolveSpouseFemale(candidate.SpouseGender,hero.IsFemale)==hero.IsFemale' in creator
+print("PASS continuity and creator contracts; native ruler, existing companions, current governor and valid residence remain authoritative. SOURCE ONLY.")
