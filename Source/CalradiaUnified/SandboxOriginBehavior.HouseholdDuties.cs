@@ -114,9 +114,7 @@ namespace CalradiaUnified
         {
             if(person==null || Clan.PlayerClan==null ||
                 person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan)return "";
-            foreach(string title in new[]{"Master of Arms","Knight","Marshal","Royal Minister","Kingsguard"})
-                if(NativeCourtOfficer(title)==person)return title;
-            return "";
+            return SandboxRetinueOfficePolicy.Label(RecordedRetinueOffice(person));
         }
 
         private string EffectiveHouseholdDuty(Hero person)

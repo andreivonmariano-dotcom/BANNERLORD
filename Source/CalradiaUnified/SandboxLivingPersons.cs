@@ -28,13 +28,7 @@ namespace CalradiaUnified
         }
         private static string Office(Hero hero)
         {
-            var name=hero.Name.ToString();
-            int start=name.LastIndexOf('(');
-            if(start<0 || !name.EndsWith(")",StringComparison.Ordinal))
-                return "";
-            var office=name.Substring(start+1,name.Length-start-2);
-            return SandboxRetinueOfficePolicy.Skills(office).Length>0?
-                office:"";
+            return SandboxOriginBehavior.RecordedRetinueOffice(hero);
         }
         internal static string Capture(SandboxOriginProfile profile,
             Hero player,Hero patron,SandboxLifeHistoryState state,

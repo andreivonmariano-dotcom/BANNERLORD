@@ -20,9 +20,8 @@ namespace CalradiaUnified
             return clan==null?null:clan.Companions
                 .FirstOrDefault(hero=>hero!=null &&
                     hero.IsActive && hero.IsAlive &&
-                    hero.Name!=null &&
-                    hero.Name.ToString().EndsWith(
-                        "("+office+")",StringComparison.Ordinal));
+                    hero.Clan==clan && hero.CompanionOf==clan &&
+                    RecordedRetinueOffice(hero)==SandboxRetinueOfficePolicy.Key(office));
         }
 
         private Settlement RecordedRoyalSeat()

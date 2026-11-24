@@ -28,6 +28,10 @@ assert "officer.BattleEquipment[slot]=selected[slot]" in ret
 assert "item.ItemType.ToString()" in ret
 assert "cu_retinue_cultural_training" in ret
 assert "cu_retinue_personality" in ret
+assert "registry.Register(officer.StringId,offices[i])" in ret
+assert '+" ("+title+")"' not in ret
+assert 'RecordedRetinueOffice(hero)' in read("SandboxOriginBehavior.KingCouncil.cs")
+assert 'CU_v074_retinue_offices' in ob
 for culture,style in [("vlandia","Lancer"),("sturgia","Axeguard"),
                       ("battania","Longbow"),("empire","Shieldguard"),
                       ("khuzait","HorseArcher"),("aserai","Skirmisher")]:

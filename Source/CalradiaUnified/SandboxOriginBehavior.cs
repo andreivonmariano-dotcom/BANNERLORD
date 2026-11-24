@@ -31,6 +31,20 @@ namespace CalradiaUnified
             new SandboxFamilyGrowthState();
         private SandboxFamilyRecoveryState familyRecovery=
             new SandboxFamilyRecoveryState();
+        private SandboxRetinueOfficeState retinueOffices=new SandboxRetinueOfficeState();
+        internal static string RecordedRetinueOffice(Hero person)
+        {
+            var campaign=Campaign.Current;
+            var b=campaign==null?null:campaign.GetCampaignBehavior<SandboxOriginBehavior>();
+            if(b==null || person==null)return "";
+            string office=b.retinueOffices.OfficeFor(person.StringId);
+            if(office.Length>0)return office;
+            var old=b.livingPersons.People.FirstOrDefault(x=>x.Id==person.StringId);
+            if(old==null || person.Name==null || old.Name!=person.Name.ToString() ||
+                Clan.PlayerClan==null || person.Clan!=Clan.PlayerClan ||
+                person.CompanionOf!=Clan.PlayerClan)return "";
+            return SandboxRetinueOfficePolicy.LegacyOffice(old.Name);
+        }
         private SandboxLifeHistoryState livingPersons=
             new SandboxLifeHistoryState();
         private SandboxSocialObservationState socialObservations=
@@ -374,6 +388,9 @@ namespace CalradiaUnified
             string recovery=familyRecovery.Serialize();
             store.SyncData("CU_v069d_family_recovery",ref recovery);
             familyRecovery=SandboxFamilyRecoveryState.Parse(recovery);
+            string retinueOfficeRecords=retinueOffices.Serialize();
+            store.SyncData("CU_v074_retinue_offices",ref retinueOfficeRecords);
+            retinueOffices=SandboxRetinueOfficeState.Parse(retinueOfficeRecords);
             string biographies=livingPersons.Serialize();
             store.SyncData("CU_v064_living_persons",ref biographies);
             livingPersons=SandboxLifeHistoryState.Parse(biographies);
@@ -1299,7 +1316,7 @@ namespace CalradiaUnified
                 // The optional named Wanderer friend is not a household
                 // officer. First dismiss native starter wanderers using
                 // the checked FamilyOnly path; only then register one Hero.
-                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
+                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero,retinueOffices);
                 DiagnosticJournal.Event("cu_cultural_retinue_status",
                     "role="+profile.Role+
                     "|mode="+profile.RetinueMode+
@@ -1334,14 +1351,11 @@ namespace CalradiaUnified
                 {
                     var royalOfficers=Clan.PlayerClan.Companions.ToArray();
                     var marshal=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Marshal)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="Marshal");
                     var minister=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Royal Minister)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="RoyalMinister");
                     var kingsguard=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Kingsguard)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="Kingsguard");
                     bool marshalRole=marshal!=null &&
                         marshal.Occupation==Occupation.Lord;
                     bool ministerRole=minister!=null &&
@@ -1429,12 +1443,9 @@ namespace CalradiaUnified
                                 .GetTroopCount(o.CharacterObject)==1);
                     bool offices=lordOfficers.Length==2 &&
                         lordOfficers.Count(o=>o!=null &&
-                            o.Name.ToString().EndsWith(
-                                "(Master of Arms)",
-                                StringComparison.Ordinal))==1 &&
+                            retinueOffices.OfficeFor(o.StringId)=="MasterofArms")==1 &&
                         lordOfficers.Count(o=>o!=null &&
-                            o.Name.ToString().EndsWith(
-                                "(Knight)",StringComparison.Ordinal))==1;
+                            retinueOffices.OfficeFor(o.StringId)=="Knight")==1;
                     string lordRetinue=SandboxLordStartPolicy
                         .ValidateOfficers(retinue,lordOfficers.Length,
                             !offices,cultural,nativeHeroes,

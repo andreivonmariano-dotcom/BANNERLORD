@@ -202,16 +202,9 @@ namespace CalradiaUnified
                 // now edits this independent companion override dictionary.
                 ApplyCustomStats(profile,provisional);
 
-                // Native same-culture equipment from the donor template.
-                if(provisional.BattleEquipment!=null &&
-                   source.BattleEquipments!=null)
-                {
-                    var gear=source.BattleEquipments.FirstOrDefault();
-                    if(gear!=null)
-                        for(int slot=0;slot<
-                            (int)EquipmentIndex.NumEquipmentSetSlots;slot++)
-                            provisional.BattleEquipment[slot]=gear[slot];
-                }
+                string specialty=profile.WandererCompanionSpecialty;
+                string style=specialty=="Guard"?"Shieldguard":specialty=="Scout"?"Scout":"Court";
+                SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty);
 
                 AddCompanionAction.Apply(Clan.PlayerClan,provisional);
                 registered=Clan.PlayerClan.Companions.Contains(provisional) ||

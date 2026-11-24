@@ -38,6 +38,9 @@
 - [ ] Save role-specific screenshots <role>_affairs_journal.png, <role>_affairs_notice.png and <role>_affairs_sender.png. Record the actual cu_campaign_affairs_open event, and the new ui_affairs_* manual observations in the role JSON. Synthetic fixtures only exercise the parser, never count as played evidence.
 - [ ] Repeat at 1280x720, 1920x1080 and wide resolution, with baseline and full modlist. Verify notifications stay in the native stack, no repeated quest/settlement menus and no UI lock after escape. Native testing remains required even after successful CI.
 
+## Generated companions (Gate C/D)
+- [ ] Verify plain cultural names, separate office labels, native skill targets and cultural role-specific battle kits, weapon/ammunition, horse/harness and readback. Check Lord, King, Knight, Outlaw and selected Wanderer specialty individually. Rename a new officer, save/reload, verify same native identity and office. Existing saves retain names/equipment, no automatic retroactive grants. Manual Wanderer stats remain exact.
+
 ## Ordinary correspondence and living relationships (Gate D)
 - [ ] Wait through the native daily observer with known separated adult family, companions and patron. Verify a modeled personal letter appears only in Letters/History, never a pending petition badge or native quest. Observe global minimum 14 days and same sender minimum 60 days, and no letter to a successor written to the former player. Only latest ordinary letter per tracked person retained.
 - [ ] Compare native gold, relation, rank, clan and troop state before and after receiving and reading ordinary news. No effect. Reopen after reload, check original wording, culture and recipient. Compare current native relation and recorded relationship dialogue at positive, neutral and negative values; no claim of an actual native friendship or rivalry action. Change actual native occupation/kinship and compare inferred agenda changes, never manufacture autonomous action.

@@ -3303,6 +3303,22 @@ internal static class Program
             SandboxRetinueOfficePolicy.PartyDuty("Navigator")=="Scout" &&
             SandboxRetinueOfficePolicy.PartyDuty("HouseholdSteward")=="Quartermaster" &&
             SandboxRetinueOfficePolicy.PartyDuty("Knight")=="None");
+        var officeRegistry=new SandboxRetinueOfficeState();
+        Check("office identity survives renaming and save roundtrip",
+            officeRegistry.Register("hero_mathieu","Knight") &&
+            !officeRegistry.Register("hero_mathieu","Marshal") &&
+            SandboxRetinueOfficeState.Parse(officeRegistry.Serialize()).OfficeFor("hero_mathieu")=="Knight");
+        Check("legacy titles parse explicitly without assigning plain names",
+            SandboxRetinueOfficePolicy.LegacyOffice("Mathieu (Knight)")=="Knight" &&
+            SandboxRetinueOfficePolicy.LegacyOffice("Livia (Royal Minister)")=="RoyalMinister" &&
+            SandboxRetinueOfficePolicy.LegacyOffice("Mathieu")=="");
+        Check("officer training keeps command and roguery specialties",
+            SandboxRetinueCulturePolicy.Training("vlandia","Marshal").Take(3).SequenceEqual(new[]{"Leadership","Tactics","Riding"}) &&
+            SandboxRetinueCulturePolicy.Training("empire","SecondInCommand").Contains("Roguery") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("Squire",0)<SandboxRetinueOfficePolicy.TrainingTarget("Knight",0));
+        Check("complete mounted bow kit preferred over missing ammunition",
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","Arrows","BodyArmor","OneHandedWeapon"})>
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","BodyArmor","OneHandedWeapon"}));
         Check("retinue cultures have distinct native outfit goals",
             SandboxRetinueCulturePolicy.GearStyle("vlandia","Knight")=="Lancer" &&
             SandboxRetinueCulturePolicy.GearStyle("khuzait","Knight")=="HorseArcher" &&

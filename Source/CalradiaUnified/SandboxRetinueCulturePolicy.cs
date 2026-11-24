@@ -14,6 +14,10 @@ namespace CalradiaUnified
         {
             if(office=="Navigator")return "Scout";
             if(office=="FirstMate")return "Boarding";
+            if(office=="Kingsguard")return "Shieldguard";
+            if(office=="Sergeant")return "Infantry";
+            if(office=="SecondInCommand")return "Bandit";
+            if(office=="Marshal")return "Commander";
             if(!SandboxRetinueOfficePolicy.IsFieldOfficer(office))
                 return "Court";
             switch(culture)
@@ -31,17 +35,19 @@ namespace CalradiaUnified
         public static string[] Training(string culture,string office)
         {
             string[] role=SandboxRetinueOfficePolicy.Skills(office);
-            if(role.Length==0 ||
-                !SandboxRetinueOfficePolicy.IsFieldOfficer(office) ||
-                office=="FirstMate")return role;
+            if(role.Length==0)return role;
+            if(office=="FirstMate")return role.Concat(new[]{"OneHanded","Athletics","Boatswain"}).Distinct().ToArray();
+            if(office=="Navigator")return role.Concat(new[]{"Mariner","Shipmaster"}).Distinct().ToArray();
+            if(!SandboxRetinueOfficePolicy.IsFieldOfficer(office))
+                return role.Concat(new[]{"OneHanded","Riding"}).Distinct().ToArray();
             string cultureWeapon=culture=="sturgia"?"TwoHanded":
                 culture=="battania"?"Bow":
                 culture=="khuzait"?"Bow":
                 culture=="aserai"?"Throwing":
                 culture=="vlandia"?"Polearm":"OneHanded";
             if(office=="Knight" || office=="Squire")
-                return new[]{"Riding",cultureWeapon,role[2]};
-            return new[]{role[0],cultureWeapon,role[2]};
+                return new[]{"Riding",cultureWeapon}.Concat(role).Concat(new[]{"OneHanded","Athletics"}).Distinct().ToArray();
+            return role.Concat(new[]{cultureWeapon,"OneHanded","Athletics"}).Distinct().ToArray();
         }
 
         public static string PrimaryTrait(string culture,string office)
@@ -92,12 +98,29 @@ namespace CalradiaUnified
         public static int EquipmentScore(string style,string[] itemTypes)
         {
             if(itemTypes==null)return -1000;
-            int score=0;
+            var types=itemTypes.Select(x=>(x??"").ToLowerInvariant()).ToArray();
+            bool mount=types.Contains("horse");
+            bool bowKit=types.Contains("bow") && types.Contains("arrows");
+            bool crossbowKit=types.Contains("crossbow") && types.Contains("bolts");
+            bool shieldKit=types.Contains("shield") && types.Contains("onehandedweapon");
+            bool melee=types.Any(t=>t=="onehandedweapon" || t=="twohandedweapon" || t=="polearm");
+            int score=(types.Contains("bodyarmor")?12:-30)+(melee?10:-30);
+            if(types.Contains("bow")&&!bowKit)score-=100;
+            if(types.Contains("crossbow")&&!crossbowKit)score-=100;
+            if(types.Contains("horseharness")&&!mount)score-=60;
+            if(style=="Lancer")score+=mount&&types.Contains("polearm")?90:-60;
+            if(style=="HorseArcher")score+=mount&&bowKit?90:-60;
+            if(style=="Longbow")score+=bowKit?65:-50;
+            if(style=="Shieldguard" || style=="Infantry")score+=shieldKit?65:-45;
+            if(style=="Commander")score+=mount?65:-45;
+            if(style=="Bandit")score+=(melee?25:0)+(shieldKit?15:0)-(mount?15:0);
+            if(style=="Court")score+=(melee?10:0)-(mount?30:0)-(bowKit||crossbowKit?35:0);
+            if(style=="Scout")score+=(mount?30:0)+(bowKit?20:0);
             foreach(var item in itemTypes)
             {
                 var type=(item??"").ToLowerInvariant();
                 if(type.Length==0)continue;
-                bool horse=type.Contains("horse");
+                bool horse=type=="horse";
                 bool bow=type.Contains("bow") || type.Contains("arrow") ||
                     type.Contains("bolt");
                 bool shield=type.Contains("shield");
