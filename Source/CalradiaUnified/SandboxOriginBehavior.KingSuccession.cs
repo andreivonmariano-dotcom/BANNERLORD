@@ -75,7 +75,7 @@ namespace CalradiaUnified
                     "|preferred_child="+kingSuccession.PreferredHeirId+
                     "|ranking="+kingSuccession.RankedHeirIds+
                     "|no_native_kingdom_or_fief_mutation=true");
-            return true;
+            return result=="native_crown_observation_changed" || result=="native_crown_unchanged";
         }
 
         private void RegisterKingSuccessionMenus(
@@ -105,10 +105,10 @@ namespace CalradiaUnified
                     bool current=RefreshKingSuccessionObservation();
                     ShowNativeDetail("Royal household | Succession",
                         "Royal household rule: "+kingSuccession.Rule+
-                        ". Preferred verified native child: "+
+                        (current?". Preferred verified native child: ":". Last recorded preferred child: ")+
                         NativeHeroDisplayName(
                             kingSuccession.PreferredHeirId)+
-                        ". Child claim order: "+
+                        (current?". Child claim order: ":". Last recorded child claim order: ")+
                         NativeHeroDisplayNames(
                             kingSuccession.RankedHeirIds)+
                         (current?". Actual native ruler: ":". Last verified native ruler: ")+
