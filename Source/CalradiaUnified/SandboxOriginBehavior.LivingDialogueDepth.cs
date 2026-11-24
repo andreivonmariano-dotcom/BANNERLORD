@@ -45,6 +45,7 @@ namespace CalradiaUnified
             var player=Hero.MainHero;
             if(!CanSpeakSocially())return false;
             if(SpeakingWithAdultFamily() || CanDiscussHouseholdDuty() ||
+                SpeakingWithHouseholdCompanion() ||
                 livingPersons.People.Any(p=>p.Id==actor.StringId))return true;
             if(knightOath.PlayerId==player.StringId && knightOath.HasCurrentOath &&
                 actor==KnightOathPatron())return true;
