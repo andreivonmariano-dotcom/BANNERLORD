@@ -23,6 +23,23 @@ internal static class Program
     }
     private static void Main()
     {
+        var affairs=new[]{
+            new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
+            new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
+            new SandboxAffair{Id="story:b",Category="Letters",Pending=false,Day=8},
+            new SandboxAffair{Id="service:c",Category="Service",Pending=true,Day=11},
+            new SandboxAffair{Id="officer:d",Category="Household",Pending=false}};
+        Check("affairs index deduplicates pending matters and orders by day",
+            SandboxAffairsIndexPolicy.Select(affairs,"Pending").Select(a=>a.Id)
+                .SequenceEqual(new[]{"service:c","petition:a"}));
+        Check("affairs history and categories do not turn reference entries into obligations",
+            SandboxAffairsIndexPolicy.Select(affairs,"History").Single().Id=="story:b" &&
+            SandboxAffairsIndexPolicy.Select(affairs,"Household").Single().Id=="officer:d" &&
+            SandboxAffairsIndexPolicy.Select(affairs,"Letters").Length==2);
+        Check("affairs pagination is bounded without dropping later records",
+            SandboxAffairsIndexPolicy.PageCount(0)==1 &&
+            SandboxAffairsIndexPolicy.PageCount(5)==1 &&
+            SandboxAffairsIndexPolicy.PageCount(64)==13);
         var fullBattleLedger=new SandboxBattleHistoryState();
         string longBattleId=new string('a',80);
         string woundedIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('w',79)+i));

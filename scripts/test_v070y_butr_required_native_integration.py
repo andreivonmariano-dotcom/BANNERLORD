@@ -66,6 +66,20 @@ assert 'NativeBUTRStatus("Party")' in adapter
 assert 'NativeBUTRStatus("Kingdom")' in adapter
 assert 'ChangeKingdomAction' not in adapter
 assert 'HeroCreator.Create' not in adapter
+affairs=(source/"CUMapAffairsNative.cs").read_text()
+assert '[PrefabExtension("MapBar", "descendant::Window/Children")]' in affairs
+assert '[PrefabExtension("MapNotification", "descendant::Window/Children")]' in affairs
+assert 'BaseViewModelMixin<MapBarVM>' in affairs
+assert 'BaseViewModelMixin<MapNotificationVM>' in affairs
+assert 'CUHasPendingAffairs' in affairs
+assert 'CUMapNotificationAffairsMixin.Pulse(dt);' in core
+assert 'CUMapNotificationAffairsMixin.Clear();' in core
+journal=(source/"SandboxOriginBehavior.Affairs.cs").read_text()
+assert 'petitionStories.CanFollowUp(' in journal
+assert 'agencyDecisions.HasPending' in journal
+assert 'ScreenManager.PushScreen(new CUAffairsScreen(' in journal
+for forbidden in ('GiveGoldAction','ChangeRelationAction','ChangeOwnerOfSettlementAction','AnswerCharacterRequest(','GameMenu.ActivateGameMenu'):
+    assert forbidden not in journal,forbidden
 installer=(root/"scripts"/"Install-CU-From-Artifact.ps1").read_text()
 for dep in required:
     assert '"'+dep+'"' in installer

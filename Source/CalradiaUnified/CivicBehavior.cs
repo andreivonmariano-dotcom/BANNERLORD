@@ -59,19 +59,8 @@ namespace CalradiaUnified
                 "Correspondence and levies under existing kingdom "+
                 "authority. This does not replace kingdom decisions.",
                 args=>{});
-            foreach (var source in new[] { "town", "castle" })
-            {
-                string from=source;
-                starter.AddGameMenuOption(source,
-                    "cu_civic_admin_entry_"+source,
-                    "Manage local administration",
-                    x=>CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle,
-                    x=>
-                    {
-                        civicReturnMenu=from;
-                        GameMenu.SwitchToMenu("cu_civic_administration");
-                    },false);
-            }
+            // The owned-holding hub registers the single contextual entry
+            // after both menu groups exist. No separate castle root button.
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_stores","Stores and trade",
                 x=>Owned() && (settings.EnableCivicSystems || settings.EnableEconomy ||
@@ -138,6 +127,15 @@ namespace CalradiaUnified
                     "cu_civic_correspondence");
                 RegisterDepotTradeMenu(starter, menu);
             }
+        }
+        internal void RegisterLocalAdministrationEntry(CampaignGameStarter starter)
+        {
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_civic_admin_entry_local","Manage local administration",
+                x=>CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle &&
+                    !Settlement.CurrentSettlement.IsUnderSiege,
+                x=>{civicReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_civic_administration");},false);
         }
         private static bool CanVisit()
         {

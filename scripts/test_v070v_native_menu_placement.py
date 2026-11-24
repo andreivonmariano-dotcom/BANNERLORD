@@ -15,10 +15,13 @@ knight=read("SandboxOriginBehavior.KnightOath.cs")
 lord=read("SandboxOriginBehavior.LordInheritance.cs")
 king=read("SandboxOriginBehavior.KingSuccession.cs")
 council=read("SandboxOriginBehavior.KingCouncil.cs")
-assert '"cu_civic_admin_entry_"+source' in civic
+assert '"cu_civic_admin_entry_local"' in civic
+assert 'RegisterLocalAdministrationEntry(starter)' in living
+assert 'starter.AddGameMenuOption("cu_people_lineage",' in civic
+assert '"cu_civic_admin_entry_"+source' not in civic
 assert '"cu_people_lineage_entry_"+from' in living
 assert '"Manage local administration"' in civic
-assert '"Hold household court"' in living
+assert '"Attend to local affairs"' in living
 assert 'Settlement.CurrentSettlement.OwnerClan==' in living
 assert '"cu_birth_family_council_entry_"+from' in living
 for hub in ("cu_civic_administration","cu_civic_stores",

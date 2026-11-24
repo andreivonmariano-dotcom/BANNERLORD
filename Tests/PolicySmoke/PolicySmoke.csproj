@@ -48,6 +48,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxBattleHistoryState.cs" Link="SandboxBattleHistoryState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightBattleRecognitionState.cs" Link="SandboxKnightBattleRecognitionState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxPetitionStoryState.cs" Link="SandboxPetitionStoryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAffairsIndexPolicy.cs" Link="SandboxAffairsIndexPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightServiceOrderState.cs" Link="SandboxKnightServiceOrderState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxPetitionVoicePolicy.cs" Link="SandboxPetitionVoicePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightStandingPolicy.cs" Link="SandboxKnightStandingPolicy.cs" />

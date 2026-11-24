@@ -12,7 +12,7 @@ files=sorted(ui.glob("*.xml"))
 assert len(files)>=18
 results=[]
 active={"CUFamilyPortraits.xml","CUNobleDossier.xml",
-        "CUHouseholdCamp.xml"}
+        "CUHouseholdCamp.xml","CUAffairs.xml"}
 for path in files:
     x=ET.parse(path).getroot()
     assert x.tag=="Prefab",path
@@ -69,12 +69,29 @@ for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
       max_fixed_height=int(widget.get("SuggestedHeight")),
       bindings=bindings,commands=commands,
       duplicate_widget_ids=[],flags=[]))
+affairs=(root/"Source"/"CalradiaUnified"/"CUMapAffairsNative.cs").read_text()
+map_fragments=re.findall(r'public string Content\s*=>\s*("(?:[^"\\]|\\.)*");',affairs)
+assert len(map_fragments)==2
+for movie,fragment,command in zip(("MapBar","MapNotification"),map_fragments,
+        ("ExecuteCUAffairs","ExecuteCUAffairsNotice")):
+    widget=ET.fromstring(ast.literal_eval(fragment))
+    assert widget.tag=="ButtonWidget" and widget.get("Command.Click")==command
+    results.append(dict(movie=movie+"_BUTR",category="native_patch_live_unverified",
+      max_fixed_width=int(widget.get("SuggestedWidth")),max_fixed_height=int(widget.get("SuggestedHeight")),
+      bindings=[v[1:] for e in widget.iter() for v in e.attrib.values() if v.startswith("@")],
+      commands=[command],duplicate_widget_ids=[],flags=[]))
+journal=ET.parse(ui/"CUAffairs.xml").getroot()
+journal_vm=(root/"Source"/"CalradiaUnified"/"CUAffairsScreen.cs").read_text()
+for e in journal.iter():
+    for k,v in e.attrib.items():
+        if k.startswith("Command."):assert "void "+v+"(" in journal_vm,v
+        if v.startswith("@"):assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",
-    prefab_count=len(files),butr_patches=4,game_rendered=False,
+    prefab_count=len(files),butr_patches=6,game_rendered=False,
     acceptance="BLOCKED_PENDING_GAME",findings=results),indent=2)+"\n")
-print("PASS v0.70y PREFABS: {} custom XML movies and 4 BUTR patches parsed. "
+print("PASS v0.70y PREFABS: {} custom XML movies and 6 BUTR patches parsed. "
       "Legacy layout problems recorded, live visual acceptance BLOCKED."
       .format(len(files)))
 print("Source flags: "+", ".join(x["movie"] for x in results if x["flags"]))

@@ -68,6 +68,7 @@ namespace CalradiaUnified
             }
             SandboxCreatorOverlay.Tick();
             CUNativeStateShell.Tick();
+            CUMapNotificationAffairsMixin.Pulse(dt);
         }
 
         public override void OnGameEnd(Game game)
@@ -75,6 +76,7 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("campaign_closed",
                 "game_end=true|process_exit=false");
             CUNativeStateShell.Clear();
+            CUMapNotificationAffairsMixin.Clear();
             SandboxCreatorOverlay.Clear();
             base.OnGameEnd(game);
         }

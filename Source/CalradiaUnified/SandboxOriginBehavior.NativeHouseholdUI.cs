@@ -405,7 +405,7 @@ namespace CalradiaUnified
                     "Live native household records. No fabricated titles.",
                     InspectDossierHero,
                     OpenDossierFamilyPortraits,
-                    HearDossierPetition,
+                    ()=>OpenCampaignAffairs(),
                     ReviewDossierCalling,
                     DossierOfficerLabel));
             }

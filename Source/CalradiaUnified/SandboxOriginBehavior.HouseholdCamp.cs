@@ -227,7 +227,7 @@ namespace CalradiaUnified
                 "cu_household_camp_petitions",
                 "Read private correspondence",
                 args=>CanSetUpNativeCamp(),
-                args=>HearDossierPetition(),false);
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_leave",
                 "Break camp and return to the campaign",

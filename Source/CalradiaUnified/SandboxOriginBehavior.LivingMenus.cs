@@ -693,7 +693,7 @@ namespace CalradiaUnified
                 "Consult the household roll, receive your officers "+
                 "and review matters of land and inheritance. "+
                 "Other families must be spoken to in person.",
-                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+                args=>{});
             starter.AddGameMenu("cu_people_household",
                 "The household roll. Names, places and ambitions "+
                 "belong to people living in your campaign.",
@@ -701,7 +701,7 @@ namespace CalradiaUnified
             starter.AddGameMenu("cu_people_requests",
                 "Private petitions from people close to your house. "+
                 "Your reply can change actual denars and relationships.",
-                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+                args=>{});
             starter.AddGameMenu("cu_people_claim",
                 "Family council. Hear claims to estates, review "+
                 "inheritance custom and seek a lawful settlement.",
@@ -711,7 +711,7 @@ namespace CalradiaUnified
                 string from=location;
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "Hold household court",
+                    "Attend to local affairs",
                     args=>applied && Hero.MainHero!=null &&
                         Clan.PlayerClan!=null &&
                         Settlement.CurrentSettlement!=null &&
@@ -741,6 +741,9 @@ namespace CalradiaUnified
                         GameMenu.SwitchToMenu("cu_people_claim");
                     },false);
             }
+            // Civic actions now share this one owned-holding entry.
+            var civic=Campaign.Current==null?null:Campaign.Current.GetCampaignBehavior<CivicBehavior>();
+            if(civic!=null)civic.RegisterLocalAdministrationEntry(starter);
             // Recoverable failures are still accessible, but never
             // occupy a separate top-level settlement option.
             starter.AddGameMenuOption("cu_people_lineage",
@@ -781,18 +784,13 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_family_native_audiences",
                 "Arrange a family audience",
-                args=>Hero.MainHero!=null &&
-                    (Hero.MainHero.Spouse!=null ||
-                     (Hero.MainHero.Children!=null &&
-                      Hero.MainHero.Children.Any(x=>x!=null &&
-                          x.IsAlive && x.Age>=18f))),
+                args=>false, // Retired duplicate guidance; speak to family directly.
                 args=>ShowNativeDetail(
                     "Household | Family audiences",
                     "Meet your living spouse or grown child in "+
                     "the game's actual conversation. "+
-                    "A witnessed family audience can improve "+
-                    "your real relationship once per thirty "+
-                    "days. Gifts of 100 native denars are "+
+                    "A family visit records time spent together. "+
+                    "Gifts of 100 native denars are "+
                     "separate voluntary decisions. Children "+
                     "under eighteen are not adult courtiers."),
                 false);
@@ -834,11 +832,11 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_request","Read the pending correspondence",
                 args=>agencyDecisions.HasPending,
-                args=>HearDossierPetition(),false);
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_no_requests","Read private correspondence",
                 args=>!agencyDecisions.HasPending,
-                args=>HearDossierPetition(),false);
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_requests_back","Return to People & Lineage",
                 args=>true,
