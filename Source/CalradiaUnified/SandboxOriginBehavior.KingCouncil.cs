@@ -124,12 +124,16 @@ namespace CalradiaUnified
             if(!CanRestoreRoyalCourt() || !SandboxKingStartPolicy.CourtOffices.Contains(office) ||
                 TaleWorlds.ObjectSystem.MBObjectManager.Instance==null)return "";
             var recorded=retinueOffices.ActiveIds().Where(id=>retinueOffices.OfficeFor(id)==office).ToArray();
-            if(recorded.Length!=1)return "";
-            var incumbent=TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<Hero>(recorded[0]);
+            if(recorded.Length>1)return "";
+            string prior=recorded.Length==1?recorded[0]:
+                office=="Marshal"?royalCouncil.MarshalId:
+                office=="RoyalMinister"?royalCouncil.MinisterId:royalCouncil.KingsguardHeroId;
+            if(!retinueOffices.HasIdentity(prior))return "";
+            var incumbent=TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<Hero>(prior);
             // Absence, captivity or temporary assignment elsewhere is not a vacancy.
-            return incumbent!=null && (!incumbent.IsAlive ||
+            return incumbent!=null && (!incumbent.IsAlive || incumbent==Hero.MainHero ||
                 incumbent.Clan!=Clan.PlayerClan || incumbent.CompanionOf!=Clan.PlayerClan)?
-                recorded[0]:"";
+                prior:"";
         }
 
         private bool CanReplaceRoyalOfficer(string office)
@@ -158,7 +162,9 @@ namespace CalradiaUnified
             if(!CanReplaceRoyalOfficer(office))return;
             var person=Hero.OneToOneConversationHero;
             string prior=VacantRecordedRoyalOffice(office);
-            if(!retinueOffices.Replace(prior,person.StringId,office))return;
+            bool replaced=retinueOffices.Replace(prior,person.StringId,office) ||
+                retinueOffices.FillRevokedVacancy(prior,person.StringId,office);
+            if(!replaced)return;
             DiagnosticJournal.Event("cu_royal_officer_replaced","office="+office+
                 "|previous="+prior+"|current="+person.StringId+"|native_appointments_unchanged=true");
             MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
