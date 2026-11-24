@@ -196,6 +196,39 @@ internal static class Program
             savedRepair.LatestRelationshipIntention("player","spouse").Detail=="day=2|intention=Care" &&
             savedRepair.LatestRelationshipIntention("successor","spouse")==null &&
             savedRepair.LatestRelationshipIntention("player","other")==null);
+        var peersSocial=new SandboxPeerSocialState();
+        Check("peer observations reject self invalid data and same day repeats",
+            !peersSocial.Observe("a","a",1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","b",-1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","b",1,101,"CommonInterest") &&
+            !peersSocial.Observe("a","b",1,10,"Alliance") &&
+            peersSocial.Observe("b","a",1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","c",1,10,"CommonInterest"));
+        Check("peer sampling is symmetric and has seven day pair interval",
+            peersSocial.For("b","a")==peersSocial.For("a","b") &&
+            !peersSocial.Observe("a","b",7,10,"CommonInterest") &&
+            peersSocial.Observe("a","b",8,-25,"DifferentPriorities") &&
+            peersSocial.For("a","b").Meetings==2 &&
+            SandboxPeerSocialState.Describe(-25,"DifferentPriorities")=="Strained relations");
+        var restoredPeers=SandboxPeerSocialState.Parse(peersSocial.Serialize());
+        Check("peer observation persists native standing and modeled interests independently",
+            restoredPeers.For("a","b").NativeRelation==-25 &&
+            restoredPeers.For("a","b").Interest=="DifferentPriorities" &&
+            restoredPeers.For("a","b").FirstDay==1 &&
+            restoredPeers.For("a","b").LastDay==8 &&
+            restoredPeers.For("a","c")==null &&
+            !restoredPeers.CanObserve("a","b",14) && restoredPeers.CanObserve("a","b",15));
+        Check("peer state rejects corrupted history and preserves empty old save",
+            SandboxPeerSocialState.Parse("").Pairs.Count==0 &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|1|0|2|CommonInterest").Pairs.Count==0 &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\nb|a|1|1|0|1|CommonInterest").Pairs.Count==0);
+        var manyPeers=new SandboxPeerSocialState();
+        for(int i=0;i<SandboxPeerSocialState.MaxPairs;i++)
+            manyPeers.Observe("a","p"+i,i,0,"CommonInterest");
+        Check("peer history is bounded and no new pair can overrun capacity",
+            manyPeers.Pairs.Count==SandboxPeerSocialState.MaxPairs &&
+            !manyPeers.Observe("a","overflow",100,0,"CommonInterest") &&
+            SandboxPeerSocialState.Parse(manyPeers.Serialize()).Pairs.Count==SandboxPeerSocialState.MaxPairs);
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
