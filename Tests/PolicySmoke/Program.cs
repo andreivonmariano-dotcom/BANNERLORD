@@ -285,6 +285,60 @@ internal static class Program
             SandboxLifeHistoryState.Parse(occasionMemory.Serialize()).LatestGroupDiscussion("player","guest").Detail==
                 "day=1|topic=Family|priority=Welfare|occasion=Remembrance" &&
             occasionMemory.LatestGroupDiscussion("player","absent")==null);
+        var variety=new SandboxDialogueVarietyState();
+        variety.Initialize("campaign_a");
+        int firstVariant=variety.Variant("player","guest","Greeting",3);
+        Check("dialogue selection is pure and does not consume the sequence when rendered",
+            variety.Variant("player","guest","Greeting",3)==firstVariant &&
+            variety.Entries.Count==0 && variety.Exposure("player","guest","Greeting")==0);
+        var sequence=new List<int>();
+        for(int i=0;i<3;i++)
+        {
+            sequence.Add(variety.Variant("player","guest","Greeting",3));
+            variety.Advance("player","guest","Greeting",1);
+        }
+        Check("three consecutive openings for the same pair do not repeat variants",
+            sequence.Distinct().Count()==3 && variety.Variant("player","guest","Greeting",3)==firstVariant);
+        Check("exposures distinguish exact player speaker and topic",
+            variety.Exposure("player","guest","Greeting")==3 &&
+            variety.Exposure("heir","guest","Greeting")==0 &&
+            variety.Exposure("player","other","Greeting")==0 &&
+            variety.Exposure("player","guest","Family")==0 &&
+            !variety.Advance("player","guest","Unknown",1) &&
+            variety.Advance("player","guest","Group:Remembrance",1) &&
+            variety.Exposure("player","guest","Group:Remembrance")==1 &&
+            variety.Exposure("player","guest","Group:Family")==0);
+        var savedVariety=SandboxDialogueVarietyState.Parse(variety.Serialize());
+        savedVariety.Initialize("another_seed");
+        Check("campaign seed and exposure sequence survive save reload",
+            savedVariety.Seed=="campaign_a" &&
+            savedVariety.Exposure("player","guest","Greeting")==3 &&
+            savedVariety.Variant("player","guest","Greeting",3)==firstVariant &&
+            !savedVariety.Advance("player","guest","Greeting",0));
+        var secondVariety=new SandboxDialogueVarietyState();
+        secondVariety.Initialize("campaign_b");
+        Check("different campaign seeds affect selection without promising collision-free variants",
+            Enumerable.Range(0,12).Any(i=>
+                new SandboxDialogueVarietyState { Seed="campaign_a" }.Variant("player","p"+i,"Family",3)!=
+                secondVariety.Variant("player","p"+i,"Family",3)));
+        var boundedVariety=new SandboxDialogueVarietyState();
+        boundedVariety.Initialize("campaign");
+        for(int i=0;i<SandboxDialogueVarietyState.Capacity+1;i++)
+            boundedVariety.Advance("player","p"+i,"Opinions",1);
+        Check("dialogue exposure cache has a fixed eviction bound and legacy empty initialization",
+            boundedVariety.Entries.Count==SandboxDialogueVarietyState.Capacity &&
+            boundedVariety.Exposure("player","p0","Opinions")==0 &&
+            SandboxDialogueVarietyState.Parse(boundedVariety.Serialize()).Entries.Count==SandboxDialogueVarietyState.Capacity &&
+            SandboxDialogueVarietyState.Parse("").Seed=="");
+        Check("invalid or duplicate exposure rows fail closed",
+            SandboxDialogueVarietyState.Parse("CU_DIALOGUE_VARIETY_1|seed\nplayer|npc|Greeting|1|1\nplayer|npc|Greeting|2|2").Entries.Count==0 &&
+            SandboxDialogueVarietyState.Parse("CU_DIALOGUE_VARIETY_1|seed\nplayer|npc|Greeting|-1|1").Seed=="");
+        Check("authored private opinion variants differ and retain individual voice",
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}.All(tone=>
+                SandboxPetitionVoicePolicy.PersonalReflection("Opinions",tone,1)!=
+                SandboxPetitionVoicePolicy.PersonalReflection("Opinions",tone,2)) &&
+            SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",30,1)!=
+            SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",-30,1));
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
