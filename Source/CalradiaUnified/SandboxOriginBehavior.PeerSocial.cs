@@ -45,8 +45,11 @@ namespace CalradiaUnified
                 player!=Hero.MainHero)return;
             int day=CurrentHouseholdDay();
             int interval=SandboxStoryDirectorState.PeerInterval(storyDirector.Detail);
-            if(interval==0 || day<0 || day%interval!=0 ||
+            if(interval==0 || day<0 || day%interval!=0 || day<peerPauseUntil ||
                 peerSocial.Pairs.Any(p=>p.LastDay>=day))return;
+            var timer=System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
             // Bounded subset of already tracked adults, not a world-wide
             // pairwise relationship scan. Current native location is required.
             var ids=new System.Collections.Generic.HashSet<string>(
@@ -73,16 +76,32 @@ namespace CalradiaUnified
                     ga==null?"":ga.Goal,PeerVoice(pair.A,relation),relation);
                 string b=SandboxPetitionVoicePolicy.GroupPreference(EffectiveHouseholdDuty(pair.B),
                     gb==null?"":gb.Goal,PeerVoice(pair.B,relation),relation);
+                var priorPair=peerSocial.For(pair.A.StringId,pair.B.StringId);
+                int priorRelation=priorPair==null?relation:priorPair.NativeRelation;
                 if(peerSocial.Observe(pair.A.StringId,pair.B.StringId,day,
                     relation,a==b?"CommonInterest":"DifferentPriorities"))
                 {
                     DiagnosticJournal.Event("cu_peer_social_sample",
                         "a="+pair.A.StringId+"|b="+pair.B.StringId+
                         "|actual_co_location=true|modeled_interests=true|native_relation_unchanged=true");
+                    ObservePeerStory(player,pair.A,pair.B,priorRelation,relation,day);
                     break;
                 }
             }
+            }
+            finally
+            {
+                timer.Stop();
+                peerLastMilliseconds=timer.Elapsed.TotalMilliseconds;
+                if(peerLastMilliseconds>5.0 && day<=1999997)peerPauseUntil=day+3;
+                if(peerLastMilliseconds>5.0 || day%21==0)
+                    DiagnosticJournal.Event("cu_peer_observation_timing",
+                        "day="+day+"|elapsed_ms="+peerLastMilliseconds.ToString("F3",System.Globalization.CultureInfo.InvariantCulture)+
+                        "|pause_until="+peerPauseUntil+"|scope=optional_peer_pass");
+            }
         }
+        private int peerPauseUntil=-1;
+        private double peerLastMilliseconds;
         // Diagnostic only: check public API shape on the actual loaded assembly.
         // Never invoke or register a multi-agent mission from this probe.
         private static void ProbeNativeGroupConversationApi()
