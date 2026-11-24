@@ -437,6 +437,40 @@ internal static class Program
             !SandboxPetitionStoryState.Parse(
                 petitionStory.Serialize()+"|forged")
                 .Stories.Any());
+        Check("later petition renews story but does not reset request quotas",
+            !petitionStory.Begin("actor_1","Recognition",70) &&
+            petitionStory.Begin("actor_1","Recognition",71) &&
+            petitionStory.For("actor_1").Outcome=="Pending" &&
+            !petitionStory.CanFollowUp("actor_1",78));
+        Check("malformed petition relation minimum cannot throw",
+            !SandboxPetitionStoryState.Parse(
+                "CU_PETITION_STORIES_1\nactor_1|Recognition|Declined|1|2|-1|-2147483648|0").Stories.Any());
+        var chargeTest=new SandboxCareerChargeState();
+        Check("all seven careers have a concrete charge",
+            SandboxStartingLifePolicy.SevenPaths.All(role=>
+                SandboxCareerChargeState.Label(SandboxCareerChargeState.DefaultKind(role)).Length>0));
+        Check("charge requires actual verified role and prevents a second active plan",
+            !chargeTest.Start("hero_a","Lord","StrengthenGarrison","castle_a",10,50,false) &&
+            chargeTest.Start("hero_a","Lord","StrengthenGarrison","castle_a",10,50,true) &&
+            !chargeTest.Start("hero_a","Lord","VisitEstate","castle_b",11,-1,true));
+        Check("estate defense requires later actual garrison change at same holding and by same hero",
+            !chargeTest.CanComplete("hero_a","Lord",10,"castle_a",55,true) &&
+            !chargeTest.CanComplete("hero_a","Lord",11,"castle_b",55,true) &&
+            !chargeTest.CanComplete("hero_b","Lord",11,"castle_a",55,true) &&
+            !chargeTest.CanComplete("hero_a","Lord",11,"castle_a",54,true) &&
+            chargeTest.CanComplete("hero_a","Lord",11,"castle_a",55,true));
+        var restoredCharge=SandboxCareerChargeState.Parse(chargeTest.Serialize());
+        Check("active charge survives reload, completion cannot be replayed",
+            restoredCharge.CanComplete("hero_a","Lord",11,"castle_a",55,true) &&
+            restoredCharge.Close("hero_a",11) &&
+            !restoredCharge.CanComplete("hero_a","Lord",12,"castle_a",60,true) &&
+            !restoredCharge.Start("hero_a","Lord","VisitEstate","castle_b",11,-1,true) &&
+            restoredCharge.Start("hero_a","Lord","VisitEstate","castle_b",12,-1,true));
+        Check("successor does not inherit previous character's charge",
+            !restoredCharge.CanComplete("hero_b","Lord",13,"castle_b",1,true) &&
+            restoredCharge.Start("hero_b","King","Council","castle_b",13,-1,true) &&
+            !restoredCharge.CanComplete("hero_b","King",14,"castle_b",13,true) &&
+            restoredCharge.CanComplete("hero_b","King",14,"castle_b",14,true));
         var declinedStory=new SandboxPetitionStoryState();
         Check("declined petition gives a later conversation, not money",
             declinedStory.Begin("actor_2","Recognition",5) &&
