@@ -95,7 +95,8 @@ namespace CalradiaUnified
                         "External enlistment and host-party presence confirmed. Review provider rank and duty.":"";
                 case "Knight":
                     var patron=KnightOathPatron();
-                    return knightOath.HasCurrentOath && patron!=null &&
+                    return knightOath.HasCurrentOath &&
+                        knightOath.PlayerId==player.StringId && patron!=null &&
                         patron.IsAlive && !patron.IsPrisoner &&
                         patron.Clan!=null && patron.Clan.StringId==knightOath.PatronClanId &&
                         patron.Clan.Kingdom!=null &&
@@ -114,10 +115,17 @@ namespace CalradiaUnified
             }
         }
 
+        private string SelectedReviewRole()
+        {
+            var player=Hero.MainHero;
+            var episode=player==null?null:lifetimeCareers.For(player.StringId).LastOrDefault();
+            return episode==null?CurrentCareerRole():episode.Role;
+        }
+
         private string RecurringCareerReviewText()
         {
             var player=Hero.MainHero;
-            string role=CurrentCareerRole();
+            string role=SelectedReviewRole();
             var receipt=player==null?null:
                 recurringCareerReviews.For(player.StringId,role);
             string activity=SandboxCareerReviewState.Activity(role);
@@ -129,8 +137,8 @@ namespace CalradiaUnified
 
         private void ReviewRecurringCareer()
         {
-            string role=CurrentCareerRole();
-            string evidence=ReviewCareerEvidence(role);
+            string role=SelectedReviewRole();
+            string evidence=CanRecordLifetimeRole(role)?ReviewCareerEvidence(role):"";
             var player=Hero.MainHero;
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
             bool recorded=player!=null &&
@@ -167,6 +175,9 @@ namespace CalradiaUnified
                 return;
             string role=CurrentCareerRole();
             if(role.Length==0)return;
+            // Never continue the old starting-role chapters on a new calling.
+            var selected=lifetimeCareers.For(Hero.MainHero.StringId).LastOrDefault();
+            if(selected!=null && selected.Role!=role)return;
             if(!careerChronicle.Started)careerChronicle.Begin(role);
             if(careerChronicle.Role!=role)return;
             var player=Hero.MainHero;
@@ -213,7 +224,8 @@ namespace CalradiaUnified
                         serviceCareer.ExternalInsideHostParty;
                     break;
                 case "Knight":
-                    first=knightOath.IsConfigured &&
+                    first=knightOath.IsConfigured && knightOath.HasCurrentOath &&
+                        knightOath.PlayerId==player.StringId &&
                         knightOath.LastMusterDay>=0;
                     second=first && knightEscort.CompletedEscorts>=1;
                     third=second && knightEscort.CompletedEscorts>=2;
@@ -282,6 +294,7 @@ namespace CalradiaUnified
                 "\nLast recorded external service status: "+
                 serviceCareer.Status+
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
+                "\nSelected review calling: "+SelectedReviewRole()+
                 "\n"+RecurringCareerReviewText()+
                 "\nPresent charge: "+
                 SandboxCareerChronicleState.ChapterObjective(
@@ -323,7 +336,7 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_recurring_review",
                 "Review my recurring career duties",
-                args=>CurrentCareerRole().Length>0,
+                args=>SelectedReviewRole().Length>0,
                 args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_lifetime_history","Read my lifetime career history",
