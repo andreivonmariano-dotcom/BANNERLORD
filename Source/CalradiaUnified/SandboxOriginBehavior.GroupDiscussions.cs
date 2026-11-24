@@ -16,6 +16,8 @@ namespace CalradiaUnified
         // Only actual local adults speak. All session state is transient.
         private string groupParent="",groupPlayerId="",groupSeatId="",groupTopic="";
         private string groupOpening="",groupClosing="",groupOccasion="";
+        private bool groupSecondRound;
+        private int groupRoundSerial;
         private readonly List<Hero> groupParticipants=new List<Hero>();
         private readonly List<string> groupPreferences=new List<string>();
 
@@ -98,7 +100,7 @@ namespace CalradiaUnified
         private void ClearGroupSession()
         {
             groupParent="";groupPlayerId="";groupSeatId="";groupTopic="";
-            groupOpening="";groupClosing="";groupOccasion="";
+            groupOpening="";groupClosing="";groupOccasion="";groupSecondRound=false;groupRoundSerial=0;
             groupParticipants.Clear();groupPreferences.Clear();
         }
 
@@ -190,7 +192,7 @@ namespace CalradiaUnified
             ShowNativeDetail("Those gathered",String.Join("\n\n",lines));
         }
 
-        private string GroupOccasionArgument(string priority)
+        private string GroupOccasionArgument(string priority,Hero speaker)
         {
             if(groupOccasion=="Remembrance")
                 return priority=="Security"?"Let their memory remind us to protect those still with us.":
@@ -204,7 +206,9 @@ namespace CalradiaUnified
                 return priority=="Security"?"Let us keep faith with the people who stand beside us on the road.":
                     priority=="Welfare"?"There is value in sharing a little time without asking anything of one another.":
                     "Let us enjoy the peace we have without forgetting the needs of tomorrow.";
-            return SandboxPetitionVoicePolicy.GroupArgument(groupTopic,priority);
+            return SandboxPetitionVoicePolicy.GroupNuance(groupTopic,priority,PersonalVoice(speaker),
+                SandboxPetitionVoicePolicy.DialogueVariant(speaker.StringId,groupTopic,
+                    CurrentHouseholdDay()+groupRoundSerial,3));
         }
 
         private string GroupContext(string topic)
@@ -238,8 +242,11 @@ namespace CalradiaUnified
         {
             var player=Hero.MainHero;
             var agenda=characterAgendas.Get(actor.StringId);
-            return SandboxPetitionVoicePolicy.GroupPreference(EffectiveHouseholdDuty(actor),
-                agenda==null?"":agenda.Goal,PersonalVoice(actor),player.GetRelation(actor));
+            var clan=Clan.PlayerClan;
+            bool danger=clan!=null && clan.Settlements.Any(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
+            bool young=player.Children!=null && player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f);
+            return SandboxPetitionVoicePolicy.GroupTopicPreference(groupTopic,EffectiveHouseholdDuty(actor),
+                agenda==null?"":agenda.Goal,PersonalVoice(actor),player.GetRelation(actor),danger,young);
         }
 
         private void BeginGroupTopic(string topic,bool occasion=false)
@@ -247,7 +254,8 @@ namespace CalradiaUnified
             if(!GroupSessionValid() || !SandboxPetitionVoicePolicy.GroupTopic(topic))return;
             if(!occasion)groupOccasion="";
             else if(!GroupOccasionAllowed(groupOccasion))return;
-            groupTopic=topic;groupPreferences.Clear();groupClosing="";
+            groupTopic=topic;groupPreferences.Clear();groupClosing="";groupSecondRound=false;
+            groupRoundSerial=(groupRoundSerial+1)%300;
             var lines=new List<string>();
             string opening=GroupOccasionOpening();
             if(opening.Length>0)lines.Add(opening);
@@ -266,7 +274,7 @@ namespace CalradiaUnified
                     if(peer!=null && peer.Meetings>=2 && peer.Interest=="DifferentPriorities" &&
                         preference!=groupPreferences[i-1])reply+="We have different priorities in this matter. ";
                 }
-                reply+=GroupOccasionArgument(preference);
+                reply+=GroupOccasionArgument(preference,speaker);
                 var memory=livingPersons.LatestGroupDiscussion(groupPlayerId,speaker.StringId);
                 if(memory!=null)
                 {
@@ -283,6 +291,43 @@ namespace CalradiaUnified
             }
             groupOpening=String.Join("\n\n",lines);
             GameMenu.SwitchToMenu("cu_group_exchange");
+        }
+
+        private bool GroupCanContinue()
+        {
+            return GroupSessionValid() && SandboxPetitionVoicePolicy.GroupTopic(groupTopic) &&
+                (groupOccasion.Length==0 || GroupOccasionAllowed(groupOccasion)) &&
+                groupPreferences.Count==groupParticipants.Count;
+        }
+
+        private void ChallengeGroup(bool practical)
+        {
+            if(!GroupCanContinue() || groupSecondRound)return;
+            groupSecondRound=true;
+            var lines=new List<string>{practical?
+                "You: What would that mean in practice?":
+                "You: Consider the other side before we settle this."};
+            for(int i=0;i<groupParticipants.Count;i++)
+            {
+                var speaker=groupParticipants[i];
+                string reply=groupOccasion=="Remembrance"?
+                    (practical?"Let each of us speak of the departed in our own time. We need not settle grief with an order.":"Let those who mourn in another way be heard too."):
+                    groupOccasion=="MarriageCelebration"?
+                    (practical?"Make time for each other apart from the obligations of the house.":"A marriage is shared by two people. Let their own wishes be heard."):
+                    groupOccasion=="Fellowship"?
+                    (practical?"Let us spend this time together without a demand or a bargain.":"There is room for different views among companions."):
+                    SandboxPetitionVoicePolicy.GroupChallenge(groupTopic,groupPreferences[i],
+                        PersonalVoice(speaker),practical);
+                if(!practical && i>0)
+                {
+                    var previous=groupParticipants[i-1];
+                    reply="To "+previous.Name+": "+SandboxPetitionVoicePolicy.GroupResponse(
+                        groupPreferences[i],groupPreferences[i-1],speaker.GetRelation(previous),true)+reply;
+                }
+                lines.Add(speaker.Name+": "+reply);
+            }
+            groupOpening=String.Join("\n\n",lines);
+            GameMenu.SwitchToMenu("cu_group_reconsider");
         }
 
         private void AnswerGroup(string priority)
@@ -363,13 +408,25 @@ namespace CalradiaUnified
             starter.AddGameMenu("cu_group_exchange","{CU_GROUP_EXCHANGE}",args=>
                 MBTextManager.SetTextVariable("CU_GROUP_EXCHANGE",new TextObject(
                     GroupSessionValid()?groupOpening:"The gathering can no longer continue.")));
-            foreach(var value in new[]{"Security","Welfare","Reserve"})
+            starter.AddGameMenu("cu_group_reconsider","{CU_GROUP_EXCHANGE}",args=>
+                MBTextManager.SetTextVariable("CU_GROUP_EXCHANGE",new TextObject(
+                    GroupCanContinue()?groupOpening:"The gathering can no longer continue.")));
+            starter.AddGameMenuOption("cu_group_exchange","cu_group_practical","What would that mean in practice?",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                    return GroupCanContinue() && !groupSecondRound;},args=>ChallengeGroup(true),false);
+            starter.AddGameMenuOption("cu_group_exchange","cu_group_challenge","Consider the other side before we settle this.",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                    return GroupCanContinue() && !groupSecondRound;},args=>ChallengeGroup(false),false);
+            foreach(var source in new[]{"cu_group_exchange","cu_group_reconsider"})
             {
-                string priority=value;
-                starter.AddGameMenuOption("cu_group_exchange","cu_group_choose_"+priority,
-                    GroupChoiceWords(priority),args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
-                        return GroupSessionValid() && SandboxPetitionVoicePolicy.GroupTopic(groupTopic);},
-                    args=>AnswerGroup(priority),false);
+                string menu=source;
+                foreach(var value in new[]{"Security","Welfare","Reserve"})
+                {
+                    string priority=value;
+                    starter.AddGameMenuOption(menu,"cu_group_choose_"+menu+"_"+priority,
+                        GroupChoiceWords(priority),args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                            return GroupCanContinue();},args=>AnswerGroup(priority),false);
+                }
             }
             starter.AddGameMenuOption("cu_group_exchange","cu_group_defer","Let us leave this matter undecided.",
                 args=>GroupSessionValid(),args=>{groupTopic="";groupPreferences.Clear();
@@ -379,7 +436,7 @@ namespace CalradiaUnified
                     GroupSessionValid()?groupClosing:"The gathering can no longer continue.")));
             starter.AddGameMenuOption("cu_group_reply","cu_group_another","Let us speak of another matter.",
                 args=>GroupSessionValid(),args=>GameMenu.SwitchToMenu("cu_group_topics"),false);
-            foreach(var source in new[]{"cu_group_topics","cu_group_exchange","cu_group_reply"})
+            foreach(var source in new[]{"cu_group_topics","cu_group_exchange","cu_group_reconsider","cu_group_reply"})
             {
                 string menu=source;
                 starter.AddGameMenuOption(menu,"cu_group_leave_"+menu,"That is all for now.",
