@@ -893,6 +893,9 @@ namespace CalradiaUnified
                         reply+=" I would rather earn it fairly than take what is not mine.";
                     else if(actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)>0)
                         reply+=" We must weigh the cost before committing ourselves.";
+                    string motive=SandboxStoryDirectorState.MotiveWords(goal,tone,relation,
+                        SpeakingWithSwornPatron() || RecordedRetinueOffice(actor).Length>0);
+                    if(motive.Length>0)reply+=" "+motive;
                 }
                 else if(topic=="Family")
                 {
