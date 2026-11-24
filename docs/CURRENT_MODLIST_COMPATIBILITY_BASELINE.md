@@ -82,13 +82,13 @@ Preserve existing enlistment, arena reward/progression, HUD and banner/torch beh
 
 ### Frameworks and official content
 Existing owners: Harmony, ButterLib, UIExtenderEx, MCM, official modules and NavalDLC.
-Treat installed frameworks as optional interoperability context, not automatic CU package dependencies. Do not assume native or framework APIs from names alone.
+Current v0.69g development source requires Harmony, ButterLib, UIExtenderEx and MCM. Preserve those four required framework modules for this candidate; the other installed mods are compatibility context, not automatic CU dependencies. Do not assume native or framework APIs from names alone. See the [Q1–Q3 audit](CU_LIVING_SOCIETY_ROADMAP.md).
 
 ## Required development gate
 
 1. Read this baseline and current CU feature registry/config/source. Check the exact installed or authorized source/API for any affected mod; inventory shared Harmony targets, event handlers, model overrides, XML IDs, UI hooks and save keys. Record UNKNOWN/BLOCKED for uninspected overlaps.
 2. Classify each CU feature as independent, read-only integration, explicit optional adapter, or conflicting. Existing CU features are included in this review. Disable conflicting or unverified mutating features by default; do not globally disable another mod or change its assets. Do not duplicate side effects or rely on load order alone. Runtime detection must use exact installed module IDs and guard absent or unsupported versions.
-3. Preserve standalone operation with official dependencies. Do not add hard requirements on the 41-module profile without explicit approval. Maintain a minimal official+CU test profile and this curated full-stack profile; isolate one feature flag per test and test with the external owner enabled.
+3. Preserve a single-module CU distribution with the current required official modules and four frameworks. Do not add hard requirements on the rest of the 41-module profile without explicit approval. Maintain a minimal official+required-frameworks+CU control profile and this curated full-stack profile; isolate one feature flag per test and test with the external owner enabled.
 4. Maintain the existing 21 November audit-first acceptance gate (PR #93), fix reproduced existing defects, then resume Starting Life integrity, coherent medieval social roles, and independent NPC life in that order. Focus on additive household/family continuity, personal obligations, persistent character identity and bounded decision-making; these are candidates, not proven gaps until audited.
 5. Require exact pinned compilation, policy tests, clean-game and full-stack startup, native state/side-effect checks, controlled feature tests, and save/quit/reload before claiming compatibility. The existing Gate C–F requirements remain; no new feature expansion is approved by the launcher-only result. Record exact build, profile, flags, patch owners, test evidence and known conflicts. Update this snapshot when module versions/order change.
 
