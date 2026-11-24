@@ -120,6 +120,22 @@ namespace CalradiaUnified
 
         // NPC chooses a real subject within a conversation the player opens.
         // No forced dialogue, map interruption, task creation or native AI order.
+        private int ObservedStandingShift(Hero player,Hero actor)
+        {
+            if(player==null || actor==null || player==actor)return 0;
+            var e=livingPersons.Events.LastOrDefault(x=>x.Kind=="NativeRelationChangedObserved" &&
+                x.Actor==player.StringId && x.Target==actor.StringId);
+            if(e==null)return 0;
+            var fields=e.Detail.Split('|');
+            int before,after;
+            if(fields.Length<2 || !fields[0].StartsWith("before=",StringComparison.Ordinal) ||
+                !fields[1].StartsWith("after=",StringComparison.Ordinal) ||
+                !Int32.TryParse(fields[0].Substring(7),out before) ||
+                !Int32.TryParse(fields[1].Substring(6),out after) ||
+                before< -100 || before>100 || after< -100 || after>100 ||
+                after!=player.GetRelation(actor))return 0;
+            return after-before>=10?1:before-after>=10?-1:0;
+        }
         private string PersonalInitiativeTopic()
         {
             if(!CanSpeakSocially() || !CanDiscussPersonalMatters() ||
@@ -132,7 +148,7 @@ namespace CalradiaUnified
             if(clan!=null && CanDiscussEstateTopic() &&
                 clan.Settlements.Any(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege))
                 candidates.Add("Concerns");
-            if(player.GetRelation(actor)<0)candidates.Add("Standing");
+            if(player.GetRelation(actor)<0 || ObservedStandingShift(player,actor)!=0)candidates.Add("Standing");
             if(player.GetRelation(actor)>=50 && livingPersons.SharedConversationMemory(player.StringId,actor.StringId)!=null)
                 candidates.Add("Standing");
             if(CanCounselCareer() && IsPersonalChargeActive())candidates.Add("Service");
@@ -156,7 +172,10 @@ namespace CalradiaUnified
             switch(topic)
             {
                 case "Concerns":return " Before we part, I would speak of the danger to our holdings.";
-                case "Standing":return " I would rather not leave matters between us unspoken.";
+                case "Standing":
+                    int shift=ObservedStandingShift(Hero.MainHero,Hero.OneToOneConversationHero);
+                    return shift>0?" There is something about our improved standing I would like to discuss.":
+                        shift<0?" I would rather speak of the strain between us.":" I would rather not leave matters between us unspoken.";
                 case "Service":return " There is the duty we agreed upon, too.";
                 case "Family":return " I have been thinking about the children.";
                 case "Ambitions":return " There is something I wish to tell you about my own plans.";
@@ -832,6 +851,9 @@ namespace CalradiaUnified
                         reply+=" I remember the help you gave in earlier matters.";
                     else if(knownDecline && bond!=null && bond.Declined>0 && bond.Negative<0 && relation<0)
                         reply+=" I remember that we did not agree on earlier matters.";
+                    int shift=ObservedStandingShift(player,actor);
+                    if(shift>0)reply+=" Our standing has improved since the earlier record. I would see that progress continue.";
+                    else if(shift<0)reply+=" Matters between us have grown more strained. I would not dismiss that change.";
                     if(agenda!=null && agenda.NewsRecipient==player.StringId && agenda.NewsDay>=0 &&
                         SandboxCharacterAgendaState.StandingBand(relation)!=agenda.NewsStanding)
                         reply+=" Our standing is not quite as it was when last I wrote.";
