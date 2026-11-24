@@ -173,6 +173,58 @@ namespace CalradiaUnified
                 tone=="Dutiful"?"Let us weigh our obligations to those who will bear the cost.":
                 "Let us hear the other view before we settle on a course.";
         }
+        // The alternate line replaces the opener; it is not a random suffix.
+        public static string PersonalOpening(string role,string tone,int relation,int variant)
+        {
+            if(variant==0)return "";
+            bool first=variant==1;
+            if(role=="Spouse")
+            {
+                if(relation<0)return first?"There are things between us we have not settled. What would you say?":
+                    "We share a life, yet we have been distant of late. Tell me what is on your mind.";
+                if(relation>=20)return first?"Come, we have a little time away from our duties. What is it?":
+                    "There is no need for ceremony between us. What shall we speak of?";
+                return first?"Let us have a moment to talk.":"Tell me what you wish to discuss.";
+            }
+            if(role=="Patron")return first?"Speak, then. Is there something you wish to discuss apart from your duties?":
+                "I have a moment to hear you. What matter brings you?";
+            if(role=="Kin")return relation>=10?
+                (first?"Come, tell me what is on your mind. We can speak as kin.":"It is good to have time for family matters. What concerns you?"):
+                (first?"I will hear what you have to say.":"What would you discuss with me?");
+            if(role=="Companion")return relation>=10?
+                (first?"There is time enough for a word between companions. What is it?":"You have my attention. What shall we consider together?"):
+                (first?"Speak, then. What do you need?":"I have a moment. Tell me what concerns you.");
+            if(relation<=-10)return first?"We have had our differences. Say what you came to say.":
+                "I will listen, but let us not pretend we agree on everything.";
+            if(relation>=50)return first?"It is good to speak without the usual formalities.":"I am glad of the chance to hear your thoughts.";
+            if(tone=="Prudent")return first?"Let us consider the matter carefully. What is it?":"Tell me what you wish to weigh.";
+            if(tone=="Bold")return first?"Speak freely. What is on your mind?":"Out with it, then. I am listening.";
+            if(tone=="Dutiful")return first?"You have my ear.":"Tell me what is asked of me.";
+            if(tone=="Warm")return first?"Come, let us speak a little.":"I have time to hear what concerns you.";
+            return first?"What would you discuss?":"Speak your mind.";
+        }
+        public static string PersonalReflection(string topic,string tone,int variant)
+        {
+            if(variant==0)return "";
+            bool first=variant==1;
+            switch(topic)
+            {
+                case "Opinions":
+                    if(tone=="Guarded")return first?"Promises are easy to make. I prefer to see what people do when keeping them costs something.":"I have more regard for a person who admits uncertainty than one who claims to know everything.";
+                    if(tone=="Prudent")return first?"Good judgment begins with knowing what we do not know.":"I value the ability to change one's mind when the facts demand it.";
+                    if(tone=="Bold")return first?"A person should stand for something, even when it comes at a cost.":"I respect the courage to attempt what others think impossible.";
+                    if(tone=="Dutiful")return first?"The people who rely on us deserve more than fine words.":"I measure a person by whether they keep faith when it is inconvenient.";
+                    if(tone=="Warm")return first?"Kindness matters most when there is nothing to gain from it.":"I think a life is made richer by the people one helps along the way.";
+                    return first?"I would rather live by my own judgment than by the opinions of the crowd.":"A useful life is one in which a person can take some pride in their work.";
+                case "Family":return first?"The needs of one member of the family are not always the needs of another.":"Let us leave room for our kin to make choices of their own.";
+                case "Finances":return first?"We should distinguish what is owed from what we merely wish to spend.":"A promise of silver should be made only when it can be kept.";
+                case "Estate":return first?"The strength of a holding is not measured by walls alone.":"A decision about the land should account for those who must live on it.";
+                case "Service":return first?"I would judge service by what is actually accomplished.":"A duty should be understood before a person is asked to undertake it.";
+                case "Ambitions":return first?"I would rather make progress by degrees than put everything at hazard.":"There is a difference between wishing for something and doing the work to attain it.";
+                case "Standing":return first?"Our dealings matter more than the words we use to describe them.":"I would rather we spoke plainly than made assurances we cannot keep.";
+                default:return "";
+            }
+        }
         public static string Greeting(string tone)
         {
             switch(tone)
