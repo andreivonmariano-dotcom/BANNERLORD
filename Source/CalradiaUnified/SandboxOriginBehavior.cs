@@ -89,8 +89,6 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, AdvanceFamilyUpbringing);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
-                this, RefundWandererCompanionWage);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightOathDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightEscortDaily);
@@ -1019,49 +1017,8 @@ namespace CalradiaUnified
             }
         }
 
-        private void RefundWandererCompanionWage()
-        {
-            if(!applied || !IsStandaloneSandbox() ||
-                String.IsNullOrEmpty(wandererCompanionId) ||
-                Campaign.Current==null || Hero.MainHero==null ||
-                MobileParty.MainParty==null)return;
-            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
-            if(wandererWageCreditDay==day)return;
-            // Record the day before any native gold action, preventing a
-            // repeated payment on an exception, reload or second tick.
-            wandererWageCreditDay=day;
-            var companion=Hero.AllAliveHeroes.FirstOrDefault(h=>
-                h!=null && h.StringId==wandererCompanionId);
-            if(companion==null || !companion.IsActive ||
-                companion.Clan!=Clan.PlayerClan ||
-                companion.CompanionOf!=Clan.PlayerClan ||
-                MobileParty.MainParty.MemberRoster.GetTroopCount(
-                    companion.CharacterObject)!=1)return;
-            try
-            {
-                int listed=Campaign.Current.Models.PartyWageModel
-                    .GetCharacterWage(companion.CharacterObject);
-                if(listed<0 || listed>10000)
-                    throw new InvalidOperationException(
-                        "Companion native daily wage outside accepted bounds");
-                if(listed>0)
-                    GiveGoldAction.ApplyBetweenCharacters(
-                        null,Hero.MainHero,listed,false);
-                DiagnosticJournal.Event("cu_wanderer_wage_credit",
-                    "companion="+companion.StringId+
-                    "|day="+day+"|native_character_wage="+listed+
-                    "|player_reimbursement="+listed+
-                    "|source=native_party_wage_model"+
-                    "|not_global_wage_model_override=true"+
-                    "|companion_in_main_party=true");
-            }
-            catch(Exception error)
-            {
-                DiagnosticJournal.Exception(
-                    "cu_wanderer_wage_credit_failed",error);
-            }
-        }
-
+        // Legacy wage receipt remains in SyncData for save compatibility.
+        // A wage-model quote is not a verified debit; no CU reimbursement.
         private void AdvanceFamilyUpbringing()
         {
             if(familyGrowth==null || familyGrowth.Count==0 ||
