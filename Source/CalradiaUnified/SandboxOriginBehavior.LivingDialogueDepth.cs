@@ -192,7 +192,7 @@ namespace CalradiaUnified
             if(!CanFollowPersonalTopic())return;
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
-            if(CanDiscussPersonalMatters() && personalTopicName!="Memory")
+            if(CanDiscussPersonalMatters())
                 livingPersons.RecordConversationChoice(player.StringId,actor.StringId,
                     personalTopicName,disagreed,CurrentHouseholdDay());
         }
@@ -619,6 +619,14 @@ namespace CalradiaUnified
             string reply=child==null?"Let us speak of this another time.":
                 "What shall we encourage in "+child.Name+"? "+
                 SandboxPetitionVoicePolicy.Opinion(PersonalVoice(Hero.OneToOneConversationHero),"Family");
+            if(child!=null)
+            {
+                string current=familyGrowth.UpbringingFor(child.StringId);
+                string emphasis=current=="Kind"?"kindness":current=="Martial"?"the practice of arms":
+                    current=="Scholarly"?"study":current=="Mercantile"?"the ways of trade":
+                    current=="Seafaring"?"knowledge of the sea":current=="Independent"?"independent judgment":"";
+                if(emphasis.Length>0)reply+=" We have been encouraging "+emphasis+". Do you wish to change course?";
+            }
             MBTextManager.SetTextVariable("CU_EDUCATION_DISCUSSION",new TextObject(reply));
             return true;
         }
@@ -684,9 +692,13 @@ namespace CalradiaUnified
                          "I would judge our companionship by what we do for one another."):
                         SandboxPetitionVoicePolicy.StandingReply(relation);
                     var bond=socialBonds.For(actor.StringId);
-                    if(bond!=null && bond.Supported>0 && bond.Positive>0 && relation>=20)
+                    bool knownSupport=livingPersons.Events.Any(e=>e.Actor==actor.StringId &&
+                        e.Target==player.StringId && e.Kind=="CharacterRequestAccepted");
+                    bool knownDecline=livingPersons.Events.Any(e=>e.Actor==actor.StringId &&
+                        e.Target==player.StringId && e.Kind=="CharacterRequestDeclined");
+                    if(knownSupport && bond!=null && bond.Supported>0 && bond.Positive>0 && relation>=20)
                         reply+=" I remember the help you gave in earlier matters.";
-                    else if(bond!=null && bond.Declined>0 && bond.Negative<0 && relation<0)
+                    else if(knownDecline && bond!=null && bond.Declined>0 && bond.Negative<0 && relation<0)
                         reply+=" I remember that we did not agree on earlier matters.";
                     if(agenda!=null && agenda.NewsRecipient==player.StringId && agenda.NewsDay>=0 &&
                         SandboxCharacterAgendaState.StandingBand(relation)!=agenda.NewsStanding)
