@@ -782,19 +782,6 @@ namespace CalradiaUnified
                     Clan.PlayerClan.Companions.Count>0,
                 args=>ShowHouseholdDutyLedger(),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_family_native_audiences",
-                "Arrange a family audience",
-                args=>false, // Retired duplicate guidance; speak to family directly.
-                args=>ShowNativeDetail(
-                    "Household | Family audiences",
-                    "Meet your living spouse or grown child in "+
-                    "the game's actual conversation. "+
-                    "A family visit records time spent together. "+
-                    "Gifts of 100 native denars are "+
-                    "separate voluntary decisions. Children "+
-                    "under eighteen are not adult courtiers."),
-                false);
-            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "People of my household",
                 args=>livingPersons.People.Count>0,

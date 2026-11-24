@@ -45,7 +45,7 @@ assert 'person.Age<18f' in camp
 assert 'GameMenu.ExitToLast()' in camp
 assert 'ShowHouseholdDutyLedger()' in camp
 assert 'CareerChronicleDescription()' in camp
-assert 'HearDossierPetition()' in camp
+assert 'OpenCampaignAffairs()' in camp
 assert not (source/"CUHouseholdCampMissionLogic.cs").exists()
 for forbidden in (
     'MissionState.OpenNew','Mission.SpawnAgent',

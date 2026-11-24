@@ -25,21 +25,46 @@ namespace CalradiaUnified
             var b=AffairsBehavior();
             return b==null?0:b.CountPendingAffairs();
         }
+        private int affairFollowUpCacheDay=-1;
+        private HashSet<string> livingFollowUpPeople=new HashSet<string>(StringComparer.Ordinal);
+        private bool LivingFollowUp(string id,int day)
+        {
+            // At most one bounded identity observation per campaign day.
+            // A newly resolved petition cannot become due until seven days pass.
+            if(affairFollowUpCacheDay!=day)
+            {
+                affairFollowUpCacheDay=day;
+                var dueIds=new HashSet<string>(petitionStories.Stories
+                    .Where(s=>petitionStories.CanFollowUp(s.HeroId,day)).Select(s=>s.HeroId),
+                    StringComparer.Ordinal);
+                livingFollowUpPeople=new HashSet<string>(dueIds.Count==0?new string[0]:
+                    Hero.AllAliveHeroes.Where(h=>h!=null && h.IsAlive && dueIds.Contains(h.StringId))
+                        .Select(h=>h.StringId),StringComparer.Ordinal);
+            }
+            return livingFollowUpPeople.Contains(id);
+        }
+        private bool OpenAffairsClaim()
+        {
+            return successionInterest.IsRecorded && Hero.MainHero!=null &&
+                successionInterest.ClaimantId==Hero.MainHero.StringId &&
+                (inheritanceNegotiation.Status=="ClaimContested" || inheritanceNegotiation.Authorized);
+        }
         private int CountPendingAffairs()
         {
             int day=CurrentHouseholdDay();
             var player=Hero.MainHero;
             int count=agencyDecisions.HasPending?1:0;
-            count+=petitionStories.Stories.Count(s=>petitionStories.CanFollowUp(s.HeroId,day));
+            count+=petitionStories.Stories.Count(s=>petitionStories.CanFollowUp(s.HeroId,day) &&
+                LivingFollowUp(s.HeroId,day));
             if(IsPersonalChargeActive())count++;
             bool oath=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId;
             if(oath && knightServiceOrders.Active &&
                 knightServiceOrders.PatronId==knightOath.PatronId)count++;
             if(oath && knightOath.CanMuster(day,true))count++;
-            if(oath && knightServiceOrders.RecommendationDay>=0 &&
+            if(oath && knightServiceOrders.PatronId==knightOath.PatronId &&
+                knightServiceOrders.RecommendationDay>=0 &&
                 knightServiceOrders.RoyalHearingDay<0)count++;
-            if(inheritanceNegotiation.Status=="ClaimContested" ||
-                inheritanceNegotiation.Authorized)count++;
+            if(OpenAffairsClaim())count++;
             var clan=Clan.PlayerClan;
             if(clan.Settlements!=null)
                 count+=clan.Settlements.Count(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
@@ -115,14 +140,15 @@ namespace CalradiaUnified
                 if(story.Outcome=="Pending" && agencyDecisions.HasPending &&
                     agencyDecisions.PendingHeroId==story.HeroId)continue;
                 var p=find(story.HeroId);
-                bool due=petitionStories.CanFollowUp(story.HeroId,day);
+                bool due=p!=null && p.IsAlive &&
+                    petitionStories.CanFollowUp(story.HeroId,day);
                 bool supported=story.Outcome=="Supported";
                 string status=due?"Conversation due":story.Outcome=="Pending"?
                     "No longer awaiting a reply":supported?"Help given":"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
                 rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",
                     Title=AffairPerson(p)+(due?" | Follow-up":" | Earlier matter"),
-                    Status=status,Pending=due,Day=story.ResolvedDay>=0?story.ResolvedDay:story.StartedDay,
+                    Status=p==null?status+" | Person unavailable":status,Pending=due,Day=story.ResolvedDay>=0?story.ResolvedDay:story.StartedDay,
                     Detail=PetitionConcern(story.Kind)+"\n"+AffairLocation(p)+"\n"+
                         (due?"Ask how their affairs have fared since your decision.":
                          "An earlier matter from your personal history.")});
@@ -148,14 +174,16 @@ namespace CalradiaUnified
                         Title="Audience with "+AffairPerson(patron),Status="Muster due",
                         Pending=true,Day=knightOath.NextMusterDay,Detail=location+
                             "\nMeet your sworn lord to review your service."});
-                if(knightServiceOrders.RecommendationDay>=0 && knightServiceOrders.RoyalHearingDay<0)
+                if(knightServiceOrders.PatronId==knightOath.PatronId &&
+                    knightServiceOrders.RecommendationDay>=0 && knightServiceOrders.RoyalHearingDay<0)
                     rows.Add(new SandboxAffair{Id="royal-audience",Category="Service",Title="Audience with the ruler",
                         Status="Recommendation recorded",Pending=true,Day=knightServiceOrders.RecommendationDay,
                         Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title."});
             }
-            if(inheritanceNegotiation.Status=="ClaimContested" || inheritanceNegotiation.Authorized)
+            if(OpenAffairsClaim())
             {
-                var estate=Settlement.Find(inheritanceNegotiation.SettlementId);
+                var estate=String.IsNullOrEmpty(inheritanceNegotiation.SettlementId)?null:
+                    Settlement.Find(inheritanceNegotiation.SettlementId);
                 rows.Add(new SandboxAffair{Id="inheritance",Category="Household",Title="Family estate claim",
                     Status=inheritanceNegotiation.Authorized?"Awaiting lawful consent":"Disputed",
                     Pending=true,Day=inheritanceNegotiation.PetitionDay,Detail=

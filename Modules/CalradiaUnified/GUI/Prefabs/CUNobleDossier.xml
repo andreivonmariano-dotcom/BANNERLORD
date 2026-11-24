@@ -188,7 +188,7 @@
                     PositionXOffset="268" PositionYOffset="562"
                     Command.Click="ExecuteHearPetition">
               <Children>
-                <TextWidget Text="View petitions"
+                <TextWidget Text="Correspondence"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"

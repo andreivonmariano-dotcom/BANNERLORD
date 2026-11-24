@@ -28,7 +28,7 @@ assert 'OpenFromNativeBUTRScreen()' in native
 assert 'b.ShowStartingHouseholdStatus();' in dossier
 
 # Settlement actions belong in a genuine owned court.
-assert '"Hold household court"' in menu
+assert '"Attend to local affairs"' in menu
 assert 'Settlement.CurrentSettlement.OwnerClan==' in menu
 assert 'Clan.PlayerClan' in menu
 assert '!Settlement.CurrentSettlement.IsUnderSiege' in menu
@@ -52,7 +52,7 @@ assert 'OfferLocalCharacterRequest(Hero.MainHero)' not in dossier
 assert 'AnswerCharacterRequest(true)' not in dossier
 assert 'AnswerCharacterRequest(false)' not in dossier
 assert 'ConfirmCharacterSupport()' not in dossier
-assert 'Text="View petitions"' in (
+assert 'Text="Correspondence"' in (
     root/"Modules"/"CalradiaUnified"/"GUI"/"Prefabs"/
     "CUNobleDossier.xml").read_text(encoding="utf-8")
 
