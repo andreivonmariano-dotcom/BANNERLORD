@@ -1358,6 +1358,36 @@ internal static class Program
             replacementOffices.HasIdentity("old") && replacementOffices.OfficeFor("old")=="" &&
             SandboxRetinueOfficeState.Parse(replacementOffices.Serialize()).OfficeFor("new")=="Marshal" &&
             !replacementOffices.Replace("new","old","Marshal"));
+        var branchCandidates=new Dictionary<string,SandboxLordSuccessionPolicy.Candidate[]>
+        {
+            {"deadchild",new[]{new SandboxLordSuccessionPolicy.Candidate("grandchild",22,false,0,true,true,true)}},
+            {"sibling",new[]{new SandboxLordSuccessionPolicy.Candidate("nephew",19,false,0,true,true,true)}},
+            {"grandchild",new[]{new SandboxLordSuccessionPolicy.Candidate("founder",75,false,0,true,true,true)}}
+        };
+        var dynastyBranches=SandboxLordSuccessionPolicy.Branches("EldestChild","founder",
+            new[]{new SandboxLordSuccessionPolicy.Candidate("deadchild",40,false,0,false,true,true),
+                new SandboxLordSuccessionPolicy.Candidate("unverified",30,false,1,true,true,false)},
+            new[]{new SandboxLordSuccessionPolicy.Candidate("sibling",50,true,0,true,false,true)},
+            id=>branchCandidates.ContainsKey(id)?branchCandidates[id]:new SandboxLordSuccessionPolicy.Candidate[0]);
+        Check("dynastic branch review crosses deceased and married-out links, excludes cycles and unverified kin",
+            dynastyBranches.Length==2 && dynastyBranches[0].Person.Id=="grandchild" &&
+            dynastyBranches[0].Depth==2 && dynastyBranches[0].Branch=="Descendant" &&
+            dynastyBranches[1].Person.Id=="nephew" && dynastyBranches[1].Branch=="Collateral");
+        var manyBranches=SandboxLordSuccessionPolicy.Branches("EldestChild","founder",
+            Enumerable.Range(0,300).Select(i=>new SandboxLordSuccessionPolicy.Candidate("child"+i,20,false,i,true,true,true)),
+            null,id=>new SandboxLordSuccessionPolicy.Candidate[0]);
+        Check("dynastic branch traversal respects fixed candidate and depth budgets",
+            manyBranches.Length==SandboxLordSuccessionPolicy.BranchBudget &&
+            SandboxLordSuccessionPolicy.Branches("Invalid","founder",null,null,id=>null).Length==0);
+        Check("noble officer duties differ by actual office and native governor verification",
+            new[]{"Master of Arms","Knight","Marshal","Kingsguard","Royal Minister"}
+                .Select(x=>SandboxRetinueOfficePolicy.DutyFocus(x,true,false,true,0)).Distinct().Count()==5 &&
+            SandboxRetinueOfficePolicy.DutyFocus("Royal Minister",true,false,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Royal Minister",true,false,false,0) &&
+            SandboxRetinueOfficePolicy.DutyFocus("Marshal",true,true,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Marshal",true,false,true,0) &&
+            SandboxRetinueOfficePolicy.DutyFocus("Master of Arms",true,false,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Master of Arms",true,false,true,1));
         Check("current noble authority follows native political station rather than original start",
             SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,false,false,false,false,false) &&
             SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,false) &&
