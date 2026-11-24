@@ -78,6 +78,16 @@ def verify(filename, version):
         assert root.find("Id").attrib["value"] == "CalradiaUnified"
         assert root.find("Version").attrib["value"] == version
         assert root.find(".//DLLName").attrib["value"] == "CalradiaUnified.dll"
+        identity=json.loads(archive.read(prefix+"ModuleData/CU-BuildIdentity.json").decode("utf-8-sig"))
+        assert identity["module_id"]=="CalradiaUnified"
+        assert identity["manifest_version"]==version
+        assert identity["assembly_version"]==version[1:]+".0"
+        assert identity["dll_sha256"]==hashlib.sha256(dll).hexdigest()
+        assert identity["acceptance"]=="COMPILED_UNTESTED"
+        if identity["source_commit"]!="unverified-local":
+            assert len(identity["source_commit"])==40
+            assert identity["source_commit"] in identity["informational_version"]
+            assert identity["ci_run_id"].isdigit()
     return {"result":"PASS","version":version,"runtime_files":len(names),
             "dll_bytes":len(dll),
             "dll_sha256":hashlib.sha256(dll).hexdigest(),
