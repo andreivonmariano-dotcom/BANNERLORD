@@ -248,3 +248,20 @@ assert 'Hero.AllAliveHeroes' not in director
 for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
     assert forbidden not in director,forbidden
 print("PASS adaptive narrative observation, exact speaker response, bounded history and configurable peer cadence. SOURCE ONLY.")
+
+# Peer threads and reputations: no invented events or inherited relationships.
+assert 'ObservePeerStory(player,pair.A,pair.B,priorRelation,relation,day);' in peer
+assert 'Math.Abs(after-before)<10' in director
+assert 'storyDirector.Open(player.StringId,actor.StringId,kind,fingerprint,day,peer.StringId)' in director
+assert 'ValidPeer(owner,actor,kind,peer)' in directorstate
+assert 'peer!=actor && peer!=owner' in directorstate
+assert 'f.Length!=12 && f.Length!=13' in directorstate
+assert 'storyDirector.Peer.Length==0 || StoryPeer()!=null' in director
+assert 'peerSocial.Reputation(person.StringId,CurrentHouseholdDay())' in group
+assert 'p.KnownSamples>=2 && day>=p.LastDay && day-p.LastDay<=90' in peerstate
+assert 'if(known.Length<2)return "";' in peerstate
+assert 'System.Diagnostics.Stopwatch.StartNew()' in peer
+assert 'day<peerPauseUntil' in peer
+assert 'peerLastMilliseconds>5.0 && day<=1999997' in peer
+assert 'scope=optional_peer_pass' in peer
+print("PASS observed peer story identity, sampled reputation and optional-pass timing bounds. SOURCE ONLY.")
