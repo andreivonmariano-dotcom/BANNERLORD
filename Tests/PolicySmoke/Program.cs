@@ -339,6 +339,74 @@ internal static class Program
                 SandboxPetitionVoicePolicy.PersonalReflection("Opinions",tone,2)) &&
             SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",30,1)!=
             SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",-30,1));
+        var director=new SandboxStoryDirectorState();
+        Check("story director detail modes bound optional simulation cadence",
+            SandboxStoryDirectorState.PeerInterval(0)==0 &&
+            SandboxStoryDirectorState.PeerInterval(1)==3 &&
+            SandboxStoryDirectorState.PeerInterval(2)==1 &&
+            director.SetDetail(0) && !director.CanOpen(1) &&
+            !director.SetDetail(3) && director.SetDetail(1));
+        string evidence=SandboxStoryDirectorState.Fingerprint("player|npc","ChangedAmbition","prior=x|current=y");
+        Check("director accepts only supported distinct observed narrative participants",
+            !director.Open("player","player","ChangedAmbition",evidence,1) &&
+            !director.Open("player","npc","InventedConspiracy",evidence,1) &&
+            director.Open("player","npc","ChangedAmbition",evidence,1) &&
+            !director.Open("player","other","ChangedClan","different",1));
+        Check("story choices require exact identities and set delayed follow-up",
+            !director.Answer("heir","npc","Listen",2) &&
+            !director.Answer("player","other","Listen",2) &&
+            director.Answer("player","npc","Caution",2) &&
+            !director.CanDiscuss("player","npc",8) &&
+            director.CanDiscuss("player","npc",9));
+        var savedDirector=SandboxStoryDirectorState.Parse(director.Serialize());
+        Check("story director persists chosen response and exact follow-up deadline",
+            savedDirector.Response=="Caution" && savedDirector.Stage=="FollowUp" &&
+            savedDirector.Due==9 && savedDirector.Finish("player","npc",9) &&
+            !savedDirector.CanOpen(22) && savedDirector.CanOpen(23) &&
+            !savedDirector.Open("player","npc","ChangedAmbition",evidence,23));
+        var ignoredDirector=new SandboxStoryDirectorState();
+        ignoredDirector.Open("player","npc","ChangedClan","observed",1);
+        ignoredDirector.Expire(32);
+        Check("expired story does not become a completed native event",
+            ignoredDirector.Stage=="Expired" &&
+            SandboxStoryDirectorState.Parse(ignoredDirector.Serialize()).Stage=="Expired" &&
+            SandboxStoryDirectorState.Parse("").Stage=="");
+        Check("motives are context-sensitive and differ by goal and voice",
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Bold",20,false)!=
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Prudent",20,false) &&
+            SandboxStoryDirectorState.MotiveWords("GainMilitaryTraining","Bold",20,false)!=
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Bold",20,false) &&
+            SandboxStoryDirectorState.MotiveWords("GainMilitaryTraining","Dutiful",-20,true).Contains("trust"));
+        var longDirector=new SandboxStoryDirectorState();
+        var longVariety=new SandboxDialogueVarietyState();
+        longVariety.Initialize("generational");
+        bool directorStable=true;
+        for(int day=1;day<=36500;day++)
+        {
+            string owner="generation"+(day/7300);
+            string actor="npc"+(day%64);
+            longDirector.Expire(day);
+            if(longDirector.CanOpen(day))
+                longDirector.Open(owner,actor,"ChangedAmbition","event"+day,day);
+            if(longDirector.CanDiscuss(owner,longDirector.Actor,day))
+            {
+                if(longDirector.Stage=="Open")longDirector.Answer(owner,longDirector.Actor,"Listen",day);
+                else longDirector.Finish(owner,longDirector.Actor,day);
+            }
+            longVariety.Advance(owner,actor,"Greeting",day);
+            if(day%30==0)
+            {
+                string aPacked=longDirector.Serialize(),vPacked=longVariety.Serialize();
+                longDirector=SandboxStoryDirectorState.Parse(aPacked);
+                longVariety=SandboxDialogueVarietyState.Parse(vPacked);
+                directorStable &= longDirector.Serialize()==aPacked && longVariety.Serialize()==vPacked;
+            }
+            directorStable &= longDirector.Receipts.Count<=SandboxStoryDirectorState.MaxReceipts &&
+                longVariety.Entries.Count<=SandboxDialogueVarietyState.Capacity;
+        }
+        Check("100-year modeled director and dialogue ledger remain bounded across generational reloads",
+            directorStable && longDirector.Receipts.Count==SandboxStoryDirectorState.MaxReceipts &&
+            longVariety.Entries.Count==SandboxDialogueVarietyState.Capacity);
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
