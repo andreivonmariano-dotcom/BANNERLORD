@@ -13,7 +13,8 @@ namespace CalradiaUnified
         {
             if(!applied || !IsStandaloneSandbox() ||
                 knightServiceOrders.RoyalHearingDay<0 ||
-                Hero.MainHero==null || Clan.PlayerClan==null)
+                Hero.MainHero==null || Clan.PlayerClan==null ||
+                Hero.MainHero.StringId!=knightOath.PlayerId)
                 return;
             var patron=ResolveCampaignHero(
                 knightServiceOrders.PatronId);
