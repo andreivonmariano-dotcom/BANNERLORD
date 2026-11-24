@@ -113,7 +113,11 @@ namespace CalradiaUnified
         {
             if(player==null || agencyDecisions.HasPending)return;
             foreach(var record in characterAgendas.Entries
-                .OrderBy(a=>a.Id,StringComparer.Ordinal))
+                .OrderBy(a=>agencyDecisions.For(a.Id)==null?0:
+                    agencyDecisions.For(a.Id).RequestsMade)
+                .ThenBy(a=>agencyDecisions.For(a.Id)==null?-1:
+                    agencyDecisions.For(a.Id).LastDay)
+                .ThenBy(a=>a.Id,StringComparer.Ordinal))
             {
                 var hero=FindLivingPerson(record.Id);
                 if(hero==null || hero==player ||
@@ -148,8 +152,8 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
                         "|day="+agencyDecisions.Day);
+                    break;
                 }
-                break;
             }
         }
         private void DescribeCharacterRequest()
