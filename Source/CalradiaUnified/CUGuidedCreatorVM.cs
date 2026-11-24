@@ -72,6 +72,8 @@ namespace CalradiaUnified
             {
                 if(houseDraft!=null)
                     profile=SandboxOriginProfile.Parse(houseDraft.Serialize());
+                // This is the new-game House editor, not a loaded save.
+                profile.NormalizeGuidedCareerDraft();
                 // Upgraded World drafts cannot arrive in House without
                 // the new guided Lord's required marriage and first child.
                 // This is editor initialization, not a live-campaign edit.
@@ -199,21 +201,8 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
-                    "Seven life paths. Knight Sworn House is an independent native start. Younger Sibling is reserved pending real native clan membership.",
+                    "Choose one of seven careers. Each has one starting path. Family, appearance and kingdom choices remain separate.",
                     choices:SandboxStartingLifePolicy.SevenPaths));
-                list.Add(new Field("CHAPTER I | YOUR WORLD",
-                    "KnightOrigin","Your knightly origin",
-                    "Sworn House: personal oath, 30-day muster duty, "+
-                    "last 7 days eligible, missed duty harms lord relation. "+
-                    "Younger Sibling: native clan joining unverified.",
-                    choices:SandboxKnightStartPolicy.Origins));
-                list.Add(new Field("CHAPTER I | YOUR WORLD",
-                    "SoldierEntryRank","Requested service entry",
-                    "Recruit (native private), Sergeant or Captain. "+
-                    "The installed Serve as Soldier provider controls the "+
-                    "actual troop, lord, rank and wages. No grade is "+
-                    "granted by the creator.",
-                    choices:SandboxSoldierEnlistmentPolicy.EntryChoices));
                 // New Wanderer collects its sole companion here, before
                 // the native player stats and appearance sequence. There
                 // is deliberately NO House or Fortune page afterward.
@@ -259,32 +248,9 @@ namespace CalradiaUnified
                     "ServicePatronHeroId","Commanding lord Hero ID (optional)",
                     "Real lord contact for Soldier, Knight, Recruit and HouseholdKnight. Recruit remains independent until external enlistment is verified.",
                     "text",advanced:true));
-                list.Add(new Field("CHAPTER I | YOUR WORLD",
-                    "NobleBirthPosition","Your noble birth",
-                    "Younger brother or sister requires an existing native lord who leads a qualifying clan. A sibling created later in House does not count.",
-                    choices:SandboxNobleStartPolicy.BirthPositions));
-                list.Add(new Field("CHAPTER I | YOUR WORLD",
-                    "NobleElderHeroId","Native family leader ID (optional)",
-                    "Optional exact native Hero ID. Second/third son selects a real father. Younger brother/sister selects an older sibling. The game validates genealogy at start.",
-                    "text",advanced:true));
             }
             else
             {
-                // The elder is unknowable before culture, age and native
-                // Hero data are available. Let the player correct the
-                // EXISTING noble-birth choice after those stages, without
-                // losing the spouse, children or sibling draft.
-                list.Add(new Field("CHAPTER III | YOUR HOUSE",
-                    "NobleBirthPosition","Confirm your noble birth",
-                    "A younger-brother or sister origin needs an existing "+
-                    "native clan-leading lord. Creating an older sibling "+
-                    "below does NOT make that sibling your lord.",
-                    choices:SandboxNobleStartPolicy.BirthPositions));
-                list.Add(new Field("CHAPTER III | YOUR HOUSE",
-                    "NobleElderHeroId","Native elder Hero ID (optional)",
-                    "Restrict the requested elder to an exact native "+
-                    "Hero ID. Leave blank to let the mod search.",
-                    "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseEnabled",
                     "Begin married?",
                     "Royal King and Lord: a real spouse is mandatory. Other paths may opt out.",
@@ -484,10 +450,8 @@ namespace CalradiaUnified
                         profile.KnightOrigin)))return false;
             if(key=="LordSuccessionRule")
                 return !preCampaign && profile.LordGuidedStart;
-            if(key=="KnightOrigin")
-                return preCampaign && profile.Role=="Knight";
-            if(key=="SoldierEntryRank")
-                return preCampaign && profile.Role=="Soldier";
+            if(key=="KnightOrigin" || key=="SoldierEntryRank" ||
+                key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;
             if(key=="WandererCompanionEnabled")
                 return preCampaign && profile.Role=="Wanderer";
             if(key.StartsWith("WandererCompanion",
@@ -523,13 +487,7 @@ namespace CalradiaUnified
             if(key=="ServicePatronHeroId")
                 return preCampaign &&
                     SandboxServicePolicy.NeedsPatron(profile.Role);
-            if(key=="NobleBirthPosition")
-                return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
-                    profile.Role);
-            if(key=="NobleElderHeroId")
-                return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
-                    profile.Role) &&
-                    profile.NobleBirthPosition!="Independent";
+
             if(key.StartsWith("Sibling.",StringComparison.Ordinal))
             {
                 string[] p=key.Split('.');
@@ -687,6 +645,9 @@ namespace CalradiaUnified
 
         private bool TryWrite(string key,string value)
         {
+            if(key=="KnightOrigin" || key=="SoldierEntryRank" ||
+                key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;
+            if(key=="Role" && Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,value)<0)return false;
             var copy=SandboxOriginProfile.Parse(profile.Serialize());
             if(!copy.TrySet(key,value))
             {
@@ -935,6 +896,8 @@ namespace CalradiaUnified
         private void CommitWorld()
         {
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
+            if(!candidate.NormalizeGuidedCareerDraft())
+            {Report("Choose one of the seven starting careers.");return;}
             candidate.Enabled=true;
             candidate.NativeStageEnabled=false;
             candidate.NativeIntegrationReviewEnabled=false;
@@ -1159,6 +1122,8 @@ namespace CalradiaUnified
         private void CommitHouse()
         {
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
+            if(!candidate.NormalizeGuidedCareerDraft())
+            {Report("Return to World and choose one of the seven starting careers.");return;}
             candidate.RealFamilyEnabled=candidate.SpouseEnabled ||
                 candidate.ChildCount>0 || candidate.SiblingCount>0;
             string error;
@@ -1554,25 +1519,20 @@ namespace CalradiaUnified
                         "\nOlder sisters are allowed."+
                         "\nNo royal title or invented court authority.";
                 if(preCampaign && profile.Role=="Knight")
-                    return "Knight | "+profile.KnightOrigin+"\n"+
-                        "Sworn House: independent landless house, "+
-                        "real personal lord and 30-day in-person muster.\n"+
+                    return "Knight | independent landless house\n"+
+                        "Sworn service: independent landless house, "+
+                        "real personal lord and 30-day muster in person.\n"+
                         "Missed muster: native relation -3, oath break: -20.\n"+
                         "No automatic castle, wage or vassalage.\n"+
-                        "Younger Sibling: reserved pending genuine same-clan "+
-                        "entry. Spouse and children remain optional.";
+                        "Spouse and children remain optional.";
                 if(preCampaign && profile.Role=="Soldier")
                     return "Soldier | sworn service under a real lord\n"+
-                        "Requested entry: "+profile.SoldierEntryRank+
-                        " (native "+
-                        SandboxSoldierEnlistmentPolicy.RequestedNativeRank(
-                            profile.SoldierEntryRank)+")\n"+
+                        "Begin as a recruit (native private).\n"+
                         "Kingdom to join: "+
                         (profile.StartingKingdomId.Length==0?
                             "not selected":profile.StartingKingdomId)+
                         "\nThe SaS start-enlisted menu selects the actual "+
-                        "troop and commander. A requested rank is not a "+
-                        "granted rank.\n"+
+                        "troop and commander. Rank and advancement remain native.\n"+
                         "No independent mercenary company, fief or court.\n"+
                         "Native appearance and full stats remain editable.";
                 if(preCampaign && profile.Role=="Mercenary")
