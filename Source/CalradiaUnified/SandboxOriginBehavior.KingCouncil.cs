@@ -117,6 +117,54 @@ namespace CalradiaUnified
             return result;
         }
 
+        private bool CanRestoreRoyalCourt()
+        {
+            return applied && IsStandaloneSandbox() && CurrentNobleAuthority(true) &&
+                royalCouncil.IsRecorded && kingSuccession.IsRecorded &&
+                Clan.PlayerClan.StringId==kingSuccession.RulingClanId &&
+                Clan.PlayerClan.Kingdom.StringId==royalCouncil.KingdomId &&
+                Clan.PlayerClan.Kingdom.StringId==kingSuccession.KingdomId;
+        }
+
+        private void RestoreRoyalCourt()
+        {
+            if(!CanRestoreRoyalCourt())return;
+            var party=MobileParty.MainParty;
+            var seat=Settlement.CurrentSettlement;
+            var marshal=NativeCourtOfficer("Marshal");
+            var minister=NativeCourtOfficer("Royal Minister");
+            var guard=NativeCourtOfficer("Kingsguard");
+            bool present=party!=null && party.LeaderHero==Hero.MainHero &&
+                party.MemberRoster!=null && party.MapEvent==null &&
+                seat!=null && seat==Hero.MainHero.CurrentSettlement &&
+                seat.OwnerClan==Clan.PlayerClan && seat.IsFortification &&
+                seat.Town!=null && !seat.IsUnderSiege &&
+                (seat.Party==null || seat.Party.MapEvent==null) &&
+                marshal!=null && minister!=null && guard!=null &&
+                marshal.PartyBelongedTo==party && guard.PartyBelongedTo==party &&
+                party.MemberRoster.GetTroopCount(marshal.CharacterObject)==1 &&
+                party.MemberRoster.GetTroopCount(guard.CharacterObject)==1 &&
+                minister.PartyBelongedTo==null && minister.CurrentSettlement==seat &&
+                SandboxKingNativeMinistry.VerifiedGovernor(minister) &&
+                minister.GovernorOf.Settlement==seat;
+            if(!present)
+            {
+                ShowNativeDetail("Restore royal court",
+                    "Enter a safe owned holding governed by your Royal Minister, with the Marshal and Kingsguard in your party. Use the native Clan screen to assign the governor. A missing officer must be replaced before the council can meet.");
+                return;
+            }
+            string result=royalCouncil.Rebind(Clan.PlayerClan.Kingdom.StringId,
+                seat.StringId,Hero.MainHero.StringId,marshal.StringId,
+                minister.StringId,guard.StringId,CurrentLordInheritanceDay(),present);
+            DiagnosticJournal.Event("cu_royal_court_rebound","result="+result+
+                "|ruler="+Hero.MainHero.StringId+"|seat="+seat.StringId+
+                "|native_politics_unchanged=true");
+            ShowNativeDetail("Restore royal court",
+                result=="native_court_rebound"?"The court is recorded at "+seat.Name+". Convene it through the royal council menu.":
+                result=="native_court_unchanged"?"The recorded court already matches these officers and this seat.":
+                "The court cannot be restored today. A council already convened today cannot be recommissioned until tomorrow.");
+        }
+
         private void RegisterNativeRoyalCouncilMenus(
             CampaignGameStarter starter)
         {
@@ -189,6 +237,10 @@ namespace CalradiaUnified
                             Notify("Royal council unavailable: "+result);
                     },false);
             }
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_restore_royal_court","Restore royal court",
+                args=>CanRestoreRoyalCourt(),
+                args=>RestoreRoyalCourt(),false);
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_native_royal_council_view",
                 "Review the native royal council",
