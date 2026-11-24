@@ -121,10 +121,10 @@ namespace CalradiaUnified
         public static SandboxLifeHistoryState Parse(string packed)
         {
             var state=new SandboxLifeHistoryState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>100000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>4194304)
                 return state;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length==0 || rows[0]!="CU_LIFE_1")
+            if(rows.Length==0 || rows.Length>MaxPeople+MaxBonds+MaxEvents+1 || rows[0]!="CU_LIFE_1")
                 return state;
             foreach(var row in rows.Skip(1))
             {
