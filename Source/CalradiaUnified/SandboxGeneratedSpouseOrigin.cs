@@ -14,6 +14,15 @@ namespace CalradiaUnified
     /// </summary>
     internal static class SandboxGeneratedSpouseOrigin
     {
+        internal static bool EligibleForeignNobleClan(Clan clan,Kingdom kingdom)
+        {
+            return clan!=null && clan!=Clan.PlayerClan && kingdom!=null &&
+                !kingdom.IsEliminated && clan.Kingdom==kingdom &&
+                !clan.IsEliminated && !clan.IsBanditFaction && !clan.IsRebelClan &&
+                !clan.IsMinorFaction && !clan.IsUnderMercenaryService &&
+                clan.Leader!=null && clan.Leader.IsAlive && clan.Leader.IsLord;
+        }
+
         internal static string PreflightGuidedLord(
             SandboxOriginProfile profile,Hero player)
         {
@@ -25,7 +34,7 @@ namespace CalradiaUnified
             Hero father,mother;
             string refused;
             // Only scans the already existing kingdom/clans. The
-            // temporary random choice does not create or edit a native
+            // deterministic preview does not create or edit a native
             // Hero, marriage, clan or estate.
             if(!TryResolve(profile,player,out birthClan,
                 out father,out mother,out refused,true))
@@ -74,10 +83,8 @@ namespace CalradiaUnified
                     closeFamilyClans.Add(parent.OriginClan);
             }
             var candidates = kingdom.Clans.Where(clan =>
-                clan != null && clan != Clan.PlayerClan &&
-                !closeFamilyClans.Contains(clan) &&
-                !clan.IsEliminated && !clan.IsBanditFaction &&
-                !clan.IsRebelClan)
+                EligibleForeignNobleClan(clan,kingdom) &&
+                !closeFamilyClans.Contains(clan))
                 .OrderBy(clan => clan.StringId, StringComparer.Ordinal)
                 .ToArray();
 
