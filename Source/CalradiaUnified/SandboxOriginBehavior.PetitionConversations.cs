@@ -33,6 +33,8 @@ namespace CalradiaUnified
             var agenda=characterAgendas.Get(actor.StringId);
             if(agenda==null)return "";
             var history=agencyDecisions.For(actor.StringId);
+            if(!SandboxAgencyDecisionPolicy.CanReapproach(
+                socialBonds.For(actor.StringId),player.GetRelation(actor)))return "";
             return SandboxAgencyDecisionPolicy.ChooseInitiative(
                 agenda.Goal,true,true,player.GetRelation(actor),
                 history==null?0:history.RequestsMade,
@@ -108,7 +110,7 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_petition_invite","hero_main_options",
                 "cu_petition_open",
-                "How fares your work and your household?",
+                "Is there a particular matter you wish to put before me?",
                 ()=>AvailablePetitionForSpeaker().Length>0,
                 ()=>InvitePetitionFromSpeakingHero(),90);
             starter.AddDialogLine(
