@@ -51,6 +51,13 @@ internal static class Program
             restoredMarriage.Bonds.Count==2 && restoredMarriage.Events.Count==1 &&
             restoredMarriage.RecentFor("npc_2",5).Length==1 &&
             restoredMarriage.RecentFor("unrelated",5).Length==0);
+        var rotation=new SandboxAgencyDecisionState();
+        rotation.Propose("npc_a","Recognition");
+        rotation.Dismiss("Test");
+        var rotated=SandboxAgencyDecisionState.Parse(rotation.Serialize());
+        Check("NPC opportunity rotation favors people with fewer prior requests",
+            rotated.Prioritize(new[]{"npc_a","npc_c","npc_b","npc_c"})
+                .SequenceEqual(new[]{"npc_b","npc_c","npc_a"}));
         // Stabilization pass 2: guided identities and honest recovery.
         var guidedSoldierLabel=new SandboxOriginProfile{
             Role="Soldier",SoldierGuidedStart=true};
