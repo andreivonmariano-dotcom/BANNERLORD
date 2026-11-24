@@ -229,6 +229,55 @@ internal static class Program
             manyPeers.Pairs.Count==SandboxPeerSocialState.MaxPairs &&
             !manyPeers.Observe("a","overflow",100,0,"CommonInterest") &&
             SandboxPeerSocialState.Parse(manyPeers.Serialize()).Pairs.Count==SandboxPeerSocialState.MaxPairs);
+        Check("three substantive arguments per council topic and priority",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.All(p=>
+                    Enumerable.Range(0,3).Select(i=>SandboxPetitionVoicePolicy.GroupNuance(t,p,"Plain",i)).Distinct().Count()==3)));
+        Check("stable variation rotates across adjacent days without random UI state",
+            Enumerable.Range(10,3).Select(d=>SandboxPetitionVoicePolicy.DialogueVariant("speaker","Defense",d,3)).Distinct().Count()==3 &&
+            SandboxPetitionVoicePolicy.DialogueVariant("speaker","Defense",10,0)==0);
+        Check("current family needs and urgent defense alter topic-specific priorities",
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Family","Marshal","","Warm",20,false,true)=="Welfare" &&
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Defense","","SupportHousehold","Bold",20,true,true)=="Security" &&
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Livelihood","","SupportHousehold","Prudent",20,false,true)=="Reserve");
+        Check("practical council follow-ups differ by subject and priority",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.Select(p=>SandboxPetitionVoicePolicy.GroupChallenge(t,p,"Plain",true)).Distinct().Count()==3));
+        Check("peer trends reflect observed native change and retain legacy row support",
+            SandboxPeerSocialState.Trend(restoredPeers.For("a","b"))=="Native standing has worsened since tracking began" &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|8|10|2|CommonInterest").For("a","b").KnownSamples==1 &&
+            SandboxPeerSocialState.Trend(SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|8|10|2|CommonInterest").For("a","b"))=="");
+        var gathering=new SandboxGatheringPlan();
+        Check("gathering invites only bounded distinct people and supports refusal",
+            !gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","a"},new[]{"a"}) &&
+            !gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","b"},new[]{"c"}) &&
+            !SandboxGatheringPlan.AcceptInvitation(-20,"Guarded","Fellowship") &&
+            SandboxGatheringPlan.AcceptInvitation(20,"Warm","Fellowship") &&
+            gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","b","c"},new[]{"a","b"}));
+        var restoredGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        Check("scheduled gathering requires exact owner seat and due window",
+            restoredGathering.Status=="Pending" && restoredGathering.Due==12 &&
+            !restoredGathering.IsDue("heir","cu_people_lineage","seat",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","elsewhere",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","seat",11) &&
+            restoredGathering.IsDue("player","cu_people_lineage","seat",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","seat",16));
+        Check("gathering completion needs actual accepted attendees and retains attendance",
+            !restoredGathering.Finish("player",12,new[]{"a"}) &&
+            !restoredGathering.Finish("player",12,new[]{"a","c"}) &&
+            restoredGathering.Finish("player",12,new[]{"a","b"}) &&
+            SandboxGatheringPlan.Parse(restoredGathering.Serialize()).Attended.SequenceEqual(new[]{"a","b"}) &&
+            !restoredGathering.CanPlan(18) && restoredGathering.CanPlan(19));
+        var missedGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        missedGathering.Expire(16);
+        Check("missed gathering expires and does not imply attendance",
+            missedGathering.Status=="Expired" && missedGathering.Attended.Length==0 &&
+            SandboxGatheringPlan.Parse(missedGathering.Serialize()).Status=="Expired" &&
+            SandboxGatheringPlan.Parse("").Status=="");
+        var cancelledGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        Check("only the owner can cancel the pending gathering",
+            !cancelledGathering.Cancel("heir",11) && cancelledGathering.Cancel("player",11) &&
+            SandboxGatheringPlan.Parse(cancelledGathering.Serialize()).Status=="Cancelled");
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
