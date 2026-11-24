@@ -10,7 +10,7 @@ namespace CalradiaUnified
     {
         public const string Version="CU_GATHERING_1";
         public string Owner="",Parent="",Seat="",Occasion="",Status="";
-        public string[] Invited=new string[0],Accepted=new string[0];
+        public string[] Invited=new string[0],Accepted=new string[0],Attended=new string[0];
         public int Created=-1,Due=-1,Closed=-1;
         private static bool Id(string s)
         {
@@ -49,7 +49,7 @@ namespace CalradiaUnified
                 return false;
             Owner=owner;Parent=parent;Seat=seat;Occasion=occasion;
             Created=day;Due=day+2;Closed=-1;Status="Pending";
-            Invited=invited.ToArray();Accepted=accepted.ToArray();return true;
+            Invited=invited.ToArray();Accepted=accepted.ToArray();Attended=new string[0];return true;
         }
         public bool IsDue(string owner,string parent,string seat,int day)
         {
@@ -61,7 +61,7 @@ namespace CalradiaUnified
             if(Status!="Pending" || owner!=Owner || day<Due || day>Due+3 ||
                 present==null || present.Length<2 || present.Distinct().Count()!=present.Length ||
                 present.Any(x=>!Accepted.Contains(x)))return false;
-            Status="Held";Closed=day;return true;
+            Status="Held";Closed=day;Attended=present.ToArray();return true;
         }
         public bool Cancel(string owner,int day)
         {
@@ -78,23 +78,25 @@ namespace CalradiaUnified
             if(Status.Length==0)return "";
             return String.Join("|",new[]{Version,Owner,Parent,Seat,Occasion,Status,
                 Created.ToString(CultureInfo.InvariantCulture),Due.ToString(CultureInfo.InvariantCulture),
-                Closed.ToString(CultureInfo.InvariantCulture),String.Join(",",Invited),String.Join(",",Accepted)});
+                Closed.ToString(CultureInfo.InvariantCulture),String.Join(",",Invited),String.Join(",",Accepted),String.Join(",",Attended)});
         }
         public static SandboxGatheringPlan Parse(string packed)
         {
             var p=new SandboxGatheringPlan();
             if(String.IsNullOrEmpty(packed) || packed.Length>1500)return p;
             var f=packed.Split('|');int created,due,closed;
-            if(f.Length!=11 || f[0]!=Version || !Int32.TryParse(f[6],out created) ||
+            if(f.Length!=12 || f[0]!=Version || !Int32.TryParse(f[6],out created) ||
                 !Int32.TryParse(f[7],out due) || !Int32.TryParse(f[8],out closed) ||
                 !p.Schedule(f[1],f[2],f[3],f[4],created,f[9].Split(','),
                     f[10].Length==0?new string[0]:f[10].Split(',')) || due!=p.Due)
                 return new SandboxGatheringPlan();
-            if(f[5]=="Pending" && closed==-1)return p;
+            if(f[5]=="Pending" && closed==-1 && f[11].Length==0)return p;
             if(closed<created || closed>2000000 ||
                 (f[5]=="Held" && (closed<due || closed>due+3 || p.Accepted.Length<2)) ||
                 (f[5]=="Expired" && closed<=due+3) ||
                 (f[5]!="Held" && f[5]!="Expired" && f[5]!="Cancelled"))return new SandboxGatheringPlan();
+            if(f[5]=="Held")return p.Finish(p.Owner,closed,f[11].Split(','))?p:new SandboxGatheringPlan();
+            if(f[11].Length!=0)return new SandboxGatheringPlan();
             p.Status=f[5];p.Closed=closed;return p;
         }
     }
