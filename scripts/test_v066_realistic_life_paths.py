@@ -14,6 +14,7 @@ father=read("SandboxDynasticSonStart.cs")
 elder=read("SandboxDynasticStart.cs")
 patron=read("SandboxServicePatron.cs")
 sa=read("SandboxSaSBridge.cs")
+sa_contract=read("SandboxSaSApiContract.cs")
 state=read("SandboxServiceCareerState.cs")
 culture=read("SandboxCulturalInheritancePolicy.cs")
 claim=read("SandboxSuccessionInterestState.cs")
@@ -41,7 +42,10 @@ assert 'p.Role=="NobleCadet"' in father
 assert 'profile.Role=="NobleCadet"' in elder
 assert 'SandboxCustomLifeRolePolicy.IsLandless(p.Role)' in patron
 assert 'ServeAsSoldier.Compat.SaSPublicApi' in sa
-assert '"ApiVersion"' in sa and '"IsPlayerEnlisted"' in sa
+assert 'SandboxSaSApiContract.IsSupported(types[0])' in sa
+assert '"ApiVersion"' in sa_contract and '"IsPlayerEnlisted"' in sa_contract
+assert '(int)version.GetRawConstantValue()!=1' in sa_contract
+assert 'Type.EmptyTypes' in sa_contract and 'snapshot.ReturnType!=typeof(void)' in sa_contract
 assert '"GetSnapshot"' in sa and '"DailyWage"' in sa
 assert '"CU_SERVICE_2"' in state and '"CU_SERVICE_1"' in state
 assert '"PendingEnlistment"' in state
