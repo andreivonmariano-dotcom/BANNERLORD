@@ -1335,6 +1335,20 @@ internal static class Program
                 royalCouncil.Serialize()+"|extra").IsRecorded &&
             royalCouncil.Convene(99,true,true,true,true,true)==
                 "council_day_invalid");
+        Check("current noble authority follows native political station rather than original start",
+            SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,false,false,false,false,false) &&
+            SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,true,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,false,false,false,false,false,false));
+        Check("current noble authority rejects lost leadership, independent clans and mercenary contracts",
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,false,true,false,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,false,false,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,true,false,false,false,false));
+        Check("current noble authority rejects rebel, bandit and eliminated political contexts",
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,true,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,true,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,true,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,true));
         Check("native handoff accepts established King and Lord even before Hero.IsLord",
             SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
                 "vassal",true,true,true,false,false,false,false,3) &&
