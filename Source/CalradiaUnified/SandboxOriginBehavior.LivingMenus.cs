@@ -789,11 +789,6 @@ namespace CalradiaUnified
                 args=>livingPersons.People.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_open_requests",
-                "Private petitions and favors",
-                args=>false,
-                args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
-            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_claim",
                 "Family council and inheritance",
                 args=>successionInterest.IsRecorded,
@@ -827,14 +822,6 @@ namespace CalradiaUnified
                 "cu_people_request","Read the pending correspondence",
                 args=>agencyDecisions.HasPending,
                 args=>HearDossierPetition(),false);
-            starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_accept","Provide the requested support",
-                args=>false,
-                args=>{},false);
-            starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_decline","Decline the request",
-                args=>false,
-                args=>{},false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_no_requests","Read private correspondence",
                 args=>!agencyDecisions.HasPending,
