@@ -121,6 +121,7 @@ namespace CalradiaUnified
                 "Recorded in your actual clan companion roster.":
                 "Family ties are verified from native Hero records.";
             string privateOffice=HouseholdOfficeFor(person.StringId);
+            if(ExistingCourtDuty(person).Length>0)privateOffice="";
             if(companion && privateOffice.Length>0)
                 duty="Assigned household duty: "+privateOffice+
                     ". Verified reports: "+
@@ -228,7 +229,7 @@ namespace CalradiaUnified
         private string DossierOfficerLabel(Hero hero)
         {
             if(hero==null || !hero.IsAlive)return "UNAVAILABLE";
-            string office=HouseholdOfficeFor(hero.StringId);
+            string office=EffectiveHouseholdDuty(hero);
             if(office.Length>0)return office.ToUpperInvariant();
             if(NativeCourtOfficer("Master of Arms")==hero)
                 return "MASTER OF ARMS";
