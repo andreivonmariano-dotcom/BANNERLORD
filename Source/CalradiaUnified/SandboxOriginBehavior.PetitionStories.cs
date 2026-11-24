@@ -112,7 +112,7 @@ namespace CalradiaUnified
             if(starter==null)return;
             starter.AddPlayerLine(
                 "cu_petition_story_return_supported",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "cu_petition_story_supported_reply",
                 "How have your affairs fared since I helped you?",
                 ()=>IsPetitionStoryFollowUp(true),
@@ -120,14 +120,14 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_petition_story_recognition_reply",
                 "cu_petition_story_supported_reply",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "You recognized the work I had done. "+
                 "I remember it. My duties and hopes are still my own.",
                 ()=>PetitionStoryKind("Recognition"),null,115);
             starter.AddDialogLine(
                 "cu_petition_story_household_reply",
                 "cu_petition_story_supported_reply",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "I remember the help you gave my household. "+
                 "Our affairs remain our own to manage, "+
                 "but I value your trust.",
@@ -135,13 +135,13 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_petition_story_livelihood_reply",
                 "cu_petition_story_supported_reply",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "Your support gave me a chance to keep working "+
                 "toward my livelihood. I have not forgotten it.",
                 ()=>PetitionStoryKind("LivelihoodAid"),null,115);
             starter.AddPlayerLine(
                 "cu_petition_story_return_refused",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "cu_petition_story_refused_reply",
                 "Have you found another way forward?",
                 ()=>IsPetitionStoryFollowUp(false),
@@ -149,14 +149,14 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_petition_story_refused_guarded",
                 "cu_petition_story_refused_reply",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "Your answer was plain enough. I have kept "+
                 "my own counsel and made what plans I can.",
                 ()=>PetitionerStyle()=="Guarded",null,110);
             starter.AddDialogLine(
                 "cu_petition_story_refused_reply",
                 "cu_petition_story_refused_reply",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "I have made what plans I can. "+
                 "We may still speak, even after a refusal.",
                 ()=>PetitionerStyle()!="Guarded",null,110);
