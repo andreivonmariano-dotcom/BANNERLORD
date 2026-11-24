@@ -1235,6 +1235,35 @@ internal static class Program
         Check("legacy knight and soldier profile values still parse unchanged",
             SandboxOriginProfile.Parse("Role=Knight\nKnightOrigin=YoungerSibling\n").KnightOrigin=="YoungerSibling" &&
             SandboxOriginProfile.Parse("Role=Soldier\nSoldierEntryRank=Captain\n").SoldierEntryRank=="Captain");
+        var fixedKnightDraft=new SandboxOriginProfile{
+            Role="Knight",KnightGuidedStart=true,KnightOrigin="YoungerSibling",
+            StartingKingdomId="vlandia",ServicePatronHeroId="patron",
+            RetinueMode="Native",StartingFiefMode="Specific",
+            StartingFiefId="castle",AllowStartingFiefTransfer=true,
+            RoleAffiliationsEnabled=true,Gold=10000,Influence=100,Troops=50,
+            FamilyHomeMode="SpecificOwned",FamilyHomeId="castle",
+            SpouseEnabled=true,ChildCount=1};
+        Check("single Knight contract clears impossible advanced grants without losing family or patron",
+            fixedKnightDraft.NormalizeGuidedCareerDraft() &&
+            fixedKnightDraft.KnightOrigin=="SwornHouse" &&
+            fixedKnightDraft.RetinueMode=="RoleBased" &&
+            fixedKnightDraft.StartingFiefMode=="Native" &&
+            fixedKnightDraft.StartingFiefId=="" &&
+            !fixedKnightDraft.AllowStartingFiefTransfer &&
+            !fixedKnightDraft.RoleAffiliationsEnabled &&
+            fixedKnightDraft.Gold==-1 && fixedKnightDraft.Influence==-1 &&
+            fixedKnightDraft.Troops==0 &&
+            fixedKnightDraft.FamilyHomeMode=="None" &&
+            fixedKnightDraft.FamilyHomeId=="" &&
+            fixedKnightDraft.SpouseEnabled && fixedKnightDraft.ChildCount==1 &&
+            fixedKnightDraft.ServicePatronHeroId=="patron");
+        Check("Knight fixed controls are hidden but character and family customization remains editable",
+            new[]{"RetinueMode","StartingFiefMode","StartingFiefId","AllowStartingFiefTransfer",
+                "Gold","Influence","Troops","FamilyHomeMode","FamilyHomeId"}
+                .All(fixedKnightDraft.IsFixedGuidedKnightField) &&
+            new[]{"SpouseEnabled","ChildCount","SiblingCount","StartingKingdomId","ServicePatronHeroId"}
+                .All(x=>!fixedKnightDraft.IsFixedGuidedKnightField(x)) &&
+            !new SandboxOriginProfile{Role="Lord",LordGuidedStart=true}.IsFixedGuidedKnightField("RetinueMode"));
         Check("political office independent of recorded career",
             SandboxStartingLifePolicy.PoliticalStanding(true,true,true,false)=="Native ruler" &&
             SandboxStartingLifePolicy.PoliticalStanding(false,true,true,false)=="Ruling-clan member" &&
