@@ -29,6 +29,15 @@ internal static class Program
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,true,true,true,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,false,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,9));
+        var closedPetition=new SandboxPetitionStoryState();
+        Check("expired and unavailable petitions retain history without rewards or followups",
+            closedPetition.Begin("expired", "HouseholdAid", 5) &&
+            closedPetition.CloseUnanswered("expired",40,"Expired") &&
+            !closedPetition.Resolve("expired",true,41,true,2) &&
+            !closedPetition.CanFollowUp("expired",50) &&
+            closedPetition.Begin("gone","Recognition",10) &&
+            closedPetition.CloseUnanswered("gone",12,"Unavailable") &&
+            SandboxPetitionStoryState.Parse(closedPetition.Serialize()).For("gone").Outcome=="Unavailable");
         var nobleAudience=new SandboxPetitionStoryState();
         Check("noble audience is an actual conversation without payment or relationship reward",
             SandboxAgencyDecisionPolicy.Choose("DefendClanStanding",true,true,10,0,70)=="Audience" &&

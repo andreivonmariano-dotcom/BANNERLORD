@@ -100,6 +100,10 @@ namespace CalradiaUnified
         private SandboxAffair current;
         [DataSourceProperty] public CharacterImageIdentifierVM Portrait{get;private set;}
         [DataSourceProperty] public bool HasPortrait{get;private set;}
+        [DataSourceProperty] public BannerImageIdentifierVM SenderBanner{get;private set;}
+        [DataSourceProperty] public bool HasSenderBanner{get;private set;}
+        [DataSourceProperty] public string LetterSender{get;private set;}
+        [DataSourceProperty] public string LetterDate{get;private set;}
         [DataSourceProperty] public bool HasEncyclopedia{get;private set;}
         [DataSourceProperty] public bool HasLocation{get;private set;}
         private string tab="Pending";
@@ -127,7 +131,7 @@ namespace CalradiaUnified
             PageLabel=(page+1)+" / "+pages;
             OnPropertyChangedWithValue(Heading,"Heading");
             OnPropertyChangedWithValue(PageLabel,"PageLabel");
-            Open(null);
+            Open(selected.Skip(page*SandboxAffairsIndexPolicy.PageSize).FirstOrDefault());
         }
         private void Open(SandboxAffair item)
         {
@@ -137,6 +141,19 @@ namespace CalradiaUnified
             HasPortrait=hero!=null && hero.CharacterObject!=null;
             try{Portrait=new CharacterImageIdentifierVM(HasPortrait?CharacterCode.CreateFrom(hero.CharacterObject):null);}
             catch{HasPortrait=false;Portrait=new CharacterImageIdentifierVM(null);}
+            var senderClan=hero==null?null:hero.Clan;
+            HasSenderBanner=senderClan!=null && senderClan.Banner!=null;
+            try{SenderBanner=new BannerImageIdentifierVM(HasSenderBanner?
+                BannerCode.CreateFrom(senderClan.Banner):null);}
+            catch(Exception error){HasSenderBanner=false;SenderBanner=null;
+                DiagnosticJournal.Exception("cu_affairs_banner_unavailable",error);}
+            LetterSender=hero==null?(item==null?"":"Campaign record"):
+                hero.Name.ToString()+(senderClan==null?"":" | "+senderClan.Name);
+            LetterDate=item==null || item.Day<0?"":"Recorded day "+item.Day;
+            OnPropertyChangedWithValue(SenderBanner,"SenderBanner");
+            OnPropertyChangedWithValue(HasSenderBanner,"HasSenderBanner");
+            OnPropertyChangedWithValue(LetterSender,"LetterSender");
+            OnPropertyChangedWithValue(LetterDate,"LetterDate");
             HasEncyclopedia=hero!=null || place!=null;
             HasLocation=place!=null;
             OnPropertyChangedWithValue(Portrait,"Portrait");

@@ -87,6 +87,8 @@ for e in journal.iter():
         if k.startswith("Command."):assert "void "+v+"(" in journal_vm,v
         if v.startswith("@") and e.tag!="ImageIdentifierWidget":assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
 assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{Portrait}" for e in journal.iter())
+assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{SenderBanner}" for e in journal.iter())
+assert "BannerCode.CreateFrom(senderClan.Banner)" in journal_vm
 for name in active:
     assert "Popup.Done.Button.NineGrid" in (ui/name).read_text(),name
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"

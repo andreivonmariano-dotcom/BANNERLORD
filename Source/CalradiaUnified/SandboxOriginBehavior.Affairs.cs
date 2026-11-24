@@ -142,10 +142,13 @@ namespace CalradiaUnified
             if(agencyDecisions.HasPending)
             {
                 var p=find(agencyDecisions.PendingHeroId);
+                var pendingStory=petitionStories.For(agencyDecisions.PendingHeroId);
                 rows.Add(new SandboxAffair{Id="request:"+agencyDecisions.PendingHeroId,
                     Category="Letters",HeroId=agencyDecisions.PendingHeroId,Title=AffairPerson(p)+" | Petition",
                     Status=p==null?"Person unavailable":"Awaiting your answer",Pending=true,
-                    Day=day,Detail=PetitionConcern(agencyDecisions.PendingKind)+"\n"+
+                    Day=pendingStory!=null && pendingStory.Kind==agencyDecisions.PendingKind?
+                        pendingStory.StartedDay:Math.Max(0,day-(agencyDecisions.Day-agencyDecisions.PendingOpenedDay)),
+                    Detail=PetitionConcern(agencyDecisions.PendingKind)+"\n"+
                         AffairLocation(p)+"\nSpeak with this person about their affairs. The journal cannot answer for you."});
             }
             foreach(var story in petitionStories.Stories)
@@ -157,7 +160,8 @@ namespace CalradiaUnified
                     petitionStories.CanFollowUp(story.HeroId,day);
                 bool supported=story.Outcome=="Supported";
                 string status=due?"Conversation due":story.Outcome=="Pending"?
-                    "No longer awaiting a reply":supported?
+                    "No longer awaiting a reply":story.Outcome=="Expired"?"Reply period ended":
+                    story.Outcome=="Unavailable"?"Person unavailable":supported?
                     (story.Kind=="Audience"?"Audience heard":"Help given"):"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
                 rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",HeroId=story.HeroId,

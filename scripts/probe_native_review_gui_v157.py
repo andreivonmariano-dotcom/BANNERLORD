@@ -82,18 +82,33 @@ def main():
             # Record actual native campaign brush/sprite references for future
             # layout and atlas checks; never extract or redistribute textures.
             campaign_movies=[n for n in names if n.lower().endswith(".json")
-                and n.rsplit("/",1)[-1].lower() in
-                ("mapbar.json","mapnotificationui.json","mapnotificationitem.json",
-                 "clan.json","kingdom.json","party.json","quest.json","quests.json","questscreen.json")]
+                and "/prefabs/" in n.lower() and
+                any(k in n.lower().rsplit("/prefabs/",1)[-1] for k in
+                    ("mapbar","mapnotification","clan","kingdom","party","quest","encyclopedia","popup"))]
+            def all_assets(node):
+                if not isinstance(node,dict):return
+                attrs=node.get("a") or node.get("attributes") or {}
+                for key in ("Brush","Sprite"):
+                    if key in attrs and not str(attrs[key]).startswith(("@","!","$")):
+                        yield key,str(attrs[key])
+                for child in node.get("c") or node.get("children") or []:
+                    yield from all_assets(child)
             campaign_assets={}
             for name in campaign_movies:
                 data=json.loads(z.read(name).decode("utf-8"))
-                rows=list(scan_node(data))
-                campaign_assets[name]={key:sorted(set(str(r["attrs"][key]) for r in rows
-                    if key in r["attrs"])) for key in ("Brush","Sprite")}
+                nodes=([data["root"]] if isinstance(data,dict) and
+                       isinstance(data.get("root"),dict) else
+                       (data if isinstance(data,list) else [data]))
+                rows=[r for node in nodes for r in all_assets(node)]
+                campaign_assets[name]={key:sorted(set(value for k,value in rows if k==key))
+                    for key in ("Brush","Sprite")}
             report["campaign_native_asset_references"]=campaign_assets
             for name,assets in campaign_assets.items():
-                print("NATIVE CAMPAIGN ASSETS",name,json.dumps(assets,ensure_ascii=False))
+                if any(assets.values()) and any(k in name.lower() for k in
+                    ("mapbar","mapnotification","quest","clanmanagement","popup","encyclopediahero")):
+                    print("NATIVE CAMPAIGN ASSETS",name,json.dumps(assets,ensure_ascii=False))
+            print("NATIVE CAMPAIGN ASSET COVERAGE",len(campaign_assets),
+                sum(1 for a in campaign_assets.values() if any(a.values())))
             report["map_hud_root_metadata"]=map_details
             print("NATIVE MAP HUD CANDIDATES",map_candidates)
             for name,rows in map_details.items():

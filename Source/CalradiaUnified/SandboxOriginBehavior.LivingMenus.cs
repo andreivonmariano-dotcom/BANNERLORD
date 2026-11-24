@@ -95,13 +95,18 @@ namespace CalradiaUnified
         }
         private void ObserveAgencyDaily(Hero player)
         {
+            string before=agencyDecisions.PendingHeroId;
             agencyDecisions.Tick();
+            if(before.Length>0 && !agencyDecisions.HasPending)
+                petitionStories.CloseUnanswered(before,CurrentHouseholdDay(),"Expired");
             if(agencyDecisions.HasPending &&
                 FindLivingPerson(agencyDecisions.PendingHeroId)==null)
             {
                 livingPersons.Remember("CharacterRequestExpired",
                     agencyDecisions.PendingHeroId,"",
                     "actor_no_longer_alive_or_loaded");
+                petitionStories.CloseUnanswered(agencyDecisions.PendingHeroId,
+                    CurrentHouseholdDay(),"Unavailable");
                 agencyDecisions.Dismiss("Unavailable");
             }
             if(agencyDecisions.Day<15 ||

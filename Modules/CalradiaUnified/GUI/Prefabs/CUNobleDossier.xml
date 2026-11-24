@@ -19,7 +19,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="954"
                     HeightSizePolicy="Fixed" SuggestedHeight="614"
                     PositionXOffset="3" PositionYOffset="3"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#403024FF"
+            <Widget Sprite="General\CharacterCreation\character_creation_background_gradient"
                     WidthSizePolicy="Fixed" SuggestedWidth="930"
                     HeightSizePolicy="Fixed" SuggestedHeight="97"
                     PositionXOffset="15" PositionYOffset="15"/>
@@ -27,7 +27,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="930"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionXOffset="15" PositionYOffset="116"/>
-            <TextWidget Brush.FontSize="29" Text="@Title"
+            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="29" Text="@Title"
                     Color="#FFE6B8FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="874" HeightSizePolicy="Fixed"
                     SuggestedHeight="43" PositionXOffset="35"

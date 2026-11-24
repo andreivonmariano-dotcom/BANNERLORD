@@ -68,6 +68,14 @@ namespace CalradiaUnified
             story.NativePaymentVerified=nativePaymentVerified;
             return true;
         }
+        public bool CloseUnanswered(string id,int day,string outcome)
+        {
+            var story=For(id);
+            if(story==null || story.Outcome!="Pending" || day<story.StartedDay ||
+                (outcome!="Expired" && outcome!="Unavailable"))return false;
+            story.Outcome=outcome;story.ResolvedDay=day;
+            return true;
+        }
         public bool CanFollowUp(string id,int day)
         {
             var story=For(id);
@@ -129,7 +137,7 @@ namespace CalradiaUnified
                 if(f.Length!=8 || !ValidId(f[0]) ||
                     !ValidKind(f[1]) ||
                     (f[2]!="Pending"&&f[2]!="Supported"&&
-                     f[2]!="Declined") ||
+                     f[2]!="Declined"&&f[2]!="Expired"&&f[2]!="Unavailable") ||
                     !Int32.TryParse(f[3],NumberStyles.Integer,
                         CultureInfo.InvariantCulture,out start) ||
                     !Int32.TryParse(f[4],NumberStyles.Integer,
@@ -143,6 +151,8 @@ namespace CalradiaUnified
                     relation< -100 || relation>100 || result.For(f[0])!=null ||
                     (f[2]=="Pending" && resolved!=-1) ||
                     (f[2]!="Pending" && resolved<start) ||
+                    ((f[2]=="Expired" || f[2]=="Unavailable") &&
+                        (follow>=0 || relation!=0 || f[7]!="0")) ||
                     (follow>=0 && (resolved<0 ||
                         follow<resolved+FollowUpDays)))return empty;
                 result.Stories.Add(new Story{

@@ -18,7 +18,7 @@
                 WidthSizePolicy="Fixed" SuggestedWidth="964"
                 HeightSizePolicy="Fixed" SuggestedHeight="612"
                 PositionXOffset="3" PositionYOffset="3"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#413025FF"
+            <Widget Sprite="General\CharacterCreation\character_creation_background_gradient"
                 WidthSizePolicy="Fixed" SuggestedWidth="936"
                 HeightSizePolicy="Fixed" SuggestedHeight="100"
                 PositionXOffset="17" PositionYOffset="17"/>
@@ -26,7 +26,7 @@
                 WidthSizePolicy="Fixed" SuggestedWidth="936"
                 HeightSizePolicy="Fixed" SuggestedHeight="3"
                 PositionXOffset="17" PositionYOffset="124"/>
-            <TextWidget Text="THE TRAVELING HOUSEHOLD"
+            <TextWidget Brush="Stage.Title.Text" Text="THE TRAVELING HOUSEHOLD"
                 Brush.FontSize="27" Color="#F9D9A4FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="875"
                 HeightSizePolicy="Fixed" SuggestedHeight="38"
