@@ -20,9 +20,23 @@ namespace CalradiaUnified
             string key=SandboxRetinueOfficePolicy.Key(office);
             return clan==null || key.Length==0?null:clan.Companions
                 .FirstOrDefault(hero=>hero!=null &&
-                    hero.IsActive && hero.IsAlive &&
+                    hero.IsActive && hero.IsAlive && !hero.IsPrisoner &&
+                    hero.CharacterObject!=null &&
                     hero.Clan==clan && hero.CompanionOf==clan &&
                     RecordedRetinueOffice(hero)==key);
+        }
+
+        private static bool CurrentNobleAuthority(bool royal)
+        {
+            var clan=Clan.PlayerClan;var player=Hero.MainHero;
+            var kingdom=clan==null?null:clan.Kingdom;
+            return clan!=null && player!=null && player.IsAlive && player.IsActive &&
+                !player.IsPrisoner && player.Clan==clan &&
+                SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(royal,
+                    kingdom!=null,clan.Leader==player,
+                    kingdom!=null && kingdom.RulingClan==clan,
+                    clan.IsUnderMercenaryService,clan.IsBanditFaction,clan.IsRebelClan,
+                    clan.IsEliminated,kingdom!=null && kingdom.IsEliminated);
         }
 
         private Settlement RecordedRoyalSeat()
@@ -31,7 +45,8 @@ namespace CalradiaUnified
             var seat=Settlement.Find(royalCouncil.SeatId);
             return seat!=null && seat.Town!=null &&
                 seat.OwnerClan==Clan.PlayerClan &&
-                seat.IsFortification && !seat.IsUnderSiege ?
+                seat.IsFortification && !seat.IsUnderSiege &&
+                (seat.Party==null || seat.Party.MapEvent==null) ?
                 seat:null;
         }
 
@@ -43,7 +58,8 @@ namespace CalradiaUnified
             var marshal=NativeCourtOfficer("Marshal");
             var minister=NativeCourtOfficer("Royal Minister");
             var kingsguard=NativeCourtOfficer("Kingsguard");
-            if(clan==null || party==null || seat==null ||
+            if(!CurrentNobleAuthority(true) || clan==null || party==null || seat==null ||
+               party.LeaderHero!=Hero.MainHero || party.MemberRoster==null || party.MapEvent!=null ||
                clan.Kingdom==null ||
                clan.Kingdom.RulingClan!=clan ||
                clan.Leader!=Hero.MainHero ||
@@ -57,12 +73,14 @@ namespace CalradiaUnified
                !SandboxKingNativeMinistry.VerifiedGovernor(minister) ||
                minister.GovernorOf.Settlement!=seat ||
                marshal.Clan!=clan || kingsguard.Clan!=clan ||
+               marshal.PartyBelongedTo!=party || kingsguard.PartyBelongedTo!=party ||
+               minister.PartyBelongedTo!=null || minister.CurrentSettlement!=seat ||
                party.MemberRoster.GetTroopCount(
                    marshal.CharacterObject)!=1 ||
                party.MemberRoster.GetTroopCount(
                    kingsguard.CharacterObject)!=1)
                 return false;
-            return !atSeat || Settlement.CurrentSettlement==seat;
+            return !atSeat || (Settlement.CurrentSettlement==seat && Hero.MainHero.CurrentSettlement==seat);
         }
 
         private string BeginNativeRoyalCouncil(Hero ruler)
@@ -115,7 +133,7 @@ namespace CalradiaUnified
                 starter.AddGameMenuOption("cu_people_lineage",
                     "cu_native_royal_council_entry",
                     "My royal court and council",
-                    args=>royalCouncil.IsRecorded &&
+                    args=>CurrentNobleAuthority(true) && royalCouncil.IsRecorded &&
                         Hero.MainHero!=null &&
                         Hero.MainHero.StringId==royalCouncil.KingId &&
                         Clan.PlayerClan!=null &&
@@ -177,6 +195,7 @@ namespace CalradiaUnified
                 args=>NativeRoyalCouncilPresent(true),
                 args=>
                 {
+                    if(!NativeRoyalCouncilPresent(true))return;
                     var seat=RecordedRoyalSeat();
                     ShowNativeDetail("Royal council | Current court",
                         "Verified royal court seat: "+seat.Name+
