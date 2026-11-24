@@ -129,7 +129,7 @@ namespace CalradiaUnified
                 status="No eligible native noble relative for "+
                     profile.NobleBirthPosition+" in "+
                     profile.StartingKingdomId+
-                    ". Choose Independent here to continue. Your "+
+                    ". Return to World to recreate the guided draft. Your "+
                     "existing family choices are preserved.";
                 DiagnosticJournal.Event(
                     "cu_house_unavailable_noble_birth_focused",
@@ -246,7 +246,7 @@ namespace CalradiaUnified
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "ServicePatronHeroId","Commanding lord Hero ID (optional)",
-                    "Real lord contact for Soldier, Knight, Recruit and HouseholdKnight. Recruit remains independent until external enlistment is verified.",
+                    "Optional real lord contact for Soldier or Knight. Soldier remains independent until external enlistment is verified.",
                     "text",advanced:true));
             }
             else
@@ -741,8 +741,7 @@ namespace CalradiaUnified
                     else
                         Report("Independent Lord: sibling "+olderBrother+
                             " cannot be an older brother. Set his age to "+
-                            ActualFounderAge+" or younger, choose Female, or "+
-                            "choose a different noble birth.");
+                            ActualFounderAge+" or younger, or choose Female.");
                     return false;
                 }
             }
@@ -1243,9 +1242,8 @@ namespace CalradiaUnified
                     Report("No eligible existing noble relative for "+
                         candidate.NobleBirthPosition+" in "+
                         candidate.StartingKingdomId+
-                        ". Change your noble birth here to Independent "+
-                        "to keep your spouse and children, or restart "+
-                        "with a different kingdom or birth.");
+                        ". Return to World and choose a supported career. "+
+                        "No native family was created.");
                     Refresh();
                     return;
                 }
