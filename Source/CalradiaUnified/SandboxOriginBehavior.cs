@@ -397,6 +397,9 @@ namespace CalradiaUnified
             string biographies=livingPersons.Serialize();
             store.SyncData("CU_v064_living_persons",ref biographies);
             livingPersons=SandboxLifeHistoryState.Parse(biographies);
+            string peerRecords=peerSocial.Serialize();
+            store.SyncData("CU_peer_social_1",ref peerRecords);
+            peerSocial=SandboxPeerSocialState.Parse(peerRecords);
             string social=socialObservations.Serialize();
             store.SyncData("CU_v065_social_observations",ref social);
             socialObservations=SandboxSocialObservationState.Parse(social);
@@ -506,6 +509,7 @@ namespace CalradiaUnified
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
             RegisterGroupDiscussionMenus(starter);
+            ProbeNativeGroupConversationApi();
             starter.AddGameMenu("cu_origin_main",
                 "This legacy editor is retired. Start a new Sandbox to use the guided creator.",
                 args=>{});
@@ -674,6 +678,7 @@ namespace CalradiaUnified
                 SandboxLivingPersons.ObserveAgenda(livingPersons,
                     characterAgendas,player);
                 ObserveAgencyDaily(player);
+                ObservePeerSocialDaily(player);
                 if(serviceCareer.IsConfigured)
                 {
                     // Serve as Soldier owns every actual enlisted-party
