@@ -2572,6 +2572,19 @@ internal static class Program
             SandboxCharacterAgendaState.Parse(
                 failedKinAction.Serialize()).Get("brother")
                     .ComradeshipAwards==1);
+        var duplicateAgenda=new SandboxCharacterAgendaState();
+        duplicateAgenda.Register("unique_cadet","PreserveFamilyPosition",
+            "castle_a","NativeHomeSettlement","FamilyMember","vlandia","clanA");
+        string duplicatePacked=duplicateAgenda.Serialize()+
+            "\nP|unique_cadet|ProtectSharedHousehold|castle_b|NativeCurrentSettlement|FamilyMember|vlandia|clanB|150|5";
+        var restoredUniqueAgenda=SandboxCharacterAgendaState.Parse(duplicatePacked);
+        Check("duplicate saved agenda cannot overwrite earlier hero evidence",
+            restoredUniqueAgenda.Entries.Count==1 &&
+            restoredUniqueAgenda.Get("unique_cadet").Goal=="PreserveFamilyPosition" &&
+            restoredUniqueAgenda.Get("unique_cadet").HomeId=="castle_a" &&
+            restoredUniqueAgenda.Get("unique_cadet").ClanId=="clanA" &&
+            restoredUniqueAgenda.Get("unique_cadet").ComradeshipAwards==0 &&
+            restoredUniqueAgenda.Get("unique_cadet").ConsecutiveDaysTogether==0);
         var fixedHomes=new SandboxCharacterAgendaState();
         fixedHomes.Register("sister","PreserveFamilyPosition",
             "castle_a","NativeHomeSettlement",
