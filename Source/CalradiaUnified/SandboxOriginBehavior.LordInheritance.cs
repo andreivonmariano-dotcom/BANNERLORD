@@ -103,7 +103,7 @@ namespace CalradiaUnified
                     "|rule="+lordInheritance.Rule+
                     "|fiefs_unchanged_by_CU=true"+
                     "|no_native_clan_leadership_action=true");
-            return true;
+            return result=="native_succession_observation_changed" || result=="native_succession_unchanged";
         }
 
         private void RegisterLordInheritanceMenus(
@@ -134,7 +134,7 @@ namespace CalradiaUnified
                     ShowNativeDetail("Lord household | Inheritance",
                         "Lord household custom: "+
                         lordInheritance.Rule+
-                        ". First living verified child: "+
+                        (current?". First living verified child: ":". Last recorded first child: ")+
                         NativeHeroDisplayName(
                             lordInheritance.PrimaryHeirId)+
                         (current?". Current clan leader: ":". Last verified clan leader: ")+
@@ -142,7 +142,7 @@ namespace CalradiaUnified
                             lordInheritance.NativeLeaderId)+
                         ". "+(current?"Native status: ":"Last recorded status: ")+lordInheritance.Status+
                         (current?"":". Current clan state unavailable; last observation day "+lordInheritance.LastObservedDay)+
-                        ". Ranked living children: "+
+                        (current?". Ranked living children: ":". Last recorded child order: ")+
                         NativeHeroDisplayNames(
                             lordInheritance.RankedHeirIds)+
                         ". A minor has no automatic regent. "+
