@@ -1,4 +1,4 @@
-name: Calradia Unified 1.5.7 - v0.38.0 native culture and FaceGen bridge
+name: Calradia Unified 1.5.7 - consolidated acceptance candidate
 on:
   workflow_dispatch:
   pull_request:
@@ -443,14 +443,14 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
-          dotnet build Source/CalradiaUnified/CalradiaUnified.csproj --configuration Release --no-restore -p:UsePublicReferences=true -v:normal 2>&1 | Tee-Object -FilePath BuildResults/compile.log
+          dotnet build Source/CalradiaUnified/CalradiaUnified.csproj --configuration Release --no-restore -p:UsePublicReferences=true "-p:SourceRevisionId=$env:GITHUB_SHA" -v:normal 2>&1 | Tee-Object -FilePath BuildResults/compile.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Package DLL and runtime files only
         shell: pwsh
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
       - name: Verify ZIP paths, CRC, DLL identity and hashes
         shell: pwsh
-        run: python scripts/verify_package.py Output/CalradiaUnified_v0.38.0_COMPILED_UNTESTED.zip --version v0.38.0
+        run: python scripts/verify_package.py Output/CalradiaUnified_v0.74.0_COMPILED_UNTESTED.zip --version v0.74.0
       - name: Test installer with nested GitHub artifact ZIP
         shell: pwsh
         run: |
@@ -468,7 +468,7 @@ jobs:
               Set-Content -LiteralPath (Join-Path $target "SubModule.xml")
           }
           $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
-          Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.38.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
+          Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.74.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer
           $module = Join-Path $fake "Modules/CalradiaUnified"
           if (-not (Test-Path -LiteralPath (Join-Path $module "SubModule.xml"))) { throw "Missing installed manifest" }
@@ -502,10 +502,10 @@ jobs:
         run: |
           $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
           foreach ($required in @(
-            'Development version: v0.69g',
-            'Windows CI run: 44867186334',
-            '8c2382461522907db63d5890e2204864a336e056',
-            'd6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10',
+            'Development version: Seven-career foundation (pre-consolidation)',
+            'Windows CI run: 45355054393',
+            '1f71b00a72d71717135d3c55e4e6da50a8bfae3f',
+            'becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615',
             'Internal Bannerlord manifest version: v0.38.0',
             'game-tested build')) {
             if (-not $listing.Contains($required)) {
@@ -532,7 +532,7 @@ jobs:
               @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
             throw 'Conflicting latest selection changed an installed DLL or backup.'
           }
-          if ($beforeHash -ne '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684') {
+          if ($beforeHash -ne 'becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615') {
             $wrongBuildBlocked = $false
             try {
               ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ReplaceExisting
@@ -545,7 +545,7 @@ jobs:
               throw 'Wrong latest artifact changed an installed DLL or backup.'
             }
           }
-          Write-Output 'PASS: Latest v0.69g candidate visible, pinned identity and no-modification guard'
+          Write-Output 'PASS: Earlier pinned foundation candidate visible, pinned identity and no-modification guard'
       - name: Test pinned CI SHA-256 before install and latest-session playthrough report
         shell: pwsh
         run: |
@@ -556,7 +556,7 @@ jobs:
           $before = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
           $rejected = $false
           try {
-            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.38.0' -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.74.0' -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
           } catch {
             $rejected = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
           }
@@ -565,7 +565,7 @@ jobs:
           if ($after -ne $before -or (Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $hash) {
             throw 'Wrong-hash artifact must never change an installed mod or its backups.'
           }
-          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.38.0' -ExpectedDllSha256 $hash -ReplaceExisting
+          ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ExpectedVersion 'v0.74.0' -ExpectedDllSha256 $hash -ReplaceExisting
           $events = Join-Path (Get-Location) 'BuildResults/sample-playthrough-events.csv'
           @(
             'utc,context,detail',
@@ -583,7 +583,7 @@ jobs:
             '2026-11-18T13:00:09Z,cu_family_portraits_open,actual_hero_portraits=3|read_only=true'
           ) | Set-Content -LiteralPath $events -Encoding UTF8
           $report = Join-Path (Get-Location) 'BuildResults/sample-playthrough-report.json'
-          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedVersion 'v0.38.0' -ExpectedDllSha256 $hash -ExpectedChildren 1 -EventsCsv $events -ExceptionsCsv (Join-Path (Get-Location) 'BuildResults/no-exceptions.csv') -ReportJson $report -Assert
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedVersion 'v0.74.0' -ExpectedDllSha256 $hash -ExpectedChildren 1 -EventsCsv $events -ExceptionsCsv (Join-Path (Get-Location) 'BuildResults/no-exceptions.csv') -ReportJson $report -Assert
           $r = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
           if ($r.status -ne 'PASS' -or $r.child_created_events -ne 1 -or $r.expected_children -ne 1 -or -not $r.ci_hash_pinned) {
             throw 'The current campaign audit did not ignore historical child events.'
@@ -651,14 +651,14 @@ jobs:
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.38.0-compiled-untested
-          path: Output/CalradiaUnified_v0.38.0_COMPILED_UNTESTED.zip
+          name: CalradiaUnified-v0.74.0-compiled-untested
+          path: Output/CalradiaUnified_v0.74.0_COMPILED_UNTESTED.zip
           if-no-files-found: error
       - name: Upload simulation evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.38.0-simulation-report
+          name: CalradiaUnified-v0.74.0-simulation-report
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
@@ -674,7 +674,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: CalradiaUnified-v0.38.0-build-errors
+          name: CalradiaUnified-v0.74.0-build-errors
           path: BuildResults/*.log
           if-no-files-found: ignore
 
