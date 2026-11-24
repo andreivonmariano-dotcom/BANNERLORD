@@ -217,6 +217,18 @@ namespace CalradiaUnified
         /// spouse background and role choices so users may reuse preferences.
         /// The player explicitly chooses a spouse and child count each time.
         /// </summary>
+        // New guided creation only. Do not call on saved pending profiles,
+        // existing campaigns or the legacy profile parser.
+        public bool NormalizeGuidedCareerDraft()
+        {
+            if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)return false;
+            KnightOrigin="SwornHouse";
+            SoldierEntryRank="Recruit";
+            NobleBirthPosition="Independent";
+            NobleElderHeroId="";
+            return true;
+        }
+
         public void ResetForNewCampaign()
         {
             Enabled=false;
