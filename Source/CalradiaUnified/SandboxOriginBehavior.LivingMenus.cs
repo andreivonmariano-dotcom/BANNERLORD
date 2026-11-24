@@ -112,13 +112,11 @@ namespace CalradiaUnified
         private void OfferLocalCharacterRequest(Hero player)
         {
             if(player==null || agencyDecisions.HasPending)return;
-            foreach(var record in characterAgendas.Entries
-                .OrderBy(a=>agencyDecisions.For(a.Id)==null?0:
-                    agencyDecisions.For(a.Id).RequestsMade)
-                .ThenBy(a=>agencyDecisions.For(a.Id)==null?-1:
-                    agencyDecisions.For(a.Id).LastDay)
-                .ThenBy(a=>a.Id,StringComparer.Ordinal))
+            foreach(string id in agencyDecisions.Prioritize(
+                characterAgendas.Entries.Select(a=>a.Id)))
             {
+                var record=characterAgendas.Get(id);
+                if(record==null)continue;
                 var hero=FindLivingPerson(record.Id);
                 if(hero==null || hero==player ||
                     !SamePlace(player,hero) || hero.Age<18f ||
