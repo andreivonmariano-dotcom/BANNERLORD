@@ -3642,6 +3642,16 @@ internal static class Program
             !SandboxAgencyDecisionState.Parse(
                 "CU_AGENCY_1\n50|brother|HouseholdAid|15"+
                 "\nR|brother|15|1").HasPending);
+        Check("noble audience specialization is role gated and grants no automatic native reward",
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Marshal",false,false)=="DefenseAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"RoyalMinister",false,false)=="EstateAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"",true,false)=="FamilyAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"",false,true)=="DiplomaticAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",false,"Marshal",false,false)=="Recognition" &&
+            SandboxAgencyDecisionPolicy.Specialize("HouseholdAid",true,"Marshal",false,false)=="HouseholdAid" &&
+            new[]{"DefenseAudience","EstateAudience","FamilyAudience","DiplomaticAudience"}.All(k=>
+                SandboxAgencyDecisionPolicy.IsAudience(k) && SandboxAgencyDecisionPolicy.Amount(k)==0 &&
+                SandboxAgencyDecisionPolicy.RelationDelta(k,true)==0));
         var pendingQueue=new SandboxAgencyDecisionState{Day=15};
         pendingQueue.Enqueue("first","HouseholdAid");
         pendingQueue.Day=20;

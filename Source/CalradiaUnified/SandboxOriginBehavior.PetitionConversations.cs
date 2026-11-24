@@ -51,9 +51,28 @@ namespace CalradiaUnified
                 actor.GetTraitLevel(DefaultTraits.Generosity),
                 actor.GetTraitLevel(DefaultTraits.Calculating),
                 actor.Gold);
+            kind=SpecializeNoblePetition(player,actor,kind);
             return petitionStories.CanBegin(actor.StringId,kind,CurrentHouseholdDay())?kind:"";
         }
 
+        private string SpecializeNoblePetition(Hero player,Hero actor,string kind)
+        {
+            if(player==null || actor==null)return kind;
+            bool noble=CurrentNobleAuthority(true) || CurrentNobleAuthority(false);
+            string contact=CorrespondenceContact(player,actor);
+            string office=EffectiveHouseholdDuty(actor);
+            bool visitingLord=actor.Clan!=null && actor.Clan!=Clan.PlayerClan &&
+                actor.Clan.Leader==actor && SamePlace(player,actor);
+            return SandboxAgencyDecisionPolicy.Specialize(kind,noble,office,
+                contact=="Spouse" || contact=="Kin",visitingLord);
+        }
+        private bool PrepareAudienceConcern()
+        {
+            if(!SpeakingWithPendingPetitioner() || !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()))return false;
+            MBTextManager.SetTextVariable("CU_PETITION_AUDIENCE_CONCERN",
+                new TextObject(SandboxAgencyDecisionPolicy.AudienceConcern(SpeakingPetitionKind())));
+            return true;
+        }
         private string PetitionerStyle()
         {
             var speaker=Hero.OneToOneConversationHero;
@@ -136,9 +155,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_petition_audience","cu_petition_open",
                 "cu_petition_answers",
-                "I wished to speak with you about our houses. Let us part with a clear understanding.",
-                ()=>SpeakingWithPendingPetitioner() &&
-                    SpeakingPetitionKind()=="Audience",null,125);
+                "{CU_PETITION_AUDIENCE_CONCERN}",
+                ()=>PrepareAudienceConcern(),null,125);
             starter.AddDialogLine(
                 "cu_petition_recognition","cu_petition_open",
                 "cu_petition_answers",
@@ -171,7 +189,7 @@ namespace CalradiaUnified
                 "cu_petition_personal_reason","cu_petition_answers",
                 "cu_petition_personal_reason_reply",
                 "What is most important to you in this matter?",
-                ()=>SpeakingWithPendingPetitioner() && SpeakingPetitionKind()!="Audience",null,90);
+                ()=>SpeakingWithPendingPetitioner() && !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),null,90);
             starter.AddDialogLine(
                 "cu_petition_reason_guarded",
                 "cu_petition_personal_reason_reply",
@@ -218,13 +236,13 @@ namespace CalradiaUnified
                 "cu_petition_accept_audience","cu_petition_answers",
                 "cu_petition_accept_reply",
                 "You have my ear. Let us remain on good terms.",
-                ()=>SpeakingWithPendingPetitioner() && SpeakingPetitionKind()=="Audience",
+                ()=>SpeakingWithPendingPetitioner() && SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),
                 ()=>AnswerCharacterRequest(true),125);
             starter.AddPlayerLine(
                 "cu_petition_accept","cu_petition_answers",
                 "cu_petition_accept_reply",
                 "I agree to your request.",
-                ()=>CanAcceptPetitionInConversation() && SpeakingPetitionKind()!="Audience",
+                ()=>CanAcceptPetitionInConversation() && !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
                 "cu_petition_accept_reply","cu_petition_accept_reply",

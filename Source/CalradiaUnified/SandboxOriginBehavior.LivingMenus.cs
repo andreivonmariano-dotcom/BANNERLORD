@@ -222,6 +222,7 @@ namespace CalradiaUnified
                     hero.GetTraitLevel(DefaultTraits.Generosity),
                     hero.GetTraitLevel(DefaultTraits.Calculating),
                     hero.Gold);
+                kind=SpecializeNoblePetition(player,hero,kind);
                 if(kind.Length==0 || !petitionStories.CanBegin(hero.StringId,kind,CurrentHouseholdDay()))continue;
                 if(agencyDecisions.Enqueue(hero.StringId,kind))
                 {
@@ -299,7 +300,7 @@ namespace CalradiaUnified
             if(amount<0)return;
             // An actual audience settles only the request for conversation.
             // It never produces a gift, relation bonus or political receipt.
-            if(kind=="Audience")
+            if(SandboxAgencyDecisionPolicy.IsAudience(kind))
             {
                 agencyDecisions.Dismiss(accept?"AudienceHeard":"AudienceDeclined");
                 petitionStories.Resolve(actor.StringId,accept,CurrentHouseholdDay(),false,0);

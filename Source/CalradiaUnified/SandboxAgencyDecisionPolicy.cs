@@ -80,15 +80,55 @@ namespace CalradiaUnified
         {
             return adult && active && !prisoner && establishedContact && knownSettlement && relation>=10;
         }
+        public static bool IsAudience(string kind)
+        {
+            return kind=="Audience" || kind=="DefenseAudience" || kind=="EstateAudience" ||
+                kind=="FamilyAudience" || kind=="DiplomaticAudience";
+        }
+        // Keep the old financial request policy; only specialize a valid
+        // existing invitation, with current authority and native role evidence.
+        public static string Specialize(string kind,bool noble,string office,bool kin,bool visitingLord)
+        {
+            if(kind!="Audience" && kind!="Recognition")return kind;
+            if(!noble)return kind;
+            if(office=="Marshal" || office=="Kingsguard" || office=="MasterOfArms" || office=="Captain")return "DefenseAudience";
+            if(office=="RoyalMinister" || office=="Steward" || office=="HouseholdSteward")return "EstateAudience";
+            if(kin)return "FamilyAudience";
+            if(visitingLord)return "DiplomaticAudience";
+            return kind;
+        }
+        public static string AudienceConcern(string kind)
+        {
+            switch(kind)
+            {
+                case "DefenseAudience":return "I request an audience to discuss the defenses of our holdings and readiness of our men.";
+                case "EstateAudience":return "I request an audience to discuss our estates, their revenues and the needs of those who live there.";
+                case "FamilyAudience":return "I request an audience to discuss the future of our family and the duties we owe one another.";
+                case "DiplomaticAudience":return "I request an audience to discuss the relations between our houses.";
+                default:return "I ask for a private audience concerning the standing of our houses.";
+            }
+        }
+        public static string Category(string kind)
+        {
+            switch(kind)
+            {
+                case "DefenseAudience":return "Military";
+                case "EstateAudience":case "LivelihoodAid":return "Economic";
+                case "FamilyAudience":case "HouseholdAid":return "Family";
+                case "DiplomaticAudience":return "Diplomatic";
+                case "Audience":return "Political";
+                default:return "Personal";
+            }
+        }
         public static int Amount(string kind)
         {
             if(kind=="HouseholdAid")return 150;
             if(kind=="LivelihoodAid")return 200;
-            return kind=="Recognition" || kind=="Audience"?0:-1;
+            return kind=="Recognition" || IsAudience(kind)?0:-1;
         }
         public static int RelationDelta(string kind,bool accepted)
         {
-            if(Amount(kind)<0 || kind=="Audience")return 0;
+            if(Amount(kind)<0 || IsAudience(kind))return 0;
             return accepted?(kind=="Recognition"?1:2):
                 (kind=="Recognition"?0:-1);
         }

@@ -31,7 +31,7 @@ namespace CalradiaUnified
         private static bool ValidKind(string kind)
         {
             return kind=="Recognition" || kind=="HouseholdAid" ||
-                kind=="LivelihoodAid" || kind=="Audience";
+                kind=="LivelihoodAid" || SandboxAgencyDecisionPolicy.IsAudience(kind);
         }
         public Story For(string id)
         {
@@ -60,7 +60,7 @@ namespace CalradiaUnified
             if(story==null || story.Outcome!="Pending" ||
                 day<story.StartedDay || day<0 ||
                 nativeRelationDelta< -100 || nativeRelationDelta>100)return false;
-            if(accepted && story.Kind!="Recognition" && story.Kind!="Audience" &&
+            if(accepted && story.Kind!="Recognition" && !SandboxAgencyDecisionPolicy.IsAudience(story.Kind) &&
                 !nativePaymentVerified)return false;
             story.Outcome=accepted?"Supported":"Declined";
             story.ResolvedDay=day;
@@ -79,7 +79,7 @@ namespace CalradiaUnified
         public bool CanFollowUp(string id,int day)
         {
             var story=For(id);
-            return story!=null && story.Kind!="Audience" &&
+            return story!=null && !SandboxAgencyDecisionPolicy.IsAudience(story.Kind) &&
                 (story.Outcome=="Supported" ||
                  story.Outcome=="Declined") &&
                 story.FollowUpDay<0 && story.ResolvedDay>=0 &&

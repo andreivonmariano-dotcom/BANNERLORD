@@ -305,7 +305,8 @@ namespace CalradiaUnified
                 case "HouseholdAid":concern="I ask for 150 denars to help my household.";break;
                 case "LivelihoodAid":concern="I ask for 200 denars to make a start in my livelihood.";break;
                 case "Recognition":concern="I ask that my service be acknowledged.";break;
-                case "Audience":concern="I ask for a private audience concerning the standing of our houses.";break;
+                case "Audience":case "DefenseAudience":case "EstateAudience":case "FamilyAudience":case "DiplomaticAudience":
+                    concern=SandboxAgencyDecisionPolicy.AudienceConcern(kind);break;
                 default:return "";
             }
             string greeting=contact=="Spouse" && relation>=20?"My dear companion,":

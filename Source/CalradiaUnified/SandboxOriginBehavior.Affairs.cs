@@ -126,7 +126,8 @@ namespace CalradiaUnified
                     .Select(g=>g.First()).OrderByDescending(x=>x.Pending).ThenByDescending(x=>x.Unread)
                     .ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
                 if(all.Length==0){ShowAffairsNativePage(all,0);return;}
-                var entries=all.Select((item,index)=>new InquiryElement(index,item.Title+" | "+item.Status,null)).ToList();
+                var entries=all.Select((item,index)=>new InquiryElement(index,
+                    item.Title+" | "+item.Status+(item.Day>=0?" | Day "+item.Day:""),null)).ToList();
                 MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
                     "Correspondence and affairs","Select a matter to read. Decisions still require the actual person.",
                     entries,true,1,1,"Read","Close",selected=>
@@ -199,7 +200,7 @@ namespace CalradiaUnified
         }
         private static string PetitionConcern(string kind)
         {
-            if(kind=="Audience")return "Requests a private conversation about the standing of your houses.";
+            if(SandboxAgencyDecisionPolicy.IsAudience(kind))return SandboxAgencyDecisionPolicy.AudienceConcern(kind);
             if(kind=="Recognition")return "Wishes their service to be acknowledged.";
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             return amount>0?"Asks for "+amount+" denars of support.":"Wishes to discuss a private matter.";
@@ -228,13 +229,14 @@ namespace CalradiaUnified
                 var p=find(request.HeroId);
                 var pendingStory=petitionStories.For(request.HeroId);
                 rows.Add(new SandboxAffair{Id="request:"+request.HeroId,
-                    Category="Letters",HeroId=request.HeroId,Title=AffairPerson(p)+" | Petition",
+                    Category="Letters",HeroId=request.HeroId,Title=AffairPerson(p)+" | "+SandboxAgencyDecisionPolicy.Category(request.Kind)+" petition",
                     Status=p==null?"Person unavailable":"Awaiting your answer",Pending=true,
                     Day=pendingStory!=null && pendingStory.Kind==request.Kind?
                         pendingStory.StartedDay:Math.Max(0,day-(agencyDecisions.Day-request.OpenedDay)),
                     Detail=(pendingStory!=null && pendingStory.Letter.Length>0?pendingStory.Letter:
                         PetitionConcern(request.Kind))+"\n\n"+
-                        AffairLocation(p)+"\nSpeak with this person about their affairs. The journal cannot answer for you."});
+                        AffairLocation(p)+"\nReply within "+Math.Max(0,SandboxAgencyDecisionPolicy.ExpiryDays-(agencyDecisions.Day-request.OpenedDay))+
+                        " days. Speak with this person about their affairs. The journal cannot answer for you."});
             }
             foreach(var story in petitionStories.Stories)
             {
@@ -247,7 +249,7 @@ namespace CalradiaUnified
                     "No longer awaiting a reply":story.Outcome=="Expired"?"Reply period ended":
                     story.Outcome=="Unavailable"?"Person unavailable":
                     story.Outcome=="Unconfirmed"?"Outcome not confirmed":supported?
-                    (story.Kind=="Audience"?"Audience heard":"Help given"):"Request declined";
+                    (SandboxAgencyDecisionPolicy.IsAudience(story.Kind)?"Audience heard":"Help given"):"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
                 rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",HeroId=story.HeroId,
                     Title=AffairPerson(p)+(due?" | Follow-up":" | Earlier matter"),

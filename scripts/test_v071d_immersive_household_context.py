@@ -110,4 +110,5 @@ assert 'foreach(var request in agencyDecisions.PendingRequests)' in menu
 assert 'CU_petition_recipient_1' in origin
 assert 'MBInformationManager.ShowMultiSelectionInquiry' in affairs
 assert '"cu_people_affairs_list"' in menu
-assert 'new InquiryElement(index,item.Title+" | "+item.Status,null)' in affairs
+assert 'new InquiryElement(index,' in affairs
+assert 'item.Title+" | "+item.Status+(item.Day>=0?' in affairs

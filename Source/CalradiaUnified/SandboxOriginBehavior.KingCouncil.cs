@@ -204,6 +204,33 @@ namespace CalradiaUnified
             ShowNativeDetail("Royal hall | Native roster",String.Join("\n",lines)+
                 "\nNative location assignment is not proof of a rendered Agent. Enter the keep and speak to those actually present.");
         }
+        // Only move pre-existing, native local location characters from
+        // a campaign menu. Do not create agents or move campaign Heroes.
+        private void PrepareNativeKeepAttendance()
+        {
+            if(!NativeRoyalCouncilPresent(true) || TaleWorlds.MountAndBlade.Mission.Current!=null)return;
+            var complex=LocationComplex.Current;
+            var keep=complex==null?null:complex.GetLocationWithId("lordshall");
+            if(keep==null){ShowNativeDetail("Royal hall","No native hall is available.");return;}
+            var officers=new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")};
+            int assigned=0;
+            foreach(var person in officers.Where(h=>h!=null))
+            {
+                try
+                {
+                    var native=complex.GetLocationCharacterOfHero(person);
+                    var from=native==null?null:complex.GetLocationOfCharacter(native);
+                    if(from==null)continue;
+                    if(from!=keep)complex.ChangeLocation(native,from,keep);
+                    if(complex.GetLocationOfCharacter(native)==keep)assigned++;
+                }
+                catch(Exception error){DiagnosticJournal.Exception("cu_royal_keep_assignment_failed",error);}
+            }
+            DiagnosticJournal.Event("cu_royal_keep_prepared","seat="+royalCouncil.SeatId+
+                "|assigned="+assigned+"|created_agents=0|campaign_heroes_moved=0");
+            ShowNativeDetail("Royal hall","Native hall assignments confirmed: "+assigned+
+                " of 3 officers. Return to the settlement and enter the keep normally. Actual rendered attendance remains to be checked.");
+        }
         private bool PrepareRoyalOfficerAudience()
         {
             if(!CanHearRoyalOfficerInPerson())
@@ -358,6 +385,11 @@ namespace CalradiaUnified
                 "cu_restore_royal_court","Restore royal court",
                 args=>CanRestoreRoyalCourt(),
                 args=>RestoreRoyalCourt(),false);
+            starter.AddGameMenuOption("cu_native_royal_council",
+                "cu_royal_keep_prepare","Prepare officers for the royal hall (test)",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                    return NativeRoyalCouncilPresent(true) && TaleWorlds.MountAndBlade.Mission.Current==null;},
+                args=>PrepareNativeKeepAttendance(),false);
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_royal_keep_roster","Review native keep attendance",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return NativeRoyalCouncilPresent(true);},
