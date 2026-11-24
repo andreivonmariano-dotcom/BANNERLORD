@@ -23,6 +23,55 @@ internal static class Program
     }
     private static void Main()
     {
+        var acceptanceSettings=new Settings{
+            EnablePlayerForaging=true,
+            EnableCivicSystems=true,
+            EnableAbstractShipments=true,
+            EnableEconomy=true,
+            EnableRecruitment=true,
+            EnableLocalDiplomacy=true,
+            EnablePhysicalConvoys=true,
+            EnableDepotTrade=true,
+            EnableKingdomLevies=true,
+            EnableKingdomDiplomacy=true,
+            EnableAutonomousClanResupply=true,
+            EnableAutonomousClanRecruitTrips=true,
+            EnableAutonomousClanPatrol=true,
+            EnableGarrisonTraining=true,
+            EnableAutoGarrisonWageCaps=true,
+            EnableManualGarrisonTransfers=true,
+            EnableManualGarrisonWageCaps=true,
+            EnableAutoGarrisonTraining=true,
+            EnableVillageHarvest=true,
+            EnableSurplusEstateSales=true,
+            EnableSupplyWarnings=true,EnableNpcAdvisory=true};
+        acceptanceSettings.ApplyAcceptanceFreeze();
+        Check("acceptance freeze overrides every legacy mutation flag",
+            !acceptanceSettings.EnablePlayerForaging &&
+            !acceptanceSettings.EnableCivicSystems &&
+            !acceptanceSettings.EnableAbstractShipments &&
+            !acceptanceSettings.EnableEconomy &&
+            !acceptanceSettings.EnableRecruitment &&
+            !acceptanceSettings.EnableLocalDiplomacy &&
+            !acceptanceSettings.EnablePhysicalConvoys &&
+            !acceptanceSettings.EnableDepotTrade &&
+            !acceptanceSettings.EnableKingdomLevies &&
+            !acceptanceSettings.EnableKingdomDiplomacy &&
+            !acceptanceSettings.EnableAutonomousClanResupply &&
+            !acceptanceSettings.EnableAutonomousClanRecruitTrips &&
+            !acceptanceSettings.EnableAutonomousClanPatrol &&
+            !acceptanceSettings.EnableGarrisonTraining &&
+            !acceptanceSettings.EnableAutoGarrisonWageCaps &&
+            !acceptanceSettings.EnableManualGarrisonTransfers &&
+            !acceptanceSettings.EnableManualGarrisonWageCaps &&
+            !acceptanceSettings.EnableAutoGarrisonTraining &&
+            !acceptanceSettings.EnableVillageHarvest &&
+            !acceptanceSettings.EnableSurplusEstateSales &&
+            acceptanceSettings.EnableSupplyWarnings && acceptanceSettings.EnableNpcAdvisory &&
+            !Settings.NativeOfficerTransfersEnabled);
+        Check("all held mutation keys reject enable through the settings menu",
+            new[]{"EnablePlayerForaging","EnableCivicSystems","EnableAbstractShipments","EnableEconomy","EnableRecruitment","EnableLocalDiplomacy","EnablePhysicalConvoys","EnableDepotTrade","EnableKingdomLevies","EnableKingdomDiplomacy","EnableAutonomousClanResupply","EnableAutonomousClanRecruitTrips","EnableAutonomousClanPatrol","EnableGarrisonTraining","EnableAutoGarrisonWageCaps","EnableManualGarrisonTransfers","EnableManualGarrisonWageCaps","EnableAutoGarrisonTraining","EnableVillageHarvest","EnableSurplusEstateSales"}
+                .All(Settings.IsHeldMutation) && !Settings.IsHeldMutation("EnableSupplyWarnings"));
         var duplicateAgenda=SandboxCharacterAgendaState.Parse(
             "CU_AGENDA_1\nP|hero_a|SupportHousehold||||||0|1\nP|hero_a|EstablishLivelihood||||||0|5");
         Check("duplicate restored agenda retains first verified award count",
