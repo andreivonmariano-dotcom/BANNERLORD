@@ -4645,10 +4645,19 @@ internal static class Program
                 !Settings.LoadFromPaths(baseline, userIni).EnableSupplyWarnings);
             Check("settings experimental stays opt-in on reload",
                 !Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
-            Check("settings can enable and persist an opt-in feature",
-                settings.TrySetMenuValue("EnableEconomy", "true",
-                    userIni, out configError) && settings.EnableEconomy &&
-                Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
+            string heldBefore=System.IO.File.ReadAllText(userIni);
+            Check("acceptance setting write cannot enable held economy",
+                !settings.TrySetMenuValue("EnableEconomy", "TRUE",
+                    userIni, out configError) && !settings.EnableEconomy &&
+                System.IO.File.ReadAllText(userIni)==heldBefore);
+            System.IO.File.AppendAllText(userIni,"EnableEconomy=true\n");
+            var legacyOverride=Settings.LoadFromPaths(baseline,userIni);
+            Check("legacy config stays readable but effective runtime blocks mutation",
+                legacyOverride.EnableEconomy);
+            legacyOverride.ApplyAcceptanceFreeze();
+            Check("legacy override cannot resurrect economy after runtime freeze",
+                !legacyOverride.EnableEconomy &&
+                System.IO.File.ReadAllText(userIni).Contains("EnableEconomy=true"));
             Check("settings numeric updates apply immediately",
                 settings.TrySetMenuValue("SupplyWarningDays", "5",
                     userIni, out configError) && settings.SupplyWarningDays == 5);
@@ -4659,8 +4668,8 @@ internal static class Program
                 System.IO.File.ReadAllText(userIni) == previousContents &&
                 settings.SupplyWarningDays == 5);
             Check("settings malformed path does not change live state",
-                !settings.TrySetMenuValue("EnableEconomy", "false",
-                    "", out configError) && settings.EnableEconomy);
+                !settings.TrySetMenuValue("SupplyWarningDays", "6",
+                    "", out configError) && settings.SupplyWarningDays==5);
             Check("settings preserving unrelated user entries",
                 SettingsMenuPolicy.UpdateLines("# keep\nExtraKey=hello\n",
                     "EnableCivicSystems", "false").Contains("ExtraKey=hello"));
