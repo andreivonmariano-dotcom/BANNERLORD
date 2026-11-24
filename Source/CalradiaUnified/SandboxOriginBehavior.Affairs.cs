@@ -4,7 +4,7 @@ using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
-using TaleWorlds.ScreenSystem;
+using TaleWorlds.Library;
 
 namespace CalradiaUnified
 {
@@ -49,6 +49,11 @@ namespace CalradiaUnified
                 successionInterest.ClaimantId==Hero.MainHero.StringId &&
                 (inheritanceNegotiation.Status=="ClaimContested" || inheritanceNegotiation.Authorized);
         }
+        private bool PendingAffairsGathering(int day)
+        {
+            return Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId &&
+                gatheringPlan.Status=="Pending" && day>=gatheringPlan.Created && day<=gatheringPlan.Due+3;
+        }
         private int CountPendingAffairs()
         {
             int day=CurrentHouseholdDay();
@@ -66,6 +71,7 @@ namespace CalradiaUnified
                 knightServiceOrders.CanHearKing(CurrentOathDay()))count++;
             if(oath && knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)count++;
             if(OpenAffairsClaim())count++;
+            if(PendingAffairsGathering(day))count++;
             var clan=Clan.PlayerClan;
             if(clan.Settlements!=null)
                 count+=clan.Settlements.Count(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
@@ -75,19 +81,43 @@ namespace CalradiaUnified
         {
             var b=AffairsBehavior();
             if(b==null || Hero.MainHero.IsPrisoner ||
-                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null ||
-                ScreenManager.TopScreen is CUAffairsScreen)return false;
+                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return false;
             try
             {
-                ScreenManager.PushScreen(new CUAffairsScreen(b.BuildAffairs()));
+                // Live War Sails log terminated after CUAffairsScreen resumed.
+                // Keep the custom movie unreachable until native UI acceptance.
+                var all=b.BuildAffairs().Where(x=>x!=null).GroupBy(x=>x.Id,StringComparer.Ordinal)
+                    .Select(g=>g.First()).OrderByDescending(x=>x.Pending)
+                    .ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
+                DiagnosticJournal.Event("cu_campaign_affairs_native_open","records="+all.Length+
+                    "|pending="+all.Count(x=>x.Pending)+"|custom_movie=false");
+                b.ShowAffairsNativePage(all,0);
                 return true;
             }
             catch(Exception error)
             {
-                DiagnosticJournal.Exception("cu_affairs_screen_failed",error);
-                b.HearDossierPetition();
+                DiagnosticJournal.Exception("cu_affairs_native_failed",error);
                 return false;
             }
+        }
+        private void ShowAffairsNativePage(SandboxAffair[] records,int index)
+        {
+            if(AffairsBehavior()!=this || Hero.MainHero.IsPrisoner ||
+                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return;
+            if(records.Length==0)
+            {
+                ShowNativeDetail("Correspondence and affairs","No recorded matters. New requests and duties appear here when they arise.");
+                return;
+            }
+            if(index<0 || index>=records.Length)return;
+            var item=records[index];
+            bool more=index+1<records.Length;
+            string title="Correspondence | "+(index+1)+" / "+records.Length;
+            string body=item.Category+" | "+item.Title+"\n"+item.Status+
+                (item.Pending?" | Attention required":"")+
+                (item.Day>=0?" | Day "+item.Day:"")+"\n\n"+item.Detail;
+            InformationManager.ShowInquiry(new InquiryData(title,body,true,more,
+                "Close",more?"Next matter":null,()=>{},more?(Action)(()=>ShowAffairsNativePage(records,index+1)):null),true);
         }
         internal static Hero ResolveAffairHero(string id)
         {
@@ -141,7 +171,7 @@ namespace CalradiaUnified
             var known=Hero.AllAliveHeroes.Where(h=>h!=null && ids.Contains(h.StringId))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
-            Func<string,Hero> find=id=>known.ContainsKey(id)?known[id]:null;
+            Func<string,Hero> find=id=>!String.IsNullOrEmpty(id) && known.ContainsKey(id)?known[id]:null;
             if(agencyDecisions.HasPending)
             {
                 var p=find(agencyDecisions.PendingHeroId);
@@ -223,6 +253,19 @@ namespace CalradiaUnified
                         Status="Recommendation recorded",Pending=true,Day=knightServiceOrders.RecommendationDay,
                         Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title.\n"+AffairLocation(ruler)});
                 }
+            }
+            if(gatheringPlan.Owner==player.StringId && gatheringPlan.Status.Length>0)
+            {
+                var place=Settlement.Find(gatheringPlan.Seat);
+                bool pending=PendingAffairsGathering(day);
+                rows.Add(new SandboxAffair{Id="gathering",Category="Household",SettlementId=gatheringPlan.Seat,
+                    Title="Arranged gathering",Status=pending?(day<gatheringPlan.Due?"Scheduled":"Attendance window open"):
+                        gatheringPlan.Status=="Pending"?"Attendance window ended":gatheringPlan.Status,
+                    Pending=pending,Completed=gatheringPlan.Status=="Held",Day=gatheringPlan.Created,
+                    Detail="Meeting at "+(place==null?"the recorded holding":place.Name.ToString())+
+                        ". Due day "+gatheringPlan.Due+"; attendance window closes after day "+(gatheringPlan.Due+3)+
+                        ". "+gatheringPlan.Accepted.Length+" accepted of "+gatheringPlan.Invited.Length+" invited. "+
+                        "Attend through the local gathering menu with eligible people actually present."});
             }
             if(OpenAffairsClaim())
             {

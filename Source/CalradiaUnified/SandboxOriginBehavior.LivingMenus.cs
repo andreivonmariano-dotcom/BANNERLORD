@@ -862,6 +862,10 @@ namespace CalradiaUnified
                     Clan.PlayerClan.Companions.Count>0;},
                 args=>ShowHouseholdDutyLedger(),false);
             starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_affairs_journal","Review correspondence and pending matters",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
+                args=>OpenCampaignAffairs(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "People of my household",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return livingPersons.People.Count>0;},

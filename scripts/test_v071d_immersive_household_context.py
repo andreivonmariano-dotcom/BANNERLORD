@@ -87,3 +87,15 @@ print("PASS v0.71d STATIC: court belongs to native owned estates, "+
       "birth-family claims remain reachable, portable native Clan/Party "+
       "dossiers are read-only, petitions use real conversations, and "+
       "modified native relation gains are reported accurately.")
+
+# Live crash containment: map, dossier and settlement routes use native inquiries.
+affairs=(src/"SandboxOriginBehavior.Affairs.cs").read_text(encoding="utf-8")
+assert 'ScreenManager.PushScreen(new CUAffairsScreen' not in affairs
+assert 'b.ShowAffairsNativePage(all,0)' in affairs
+assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more,' in affairs
+assert '"Close",more?"Next matter":null' in affairs
+assert 'if(PendingAffairsGathering(day))count++;' in affairs
+assert 'bool pending=PendingAffairsGathering(day);' in affairs
+assert 'gatheringPlan.Owner==Hero.MainHero.StringId' in affairs
+assert '"cu_people_affairs_journal"' in menu
+print("PASS native correspondence containment and shared gathering notification predicate. SOURCE ONLY.")
