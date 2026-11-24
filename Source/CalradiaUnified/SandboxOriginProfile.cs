@@ -249,6 +249,24 @@ namespace CalradiaUnified
                  key=="FamilyHomeMode" || key=="FamilyHomeId");
         }
 
+        // World Setup has no native founder yet. Mandatory noble/knight
+        // family counts are placeholders until the post-identity House
+        // editor creates age-appropriate proposals. Never reuse old ages.
+        public bool PrepareUnconfirmedWorldFamily()
+        {
+            if(AutoHouseNamesPrepared || RealFamilyEnabled)return false;
+            SpouseAge=30;
+            if(!PersonName(SpouseName))SpouseName="Companion";
+            for(int i=0;i<Children.Count;i++)
+            {
+                var child=Children[i];
+                child.Age=0;
+                if(!PersonName(child.Name))child.Name=new OriginRelative("Child",i+1).Name;
+                child.Upbringing="FamilyTradition";
+            }
+            return true;
+        }
+
         public void ResetForNewCampaign()
         {
             Enabled=false;
@@ -289,8 +307,7 @@ namespace CalradiaUnified
             WandererCompanionSpecialty="Guard";
             WandererCompanionSkill=100;
             FamilyScenario="Natural";
-            foreach(var child in Children)
-                child.Upbringing="FamilyTradition";
+            PrepareUnconfirmedWorldFamily();
             ProgressionMode="Native";
             Overrides.Clear();
             SpouseOverrides.Clear();

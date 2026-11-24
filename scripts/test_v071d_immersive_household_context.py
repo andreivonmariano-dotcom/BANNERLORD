@@ -61,7 +61,10 @@ assert 'Hero.OneToOneConversationHero' in petition
 assert 'agencyDecisions.PendingFor(actor.StringId)!=null' in petition
 assert 'RequestedCharacter(actor.StringId)==actor' in petition
 assert 'RequestedCharacter(actor.StringId)==actor' in petition
-assert 'SamePlace(player,actor)' in petition
+assert 'RequestedCharacter(actor.StringId)!=actor' in petition
+assert 'SamePlace(Hero.MainHero,target)' in menu
+assert 'LocalRoyalGuest(target)' in menu
+assert 'Hero.OneToOneConversationHero!=actor' in menu
 assert 'actor.Age<18f' in petition
 assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in petition
 assert 'agencyDecisions.Enqueue(actor.StringId,kind)' in petition

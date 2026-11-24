@@ -74,3 +74,14 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert "ExecuteKeepNativeAge" in cmds
 
 print("PASS: v048 noble ancestry fallback, exact Hero birthdays, six-adult/minor family contract, no silent child age change and exact age input (STATIC)")
+
+# Regression for reported pre-campaign noble age deadlock.
+profile=read("SandboxOriginProfile.cs")
+world=guided[guided.index("private void CommitWorld()"):guided.index("private void CommitHouse()")]
+assert 'candidate.PrepareUnconfirmedWorldFamily()' in world
+assert world.index('candidate.PrepareUnconfirmedWorldFamily()')<world.index('candidate.Save(')
+assert 'if(AutoHouseNamesPrepared || RealFamilyEnabled)return false;' in profile
+assert 'child.Age=0;' in profile
+assert 'cu_world_family_placeholder' in world
+assert 'if(!candidate.IsValid(actualAge,out error))' in guided
+assert 'field.Key=="Child."+(conflict+1)+".Age"' in guided

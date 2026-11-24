@@ -1088,6 +1088,16 @@ namespace CalradiaUnified
                 Report("Noble lineage requires Lord or NobleCadet. NobleCadet must name a valid native family.");
                 return;
             }
+            // Family counts are needed by role validation, but no actual
+            // founder age or House editor exists yet. Persist only safe
+            // placeholders; the real age-based proposals are made later.
+            if(!candidate.PrepareUnconfirmedWorldFamily())
+            {Report("World setup cannot reuse an already confirmed household.");return;}
+            DiagnosticJournal.Event("cu_world_family_placeholder",
+                "role="+candidate.Role+"|spouse="+candidate.SpouseEnabled+
+                "|children="+candidate.ChildCount+"|spouse_age="+candidate.SpouseAge+
+                "|child_ages="+String.Join(",",candidate.Children.Take(candidate.ChildCount).Select(x=>x.Age))+
+                "|actual_founder_not_created=true|real_family_enabled=false");
             SandBox.AdvancedStartOptions.AdvancedStartOptions gameOptions;
             string error;
             if(!SandboxNativeStartOptions.TryPrepare(
@@ -1231,6 +1241,23 @@ namespace CalradiaUnified
             }
             if(!candidate.IsValid(actualAge,out error))
             {
+                // Expose the exact conflicting age field, not a generic
+                // error on the last page. Do not overwrite edited ages.
+                int childLimit=SandboxFamilyAgePolicy.ChildAgeMaximum(actualAge,candidate.SpouseAge);
+                int conflict=Enumerable.Range(0,candidate.ChildCount)
+                    .FirstOrDefault(i=>candidate.Children[i].Age<0 || candidate.Children[i].Age>childLimit);
+                if(candidate.ChildCount>0 && (candidate.Children[conflict].Age<0 ||
+                    candidate.Children[conflict].Age>childLimit))
+                {
+                    advanced=true;
+                    int ageStep=Array.FindIndex(Visible,field=>field.Key=="Child."+(conflict+1)+".Age");
+                    if(ageStep>=0)cursor=ageStep;
+                    Report("Child "+(conflict+1)+" ("+candidate.Children[conflict].Name+
+                        ") must be age 0 to "+childLimit+". Your age: "+actualAge+
+                        ", spouse age: "+candidate.SpouseAge+". Edit the age or return to a parent's age. Nothing changed automatically.");
+                    Refresh();
+                    return;
+                }
                 Report("Family and age: "+error);
                 return;
             }

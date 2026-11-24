@@ -1517,6 +1517,39 @@ internal static class Program
             SandboxKingStartPolicy.ValidateNativeMinistry(
                 true,true,false,true)==
                     "native_royal_governor_not_verified");
+        // Reproduce the reported World Setup failure with old child and spouse ages.
+        foreach(var role in new[]{"Lord","King","Knight"})
+        {
+            var oldHouse=new SandboxOriginProfile{Role=role,SpouseEnabled=true,SpouseAge=48,
+                PlayerAge=48,ChildCount=1,AutoHouseNamesPrepared=true,RealFamilyEnabled=true};
+            oldHouse.Children[0].Age=24;
+            Check("confirmed family is not overwritten by World placeholder repair "+role,
+                !oldHouse.PrepareUnconfirmedWorldFamily() && oldHouse.Children[0].Age==24 && oldHouse.SpouseAge==48);
+            oldHouse.ResetForNewCampaign();
+            oldHouse.Role=role;oldHouse.StartingKingdomId="vlandia";
+            oldHouse.KingGuidedStart=role=="King";oldHouse.LordGuidedStart=role=="Lord";
+            oldHouse.KnightGuidedStart=role=="Knight";
+            oldHouse.RetinueMode="RoleBased";oldHouse.SpouseEnabled=true;oldHouse.ChildCount=1;
+            oldHouse.SpouseBackground=role=="Knight"?"Commoner":"NobleRandom";
+            oldHouse.SpouseBirthClanId="";
+            oldHouse.FamilyHomeMode=role=="Knight"?"None":"OwnedFief";
+            Check("fresh noble/knight World placeholder passes strict age validation "+role,
+                oldHouse.PrepareUnconfirmedWorldFamily() && oldHouse.IsValid(30,out _) &&
+                oldHouse.Children[0].Age==0 && oldHouse.SpouseAge==30 &&
+                !oldHouse.AutoHouseNamesPrepared && !oldHouse.RealFamilyEnabled);
+            oldHouse.PlayerAge=18;
+            Check("unconfirmed family does not block minimum native founder age "+role,
+                oldHouse.IsValid(18,out _));
+            oldHouse.PlayerAge=30;
+            SandboxAutoHousePlan.Prepare(oldHouse,"vlandia",30,false,"Founder");
+            Check("House editor replaces placeholders using actual founder age "+role,
+                oldHouse.AutoHouseNamesPrepared && oldHouse.Children[0].Age>0 &&
+                oldHouse.IsValid(30,out _));
+            oldHouse.Children[0].Age=25;
+            Check("confirmed editor still rejects impossible child ages "+role,
+                !oldHouse.IsValid(30,out _) && !oldHouse.PrepareUnconfirmedWorldFamily() &&
+                oldHouse.Children[0].Age==25);
+        }
         var guidedKing=new SandboxOriginProfile();
         guidedKing.Role="King";
         guidedKing.KingGuidedStart=true;
