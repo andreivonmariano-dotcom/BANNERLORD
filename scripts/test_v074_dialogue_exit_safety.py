@@ -154,3 +154,28 @@ assert 'ObservedGoalReassessment' in depth
 for forbidden in ("GiveGoldAction","ChangeRelationAction","AddToCounts","SetRelation","ChangeOwnerOfSettlementAction"):
     assert forbidden not in intention,forbidden
 print("PASS personal intention and evolving goal references. SOURCE ONLY.")
+
+# Occasion and peer social model: no synthetic marriages, funerals or native changes.
+peer=(src/"SandboxOriginBehavior.PeerSocial.cs").read_text()
+peerstate=(src/"SandboxPeerSocialState.cs").read_text()
+assert 'ObservePeerSocialDaily(player);' in origin
+assert 'store.SyncData("CU_peer_social_1",ref peerRecords);' in origin
+assert 'ProbeNativeGroupConversationApi();' in origin
+assert 'SetupAndStartMissionConversationWithMultipleAgents' in peer and 'AddDialogLineMultiAgent' in peer
+assert '|invoked=false|scene_verified=false' in peer
+assert 'h!=Hero.MainHero && h.IsAlive && h.IsActive' in peer
+assert 'party==b.PartyBelongedTo' in peer and 'seat==b.StayingInSettlement' in peer
+assert 'party.MemberRoster.GetTroopCount(a.CharacterObject)==1' in peer
+assert 'party.MemberRoster.GetTroopCount(b.CharacterObject)==1' in peer
+assert 'Take(12)' in peer and 'MaxPairs=48, Interval=7' in peerstate
+assert 'pair.A.GetRelation(pair.B)' in peer
+assert 'PeerVoice(pair.A,relation)' in peer and 'PeerVoice(pair.B,relation)' in peer
+assert 'Pairs.Any(p=>p.LastDay>=day)' in peerstate
+assert 'player.Spouse.Spouse==player' in group and 'groupParticipants.Contains(player.Spouse)' in group
+assert 'RememberedFamilyMember()!=null' in group
+assert 'occasion=="CourtAssembly")return groupParent=="cu_native_royal_council"' in group
+assert 'GroupOccasionArgument(preference)' in group
+assert 'ShowGroupPeerStanding()' in group
+for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
+    assert forbidden not in peer and forbidden not in group,forbidden
+print("PASS bounded independent peer observations, real gathering eligibility and non-invoked native scene probe. SOURCE ONLY.")
