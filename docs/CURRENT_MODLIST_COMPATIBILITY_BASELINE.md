@@ -4,53 +4,53 @@
 
 Target: Bannerlord PC 1.5.7.125802, War Sails 1.3.7, RBM 4.8.2. This is the curated development and integration profile, not a new mandatory dependency manifest or a claim of conflict-free gameplay. Keep the standalone CU package and historical 78-mod reconstruction tracker separate from this snapshot. Pause replacement of systems already supplied by the active stack; revisit historical reconstruction only with an explicit scope decision.
 
-## Exact saved single-player load order
+## Current single-player launcher order and displayed versions
 
-Source: user-supplied LauncherOrder-ApplyResult.json, 23 November 2026, 21:53:58 +08:00, status APPLIED_LAUNCHER_ONLY_GAMEPLAY_UNTESTED, 41 enabled entries, 244 recorded dependency edges. CultureGear activation was subsequently confirmed by the user after correcting the case-sensitive Sandbox dependency. The saved order is a reference, not a fresh post-launch inventory.
+Source: user-supplied LauncherOrder-ApplyResult.json, 23 November 2026, 21:53:58 +08:00, status APPLIED_LAUNCHER_ONLY_GAMEPLAY_UNTESTED, 41 enabled entries, 244 recorded dependency edges. CultureGear activation was subsequently confirmed by the user after correcting the case-sensitive Sandbox dependency. Five current launcher screenshots supplied on 24 November 2026 confirm the same 41 entries in the same order and show their complete displayed versions. Internal IDs are carried from the earlier report. The screenshots do not prove successful runtime loading or resolve the launcher warning icons.
 
-1. `Bannerlord.Harmony`
-2. `Bannerlord.ButterLib`
-3. `Bannerlord.UIExtenderEx`
-4. `Bannerlord.MBOptionScreen`
-5. `Native` (v1.5.7, recorded manifest version)
-6. `SandBoxCore` (v1.5.7, recorded manifest version)
-7. `Sandbox` (v1.5.7, recorded manifest version)
-8. `CustomBattle`
-9. `StoryMode`
-10. `BirthAndDeath`
-11. `NavalDLC` (v1.3.7, recorded manifest version)
-12. `ServeAsSoldier`
-13. `RTSCamera`
-14. `RTSCamera.CommandSystem`
-15. `RBM` (v4.8.2, recorded manifest version)
-16. `RBM_WS` (v4.8.2, recorded manifest version)
-17. `ImmersiveBattlefields`
-18. `BannerFix`
-19. `Vexillum`
-20. `RaiseYourBanner`
-21. `RealisticBlood`
-22. `RaiseYourTorch`
-23. `Bannerlord.Diplomacy`
-24. `ImprovedGarrisons`
-25. `Fourberie`
-26. `ArenaOverhaulRedux`
-27. `OpenSourceArmory` (v2.1.0, recorded manifest version)
-28. `OpenSourceWeaponry` (v2.1.0, recorded manifest version)
-29. `OpenSourceSaddlery` (v2.1.0, recorded manifest version)
-30. `OpenSourceArmoryRBM` (v2.1.0, recorded manifest version)
-31. `OpenSourceWeaponryRBM` (v2.1.0, recorded manifest version)
-32. `OpenSourceSaddleryRBM` (v2.1.0, recorded manifest version)
-33. `BreakablePolearms`
-34. `ExpandedArmouryBL` (e1.5.2, recorded manifest version)
-35. `ExpandedArmouryBL.FullFixRBM` (v1.1.0.0, recorded manifest version)
-36. `ZZZ_troop_overhaul` (v1.0.1, recorded manifest version)
-37. `NoblesBuyStuff`
-38. `KingdomBorders`
-39. `CustomisableUI`
-40. `CalradiaUnified`
-41. `EBA_OSA_ZZZ_CultureGear` (v1.1.0, recorded manifest version)
+1. `Bannerlord.Harmony` — Harmony (v2.4.2.248)
+2. `Bannerlord.ButterLib` — ButterLib (v2.12.0.0)
+3. `Bannerlord.UIExtenderEx` — UIExtenderEx (v3.0.3.0)
+4. `Bannerlord.MBOptionScreen` — Mod Configuration Menu v5 (v5.13.1.0)
+5. `Native` — Native (v1.5.7.125802)
+6. `SandBoxCore` — SandBox Core (v1.5.7.125802)
+7. `Sandbox` — Sandbox (v1.5.7.125802)
+8. `CustomBattle` — CustomBattle (v1.5.7.125802)
+9. `StoryMode` — StoryMode (v1.5.7.125802)
+10. `BirthAndDeath` — Birth and Aging Options (v1.5.7.125802)
+11. `NavalDLC` — War Sails (v1.3.7.125802)
+12. `ServeAsSoldier` — Serve as Soldier (v1.5.7.4)
+13. `RTSCamera` — RTS Camera (v5.5.4.0)
+14. `RTSCamera.CommandSystem` — RTS Camera Command System (v5.5.4.0)
+15. `RBM` — (RBM) Realistic Battle Mod Bannerlord (v4.8.2.0)
+16. `RBM_WS` — (RBM WS) Realistic Battle Mod War Sails Submod (v4.8.2.0)
+17. `ImmersiveBattlefields` — Immersive Battlefields (v3.7.0.0)
+18. `BannerFix` — Banner Fix Performance (v4.0.0.0)
+19. `Vexillum` — Vexillum (e1.5.2.0)
+20. `RaiseYourBanner` — Raise your Banner (v17.0.9.0)
+21. `RealisticBlood` — Realistic Blood (v1.1.7.0)
+22. `RaiseYourTorch` — Raise your Torch (v7.3.7.0)
+23. `Bannerlord.Diplomacy` — Diplomacy (v1.5.7.0)
+24. `ImprovedGarrisons` — Improved Garrisons (v4.3.1.0)
+25. `Fourberie` — Fourberie (v1.5.7.0)
+26. `ArenaOverhaulRedux` — Arena Overhaul Redux (v1.5.7.1)
+27. `OpenSourceArmory` — Open Source Armory (v2.1.0.0)
+28. `OpenSourceWeaponry` — Open Source Weaponry (v2.1.0.0)
+29. `OpenSourceSaddlery` — Open Source Saddlery (v2.1.0.0)
+30. `OpenSourceArmoryRBM` — Open Source Armory: RBM Patch (v2.1.0.0)
+31. `OpenSourceWeaponryRBM` — Open Source Weaponry: RBM Patch (v2.1.0.0)
+32. `OpenSourceSaddleryRBM` — Open Source Saddlery: RBM Patch (v2.1.0.0)
+33. `BreakablePolearms` — Breakable Polearms (v1.1.2.0)
+34. `ExpandedArmouryBL` — ExpandedArmouryBL (e1.5.2.0)
+35. `ExpandedArmouryBL.FullFixRBM` — ExpandedArmouryBL: FullFix & RBM (v1.1.0.0)
+36. `ZZZ_troop_overhaul` — Troop Overhaul by ZZZ (v1.0.1.0)
+37. `NoblesBuyStuff` — Nobles Buy Stuff (v4.5.3.0)
+38. `KingdomBorders` — Kingdom Borders (v1.5.7.0)
+39. `CustomisableUI` — Customisable UI (v1.5.7.0)
+40. `CalradiaUnified` — Calradia Unified (v0.38.0.0)
+41. `EBA_OSA_ZZZ_CultureGear` — EBA OSA ZZZ Culture Gear (v1.1.0.0)
 
-Versions not recorded here require a fresh installed-manifest inventory; do not infer them from download titles. The installed CU manifest historically reports v0.38.0 and does not identify the exact compiled DLL; verify its hash against the candidate run before testing.
+All 41 versions are launcher-display strings, including the v/e prefix and final component. Calradia Unified displays v0.38.0.0; this does not identify its exact compiled DLL. Verify the DLL hash against the candidate run before testing. Warning icons remain unassessed; inspect their actual tooltips and runtime evidence before making conflict or stability claims.
 
 ## Repair provenance and known gaps
 
