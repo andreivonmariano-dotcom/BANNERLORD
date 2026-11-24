@@ -138,6 +138,8 @@ namespace CalradiaUnified
                 EffectiveHouseholdDuty(speaker).Length>0;
         }
 
+        private string dutyReplySpeaker="",dutyReplyPlayer="";
+        private int dutyReplyVariant;
         private bool PrepareHouseholdDutyReply()
         {
             var speaker=Hero.OneToOneConversationHero;
@@ -146,12 +148,12 @@ namespace CalradiaUnified
             var seat=Settlement.CurrentSettlement;
             string office=EffectiveHouseholdDuty(speaker);
             string reply="Let us speak again when we are together.";
-            if(speaker!=null && party!=null && clan!=null && office.Length>0)
+            if(CanDiscussHouseholdDuty() && speaker!=null && party!=null && clan!=null && office.Length>0)
             {
                 int strength=party.MemberRoster==null?-1:party.MemberRoster.TotalManCount;
                 string company=strength<0?"I cannot confirm our company strength.":
                     "Our company numbers "+strength+" souls.";
-                string holdings="Our house holds "+clan.Settlements.Count+" settlements.";
+                string holdings="Our house holds "+(clan.Settlements==null?0:clan.Settlements.Count)+" settlements.";
                 bool owned=seat!=null && seat.OwnerClan==clan && seat.IsFortification;
                 if(office=="Steward" || office=="Royal Minister" ||
                     office=="Household Steward" || office=="Chamberlain" || office=="Factor")
@@ -178,6 +180,11 @@ namespace CalradiaUnified
                     else reply+="We are away from our own fortifications.";
                     reply+=" Let us review the troops before our next march.";
                 }
+                int variant=dutyReplySpeaker==speaker.StringId && dutyReplyPlayer==Hero.MainHero.StringId?
+                    dutyReplyVariant:0;
+                string focus=SandboxRetinueOfficePolicy.DutyFocus(office,owned,
+                    owned && seat.IsUnderSiege,SandboxKingNativeMinistry.VerifiedGovernor(speaker),variant);
+                if(focus.Length>0)reply+=" "+focus;
                 if(ExistingCourtDuty(speaker).Length==0)
                 {
                     int reports=householdDuties.ReportCount(office);
@@ -195,6 +202,16 @@ namespace CalradiaUnified
         {
             if(!CanDiscussHouseholdDuty())return;
             var person=Hero.OneToOneConversationHero;
+            dutyReplySpeaker=person.StringId;dutyReplyPlayer=Hero.MainHero.StringId;
+            dutyReplyVariant=NextDialogueVariant(person,"OfficerDuty",2);
+            string recorded=ExistingCourtDuty(person);
+            if(recorded.Length>0)
+            {
+                string detail="office="+recorded+"|day="+CurrentHouseholdDay();
+                if(!livingPersons.Events.Any(e=>e.Kind=="CourtDutyConsulted" &&
+                    e.Actor==person.StringId && e.Target==Hero.MainHero.StringId && e.Detail==detail))
+                    livingPersons.Remember("CourtDutyConsulted",person.StringId,Hero.MainHero.StringId,detail);
+            }
             // Generated court titles own the role; old private appointments
             // remain readable but cannot produce a second formal duty receipt.
             if(ExistingCourtDuty(person).Length==0 && CanReportHouseholdDuty())
@@ -471,6 +488,16 @@ namespace CalradiaUnified
                     " | witnessed reports: "+
                     householdDuties.ReportCount(office)+"\n";
             }
+            if(clan!=null && clan.Companions!=null)
+                foreach(var officer in clan.Companions.Where(h=>h!=null && h.IsAlive && h.Clan==clan && h.CompanionOf==clan).Take(32))
+                {
+                    string title=ExistingCourtDuty(officer);
+                    if(title.Length==0)continue;
+                    int consultations=livingPersons.Events.Count(e=>e.Kind=="CourtDutyConsulted" &&
+                        e.Actor==officer.StringId && e.Target==Hero.MainHero.StringId &&
+                        e.Detail.StartsWith("office="+title+"|day=",StringComparison.Ordinal));
+                    text+="\n"+title+": "+officer.Name+" | recent recorded consultations: "+consultations;
+                }
             text+="\nSpeak with one of your actual companions "+
                 "in person to appoint an officer. Existing court officers retain their own titles. "+
                 "Reports can be discussed repeatedly; formal receipts are limited by day. "+
