@@ -15,7 +15,7 @@ namespace CalradiaUnified
         // A shared campaign-menu exchange, not a native mission conversation.
         // Only actual local adults speak. All session state is transient.
         private string groupParent="",groupPlayerId="",groupSeatId="",groupTopic="";
-        private string groupOpening="",groupClosing="";
+        private string groupOpening="",groupClosing="",groupOccasion="";
         private readonly List<Hero> groupParticipants=new List<Hero>();
         private readonly List<string> groupPreferences=new List<string>();
 
@@ -98,7 +98,7 @@ namespace CalradiaUnified
         private void ClearGroupSession()
         {
             groupParent="";groupPlayerId="";groupSeatId="";groupTopic="";
-            groupOpening="";groupClosing="";
+            groupOpening="";groupClosing="";groupOccasion="";
             groupParticipants.Clear();groupPreferences.Clear();
         }
 
@@ -121,6 +121,53 @@ namespace CalradiaUnified
             ClearGroupSession();
             if(valid)GameMenu.SwitchToMenu(parent);
             else GameMenu.ExitToLast();
+        }
+
+        private Hero RememberedFamilyMember()
+        {
+            var player=Hero.MainHero;
+            if(player==null)return null;
+            return new[]{player.Father,player.Mother}.Concat(
+                player.Children==null?Enumerable.Empty<Hero>():player.Children)
+                .FirstOrDefault(h=>h!=null && !h.IsAlive);
+        }
+
+        private bool GroupOccasionAllowed(string occasion)
+        {
+            if(!GroupSessionValid())return false;
+            var player=Hero.MainHero;
+            if(occasion=="FamilyGathering")
+                return groupParticipants.Any(h=>h==player.Spouse || h==player.Father ||
+                    h==player.Mother || h.Father==player || h.Mother==player);
+            if(occasion=="MarriageCelebration")return groupParent!="cu_household_camp" &&
+                player.Spouse!=null && player.Spouse.Spouse==player &&
+                groupParticipants.Contains(player.Spouse);
+            if(occasion=="Remembrance")return RememberedFamilyMember()!=null;
+            if(occasion=="CourtAssembly")return groupParent=="cu_native_royal_council";
+            return occasion=="Fellowship";
+        }
+
+        private void BeginGroupOccasion(string occasion)
+        {
+            if(!GroupOccasionAllowed(occasion))return;
+            groupOccasion=occasion;
+            BeginGroupTopic(occasion=="CourtAssembly"?"Relations":
+                occasion=="Fellowship"?"Livelihood":"Family",true);
+        }
+
+        private string GroupOccasionOpening()
+        {
+            switch(groupOccasion)
+            {
+                case "FamilyGathering":return "You gather with members of your family to hear their concerns.";
+                case "MarriageCelebration":return "You and your spouse gather with those present to speak of the life you share.";
+                case "Remembrance":
+                    var person=RememberedFamilyMember();
+                    return person==null?"You pause to remember departed kin.":"The gathering pauses to remember "+person.Name+".";
+                case "CourtAssembly":return "You invite your council to weigh the interests of the house.";
+                case "Fellowship":return "You set aside the business of the day for conversation among companions.";
+                default:return "";
+            }
         }
 
         private string GroupContext(string topic)
@@ -158,11 +205,16 @@ namespace CalradiaUnified
                 agenda==null?"":agenda.Goal,PersonalVoice(actor),player.GetRelation(actor));
         }
 
-        private void BeginGroupTopic(string topic)
+        private void BeginGroupTopic(string topic,bool occasion=false)
         {
             if(!GroupSessionValid() || !SandboxPetitionVoicePolicy.GroupTopic(topic))return;
+            if(!occasion)groupOccasion="";
+            else if(!GroupOccasionAllowed(groupOccasion))return;
             groupTopic=topic;groupPreferences.Clear();groupClosing="";
-            var lines=new List<string>{GroupContext(topic)};
+            var lines=new List<string>();
+            string opening=GroupOccasionOpening();
+            if(opening.Length>0)lines.Add(opening);
+            lines.Add(GroupContext(topic));
             for(int i=0;i<groupParticipants.Count;i++)
             {
                 var speaker=groupParticipants[i];
@@ -173,6 +225,9 @@ namespace CalradiaUnified
                     var previous=groupParticipants[i-1];
                     reply="To "+previous.Name+": "+SandboxPetitionVoicePolicy.GroupResponse(
                         preference,groupPreferences[i-1],speaker.GetRelation(previous),true);
+                    var peer=peerSocial.For(speaker.StringId,previous.StringId);
+                    if(peer!=null && peer.Meetings>=2 && peer.Interest=="DifferentPriorities" &&
+                        preference!=groupPreferences[i-1])reply+="We have different priorities in this matter. ";
                 }
                 reply+=SandboxPetitionVoicePolicy.GroupArgument(topic,preference);
                 var memory=livingPersons.LatestGroupDiscussion(groupPlayerId,speaker.StringId);
@@ -195,7 +250,8 @@ namespace CalradiaUnified
 
         private void AnswerGroup(string priority)
         {
-            if(!GroupSessionValid() || !SandboxPetitionVoicePolicy.GroupPriority(priority) ||
+            if(!GroupSessionValid() || (groupOccasion.Length>0 && !GroupOccasionAllowed(groupOccasion)) ||
+                !SandboxPetitionVoicePolicy.GroupPriority(priority) ||
                 !SandboxPetitionVoicePolicy.GroupTopic(groupTopic) ||
                 groupPreferences.Count!=groupParticipants.Count)return;
             // No native campaign mutation; this is a stated preference only.
@@ -239,6 +295,18 @@ namespace CalradiaUnified
                     "The gathering can no longer continue.";
                 MBTextManager.SetTextVariable("CU_GROUP_TOPICS",new TextObject(text));
             });
+            foreach(var name in new[]{"FamilyGathering","Fellowship","MarriageCelebration","Remembrance","CourtAssembly"})
+            {
+                string occasion=name;
+                string words=occasion=="FamilyGathering"?"Gather with the family":
+                    occasion=="Fellowship"?"Spend time in fellowship":
+                    occasion=="MarriageCelebration"?"Celebrate our marriage together":
+                    occasion=="Remembrance"?"Remember our departed kin":"Convene an assembly of the court";
+                starter.AddGameMenuOption("cu_group_topics","cu_group_occasion_"+occasion,words,
+                    args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                        return GroupOccasionAllowed(occasion);},
+                    args=>BeginGroupOccasion(occasion),false);
+            }
             foreach(var subject in new[]{"Family","Defense","Livelihood","Relations"})
             {
                 string topic=subject;
