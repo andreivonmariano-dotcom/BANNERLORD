@@ -65,8 +65,7 @@ namespace CalradiaUnified
                 starter.AddGameMenuOption(source,
                     "cu_civic_admin_entry_"+source,
                     "Manage local administration",
-                    x=>CanVisit() && (Owned() ||
-                        CurrentSettlementInKingdom()),
+                    x=>CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle,
                     x=>
                     {
                         civicReturnMenu=from;
@@ -75,7 +74,9 @@ namespace CalradiaUnified
             }
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_stores","Stores and trade",
-                x=>Owned(),
+                x=>Owned() && (settings.EnableCivicSystems || settings.EnableEconomy ||
+                    settings.EnableAbstractShipments || settings.EnablePhysicalConvoys ||
+                    settings.EnableDepotTrade || settings.EnableLocalDiplomacy),
                 x=>GameMenu.SwitchToMenu("cu_civic_stores"),false);
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_garrison","Recruitment and defenses",
@@ -83,7 +84,8 @@ namespace CalradiaUnified
                 x=>GameMenu.SwitchToMenu("cu_civic_garrison"),false);
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_correspondence","Kingdom correspondence",
-                x=>CurrentSettlementInKingdom(),
+                x=>CurrentSettlementInKingdom() &&
+                    (settings.EnableKingdomLevies || settings.EnableKingdomDiplomacy),
                 x=>GameMenu.SwitchToMenu(
                     "cu_civic_correspondence"),false);
             starter.AddGameMenuOption("cu_civic_administration",
@@ -279,12 +281,14 @@ namespace CalradiaUnified
         {
             try
             {
+                if(settings.EnableEconomy)
                 foreach (var d in state.Depots)
                 {
                     var s = Settlement.All.FirstOrDefault(x => x != null && x.StringId == d.SettlementId);
                     if (s != null && s.OwnerClan == Clan.PlayerClan)
                         d.Grain += CivicPolicy.DailyDepotOutput(d.Investment, d.Grain, settings.DepotCapacity);
                 }
+                if(settings.EnableAbstractShipments)
                 foreach (var shipment in state.Shipments.ToArray())
                 {
                     if (shipment.Physical) continue; // Physical convoys deliver on arrival only.
@@ -312,7 +316,7 @@ namespace CalradiaUnified
                     if (lost > 0) Notice("Abstract shipment lost " + lost + " grain after ownership or capacity change.");
                     state.Shipments.Remove(shipment);
                 }
-                TickPhysicalConvoys();
+                if(settings.EnablePhysicalConvoys)TickPhysicalConvoys();
                 TickKingdomCouncil();
                 TickFeudalEstates();
                 advisorCount = 0;
