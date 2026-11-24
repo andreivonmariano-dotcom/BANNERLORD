@@ -45,4 +45,4 @@ assert 'Household office: "+assignedOffice' in read("SandboxOriginBehavior.Nativ
 
 assert "officer.CivilianEquipment[slot]=selected[slot]" in ret
 assert "officer.ModifyHair(-1,0,-1)" in ret
-assert "SandboxRetinueOfficePolicy.StartingAge(offices[i])" in ret
+assert "SandboxRetinueOfficePolicy.RandomAge(offices[i],random)" in ret

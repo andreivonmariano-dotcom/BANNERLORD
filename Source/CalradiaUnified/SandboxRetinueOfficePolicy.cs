@@ -67,6 +67,37 @@ namespace CalradiaUnified
                 default:return 27;
             }
         }
+        public static int RandomAge(string office,Random random)
+        {
+            int age=StartingAge(office);
+            return random==null?age:office=="Squire"?random.Next(18,22):
+                age+random.Next(-3,4);
+        }
+        public static int RandomSkill(string office,int rank,Random random)
+        {
+            int target=TrainingTarget(office,rank);
+            return rank<0 || random==null?target:target+random.Next(-5,6);
+        }
+        public static int StartingLevel(string office)
+        {
+            if(office=="Squire")return 10;
+            if(office=="Marshal" || office=="MasterOfArms" || office=="RoyalMinister")return 24;
+            if(office=="Sergeant" || office=="SecondInCommand")return 17;
+            return 20;
+        }
+        public static int FocusTarget(int rank)
+        {
+            return rank<0?0:rank==0?4:rank==1?3:rank==2?2:1;
+        }
+        public static string[] AttributesForOffice(string office)
+        {
+            if(office=="RoyalMinister" || office=="HouseholdSteward" || office=="Chamberlain" || office=="Factor")
+                return new[]{"Intelligence","Social"};
+            if(office=="Marshal" || office=="Sergeant" || office=="FirstMate")
+                return new[]{"Social","Cunning"};
+            if(office=="SecondInCommand" || office=="Navigator")return new[]{"Cunning","Endurance"};
+            return new[]{"Vigor","Endurance"};
+        }
         // Desired average native item tier (not a fabricated item ID).
         public static int KitTier(string office,bool civilian)
         {
@@ -146,18 +177,25 @@ namespace CalradiaUnified
     {
         private const string Version="CU_RETINUE_OFFICES_1";
         private readonly Dictionary<string,string> offices=new Dictionary<string,string>(StringComparer.Ordinal);
+        public bool HasRecords {get{return offices.Count>0;}}
+        public bool HasIdentity(string id){return id!=null && offices.ContainsKey(id);}
+        public string[] ActiveIds(){return offices.Where(x=>x.Value!="Revoked").Select(x=>x.Key).ToArray();}
+        public bool Revoke(string id)
+        {
+            if(!HasIdentity(id) || offices[id]=="Revoked")return false;
+            offices[id]="Revoked";return true;
+        }
         public string OfficeFor(string id)
         {
             string office;
-            return id!=null && offices.TryGetValue(id,out office)?office:"";
+            return id!=null && offices.TryGetValue(id,out office) && office!="Revoked"?office:"";
         }
         public bool Register(string id,string office)
         {
             if(String.IsNullOrWhiteSpace(id) || id.Length>128 ||
                 !id.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-') ||
                 SandboxRetinueOfficePolicy.Skills(office).Length==0)return false;
-            string previous=OfficeFor(id);
-            if(previous.Length>0)return previous==office;
+            if(HasIdentity(id))return offices[id]==office;
             if(offices.Count>=32)return false;
             offices.Add(id,office);return true;
         }
@@ -176,7 +214,13 @@ namespace CalradiaUnified
             foreach(var line in lines.Skip(1))
             {
                 var f=line.Split('|');
-                if(f.Length!=2 || state.OfficeFor(f[0]).Length>0 || !state.Register(f[0],f[1]))return empty;
+                if(f.Length!=2 || state.HasIdentity(f[0]))return empty;
+                if(f[1]=="Revoked")
+                {
+                    if(!state.Register(f[0],"Knight"))return empty;
+                    state.Revoke(f[0]);
+                }
+                else if(!state.Register(f[0],f[1]))return empty;
             }
             return state;
         }

@@ -3325,6 +3325,28 @@ internal static class Program
         Check("complete mounted bow kit preferred over missing ammunition",
             SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","Arrows","BodyArmor","OneHandedWeapon"})>
             SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","BodyArmor","OneHandedWeapon"}));
+        var randomRetinue=new Random(701);
+        var drawn=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        bool uniqueDraw=true;
+        for(int i=0;i<18;i++)
+            uniqueDraw&=drawn.Add(SandboxCulturalNames.RandomUnused("vlandia",false,randomRetinue,drawn));
+        Check("generated name sampling is without replacement and fails closed when exhausted",
+            uniqueDraw && drawn.Count==18 && SandboxCulturalNames.RandomUnused("vlandia",false,randomRetinue,drawn)=="");
+        Check("fresh seeds create different plausible character profiles",
+            Enumerable.Range(0,100).Select(i=>SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))).Distinct().Count()>1 &&
+            Enumerable.Range(0,100).All(i=>SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))>=18 &&
+                SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))<=21) &&
+            Enumerable.Range(0,100).Select(i=>SandboxRetinueOfficePolicy.RandomSkill("Knight",0,new Random(i))).Distinct().Count()>1);
+        var retiredOffice=new SandboxRetinueOfficeState();
+        Check("revoked office remains retired after reload and cannot be regained by name",
+            retiredOffice.Register("former","Knight") && retiredOffice.Revoke("former") &&
+            SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).HasIdentity("former") &&
+            SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).OfficeFor("former")=="" &&
+            !SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).Register("former","Knight"));
+        Check("progression separates apprentice and veteran with bounded focus and appropriate attributes",
+            SandboxRetinueOfficePolicy.StartingLevel("Squire")<SandboxRetinueOfficePolicy.StartingLevel("Marshal") &&
+            SandboxRetinueOfficePolicy.FocusTarget(0)==4 && SandboxRetinueOfficePolicy.FocusTarget(-1)==0 &&
+            SandboxRetinueOfficePolicy.AttributesForOffice("RoyalMinister")[0]=="Intelligence");
         Check("generated companion age and training distinguish apprentice and veteran",
             SandboxRetinueOfficePolicy.StartingAge("Squire")==19 &&
             SandboxRetinueOfficePolicy.StartingAge("Marshal")>SandboxRetinueOfficePolicy.StartingAge("Knight") &&

@@ -148,7 +148,8 @@ namespace CalradiaUnified
 
             // Do not take a living, named native Wanderer from the world
             // or clone a living lord's actual clan position.
-            var source=CharacterObject.All.Where(c=>c!=null &&
+            var random=new Random(Guid.NewGuid().GetHashCode());
+            var candidates=CharacterObject.All.Where(c=>c!=null &&
                 c.IsTemplate && !c.IsBasicTroop &&
                 c.Culture==player.Culture && c.IsFemale==female &&
                 (c.Occupation==Occupation.Wanderer ||
@@ -156,7 +157,8 @@ namespace CalradiaUnified
                 .OrderBy(c=>c.Occupation==Occupation.Wanderer?0:1)
                 .ThenByDescending(c=>c.GetSkillValue(skill))
                 .ThenBy(c=>c.StringId,StringComparer.Ordinal)
-                .FirstOrDefault();
+                .Take(6).ToArray();
+            var source=candidates.Length==0?null:candidates[random.Next(candidates.Length)];
             if(source==null)
                 source=Hero.AllAliveHeroes.Where(h=>h!=null &&
                     h!=player && h.IsActive && h.IsLord &&
@@ -217,8 +219,8 @@ namespace CalradiaUnified
 
                 string specialty=profile.WandererCompanionSpecialty;
                 string style=specialty=="Guard"?"Shieldguard":specialty=="Scout"?"Scout":"Court";
-                SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty);
-                SandboxCulturalRetinue.EquipCivilian(provisional,source,specialty);
+                SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty,random);
+                SandboxCulturalRetinue.EquipCivilian(provisional,source,specialty,random);
 
                 AddCompanionAction.Apply(Clan.PlayerClan,provisional);
                 registered=Clan.PlayerClan.Companions.Contains(provisional) ||

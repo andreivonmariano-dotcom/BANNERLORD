@@ -36,9 +36,11 @@ namespace CalradiaUnified
         {
             var campaign=Campaign.Current;
             var b=campaign==null?null:campaign.GetCampaignBehavior<SandboxOriginBehavior>();
-            if(b==null || person==null)return "";
+            if(b==null || person==null || !person.IsAlive || Clan.PlayerClan==null ||
+                person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan ||
+                person==Hero.MainHero)return "";
             string office=b.retinueOffices.OfficeFor(person.StringId);
-            if(office.Length>0)return office;
+            if(office.Length>0 || b.retinueOffices.HasIdentity(person.StringId))return office;
             var old=b.livingPersons.People.FirstOrDefault(x=>x.Id==person.StringId);
             if(old==null || person.Name==null || old.Name!=person.Name.ToString() ||
                 Clan.PlayerClan==null || person.Clan!=Clan.PlayerClan ||
@@ -657,6 +659,14 @@ namespace CalradiaUnified
                 return;
             try
             {
+                // A confirmed former companion never regains an office
+                // merely by being recruited again. Missing identity is not proof.
+                var activeOfficerIds=new HashSet<string>(retinueOffices.ActiveIds(),StringComparer.Ordinal);
+                if(activeOfficerIds.Count>0)
+                    foreach(var officer in Hero.AllAliveHeroes.Where(h=>h!=null && activeOfficerIds.Contains(h.StringId)))
+                        if(officer==player || officer.Clan!=Clan.PlayerClan || officer.CompanionOf!=Clan.PlayerClan)
+                            if(retinueOffices.Revoke(officer.StringId))
+                                DiagnosticJournal.Event("cu_retinue_office_revoked","hero="+officer.StringId+"|native_membership_lost=true");
                 SandboxLivingPersons.ObserveDaily(livingPersons,
                     socialObservations,player);
                 SandboxLivingPersons.ObserveAgenda(livingPersons,

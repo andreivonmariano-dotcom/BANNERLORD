@@ -53,10 +53,10 @@ for culture in ("vlandia","sturgia","battania","empire","aserai","khuzait"):
     assert f'case "{culture}"' in names,culture
 assert "SandboxCulturalNames.Suggest" in auto
 assert "SandboxCulturalNames.Suggest" in family
-assert "SandboxCulturalNames.Suggest(culture,female,index+2" in retinue
-assert "TrainForOffice(officer,offices[i])" in retinue
+assert "SandboxCulturalNames.RandomUnused(culture,female,random,used)" in retinue
+assert "TrainForOffice(officer,offices[i],random)" in retinue
 assert "EquipForStyle(officer,sources[i]," in retinue
-assert "EquipCivilian(officer,sources[i],offices[i])" in retinue
+assert "EquipCivilian(officer,sources[i],offices[i],random)" in retinue
 assert "registry.Register(officer.StringId,offices[i])" in retinue
 assert "AssignNativeDuty(officer,offices[i])" in retinue
 assert "SetPartyQuartermaster" in retinue

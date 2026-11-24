@@ -58,11 +58,12 @@ namespace CalradiaUnified
         }
 
         private static CharacterObject FindNobleSource(
-            Hero player,bool female,string office)
+            Hero player,bool female,string office,Random random,HashSet<string> usedSources)
         {
             // Prefer native same-culture, sex-matched donors with the
             // strongest real training for this particular household post.
             var preferred=CharacterObject.All.Where(c=>c!=null &&
+                !usedSources.Contains(c.StringId) &&
                 c.IsTemplate && !c.IsBasicTroop &&
                 c.Culture==player.Culture &&
                 c.Occupation==Occupation.Lord &&
@@ -70,29 +71,30 @@ namespace CalradiaUnified
                 .OrderByDescending(c=>SourceMatch(
                     c,player.Culture.StringId,office))
                 .ThenBy(c=>c.StringId,StringComparer.Ordinal)
-                .FirstOrDefault();
-            if(preferred!=null)return preferred;
+                .Take(6).ToArray();
+            if(preferred.Length>0)return preferred[random.Next(preferred.Length)];
             var donor=Hero.AllAliveHeroes.Where(h=>h!=null &&
                 h!=player && h.IsActive && h.IsLord &&
                 h.Culture==player.Culture &&
-                h.IsFemale==female && h.CharacterObject!=null)
+                h.IsFemale==female && h.CharacterObject!=null &&
+                !usedSources.Contains(h.CharacterObject.StringId))
                 .OrderByDescending(h=>SourceMatch(
                     h.CharacterObject,player.Culture.StringId,office))
                 .ThenBy(h=>h.StringId,StringComparer.Ordinal)
-                .FirstOrDefault();
-            return donor==null?null:donor.CharacterObject;
+                .Take(6).ToArray();
+            return donor.Length==0?null:donor[random.Next(donor.Length)].CharacterObject;
         }
 
         private static string OfficerName(string culture,
-            string office,int index,IEnumerable<string> used)
+            string office,Random random,IEnumerable<string> used)
         {
             bool female=office=="Chamberlain" ||
                 office=="RoyalMinister" || office=="Navigator";
-            return SandboxCulturalNames.Suggest(culture,female,index+2,used);
+            return SandboxCulturalNames.RandomUnused(culture,female,random,used);
         }
 
         internal static void EquipForStyle(Hero officer,
-            CharacterObject source,string style,string office)
+            CharacterObject source,string style,string office,Random random=null)
         {
             if(officer==null || officer.BattleEquipment==null || source==null || source.BattleEquipments==null)
                 throw new InvalidOperationException("Native companion battle equipment unavailable");
@@ -103,8 +105,16 @@ namespace CalradiaUnified
                 .OrderBy(c=>c.StringId,StringComparer.Ordinal)
                 .SelectMany(c=>c.BattleEquipments).Concat(available)
                 .Where(e=>e!=null);
-            var selected=candidates.OrderByDescending(e=>EquipmentScore(e,style))
-                .ThenByDescending(e=>KitQuality(e,office,false)).FirstOrDefault();
+            var ranked=candidates.OrderByDescending(e=>EquipmentScore(e,style))
+                .ThenByDescending(e=>KitQuality(e,office,false)).ToArray();
+            var best=ranked.FirstOrDefault();
+            // Variety only among close role matches; never use a random
+            // low-scoring kit. Native equipment arrays can repeat sets.
+            var pool=best==null?new Equipment[0]:ranked.Where(e=>
+                EquipmentScore(e,style)>=EquipmentScore(best,style)-8 &&
+                KitQuality(e,office,false)>=KitQuality(best,office,false)-10)
+                .GroupBy(KitKey,StringComparer.Ordinal).Select(g=>g.First()).Take(8).ToArray();
+            var selected=pool.Length==0?null:pool[random==null?0:random.Next(pool.Length)];
             if(selected==null)throw new InvalidOperationException("No native companion battle equipment set");
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
                 officer.BattleEquipment[slot]=selected[slot];
@@ -118,6 +128,11 @@ namespace CalradiaUnified
                 "|gear_score="+EquipmentScore(selected,style));
         }
 
+        private static string KitKey(Equipment gear)
+        {
+            return String.Join(",",Enumerable.Range(0,(int)EquipmentIndex.NumEquipmentSetSlots)
+                .Select(i=>gear[i].Item==null?"":gear[i].Item.StringId));
+        }
         private static int KitQuality(Equipment gear,string office,bool civilian)
         {
             int sum=0,count=0;
@@ -132,7 +147,7 @@ namespace CalradiaUnified
             if(count==0)return -10000;
             return -Math.Abs(sum*10/count-SandboxRetinueOfficePolicy.KitTier(office,civilian)*10);
         }
-        internal static void EquipCivilian(Hero officer,CharacterObject source,string office)
+        internal static void EquipCivilian(Hero officer,CharacterObject source,string office,Random random=null)
         {
             if(officer==null || source==null || officer.CivilianEquipment==null)
                 throw new InvalidOperationException("Native civilian equipment unavailable");
@@ -143,7 +158,11 @@ namespace CalradiaUnified
                 .SelectMany(c=>c.CivilianEquipments)
                 .Concat(source.CivilianEquipments??Enumerable.Empty<Equipment>())
                 .Where(e=>e!=null && e[(int)EquipmentIndex.Body].Item!=null);
-            var selected=sets.OrderByDescending(e=>KitQuality(e,office,true)).FirstOrDefault();
+            var ranked=sets.OrderByDescending(e=>KitQuality(e,office,true)).ToArray();
+            var best=ranked.FirstOrDefault();
+            var pool=best==null?new Equipment[0]:ranked.Where(e=>KitQuality(e,office,true)>=KitQuality(best,office,true)-5)
+                .GroupBy(KitKey,StringComparer.Ordinal).Select(g=>g.First()).Take(8).ToArray();
+            var selected=pool.Length==0?null:pool[random==null?0:random.Next(pool.Length)];
             if(selected==null)throw new InvalidOperationException("No native civilian outfit");
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
                 officer.CivilianEquipment[slot]=selected[slot];
@@ -184,7 +203,7 @@ namespace CalradiaUnified
                 "|primary="+first+"|secondary="+second);
         }
 
-        private static void TrainForOffice(Hero officer,string office)
+        private static void TrainForOffice(Hero officer,string office,Random random)
         {
             if(officer==null || officer.HeroDeveloper==null)
                 throw new InvalidOperationException("Native officer training model missing");
@@ -196,13 +215,41 @@ namespace CalradiaUnified
                 var skill=SandboxNativeSkillCatalog.Find(name);
                 if(skill==null)continue;
                 int rank=Array.IndexOf(skills,name);
-                int target=rank>=0?SandboxRetinueOfficePolicy.TrainingTarget(office,rank):
+                int target=rank>=0?SandboxRetinueOfficePolicy.RandomSkill(office,rank,random):
                     Math.Min(officer.GetSkillValue(skill),45);
                 officer.HeroDeveloper.SetInitialSkillLevel(skill,target);
                 if(officer.GetSkillValue(skill)!=target)
                     throw new InvalidOperationException("Native officer skill not applied: "+name);
             }
             ApplyPersonality(officer,culture,office);
+            var attributes=SandboxRetinueOfficePolicy.AttributesForOffice(office);
+            foreach(string name in SandboxOriginProfile.Attributes)
+            {
+                var prop=typeof(DefaultCharacterAttributes).GetProperty(name);
+                var attr=prop==null?null:prop.GetValue(null,null) as CharacterAttribute;
+                if(attr==null)throw new InvalidOperationException("Native officer attribute unavailable: "+name);
+                int target=Array.IndexOf(attributes,name)==0?5:Array.IndexOf(attributes,name)==1?4:2;
+                int delta=target-officer.GetAttributeValue(attr);
+                if(delta!=0)officer.HeroDeveloper.AddAttribute(attr,delta,false);
+                if(officer.GetAttributeValue(attr)!=target)
+                    throw new InvalidOperationException("Native officer attribute not applied: "+name);
+            }
+            foreach(string name in SandboxNativeSkillCatalog.AvailableNames())
+            {
+                var skill=SandboxNativeSkillCatalog.Find(name);
+                if(skill==null)continue;
+                int target=SandboxRetinueOfficePolicy.FocusTarget(Array.IndexOf(skills,name));
+                int delta=target-officer.HeroDeveloper.GetFocus(skill);
+                if(delta!=0)officer.HeroDeveloper.AddFocus(skill,delta,false);
+                if(officer.HeroDeveloper.GetFocus(skill)!=target)
+                    throw new InvalidOperationException("Native officer focus not applied: "+name);
+            }
+            int level=SandboxRetinueOfficePolicy.StartingLevel(office);
+            officer.Level=level;
+            officer.HeroDeveloper.SetInitialLevel(level);
+            if(officer.Level!=level)throw new InvalidOperationException("Native officer level not applied");
+            DiagnosticJournal.Event("cu_retinue_progression_profile",
+                "hero="+officer.StringId+"|office="+office+"|level="+level+"|native_readback=true|perks_not_rewritten=true");
             DiagnosticJournal.Event("cu_retinue_cultural_training",
                 "hero="+officer.StringId+"|office="+office+
                 "|culture="+culture+
@@ -330,13 +377,16 @@ namespace CalradiaUnified
                 "|staged_before_dismissal=true"+
                 "|native_fire_sequential=true"+
                 "|failed_removal_reported_partial=true");
+            if(registry==null || registry.HasRecords)return "refused:retinue_already_recorded";
+            var random=new Random(Guid.NewGuid().GetHashCode());
+            var usedSources=new HashSet<string>(StringComparer.Ordinal);
             var sources=new CharacterObject[offices.Length];
             for(int i=0;i<offices.Length;i++)
             {
                 bool female=offices[i]=="Chamberlain" ||
                     offices[i]=="RoyalMinister" ||
                     offices[i]=="Navigator";
-                sources[i]=FindNobleSource(player,female,offices[i]);
+                sources[i]=FindNobleSource(player,female,offices[i],random,usedSources);
                 if(sources[i]==null)
                 {
                     DiagnosticJournal.Event(
@@ -347,12 +397,15 @@ namespace CalradiaUnified
                         "|no_random_wanderer_used=true");
                     return "refused:local_noble_source_missing:"+offices[i];
                 }
+                usedSources.Add(sources[i].StringId);
             }
             int created=0;
             int replaced=0;
             var staged=new List<Hero>();
             var usedNames=new HashSet<string>(Clan.PlayerClan.Heroes.Where(h=>h!=null && h.Name!=null).Select(h=>h.Name.ToString()),StringComparer.OrdinalIgnoreCase);
             usedNames.Add(player.Name.ToString());
+            var preexistingIds=new HashSet<string>(Hero.AllAliveHeroes.Where(h=>h!=null)
+                .Select(h=>h.StringId),StringComparer.Ordinal);
             try
             {
                 // Create all replacement Heroes before firing any original
@@ -361,14 +414,15 @@ namespace CalradiaUnified
                 for(int i=0;i<offices.Length;i++)
                 {
                     string name=OfficerName(player.Culture.StringId,
-                        offices[i],i,usedNames);
-                    usedNames.Add(name);
-                    int age=SandboxRetinueOfficePolicy.StartingAge(offices[i]);
+                        offices[i],random,usedNames);
+                    if(String.IsNullOrEmpty(name) || !usedNames.Add(name))
+                        throw new InvalidOperationException("No unused cultural officer name");
+                    int age=SandboxRetinueOfficePolicy.RandomAge(offices[i],random);
                     var officer=HeroCreator.CreateSpecialHero(
                         sources[i],null,Clan.PlayerClan,null,age);
-                    if(officer==null)
+                    if(officer==null || !preexistingIds.Add(officer.StringId))
                         throw new InvalidOperationException(
-                            "Native HeroCreator refused retinue officer");
+                            "Native HeroCreator refused unique retinue officer");
                     staged.Add(officer);
                     officer.SetName(new TextObject(name),
                         new TextObject(name));
@@ -389,9 +443,9 @@ namespace CalradiaUnified
                     if(!officer.IsActive)
                         officer.ChangeState(Hero.CharacterStates.Active);
                     EquipForStyle(officer,sources[i],
-                        SandboxRetinueCulturePolicy.GearStyle(player.Culture.StringId,offices[i]),offices[i]);
-                    EquipCivilian(officer,sources[i],offices[i]);
-                    TrainForOffice(officer,offices[i]);
+                        SandboxRetinueCulturePolicy.GearStyle(player.Culture.StringId,offices[i]),offices[i],random);
+                    EquipCivilian(officer,sources[i],offices[i],random);
+                    TrainForOffice(officer,offices[i],random);
                 }
                 DiagnosticJournal.Event("cu_cultural_retinue_staged",
                     "mode="+profile.RetinueMode+
