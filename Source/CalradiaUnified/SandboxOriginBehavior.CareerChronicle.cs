@@ -329,17 +329,16 @@ namespace CalradiaUnified
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_begin","Agree on my next duty",
-                args=>!IsPersonalChargeActive() && SelectedReviewRole().Length>0,
+                args=>CanBeginCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
                 args=>ShowNativeDetail("Career | New charge",
                     AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_defend","Strengthen the garrison here",
-                args=>!IsPersonalChargeActive() &&
-                    SandboxCareerChargeState.IsKindForRole(SelectedReviewRole(),"StrengthenGarrison"),
+                args=>CanBeginCareerCharge("StrengthenGarrison"),
                 args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("StrengthenGarrison")),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_royal_estate","Visit another royal holding",
-                args=>!IsPersonalChargeActive() && SelectedReviewRole()=="King",
+                args=>SelectedReviewRole()=="King" && CanBeginCareerCharge("VisitEstate"),
                 args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("VisitEstate")),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_withdraw","Set aside my current charge",
