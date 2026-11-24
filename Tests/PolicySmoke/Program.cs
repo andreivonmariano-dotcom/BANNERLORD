@@ -278,6 +278,13 @@ internal static class Program
         Check("only the owner can cancel the pending gathering",
             !cancelledGathering.Cancel("heir",11) && cancelledGathering.Cancel("player",11) &&
             SandboxGatheringPlan.Parse(cancelledGathering.Serialize()).Status=="Cancelled");
+        var occasionMemory=new SandboxLifeHistoryState();
+        Check("gathering memories preserve the actual occasion and exact participant identities",
+            !occasionMemory.RecordGroupDiscussion("player","guest","Family","Welfare",1,"Invented") &&
+            occasionMemory.RecordGroupDiscussion("player","guest","Family","Welfare",1,"Remembrance") &&
+            SandboxLifeHistoryState.Parse(occasionMemory.Serialize()).LatestGroupDiscussion("player","guest").Detail==
+                "day=1|topic=Family|priority=Welfare|occasion=Remembrance" &&
+            occasionMemory.LatestGroupDiscussion("player","absent")==null);
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
