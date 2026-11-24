@@ -122,6 +122,30 @@ internal static class Program
         Check("full battle ledger survives its own serialization limit",
             allBattles && fullBattleLedger.Serialize().Length>16000 &&
             SandboxBattleHistoryState.Parse(fullBattleLedger.Serialize()).Entries.Count==SandboxBattleHistoryState.MaxEntries);
+        var sharedTalk=new SandboxLifeHistoryState();
+        sharedTalk.Remember("FamilyVisit","spouse","player","day=4");
+        sharedTalk.Remember("FamilyGiftConfirmed","other","player","day=5");
+        Check("shared memory requires the exact pair",
+            sharedTalk.SharedConversationMemory("player","spouse").Kind=="FamilyVisit" &&
+            sharedTalk.SharedConversationMemory("successor","spouse")==null &&
+            sharedTalk.SharedConversationMemory("player","player")==null);
+        Check("discussion choice requires valid topic and day and is bounded per pair",
+            !sharedTalk.RecordConversationChoice("player","spouse","unknown",true,6) &&
+            !sharedTalk.RecordConversationChoice("player","spouse","Family",true,-1) &&
+            sharedTalk.RecordConversationChoice("player","spouse","Family",true,6) &&
+            !sharedTalk.RecordConversationChoice("player","spouse","Estate",false,6) &&
+            sharedTalk.RecordConversationChoice("player","other","Estate",false,6));
+        var restoredTalk=SandboxLifeHistoryState.Parse(sharedTalk.Serialize());
+        Check("actual discussion memory survives the existing save format",
+            restoredTalk.SharedConversationMemory("player","spouse").Detail=="day=6|topic=Family|stance=disagreed" &&
+            restoredTalk.SharedConversationMemory("player","other").Detail=="day=6|topic=Estate|stance=asked_advice" &&
+            !restoredTalk.RecordConversationChoice("player","spouse","Family",false,6));
+        Check("personal topic cooldown observes exact pair and seven-day bound",
+            restoredTalk.HasRecentConversationChoice("player","spouse","Family",12) &&
+            !restoredTalk.HasRecentConversationChoice("player","spouse","Family",13) &&
+            !restoredTalk.HasRecentConversationChoice("player","spouse","Family",5) &&
+            !restoredTalk.HasRecentConversationChoice("player","other","Family",12) &&
+            !restoredTalk.HasRecentConversationChoice("successor","spouse","Family",12));
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
