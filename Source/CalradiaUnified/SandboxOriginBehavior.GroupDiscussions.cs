@@ -170,6 +170,43 @@ namespace CalradiaUnified
             }
         }
 
+        private void ShowGroupPeerStanding()
+        {
+            if(!GroupSessionValid())return;
+            var lines=new List<string>();
+            for(int i=0;i<groupParticipants.Count;i++)
+                for(int j=i+1;j<groupParticipants.Count;j++)
+                {
+                    var a=groupParticipants[i];var b=groupParticipants[j];
+                    var record=peerSocial.For(a.StringId,b.StringId);
+                    int nativeRelation=a.GetRelation(b);
+                    string standing=nativeRelation<=-20?"Strained relations":
+                        nativeRelation>=30?"Good standing":"Standing uncertain";
+                    if(record!=null)standing+=". Last recorded priorities: "+
+                        (record.Interest=="CommonInterest"?"similar":"different")+
+                        " (day "+record.LastDay+").";
+                    lines.Add(a.Name+" and "+b.Name+": "+standing);
+                }
+            ShowNativeDetail("Those gathered",String.Join("\n\n",lines));
+        }
+
+        private string GroupOccasionArgument(string priority)
+        {
+            if(groupOccasion=="Remembrance")
+                return priority=="Security"?"Let their memory remind us to protect those still with us.":
+                    priority=="Welfare"?"Let us make time for those who grieve, rather than pass over their loss.":
+                    "We need not make grand promises in a moment of grief. Quiet remembrance is enough.";
+            if(groupOccasion=="MarriageCelebration")
+                return priority=="Security"?"A household stands stronger when its members can depend on one another.":
+                    priority=="Welfare"?"May the two of you find time for each other amid the duties of this house.":
+                    "A life shared is built through patient judgment, not splendid promises.";
+            if(groupOccasion=="Fellowship")
+                return priority=="Security"?"Let us keep faith with the people who stand beside us on the road.":
+                    priority=="Welfare"?"There is value in sharing a little time without asking anything of one another.":
+                    "Let us enjoy the peace we have without forgetting the needs of tomorrow.";
+            return SandboxPetitionVoicePolicy.GroupArgument(groupTopic,priority);
+        }
+
         private string GroupContext(string topic)
         {
             var player=Hero.MainHero;
@@ -229,7 +266,7 @@ namespace CalradiaUnified
                     if(peer!=null && peer.Meetings>=2 && peer.Interest=="DifferentPriorities" &&
                         preference!=groupPreferences[i-1])reply+="We have different priorities in this matter. ";
                 }
-                reply+=SandboxPetitionVoicePolicy.GroupArgument(topic,preference);
+                reply+=GroupOccasionArgument(preference);
                 var memory=livingPersons.LatestGroupDiscussion(groupPlayerId,speaker.StringId);
                 if(memory!=null)
                 {
@@ -295,6 +332,11 @@ namespace CalradiaUnified
                     "The gathering can no longer continue.";
                 MBTextManager.SetTextVariable("CU_GROUP_TOPICS",new TextObject(text));
             });
+            starter.AddGameMenuOption("cu_group_topics","cu_group_peer_standing",
+                "Consider how those gathered get along",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                    return GroupSessionValid();},
+                args=>ShowGroupPeerStanding(),false);
             foreach(var name in new[]{"FamilyGathering","Fellowship","MarriageCelebration","Remembrance","CourtAssembly"})
             {
                 string occasion=name;
