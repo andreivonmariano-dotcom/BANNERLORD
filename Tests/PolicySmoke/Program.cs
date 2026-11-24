@@ -23,6 +23,20 @@ internal static class Program
     }
     private static void Main()
     {
+        var duplicateAgenda=SandboxCharacterAgendaState.Parse(
+            "CU_AGENDA_1\nP|hero_a|SupportHousehold||||||0|1\nP|hero_a|EstablishLivelihood||||||0|5");
+        Check("duplicate restored agenda retains first verified award count",
+            duplicateAgenda.Entries.Count==1 && duplicateAgenda.Get("hero_a").ComradeshipAwards==1);
+        Check("cultural conventions are explicit and unsupported cultures remain unknown",
+            new[]{"vlandia","sturgia","battania","empire","aserai","khuzait","nord"}
+                .All(id=>SandboxCulturalInheritancePolicy.CustomGuidance(id).Length>0 &&
+                    SandboxFamilyDevelopmentPolicy.IsUpbringing(
+                        SandboxCulturalInheritancePolicy.EducationConvention(id))) &&
+            SandboxCulturalInheritancePolicy.CustomGuidance("unknown")=="" &&
+            SandboxCulturalInheritancePolicy.Model("nord")=="Unestablished" &&
+            !SandboxCulturalInheritancePolicy.CanTransferEstateWithoutNativeAction());
+        Check("inheritance seniority cannot overflow on corrupted elder count",
+            SandboxCulturalInheritancePolicy.ClaimPriority("vlandia",Int32.MaxValue,true,false,0,0)==25);
         var lifetimeTest=new SandboxLifetimeCareerState();
         Check("career episodes require evidence and voluntary selection",
             !lifetimeTest.Record("hero_a","Knight",0,false,true) &&
@@ -57,6 +71,9 @@ internal static class Program
             !peerRestored.Record("b","c","GainMilitaryTraining",7,true,true,0,0,0) &&
             peerRestored.Record("c","d","GainMilitaryTraining",7,true,true,-20,0,0) &&
             peerRestored.Entries[1].Outcome=="ModeledDecline");
+        Check("peer rotation includes previously overlooked eligible people",
+            peerRestored.PrioritizePeers(new[]{"a","b","c","d","e","f"},2)
+                .SequenceEqual(new[]{"e","f"}));
         Check("peer parser rejects false native consent",
             SandboxPeerInitiativeState.Parse("CU_PEER_INITIATIVE_1\na|b|PatronageInterest|NativeConsent|0").Entries.Length==0);
         var accountTest=new SandboxHouseholdAccountsState();
