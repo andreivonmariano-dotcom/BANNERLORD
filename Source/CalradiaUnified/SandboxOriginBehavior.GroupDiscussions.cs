@@ -339,10 +339,12 @@ namespace CalradiaUnified
                 if(memory!=null)
                 {
                     var fields=memory.Detail.Split('|');
-                    if(fields.Length==3 && fields[1]=="topic="+topic &&
+                    bool sameOccasion=groupOccasion.Length==0?fields.Length==3:
+                        fields.Length==4 && fields[3]=="occasion="+groupOccasion;
+                    if(sameOccasion && fields[1]=="topic="+topic &&
                         fields[2]=="priority="+preference)
                         reply+=" At our earlier gathering you favored this priority.";
-                    else if(fields.Length==3 && fields[1]=="topic="+topic &&
+                    else if(sameOccasion && fields[1]=="topic="+topic &&
                         fields[2].StartsWith("priority=",StringComparison.Ordinal))
                         reply+=" At our earlier gathering you favored a different priority.";
                 }
@@ -407,7 +409,7 @@ namespace CalradiaUnified
                 var speaker=groupParticipants[i];
                 lines.Add(speaker.Name+": "+GroupOccasionDecisionReply(groupPreferences[i],priority,PersonalVoice(speaker)));
                 livingPersons.RecordGroupDiscussion(groupPlayerId,speaker.StringId,
-                    groupTopic,priority,CurrentHouseholdDay());
+                    groupTopic,priority,CurrentHouseholdDay(),groupOccasion);
             }
             groupClosing=String.Join("\n\n",lines);
             groupTopic="";groupPreferences.Clear();
