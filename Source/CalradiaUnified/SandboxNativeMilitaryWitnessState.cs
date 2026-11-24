@@ -23,6 +23,7 @@ namespace CalradiaUnified
                     return false;
             if(KingdomId.Length>0 && KingdomId!=kingdomId)
                 return false;
+            if(VassalDay>=0 && day<VassalDay)return false;
             bool changed=false;
             if(KingdomId.Length==0)KingdomId=kingdomId;
             if(VassalDay<0)
@@ -61,6 +62,7 @@ namespace CalradiaUnified
                 vassal< -1 || army< -1 ||
                 (army>=0 && (vassal<0 || army<vassal)) ||
                 (vassal>=0 && f[0].Length==0) ||
+                (vassal<0 && f[0].Length!=0) ||
                 f[0].Length>80)return empty;
             foreach(char c in f[0])
                 if(!Char.IsLetterOrDigit(c) && c!='_' && c!='-')

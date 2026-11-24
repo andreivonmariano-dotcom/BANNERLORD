@@ -160,10 +160,22 @@ namespace CalradiaUnified
                 chapter<0 || chapter>3 || day< -1 ||
                 streak>21 || !ValidId(f[4]) || !ValidId(f[5]))
                 return empty;
-            return new SandboxCareerChronicleState {
+            var result=new SandboxCareerChronicleState {
                 Role=f[0],Chapter=chapter,
                 LastEvidenceDay=day,ConsecutiveDays=streak,
                 FirstTownId=f[4],SecondTownId=f[5]};
+            // Only accept combinations reachable through Begin/Observe.
+            if((day<0 && (chapter!=0 || streak!=0)) ||
+                (chapter==3 && streak!=0) ||
+                (chapter<3 && streak>=result.RequiredDays()))return empty;
+            if(result.Role=="Wanderer")
+            {
+                if((chapter>=1)!=(f[4].Length>0) ||
+                    (chapter>=2)!=(f[5].Length>0) ||
+                    (f[5].Length>0 && f[4]==f[5]))return empty;
+            }
+            else if(f[4].Length!=0 || f[5].Length!=0)return empty;
+            return result;
         }
     }
 }

@@ -144,7 +144,7 @@ namespace CalradiaUnified
                     !Int32.TryParse(f[6],NumberStyles.Integer,
                         CultureInfo.InvariantCulture,out day) ||
                     supported<0 || supported>16 ||
-                    declined<0 || declined>16 ||
+                    declined<0 || declined>16 || supported+declined==0 ||
                     positive<0 || positive>100 ||
                     negative>0 || negative< -100 ||
                     follow<0 || follow>16 || day<0)

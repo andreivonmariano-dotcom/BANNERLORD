@@ -23,6 +23,39 @@ internal static class Program
     }
     private static void Main()
     {
+        // Compatibility stabilization: reject impossible history and unknown SaS contracts.
+        Check("social save requires an actual recorded petition",
+            SandboxSocialBondState.Parse("CU_SOCIAL_BONDS_1\nhero_a|0|0|5|0|1|10").People.Count==0);
+        var rewindWitness=new SandboxNativeMilitaryWitnessState();
+        Check("army receipt cannot predate native vassalage",
+            rewindWitness.Observe(10,"kingdom_1",true,false) &&
+            !rewindWitness.Observe(9,"kingdom_1",true,true) &&
+            rewindWitness.ArmyCommandDay==-1 &&
+            rewindWitness.Observe(10,"kingdom_1",true,true) &&
+            SandboxNativeMilitaryWitnessState.Parse(rewindWitness.Serialize()).ArmyCommandDay==10);
+        Check("military save rejects orphan kingdom without vassalage",
+            SandboxNativeMilitaryWitnessState.Parse(
+                "CU_NATIVE_MILITARY_WITNESS_1\nkingdom_1|-1|-1").KingdomId=="");
+        Check("chronicle rejects progress before any evidence day",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|2|-1|0||").Started);
+        Check("chronicle rejects a completed or threshold-crossing saved streak",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|3|20|1||").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nMercenary|1|20|7||").Started);
+        Check("wanderer save requires the correct distinct native town receipts",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|2|20|0|town_1|town_1").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|1|20|0||").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|1|20|0|town_1|").Started);
+        Check("valid career partial streak and initial state survive load",
+            SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nMercenary|1|20|6||").ConsecutiveDays==6 &&
+            SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|0|-1|0||").Started);
+        Check("SaS bridge supports documented v1 shape only",
+            SandboxSaSApiContract.IsSupported(typeof(SaSV1Fixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSV2Fixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSMissingSnapshotFixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSVoidSnapshotFixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSBadEnlistedFixture)) &&
+            !SandboxSaSApiContract.IsSupported(null));
+
         // v0.71g: observed social bonds and genuine army/vassal status.
         var nativeBonds=new SandboxSocialBondState();
         Check("social records reject fictional IDs and invalid deltas",
@@ -4787,3 +4820,9 @@ internal static class Program
         Console.WriteLine("PASS: " + passed + " gameplay policy checks");
     }
 }
+
+internal static class SaSV1Fixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; public static object GetSnapshot()=>new object(); }
+internal static class SaSV2Fixture { public const int ApiVersion=2; public static bool IsPlayerEnlisted=>false; public static object GetSnapshot()=>new object(); }
+internal static class SaSMissingSnapshotFixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; }
+internal static class SaSVoidSnapshotFixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; public static void GetSnapshot(){} }
+internal static class SaSBadEnlistedFixture { public const int ApiVersion=1; public static string IsPlayerEnlisted=>""; public static object GetSnapshot()=>new object(); }

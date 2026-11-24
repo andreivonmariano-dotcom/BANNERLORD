@@ -24,17 +24,14 @@ namespace CalradiaUnified
         {
             try
             {
-                var type=AppDomain.CurrentDomain.GetAssemblies()
+                var types=AppDomain.CurrentDomain.GetAssemblies()
                     .Select(a=>a.GetType(
                         "ServeAsSoldier.Compat.SaSPublicApi",false))
-                    .FirstOrDefault(t=>t!=null);
-                if(type==null)return null;
-                var version=type.GetField("ApiVersion",
-                    BindingFlags.Static|BindingFlags.Public);
-                if(version==null ||
-                    Convert.ToInt32(version.GetRawConstantValue())<1)
+                    .Where(t=>t!=null).Distinct().ToArray();
+                if(types.Length!=1 ||
+                    !SandboxSaSApiContract.IsSupported(types[0]))
                     return null;
-                return type;
+                return types[0];
             }
             catch{return null;}
         }
@@ -78,18 +75,14 @@ namespace CalradiaUnified
                 result.Enlisted=(bool)enlistedValue;
                 if(!result.Enlisted)return result;
                 var method=api.GetMethod("GetSnapshot",
-                    BindingFlags.Static|BindingFlags.Public);
+                    BindingFlags.Static|BindingFlags.Public,null,
+                    Type.EmptyTypes,null);
                 if(method==null)
                 {
-                    result.Available=false;
-                    return result;
+                    return new Snapshot();
                 }
                 var snap=method.Invoke(null,null);
-                if(snap==null)
-                {
-                    result.Available=false;
-                    return result;
-                }
+                if(snap==null)return new Snapshot();
                 var lord=Field(snap,"Lord") as Hero;
                 var host=Field(snap,"HostParty") as MobileParty;
                 result.LordIsNativeLord=lord!=null &&
@@ -117,8 +110,7 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_sas_public_api_read_failed",e);
-                result.Enlisted=false;
-                result.Available=false;
+                return new Snapshot();
             }
             return result;
         }
