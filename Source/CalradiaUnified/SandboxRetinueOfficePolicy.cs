@@ -165,6 +165,44 @@ namespace CalradiaUnified
                 office=="FirstMate" || office=="Sergeant" ||
                 office=="SecondInCommand";
         }
+        public static string DutyFocus(string label,bool ownsHolding,bool siege,
+            bool governorVerified,int variant)
+        {
+            string office=Key(label);
+            bool second=variant==1;
+            switch(office)
+            {
+                case "MasterOfArms":return second?
+                    "I would review the readiness of the recruits and the men entrusted with training them.":
+                    "My charge is the household's readiness in arms. Training and discipline come before new commitments.";
+                case "Knight":return second?
+                    "I am ready to discuss our obligations and the company's mounted service.":
+                    "I serve the household in the field. I would judge our next undertaking by the men and horses available.";
+                case "Marshal":return siege?
+                    "A siege calls for a review of the actual garrison and available field forces.":
+                    second?"We should weigh the company's strength against our next obligation.":
+                    "My charge is the field force. We should review its readiness before committing it to a campaign.";
+                case "Kingsguard":return second?
+                    "My duty is your personal protection, not the command of an invented guard regiment.":
+                    "I attend to your safety and the risks of our next movement.";
+                case "RoyalMinister":return governorVerified?
+                    (second?"I can report on the holding I actually govern. Changes to its administration remain with the native settlement screen.":
+                    "I hold a native governorship and can discuss its affairs, but the settlement's own accounts remain authoritative."):
+                    "I cannot claim the authority of a governor without a current native appointment.";
+                case "Squire":return second?
+                    "I wish to learn more of the duties of a mounted retainer.":
+                    "My charge is to learn arms and attend to the household's service.";
+                case "HouseholdSteward":case "Chamberlain":case "Factor":
+                    return ownsHolding?"I would review the household's provisions and accounts at this holding.":
+                        "We can review the stores at an owned holding.";
+                case "Navigator":return "I would review the route and the dangers of the next passage.";
+                case "FirstMate":return "My charge is the crew's readiness and the order of the company.";
+                case "Sergeant":return "I would review the recruits' discipline and the company's strength.";
+                case "SecondInCommand":return "I would see that the band remains supplied and ready to move.";
+                default:return "";
+            }
+        }
+
         public static string PartyDuty(string office)
         {
             if(office=="HouseholdSteward" || office=="Chamberlain" ||
