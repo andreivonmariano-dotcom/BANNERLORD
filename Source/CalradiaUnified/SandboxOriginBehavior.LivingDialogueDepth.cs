@@ -13,13 +13,37 @@ namespace CalradiaUnified
         private SandboxCareerChargeState careerCharge=new SandboxCareerChargeState();
         private string chargeReply="";
 
+        private string PersonalVoice(Hero actor)
+        {
+            var player=Hero.MainHero;
+            if(actor==null || player==null)return "Plain";
+            return SandboxPetitionVoicePolicy.Tone(
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy),
+                player.GetRelation(actor));
+        }
+        private bool CanSpeakSocially()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            return applied && IsStandaloneSandbox() && actor!=null && player!=null &&
+                actor!=player && actor.IsAlive && actor.IsActive && !actor.IsPrisoner &&
+                actor.Age>=18f;
+        }
+        private bool PreparePersonalGreeting()
+        {
+            MBTextManager.SetTextVariable("CU_PERSONAL_GREETING",
+                new TextObject(SandboxPetitionVoicePolicy.Greeting(PersonalVoice(Hero.OneToOneConversationHero))));
+            return true;
+        }
         private bool CanDiscussPersonalMatters()
         {
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
-            if(!applied || !IsStandaloneSandbox() || actor==null || player==null ||
-                actor==player || !actor.IsAlive || !actor.IsActive || actor.IsPrisoner ||
-                actor.Age<18f)return false;
+            if(!CanSpeakSocially())return false;
             if(SpeakingWithAdultFamily() || CanDiscussHouseholdDuty() ||
                 livingPersons.People.Any(p=>p.Id==actor.StringId))return true;
             if(knightOath.PlayerId==player.StringId && knightOath.HasCurrentOath &&
@@ -28,6 +52,51 @@ namespace CalradiaUnified
             return service.Available && service.Enlisted && service.LordId==actor.StringId;
         }
 
+        // Acquaintances can discuss opinions, but cannot issue commands for
+        // a household, army or oath they do not belong to.
+        private bool CanCounselCareer()
+        {
+            if(!CanSpeakSocially())return false;
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            string role=SelectedReviewRole();
+            if(role=="Knight")return SpeakingWithSwornPatron();
+            if(role=="Soldier")
+            {
+                var service=SandboxSaSBridge.Read();
+                return service.Available && service.Enlisted && service.InsideHostParty &&
+                    service.LordId==actor.StringId;
+            }
+            return (SpeakingWithAdultFamily() || CanDiscussHouseholdDuty() ||
+                SpeakingWithHouseholdCompanion()) && actor.Clan==Clan.PlayerClan &&
+                player.GetRelation(actor)>=-10;
+        }
+        private bool CanOfferCharge(string kind)
+        {
+            string target;int baseline;
+            return !IsPersonalChargeActive() && CanCounselCareer() &&
+                TryChargeStartEvidence(kind,out target,out baseline);
+        }
+        private bool CanDiscussPersonalTopic(string topic)
+        {
+            if(!CanSpeakSocially())return false;
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            if(topic=="Opinions")return true;
+            if(!CanDiscussPersonalMatters())return false;
+            if(topic=="Family")return SpeakingWithAdultFamily();
+            if(topic=="Finances")return player.GetRelation(actor)>=10 &&
+                (SpeakingWithAdultFamily() || CanDiscussHouseholdDuty());
+            if(topic=="Estate")return CanDiscussEstateTopic() && player.GetRelation(actor)>=0;
+            if(topic=="Service")return CanCounselCareer();
+            if(topic=="Memory")
+            {
+                var story=petitionStories.For(actor.StringId);
+                return story!=null && (story.ResolvedDay>=0 ||
+                    (agencyDecisions.HasPending && agencyDecisions.PendingHeroId==actor.StringId));
+            }
+            return topic=="Ambitions" && characterAgendas.Get(actor.StringId)!=null;
+        }
         private bool IsPersonalChargeActive()
         {
             return Hero.MainHero!=null && careerCharge.Active &&
@@ -82,7 +151,7 @@ namespace CalradiaUnified
 
         private string ChargeDescription()
         {
-            if(!IsPersonalChargeActive())return "We have no unfinished charge agreed for you. Let us decide what needs doing next.";
+            if(!IsPersonalChargeActive())return "Nothing binds us to a particular duty at present.";
             string target=careerCharge.TargetId;
             if(careerCharge.Kind=="VisitTown" || careerCharge.Kind=="VisitEstate" ||
                 careerCharge.Kind=="StrengthenGarrison" || careerCharge.Kind=="Council")
@@ -96,12 +165,24 @@ namespace CalradiaUnified
                 target=Clan.PlayerClan.Name.ToString();
             else if(careerCharge.Kind=="CompanyBattle" && Clan.PlayerClan!=null &&
                 Clan.PlayerClan.Kingdom!=null)target=Clan.PlayerClan.Kingdom.Name.ToString();
-            string task=SandboxCareerChargeState.Label(careerCharge.Kind);
-            if(careerCharge.Kind=="VisitTown")task+=" (depart from "+target+")";
-            else task+=" ("+target+")";
-            if(careerCharge.Kind=="StrengthenGarrison" || careerCharge.Kind=="BuildBand" ||
-                careerCharge.Kind=="ServeWeek")task+=". Starting count: "+careerCharge.Baseline;
-            return task+". Return to discuss the result on a later day. Use the game's own actions to carry it out.";
+            switch(careerCharge.Kind)
+            {
+                case "VisitTown":return "There is little reason to stay in "+target+
+                    ". Let us seek our fortunes in another town and speak again after the journey.";
+                case "BuildBand":return "Let us build our company to at least "+
+                    (careerCharge.Baseline+3)+" souls. We shall speak again once the band is stronger.";
+                case "CompanyBattle":return "Let us earn our keep under the banner of "+target+
+                    ". We shall have more to discuss after a victory.";
+                case "ServeWeek":return "Seven more days of service to "+target+
+                    " lie before us. Let us speak of the matter after that.";
+                case "Muster":return "We must attend the next muster of "+target+".";
+                case "VisitEstate":return "We have been meaning to visit "+target+
+                    ". Let us see the holding for ourselves.";
+                case "StrengthenGarrison":return "Let us bring the garrison of "+target+
+                    " to at least "+(careerCharge.Baseline+5)+" soldiers.";
+                case "Council":return "We should gather the council at "+target+" on another day.";
+                default:return "There is nothing further to arrange.";
+            }
         }
 
         private string AgreeCareerCharge(string kind)
@@ -199,11 +280,14 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
             string reply="Let us speak again when we are together.";
-            if(CanDiscussPersonalMatters())
+            if(CanDiscussPersonalTopic(topic))
             {
                 var agenda=characterAgendas.Get(actor.StringId);
                 int relation=player.GetRelation(actor);
-                if(topic=="Ambitions")
+                string tone=PersonalVoice(actor);
+                if(topic=="Opinions")
+                    reply=SandboxPetitionVoicePolicy.Opinion(tone,"Service");
+                else if(topic=="Ambitions")
                 {
                     string goal=agenda==null?"":agenda.Goal;
                     switch(goal)
@@ -227,8 +311,9 @@ namespace CalradiaUnified
                 {
                     int children=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive);
                     int young=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive && h.Age<18f);
-                    reply="Your house has "+children+" living children; "+young+" are still young. "+
-                        (young>0?"Their upbringing deserves our attention.":"We must think of their own places in the world.");
+                    reply=children==0?"We have no children of yours to provide for at present.":
+                        (actor==player.Spouse?"Our family":"Your family")+" has "+children+
+                        " children living. "+(young>0?"The younger ones still need care.":"They have their own lives to lead.");
                     if(actor==player.Spouse)reply+=" Let us discuss how we provide for them.";
                     if(player.Children!=null)
                     {
@@ -236,12 +321,12 @@ namespace CalradiaUnified
                             .OrderByDescending(h=>h.Age).Take(3).ToArray();
                         if(living.Length>0)
                             reply+=" We should consider "+String.Join(", ",living.Select(h=>
-                                h.Name.ToString()+" ("+(int)h.Age+")"))+".";
+                                h.Name.ToString()))+".";
                     }
                 }
                 else if(topic=="Finances")
                     reply="You have "+player.Gold+" denars in your purse. I hold "+actor.Gold+
-                        ". The clan's lands are a separate concern. Let us keep enough for our actual obligations.";
+                        ". Let us keep enough for what lies ahead.";
                 else if(topic=="Estate")
                 {
                     var clan=Clan.PlayerClan;
@@ -255,7 +340,7 @@ namespace CalradiaUnified
                             (garrison==null||garrison.MemberRoster==null?"the garrison count is not known.":
                              "the garrison numbers "+garrison.MemberRoster.TotalManCount+".");
                         if(seat.IsUnderSiege)reply+=" The siege must take precedence.";
-                        else reply+=" Shall we visit another holding or strengthen these defenses?";
+                        else reply+=" We should consider the defenses before leaving.";
                     }
                 }
                 else if(topic=="Service")
@@ -266,16 +351,18 @@ namespace CalradiaUnified
                         (long)CurrentHouseholdDay()-recent.Day>=0 &&
                         (long)CurrentHouseholdDay()-recent.Day<=14 && recent.PartyDead>=0)
                         reply+=" Our campaign record recently counted "+recent.PartyDead+
-                            " fallen and "+recent.PartyWounded+" wounded in an involved party.";
+                            " fallen and "+recent.PartyWounded+" wounded among those who fought.";
                 }
                 else if(topic=="Memory")
                 {
                     var story=petitionStories.For(actor.StringId);
-                    reply=story==null?"No earlier petition between us stands in my record.":
+                    reply=story==null?"There is nothing further to say on that matter.":
                         story.Outcome=="Supported"?"I remember your support for my earlier concern.":
                         story.Outcome=="Declined"?"I remember your refusal. We can still speak of our affairs.":
                         "There is still a matter awaiting your answer.";
                 }
+                string opinion=topic=="Opinions"?"":SandboxPetitionVoicePolicy.Opinion(tone,topic);
+                if(opinion.Length>0)reply+=" "+opinion;
             }
             MBTextManager.SetTextVariable("CU_PERSONAL_TOPIC_REPLY",new TextObject(reply));
             return true;
@@ -297,13 +384,13 @@ namespace CalradiaUnified
         {
             starter.AddPlayerLine("cu_personal_matters_open","hero_main_options",
                 "cu_personal_matters_intro","Let us speak privately for a moment.",
-                ()=>CanDiscussPersonalMatters(),null,105);
+                ()=>CanSpeakSocially(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
-                "cu_personal_matters_topics","Of course. What is on your mind?",null,null,105);
-            foreach(string topicName in new[]{"Ambitions","Family","Finances","Estate","Service","Memory"})
+                "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
+            foreach(string topicName in new[]{"Opinions","Ambitions","Family","Finances","Estate","Service","Memory"})
             {
                 string topic=topicName;
-                string question=topic=="Ambitions"?"What do you wish for yourself?":
+                string question=topic=="Opinions"?"What matters most to you in life?":topic=="Ambitions"?"What do you wish for yourself?":
                     topic=="Family"?"How shall we care for the family?":
                     topic=="Finances"?"How stand our personal finances?":
                     topic=="Estate"?"What concerns our holdings?":
@@ -311,35 +398,30 @@ namespace CalradiaUnified
                     "Do you remember our earlier affairs?";
                 starter.AddPlayerLine("cu_personal_topic_"+topic,"cu_personal_matters_topics",
                     "cu_personal_topic_reply_"+topic,question,
-                    ()=>CanDiscussPersonalMatters() &&
-                        (topic!="Family" || SpeakingWithAdultFamily()) &&
-                        (topic!="Finances" || SpeakingWithAdultFamily() || CanDiscussHouseholdDuty()) &&
-                        (topic!="Estate" || CanDiscussEstateTopic()),null,100);
+                    ()=>CanDiscussPersonalTopic(topic),null,100);
                 starter.AddDialogLine("cu_personal_topic_reply_"+topic,"cu_personal_topic_reply_"+topic,
                     "cu_personal_matters_topics","{CU_PERSONAL_TOPIC_REPLY}",
                     ()=>PreparePersonalTopic(topic),null,100);
             }
             starter.AddPlayerLine("cu_personal_charge_agree","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us agree on our next duty.",
-                ()=>CanDiscussPersonalMatters() && !IsPersonalChargeActive() && SelectedReviewRole().Length>0,
+                ()=>CanOfferCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
                 ()=>chargeReply=AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),100);
             starter.AddPlayerLine("cu_personal_charge_defend","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us strengthen the garrison here.",
-                ()=>CanDiscussEstateTopic() &&
-                    SandboxCareerChargeState.IsKindForRole(SelectedReviewRole(),"StrengthenGarrison") &&
-                    !IsPersonalChargeActive(),
+                ()=>CanDiscussEstateTopic() && CanOfferCharge("StrengthenGarrison"),
                 ()=>chargeReply=AgreeCareerCharge("StrengthenGarrison"),100);
             starter.AddPlayerLine("cu_personal_charge_royal_estate","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us visit another royal holding.",
-                ()=>CanDiscussEstateTopic() && SelectedReviewRole()=="King" && !IsPersonalChargeActive(),
+                ()=>CanDiscussEstateTopic() && SelectedReviewRole()=="King" && CanOfferCharge("VisitEstate"),
                 ()=>chargeReply=AgreeCareerCharge("VisitEstate"),100);
             starter.AddPlayerLine("cu_personal_charge_progress","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us review what we have accomplished.",
-                ()=>CanDiscussPersonalMatters() && IsPersonalChargeActive(),
+                ()=>CanCounselCareer() && IsPersonalChargeActive(),
                 ()=>chargeReply=DiscussChargeProgress(),100);
             starter.AddPlayerLine("cu_personal_charge_withdraw","cu_personal_matters_topics",
                 "cu_personal_charge_reply","We must set our charge aside.",
-                ()=>CanDiscussPersonalMatters() && IsPersonalChargeActive(),
+                ()=>CanCounselCareer() && IsPersonalChargeActive(),
                 ()=>chargeReply=WithdrawCareerCharge(),90);
             starter.AddDialogLine("cu_personal_charge_reply","cu_personal_charge_reply",
                 "cu_personal_matters_topics","{CU_CHARGE_REPLY}",()=>PrepareChargeReply(),null,100);
