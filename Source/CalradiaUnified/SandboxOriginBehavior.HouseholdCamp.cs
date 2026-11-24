@@ -211,7 +211,7 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_recurring_review",
                 "Review recurring career duties",
-                args=>CanSetUpNativeCamp() && CurrentCareerRole().Length>0,
+                args=>CanSetUpNativeCamp() && SelectedReviewRole().Length>0,
                 args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_petitions",
