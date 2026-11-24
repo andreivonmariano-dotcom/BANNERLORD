@@ -58,11 +58,41 @@ for symbol in ("SandboxOriginPanel","SandboxOriginPanelVM","NativeSettingsBehavi
 for name in ("CUOriginPanel","CUSettingsPanel"):
     assert name not in movies, "retired prefab loaded by live source: "+name
     assert name+".xml" in (root/"scripts"/"Package-Compiled.ps1").read_text(), "retired package exclusion missing"
+# Literal registrations are exact; constructed identifiers are reported separately.
+registration=re.compile(r'\b(AddGameMenuOption|AddGameMenu|AddPlayerLine|AddDialogLine)\s*\(\s*')
+menu_rows=[]
+dynamic=[]
+groups=defaultdict(list)
+for file,body in texts.items():
+    for m in registration.finditer(body):
+        tail=body[m.end():]
+        args=re.match(r'"([^"]+)"\s*(,|\+)',tail)
+        line=body.count("\n",0,m.start())+1
+        kind=m.group(1)
+        if not args or args.group(2)!=",":
+            dynamic.append({"file":file,"line":line,"kind":kind})
+            continue
+        first=args.group(1)
+        rest=tail[args.end():].lstrip()
+        second=re.match(r'"([^"]+)"\s*,',rest)
+        if kind=="AddGameMenuOption" and not second:
+            dynamic.append({"file":file,"line":line,"kind":kind,"parent":first})
+            continue
+        key=("option:"+first+"/"+second.group(1) if kind=="AddGameMenuOption" else
+             "menu:"+first if kind=="AddGameMenu" else "dialog:"+first)
+        row={"file":file,"line":line,"kind":kind,"key":key}
+        menu_rows.append(row)
+        groups[key].append(row)
+assert not any('args=>false' in texts[n] for n in ("SandboxOriginBehavior.LivingMenus.cs",)), "permanently disabled petition option reintroduced"
+assert "cu_origin_preview" not in texts["SandboxOriginBehavior.cs"], "retired origin editor reintroduced"
 report={
     "scope":"lexical inventory, not runtime reachability or compatibility proof",
     "source_file_count":len(sources),"compiled_source_file_count":len(compiled),
     "excluded_sources":sorted(excluded),"all_source_files":[{"file":k,"lines":len(v.splitlines()),"excluded":k in excluded} for k,v in sources.items()],
     "type_declarations":dict(types),"single_mention_types":[{"type":k,"files":v} for k,v in types.items() if tokens[k]==1],
+    "menu_dialog_literal_registrations":menu_rows,
+    "menu_dialog_duplicate_candidates":{k:v for k,v in groups.items() if len(v)>1},
+    "menu_dialog_dynamic_registrations":dynamic,
     "prefabs":prefab_report,"literal_movie_loads":sorted(movies),
     "literal_movie_loads_without_current_prefab":sorted(movies-set(prefabs)),
     "sprite_configs":[str(p.relative_to(root)) for p in (module/"GUI"/"SpriteParts").rglob("*.xml")],
