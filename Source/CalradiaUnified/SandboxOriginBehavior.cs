@@ -421,6 +421,9 @@ namespace CalradiaUnified
             string chapters=careerChronicle.Serialize();
             store.SyncData("CU_v071c_career_chronicle",ref chapters);
             careerChronicle=SandboxCareerChronicleState.Parse(chapters);
+            string recurringReviews=recurringCareerReviews.Serialize();
+            store.SyncData("CU_recurring_career_reviews_1",ref recurringReviews);
+            recurringCareerReviews=SandboxCareerReviewState.Parse(recurringReviews);
             string stories=petitionStories.Serialize();
             store.SyncData("CU_v071e_personal_petition_stories",
                 ref stories);
