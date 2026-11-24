@@ -537,7 +537,7 @@ jobs:
             try {
               ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ReplaceExisting
             } catch {
-              $wrongBuildBlocked = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
+              $wrongBuildBlocked = $_.Exception.Message -match 'Artifact rejected BEFORE installation|module manifest ID, version or DLL name did not match'
             }
             if (-not $wrongBuildBlocked) { throw 'Latest verified pin accepted an unrelated compiled DLL.' }
             if ((Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $beforeHash -or
