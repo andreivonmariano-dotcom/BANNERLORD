@@ -404,7 +404,7 @@ internal static class Program
             directorStable &= longDirector.Receipts.Count<=SandboxStoryDirectorState.MaxReceipts &&
                 longVariety.Entries.Count<=SandboxDialogueVarietyState.Capacity;
         }
-        Check("100-year modeled director and dialogue ledger remain bounded across generational reloads",
+        Check("36500 modeled days keep director and dialogue ledger bounded across generational reloads",
             directorStable && longDirector.Receipts.Count==SandboxStoryDirectorState.MaxReceipts &&
             longVariety.Entries.Count==SandboxDialogueVarietyState.Capacity);
         var fullLifeLedger=new SandboxLifeHistoryState();
