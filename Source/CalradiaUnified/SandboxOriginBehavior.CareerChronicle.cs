@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
@@ -8,6 +9,150 @@ namespace CalradiaUnified
 {
     public sealed partial class SandboxOriginBehavior
     {
+        private SandboxLifetimeCareerState lifetimeCareers=
+            new SandboxLifetimeCareerState();
+
+        // The player's voluntary choice records an evidenced calling.
+        // It does not enroll, discharge, confer a title or transfer land.
+        private bool CanRecordLifetimeRole(string role)
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            if(player==null || clan==null || ReviewCareerEvidence(role).Length==0)
+                return false;
+            var service=SandboxSaSBridge.Read();
+            bool activeOath=knightOath.HasCurrentOath &&
+                knightOath.PlayerId==player.StringId;
+            if(role=="Soldier")return service.Available && service.Enlisted &&
+                service.InsideHostParty && !activeOath;
+            if(service.Enlisted || (!service.Available &&
+                (serviceCareer.VerifiedExternalEnlistment ||
+                 serviceCareer.Status=="ExternalStatusUnverified")))return false;
+            if(role=="Knight")return activeOath;
+            if(activeOath)return false;
+            // Independence does not establish criminality. Only an
+            // existing recorded Outlaw calling is eligible for this label.
+            if(role=="Outlaw")return CurrentCareerRole()=="Outlaw";
+            if(role=="Wanderer")return clan.Settlements!=null &&
+                clan.Settlements.Count==0 && clan.Kingdom==null;
+            return true;
+        }
+
+        private void RecordLifetimeRole(string role)
+        {
+            var player=Hero.MainHero;
+            if(player==null || !CanRecordLifetimeRole(role))return;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            bool recorded=lifetimeCareers.Record(player.StringId,role,day,true,true);
+            ShowNativeDetail("Lifetime career",
+                (recorded?"Chosen career observation recorded.":
+                    "No new receipt: same/earlier day or history limit.")+
+                "\n\n"+LifetimeCareerText(player));
+        }
+
+        private string LifetimeCareerText(Hero person)
+        {
+            if(person==null)return "No identified person.";
+            var records=lifetimeCareers.For(person.StringId);
+            return "Lifetime career observations (not continuous service):\n"+
+                (records.Length==0?"No personal episodes yet.":
+                    String.Join("\n",records.Select(e=>e.Role+
+                    " | first seen day "+e.FirstDay+" | last seen day "+e.LastDay)))+
+                "\nOriginal career chapter ledger is retained separately.";
+        }
+
+        private SandboxCareerReviewState recurringCareerReviews=
+            new SandboxCareerReviewState();
+
+        // A voluntary check of present native conditions, not an extra
+        // quest, contract, payment, promotion, or political action.
+        private string ReviewCareerEvidence(string role)
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            var party=MobileParty.MainParty;
+            if(!applied || !IsStandaloneSandbox() || player==null ||
+                !player.IsAlive || !player.IsActive || player.IsPrisoner ||
+                clan==null || party==null || party.MapEvent!=null ||
+                party.IsCurrentlyAtSea)return "";
+            var town=Settlement.CurrentSettlement;
+            switch(role)
+            {
+                case "Wanderer":
+                    return clan.Kingdom==null && town!=null && town.IsTown?
+                        "Current independent town presence confirmed. Review livelihood and household needs.":"";
+                case "Outlaw":
+                    return clan.Kingdom==null && party.LeaderHero==player &&
+                        party.MemberRoster!=null && party.MemberRoster.TotalManCount>=5?
+                        "Independent party of at least five confirmed. Review supplies and band security; criminal status not inferred.":"";
+                case "Mercenary":
+                    return clan.Kingdom!=null && clan.IsUnderMercenaryService?
+                        "Native mercenary contract confirmed. Review company obligations and resources.":"";
+                case "Soldier":
+                    var service=SandboxSaSBridge.Read();
+                    return service.Available && service.Enlisted &&
+                        service.InsideHostParty && !String.IsNullOrEmpty(service.LordId)?
+                        "External enlistment and host-party presence confirmed. Review provider rank and duty.":"";
+                case "Knight":
+                    var patron=KnightOathPatron();
+                    return knightOath.HasCurrentOath &&
+                        knightOath.PlayerId==player.StringId && patron!=null &&
+                        patron.IsAlive && !patron.IsPrisoner &&
+                        patron.Clan!=null && patron.Clan.StringId==knightOath.PatronClanId &&
+                        patron.Clan.Kingdom!=null &&
+                        patron.Clan.Kingdom.StringId==knightOath.KingdomId?
+                        "Current personal oath and patron affiliation confirmed. Review muster and escort obligations.":"";
+                case "Lord":
+                    return clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService &&
+                        clan.Settlements!=null && clan.Settlements.Count>0?
+                        "Native non-ruling landed clan leadership confirmed. Review estate and household affairs.":"";
+                case "King":
+                    return clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan==clan && !clan.IsUnderMercenaryService?
+                        "Native rulership confirmed. Review royal obligations and council records.":"";
+                default: return "";
+            }
+        }
+
+        private string SelectedReviewRole()
+        {
+            var player=Hero.MainHero;
+            var episode=player==null?null:lifetimeCareers.For(player.StringId).LastOrDefault();
+            return episode==null?CurrentCareerRole():episode.Role;
+        }
+
+        private string RecurringCareerReviewText()
+        {
+            var player=Hero.MainHero;
+            string role=SelectedReviewRole();
+            var receipt=player==null?null:
+                recurringCareerReviews.For(player.StringId,role);
+            string activity=SandboxCareerReviewState.Activity(role);
+            if(activity.Length==0)return "No supported career review.";
+            return activity+"\nRecorded reviews: "+(receipt==null?0:receipt.Count)+
+                (receipt==null?"":" | Last observed day: "+receipt.LastDay)+
+                "\nReviews require current evidence and are seven days apart. They grant no rewards.";
+        }
+
+        private void ReviewRecurringCareer()
+        {
+            string role=SelectedReviewRole();
+            string evidence=CanRecordLifetimeRole(role)?ReviewCareerEvidence(role):"";
+            var player=Hero.MainHero;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            bool recorded=player!=null &&
+                recurringCareerReviews.Record(player.StringId,role,day,evidence.Length>0);
+            if(recorded)
+                livingPersons.Remember("CareerReviewObserved",player.StringId,"",
+                    "role="+role+"|day="+day+"|current_condition_only=true");
+            ShowNativeDetail("Career | Recurring review",
+                (recorded?evidence:evidence.Length==0?
+                    "Current career conditions could not be verified.":
+                    "Review not recorded: seven-day interval or record limit.")+
+                "\n\n"+RecurringCareerReviewText());
+        }
+
         private string CurrentCareerRole()
         {
             if(kingSuccession.IsRecorded)return "King";
@@ -30,6 +175,9 @@ namespace CalradiaUnified
                 return;
             string role=CurrentCareerRole();
             if(role.Length==0)return;
+            // Never continue the old starting-role chapters on a new calling.
+            var selected=lifetimeCareers.For(Hero.MainHero.StringId).LastOrDefault();
+            if(selected!=null && selected.Role!=role)return;
             if(!careerChronicle.Started)careerChronicle.Begin(role);
             if(careerChronicle.Role!=role)return;
             var player=Hero.MainHero;
@@ -48,7 +196,7 @@ namespace CalradiaUnified
             switch(role)
             {
                 case "Wanderer":
-                    bool nativeTown=location!=null &&
+                    bool nativeTown=independent && location!=null &&
                         location.IsTown;
                     townId=nativeTown?location.StringId:"";
                     first=nativeTown;
@@ -69,20 +217,26 @@ namespace CalradiaUnified
                     third=first;
                     break;
                 case "Soldier":
-                    first=serviceCareer.VerifiedExternalEnlistment;
-                    second=first && serviceCareer.DaysInService>=7 &&
-                        serviceCareer.ExternalInsideHostParty;
-                    third=first && serviceCareer.DaysInService>=30 &&
-                        serviceCareer.ExternalInsideHostParty;
+                    var liveService=SandboxSaSBridge.Read();
+                    first=serviceCareer.VerifiedExternalEnlistment &&
+                        liveService.Available && liveService.Enlisted &&
+                        liveService.LordId==serviceCareer.ExternalLordId;
+                    second=first && liveService.Days>=7 &&
+                        serviceCareer.ExternalInsideHostParty && liveService.InsideHostParty;
+                    third=first && liveService.Days>=30 &&
+                        serviceCareer.ExternalInsideHostParty && liveService.InsideHostParty;
                     break;
                 case "Knight":
-                    first=knightOath.IsConfigured &&
+                    first=knightOath.IsConfigured && knightOath.HasCurrentOath &&
+                        knightOath.PlayerId==player.StringId &&
                         knightOath.LastMusterDay>=0;
                     second=first && knightEscort.CompletedEscorts>=1;
                     third=second && knightEscort.CompletedEscorts>=2;
                     break;
                 case "Lord":
-                    first=lordInheritance.IsRecorded && ownLand;
+                    first=lordInheritance.IsRecorded && ownLand &&
+                        clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService;
                     second=first;
                     third=first && clan.Settlements.Count>=2;
                     break;
@@ -125,8 +279,28 @@ namespace CalradiaUnified
             if(careerChronicle.Role!=role)
                 return "The saved career is not the verified "+
                     "current career. No history has been overwritten.";
-            return "Your path: "+role+
+            var clan=Clan.PlayerClan;
+            var player=Hero.MainHero;
+            string standing=clan==null || player==null?
+                "Unverified political status":
+                SandboxStartingLifePolicy.PoliticalStanding(
+                    clan.Leader==player,clan.Kingdom!=null,
+                    clan.Kingdom!=null && clan.Kingdom.RulingClan==clan,
+                    clan.IsUnderMercenaryService);
+            return "Recorded career: "+role+
+                "\nCareer duties (guidance): "+
+                SandboxStartingLifePolicy.CareerContract(role)+
+                "\nCurrent native political standing: "+standing+
+                "\nClan settlements: "+
+                (clan==null || clan.Settlements==null?"unverified":
+                    clan.Settlements.Count.ToString())+
+                "\nRecorded personal oath: "+
+                (knightOath.IsConfigured?knightOath.Status:"none")+
+                "\nLast recorded external service status: "+
+                serviceCareer.Status+
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
+                "\nSelected review calling: "+SelectedReviewRole()+
+                "\n"+RecurringCareerReviewText()+
                 "\nPresent charge: "+
                 SandboxCareerChronicleState.ChapterObjective(
                     role,careerChronicle.Chapter)+
@@ -164,6 +338,27 @@ namespace CalradiaUnified
                     ShowNativeDetail("Career | Your next charge",
                         CareerChronicleDescription());
                 },false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_recurring_review",
+                "Review my recurring career duties",
+                args=>SelectedReviewRole().Length>0,
+                args=>ReviewRecurringCareer(),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_lifetime_history","Read my lifetime career history",
+                args=>true,args=>ShowNativeDetail("Lifetime career",
+                    LifetimeCareerText(Hero.MainHero)),false);
+            foreach(string candidate in SandboxStartingLifePolicy.SevenPaths)
+            {
+                string role=candidate;
+                starter.AddGameMenuOption("cu_career_chronicle",
+                    "cu_lifetime_record_"+role,"Record observed calling: "+role,
+                    args=>CanRecordLifetimeRole(role),
+                    args=>RecordLifetimeRole(role),false);
+            }
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_battle_history","Review witnessed campaign battles",
+                args=>true,args=>ShowNativeDetail("Career | Battle history",
+                    BattleHistoryDescription()),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
                 "Return to household affairs",

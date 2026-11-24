@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalradiaUnified
 {
@@ -176,6 +178,162 @@ namespace CalradiaUnified
             }
             else if(f[4].Length!=0 || f[5].Length!=0)return empty;
             return result;
+        }
+    }
+
+    /// <summary>Repeatable, voluntary reviews of current evidence.
+    /// These receipts never award gold, rank, relation or completed duties.</summary>
+    public sealed class SandboxCareerReviewState
+    {
+        public const string Version="CU_CAREER_REVIEWS_1";
+        public const int IntervalDays=7, MaxRecords=64;
+        public sealed class Receipt
+        {
+            public string HeroId="", Role="";
+            public int LastDay, Count;
+        }
+        private readonly List<Receipt> records=new List<Receipt>();
+        private static bool Id(string id)
+        {
+            return !String.IsNullOrWhiteSpace(id) && id.Length<=80 &&
+                id.All(c=>Char.IsLetterOrDigit(c) || c=='_' || c=='-');
+        }
+        private static bool Role(string role)
+        {
+            return Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,role)>=0;
+        }
+        public Receipt For(string hero,string role)
+        {
+            return records.FirstOrDefault(r=>r.HeroId==hero && r.Role==role);
+        }
+        public static string Activity(string role)
+        {
+            switch(role)
+            {
+                case "Wanderer": return "Town livelihood review";
+                case "Outlaw": return "Independent band readiness review";
+                case "Mercenary": return "Active company contract review";
+                case "Soldier": return "Verified enlisted service review";
+                case "Knight": return "Current oath and muster review";
+                case "Lord": return "Native estate and household review";
+                case "King": return "Native crown and court review";
+                default: return "";
+            }
+        }
+        public bool Record(string hero,string role,int day,bool verified)
+        {
+            if(!verified || !Id(hero) || !Role(role) || day<0)return false;
+            var receipt=For(hero,role);
+            if(receipt!=null)
+            {
+                if((long)day-receipt.LastDay<IntervalDays)return false;
+                receipt.LastDay=day;
+                receipt.Count++;
+                return true;
+            }
+            if(records.Count>=MaxRecords)return false;
+            records.Add(new Receipt{HeroId=hero,Role=role,LastDay=day,Count=1});
+            return true;
+        }
+        public string Serialize()
+        {
+            var rows=new List<string>{Version};
+            foreach(var r in records.OrderBy(x=>x.HeroId,StringComparer.Ordinal)
+                .ThenBy(x=>x.Role,StringComparer.Ordinal))
+                rows.Add(String.Join("|",new[]{r.HeroId,r.Role,
+                    r.LastDay.ToString(CultureInfo.InvariantCulture),
+                    r.Count.ToString(CultureInfo.InvariantCulture)}));
+            return String.Join("\n",rows);
+        }
+        public static SandboxCareerReviewState Parse(string packed)
+        {
+            var empty=new SandboxCareerReviewState();
+            if(String.IsNullOrEmpty(packed) || packed.Length>16000)return empty;
+            var rows=packed.Replace("\r","").Split('\n');
+            if(rows.Length>MaxRecords+1 || rows[0]!=Version)return empty;
+            var state=new SandboxCareerReviewState();
+            foreach(var row in rows.Skip(1))
+            {
+                var f=row.Split('|');
+                int day,count;
+                if(f.Length!=4 || !Id(f[0]) || !Role(f[1]) ||
+                    !Int32.TryParse(f[2],NumberStyles.None,CultureInfo.InvariantCulture,out day) ||
+                    !Int32.TryParse(f[3],NumberStyles.None,CultureInfo.InvariantCulture,out count) ||
+                    day<0 || count<1 || (long)(count-1)*IntervalDays>day ||
+                    state.For(f[0],f[1])!=null)return empty;
+                state.records.Add(new Receipt{HeroId=f[0],Role=f[1],
+                    LastDay=day,Count=count});
+            }
+            return state;
+        }
+    }
+
+    // Observed/selected career episodes. No inferred start before the
+    // first receipt, no automatic assignment of native status or rewards.
+    public sealed class SandboxLifetimeCareerState
+    {
+        public const string Version="CU_LIFETIME_CAREER_1";
+        public const int MaxEpisodes=64;
+        public sealed class Episode
+        {
+            public string HeroId="",Role="";
+            public int FirstDay,LastDay;
+        }
+        private readonly List<Episode> episodes=new List<Episode>();
+        public Episode[] For(string hero)
+        {
+            return episodes.Where(e=>e.HeroId==hero).ToArray();
+        }
+        private static bool Id(string id)
+        {
+            return !String.IsNullOrWhiteSpace(id) && id.Length<=80 &&
+                id.All(c=>Char.IsLetterOrDigit(c) || c=='_' || c=='-');
+        }
+        private static bool Role(string role)
+        {
+            return Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,role)>=0;
+        }
+        public bool Record(string hero,string role,int day,bool verified,bool chosen)
+        {
+            if(!verified || !chosen || !Id(hero) || !Role(role) || day<0)return false;
+            var last=For(hero).LastOrDefault();
+            if(last!=null)
+            {
+                if(day<=last.LastDay)return false;
+                if(last.Role==role){last.LastDay=day;return true;}
+            }
+            if(episodes.Count>=MaxEpisodes)return false;
+            episodes.Add(new Episode{HeroId=hero,Role=role,FirstDay=day,LastDay=day});
+            return true;
+        }
+        public string Serialize()
+        {
+            return String.Join("\n",new[]{Version}.Concat(episodes.Select(e=>
+                String.Join("|",new[]{e.HeroId,e.Role,
+                    e.FirstDay.ToString(CultureInfo.InvariantCulture),
+                    e.LastDay.ToString(CultureInfo.InvariantCulture)}))));
+        }
+        public static SandboxLifetimeCareerState Parse(string packed)
+        {
+            var empty=new SandboxLifetimeCareerState();
+            if(String.IsNullOrEmpty(packed) || packed.Length>16000)return empty;
+            var rows=packed.Replace("\r","").Split('\n');
+            if(rows[0]!=Version || rows.Length>MaxEpisodes+1)return empty;
+            var state=new SandboxLifetimeCareerState();
+            foreach(var row in rows.Skip(1))
+            {
+                var f=row.Split('|');
+                int first,last;
+                if(f.Length!=4 || !Id(f[0]) || !Role(f[1]) ||
+                    !Int32.TryParse(f[2],NumberStyles.None,CultureInfo.InvariantCulture,out first) ||
+                    !Int32.TryParse(f[3],NumberStyles.None,CultureInfo.InvariantCulture,out last) ||
+                    first<0 || last<first)return empty;
+                var previous=state.For(f[0]).LastOrDefault();
+                if(previous!=null && (first<=previous.LastDay || previous.Role==f[1]))
+                    return empty;
+                state.episodes.Add(new Episode{HeroId=f[0],Role=f[1],FirstDay=first,LastDay=last});
+            }
+            return state;
         }
     }
 }

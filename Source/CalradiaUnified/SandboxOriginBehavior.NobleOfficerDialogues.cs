@@ -13,6 +13,7 @@ namespace CalradiaUnified
         {
             var party=MobileParty.MainParty;
             var clan=Clan.PlayerClan;
+            if(!Settings.NativeOfficerTransfersEnabled)return false;
             if(seat==null || party==null || clan==null ||
                seat.OwnerClan!=clan || !seat.IsFortification ||
                seat.IsUnderSiege || seat.Town==null ||

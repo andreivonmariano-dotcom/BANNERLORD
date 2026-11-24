@@ -1,5 +1,7 @@
 using System;
 using System.Globalization;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CalradiaUnified
 {
@@ -120,6 +122,72 @@ namespace CalradiaUnified
             r.DaysObserved=days;r.ObservedCredits=credits;
             r.ObservedDebits=debits;r.VerifiedExternalDailyWage=wage;
             return r;
+        }
+    }
+
+    // Personal native gold snapshots. No attribution of causes, no
+    // household-wide total that could double-count a shared treasury.
+    public sealed class SandboxHouseholdAccountsState
+    {
+        public const string Version="CU_HOUSEHOLD_ACCOUNTS_1";
+        public const int MaxPeople=64;
+        public sealed class Account
+        {
+            public string HeroId="";
+            public int Day,Gold;
+            public int? LastChange;
+        }
+        private readonly List<Account> records=new List<Account>();
+        public Account For(string id){return records.FirstOrDefault(x=>x.HeroId==id);}
+        private static bool Id(string s)
+        {
+            return !String.IsNullOrWhiteSpace(s) && s.Length<=80 &&
+                s.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-');
+        }
+        public bool Observe(string id,int day,int gold)
+        {
+            if(!Id(id)||day<0||gold<0)return false;
+            var account=For(id);
+            if(account==null)
+            {
+                if(records.Count>=MaxPeople)return false;
+                records.Add(new Account{HeroId=id,Day=day,Gold=gold});
+                return true;
+            }
+            if(day<=account.Day)return false;
+            account.LastChange=gold-account.Gold;
+            account.Day=day;account.Gold=gold;
+            return true;
+        }
+        public string Serialize()
+        {
+            return String.Join("\n",new[]{Version}.Concat(records.OrderBy(x=>x.HeroId,
+                StringComparer.Ordinal).Select(x=>String.Join("|",new[]{x.HeroId,
+                    x.Day.ToString(CultureInfo.InvariantCulture),
+                    x.Gold.ToString(CultureInfo.InvariantCulture),
+                    x.LastChange.HasValue?x.LastChange.Value.ToString(CultureInfo.InvariantCulture):""}))));
+        }
+        public static SandboxHouseholdAccountsState Parse(string packed)
+        {
+            var empty=new SandboxHouseholdAccountsState();
+            if(String.IsNullOrEmpty(packed)||packed.Length>16000)return empty;
+            var rows=packed.Replace("\r","").Split('\n');
+            if(rows[0]!=Version||rows.Length>MaxPeople+1)return empty;
+            var state=new SandboxHouseholdAccountsState();
+            foreach(var row in rows.Skip(1))
+            {
+                var f=row.Split('|');int day,gold,delta=0;
+                if(f.Length!=4 || !Id(f[0]) || state.For(f[0])!=null ||
+                    !Int32.TryParse(f[1],NumberStyles.None,CultureInfo.InvariantCulture,out day) ||
+                    !Int32.TryParse(f[2],NumberStyles.None,CultureInfo.InvariantCulture,out gold) ||
+                    day<0 || gold<0 || (f[3].Length>0 &&
+                        (!Int32.TryParse(f[3],NumberStyles.Integer,CultureInfo.InvariantCulture,out delta) ||
+                        day==0 || (long)gold-delta<0 || (long)gold-delta>Int32.MaxValue)))
+                    return empty;
+                state.records.Add(new Account{HeroId=f[0],Day=day,Gold=gold,
+                    LastChange=f[3].Length==0?(int?)null:delta});
+            }
+            return state;
         }
     }
 }

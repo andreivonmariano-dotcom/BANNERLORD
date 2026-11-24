@@ -43,6 +43,12 @@ namespace CalradiaUnified
                         "Qulan","Borte","Sorghag","Khulan","Sarnai"} :
                     new[]{"Bortu","Temir","Arban","Khasar","Altan",
                         "Batu","Jebe","Subutai","Arghun","Kadan"};
+                // Suggestions only if an actual native Hero uses this ID.
+                case "nord":return female ?
+                    new[]{"Astrid","Sigrid","Ingrid","Ragnhild","Thyra",
+                        "Gudrun","Freydis","Helga","Signe","Yrsa"} :
+                    new[]{"Harald","Eirik","Bjorn","Leif","Ivar",
+                        "Hakon","Ragnar","Sigurd","Ulf","Halfdan"};
                 default:return female ?
                     new[]{"Elira","Mira","Leora","Nadia","Rowena",
                         "Isara","Seren","Talia","Yara","Lena"} :

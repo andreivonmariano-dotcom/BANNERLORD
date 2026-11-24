@@ -12,6 +12,34 @@ namespace CalradiaUnified
         public static readonly string[] SevenPaths={
             "Wanderer","Outlaw","Mercenary","Soldier","Knight","Lord","King"
         };
+        // Guidance only: never a grant of native rank, assets or authority.
+        public static string CareerContract(string path)
+        {
+            switch(path)
+            {
+                case "Wanderer": return "Pursue livelihood, travel, family and patronage; no formal service required.";
+                case "Outlaw": return "Maintain your band and resources; criminal consequences remain native or Fourberie-owned.";
+                case "Mercenary": return "Honor native paid contracts, maintain your company and negotiate release.";
+                case "Soldier": return "Serve your named lord; enlistment, rank, pay and release belong to Serve as Soldier.";
+                case "Knight": return "Fulfill the personal oath, muster and escort duties; no automatic vassalage or land.";
+                case "Lord": return "Maintain your noble house and estates; native vassalage and ownership control political rights.";
+                case "King": return "Protect the kingdom and convene your court; native rulership controls the crown.";
+                default: return "";
+            }
+        }
+        // Independent dimensions: a fief or kinship is not political office.
+        public static string PoliticalStanding(bool clanLeader,
+            bool inKingdom,bool rulingClan,bool mercenary)
+        {
+            if(!inKingdom)
+                return rulingClan || mercenary ? "Unverified political status" :
+                    "Independent clan";
+            if(rulingClan && mercenary)return "Unverified political status";
+            if(rulingClan)return clanLeader?"Native ruler":"Ruling-clan member";
+            if(mercenary)return "Native mercenary clan";
+            return clanLeader?"Native kingdom clan leader":"Native kingdom clan member";
+        }
+
         public static readonly string[] EarlyHouseholds={
             "Auto","Rural","Town","Garrison","TradingHouse","Court","Displaced"
         };

@@ -19,5 +19,6 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxRoleEconomyPolicy.cs" Link="Policies/SandboxRoleEconomyPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionState.cs" Link="Policies/SandboxAgencyDecisionState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxAgencyDecisionPolicy.cs" Link="Policies/SandboxAgencyDecisionPolicy.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxSocialBondState.cs" Link="Policies/SandboxSocialBondState.cs" />
   </ItemGroup>
 </Project>

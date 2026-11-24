@@ -121,6 +121,7 @@ namespace CalradiaUnified
                 "Recorded in your actual clan companion roster.":
                 "Family ties are verified from native Hero records.";
             string privateOffice=HouseholdOfficeFor(person.StringId);
+            if(ExistingCourtDuty(person).Length>0)privateOffice="";
             if(companion && privateOffice.Length>0)
                 duty="Assigned household duty: "+privateOffice+
                     ". Verified reports: "+
@@ -128,14 +129,10 @@ namespace CalradiaUnified
                     ". Speak in person to give or review orders.";
             if(companion && lordInheritance.IsRecorded &&
                 NativeCourtOfficer("Master of Arms")==person)
-                duty="Master of Arms: speak in person inside "+
-                    "your own castle to station five existing, "+
-                    "healthy local recruits in its garrison.";
+                duty="Master of Arms: personal office. Direct CU garrison orders held; use native garrison controls.";
             else if(companion && kingSuccession.IsRecorded &&
                 NativeCourtOfficer("Marshal")==person)
-                duty="Marshal: meet in person at your royal seat "+
-                    "after today's council to authorize a guarded "+
-                    "transfer of five existing recruits.";
+                duty="Marshal: personal office. Direct CU garrison orders held; use native garrison controls.";
             else if(companion && person.GovernorOf!=null)
                 duty="Native governor: currently serving at "+
                     person.GovernorOf.Settlement.Name+".";
@@ -148,7 +145,27 @@ namespace CalradiaUnified
                 "\n"+duty+
                 "\nStanding with you: "+
                 (person==player?"your own character":
-                    player.GetRelation(person).ToString()));
+                    player.GetRelation(person).ToString())+
+                "\nCurrent reciprocal spouse: "+
+                (person.Spouse!=null && person.Spouse.Spouse==person?
+                    NativePersonName(person.Spouse):"not verified")+
+                (person==player?"":"\n"+SocialBondDescription(person))+
+                "\n\n"+CulturalSocietyText(person)+
+                "\n\n"+HouseholdAccountText(person)+
+                "\n\n"+LifetimeCareerText(person)+
+                "\n\n"+PersonalHistoryText(person));
+        }
+
+        private string CulturalSocietyText(Hero person)
+        {
+            string culture=person==null || person.Culture==null?"":person.Culture.StringId;
+            string guidance=SandboxCulturalInheritancePolicy.CustomGuidance(culture);
+            string education=SandboxCulturalInheritancePolicy.EducationConvention(culture);
+            return "Native culture: "+(culture.Length==0?"unverified":culture)+
+                "\nCU custom guidance: "+(guidance.Length==0?"unestablished":guidance)+
+                "\nSuggested upbringing: "+(education.Length==0?"none":education)+
+                "\nModeled inheritance: "+SandboxCulturalInheritancePolicy.Model(culture)+
+                "\nActual rights and property remain native; no automatic skill or title.";
         }
 
         private void OpenDossierFamilyPortraits()
@@ -212,7 +229,7 @@ namespace CalradiaUnified
         private string DossierOfficerLabel(Hero hero)
         {
             if(hero==null || !hero.IsAlive)return "UNAVAILABLE";
-            string office=HouseholdOfficeFor(hero.StringId);
+            string office=EffectiveHouseholdDuty(hero);
             if(office.Length>0)return office.ToUpperInvariant();
             if(NativeCourtOfficer("Master of Arms")==hero)
                 return "MASTER OF ARMS";

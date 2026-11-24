@@ -24,6 +24,17 @@ namespace CalradiaUnified
         {
             return Records.FirstOrDefault(x=>x.HeroId==id);
         }
+        // Rotate opportunities among known people without bypassing
+        // eligibility, cooldowns, or the one-pending-request rule.
+        public string[] Prioritize(IEnumerable<string> ids)
+        {
+            if(ids==null)return new string[0];
+            return ids.Where(id=>!String.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(id=>For(id)==null?0:For(id).RequestsMade)
+                .ThenBy(id=>For(id)==null?-1:For(id).LastDay)
+                .ThenBy(id=>id,StringComparer.Ordinal).ToArray();
+        }
         public void Tick()
         {
             if(Day<Int32.MaxValue)Day++;
@@ -91,10 +102,10 @@ namespace CalradiaUnified
         public static SandboxAgencyDecisionState Parse(string packed)
         {
             var result=new SandboxAgencyDecisionState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>18000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>131072)
                 return result;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length<2 || rows[0]!="CU_AGENCY_1")
+            if(rows.Length<2 || rows.Length>66 || rows[0]!="CU_AGENCY_1")
                 return result;
             var head=rows[1].Split('|');
             int day,opened;
@@ -141,6 +152,101 @@ namespace CalradiaUnified
                     result.Dismiss("UnverifiedRestoredRequest");
             }
             return result;
+        }
+    }
+
+    // A modeled NPC-to-NPC initiative, never native consent or an
+    // actual relation, marriage, gold, office or allegiance change.
+    public sealed class SandboxPeerInitiativeState
+    {
+        public const string Version="CU_PEER_INITIATIVE_1";
+        public const int MaxRecords=64, IntervalDays=7, PersonCooldown=30;
+        public sealed class Entry
+        {
+            public string Actor="",Target="",Kind="",Outcome="";
+            public int Day;
+        }
+        private readonly List<Entry> entries=new List<Entry>();
+        public Entry[] Entries { get { return entries.ToArray(); } }
+        private static bool Id(string s)
+        {
+            return !String.IsNullOrWhiteSpace(s) && s.Length<=80 &&
+                s.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-');
+        }
+        public static string Kind(string goal)
+        {
+            switch(goal)
+            {
+                case "ProtectSharedHousehold":case "SupportHousehold":
+                case "MaintainHousehold": return "HouseholdCooperation";
+                case "EstablishLivelihood":case "BuildTradingContacts":
+                    return "LivelihoodContact";
+                case "GainMilitaryTraining":case "PreserveFamilyPosition":
+                    return "PatronageInterest";
+                default:return "";
+            }
+        }
+        public static string Response(int relation,int generosity,int calculating)
+        {
+            if(relation< -10)return "ModeledDecline";
+            if(relation>=15 && (generosity>0 || calculating<=0))
+                return "ModeledInterest";
+            return "ModeledDefer";
+        }
+        public string[] PrioritizePeers(IEnumerable<string> ids,int limit)
+        {
+            if(ids==null || limit<=0)return new string[0];
+            return ids.Where(Id).Distinct(StringComparer.Ordinal)
+                .OrderBy(id=>entries.Count(e=>e.Actor==id || e.Target==id))
+                .ThenBy(id=>entries.Where(e=>e.Actor==id || e.Target==id)
+                    .Select(e=>e.Day).DefaultIfEmpty(-1).Max())
+                .ThenBy(id=>id,StringComparer.Ordinal).Take(Math.Min(limit,64)).ToArray();
+        }
+        private bool CanRecord(string actor,string target,int day)
+        {
+            return Id(actor) && Id(target) && actor!=target && day>=0 &&
+                entries.Count<MaxRecords &&
+                (entries.Count==0 || (long)day-entries[entries.Count-1].Day>=IntervalDays) &&
+                !entries.Any(e=>(e.Actor==actor || e.Target==actor ||
+                    e.Actor==target || e.Target==target) &&
+                    (long)day-e.Day<PersonCooldown);
+        }
+        public bool Record(string actor,string target,string goal,int day,
+            bool bothEligible,bool samePlace,int relation,int generosity,int calculating)
+        {
+            string kind=Kind(goal);
+            if(!bothEligible || !samePlace || kind.Length==0 ||
+                !CanRecord(actor,target,day))return false;
+            entries.Add(new Entry{Actor=actor,Target=target,Kind=kind,
+                Day=day,Outcome=Response(relation,generosity,calculating)});
+            return true;
+        }
+        public string Serialize()
+        {
+            return String.Join("\n",new[]{Version}.Concat(entries.Select(e=>
+                String.Join("|",new[]{e.Actor,e.Target,e.Kind,e.Outcome,
+                    e.Day.ToString(System.Globalization.CultureInfo.InvariantCulture)}))));
+        }
+        public static SandboxPeerInitiativeState Parse(string packed)
+        {
+            var empty=new SandboxPeerInitiativeState();
+            if(String.IsNullOrEmpty(packed)||packed.Length>16000)return empty;
+            var rows=packed.Replace("\r","").Split('\n');
+            if(rows[0]!=Version || rows.Length>MaxRecords+1)return empty;
+            var state=new SandboxPeerInitiativeState();
+            foreach(var row in rows.Skip(1))
+            {
+                var f=row.Split('|');int day;
+                if(f.Length!=5 || !Int32.TryParse(f[4],out day) ||
+                    !state.CanRecord(f[0],f[1],day) ||
+                    (f[2]!="HouseholdCooperation" && f[2]!="LivelihoodContact" &&
+                     f[2]!="PatronageInterest") ||
+                    (f[3]!="ModeledDecline" && f[3]!="ModeledInterest" &&
+                     f[3]!="ModeledDefer"))return empty;
+                state.entries.Add(new Entry{Actor=f[0],Target=f[1],Kind=f[2],
+                    Outcome=f[3],Day=day});
+            }
+            return state;
         }
     }
 }

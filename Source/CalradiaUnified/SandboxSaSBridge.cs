@@ -19,6 +19,7 @@ namespace CalradiaUnified
             public bool NativeHostPartyLedByLord,LordIsNativeLord;
             public string LordId="",LordKingdomId="",RankId="",DutyId="";
             public int RankNumber,Wage,Days,TermDaysLeft;
+            public MobileParty HostParty;
         }
         private static Type ApiType()
         {
@@ -107,6 +108,7 @@ namespace CalradiaUnified
                     result.LordId.Length==0 ||
                     SandboxSoldierEnlistmentPolicy.NativeRankNumber(
                         result.RankId)==0)return new Snapshot();
+                result.HostParty=host;
                 result.DutyId=Field(snap,"DutyId") as string ?? "";
                 result.Wage=Math.Max(0,Num(Field(snap,"DailyWage")));
                 result.Days=Math.Max(0,Num(Field(snap,"DaysServed")));

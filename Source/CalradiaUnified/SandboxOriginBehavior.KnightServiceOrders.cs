@@ -61,6 +61,8 @@ namespace CalradiaUnified
             var clan=Clan.PlayerClan;
             var lord=Hero.OneToOneConversationHero;
             if(!applied || !knightOath.HasCurrentOath ||
+                Hero.MainHero==null ||
+                Hero.MainHero.StringId!=knightOath.PlayerId ||
                 patron==null || patron.Clan==null ||
                 patron.Clan.Kingdom==null || clan==null ||
                 clan.Kingdom!=null ||

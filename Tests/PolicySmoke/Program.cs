@@ -23,6 +23,213 @@ internal static class Program
     }
     private static void Main()
     {
+        var fullBattleLedger=new SandboxBattleHistoryState();
+        string longBattleId=new string('a',80);
+        string woundedIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('w',79)+i));
+        string fallenIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('f',79)+i));
+        bool allBattles=true;
+        for(int i=0;i<SandboxBattleHistoryState.MaxEntries;i++)
+            allBattles &= fullBattleLedger.RecordObserved(
+                SandboxBattleHistoryState.EventKey("full_"+i),i,"Field","Victory",
+                "PlayerParty",longBattleId,longBattleId,longBattleId,4,4,woundedIds,fallenIds);
+        Check("full battle ledger survives its own serialization limit",
+            allBattles && fullBattleLedger.Serialize().Length>16000 &&
+            SandboxBattleHistoryState.Parse(fullBattleLedger.Serialize()).Entries.Count==SandboxBattleHistoryState.MaxEntries);
+        var fullLifeLedger=new SandboxLifeHistoryState();
+        string longBiography=new string('\u754c',240);
+        for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
+            fullLifeLedger.Record(new SandboxLifeHistoryState.Person{Id="person_"+i,Age=30,Biography=longBiography});
+        Check("encoded full biography ledger survives reload",
+            fullLifeLedger.Serialize().Length>100000 &&
+            SandboxLifeHistoryState.Parse(fullLifeLedger.Serialize()).People.Count==SandboxLifeHistoryState.MaxPeople);
+        var fullAgendaLedger=new SandboxCharacterAgendaState();
+        string longGoal=new string('\u754c',180);
+        for(int i=0;i<SandboxCharacterAgendaState.MaxEntries;i++)
+            fullAgendaLedger.Register("person_"+i,longGoal,"","Unverified","","","");
+        Check("encoded full agenda ledger survives reload",
+            fullAgendaLedger.Serialize().Length>45000 &&
+            SandboxCharacterAgendaState.Parse(fullAgendaLedger.Serialize()).Entries.Count==SandboxCharacterAgendaState.MaxEntries);
+        var fullAgencyLedger=new SandboxAgencyDecisionState();
+        for(int i=0;i<64;i++)
+        {
+            fullAgencyLedger.Day=i*100;
+            fullAgencyLedger.Propose(new string('\u754c',155)+i,"HouseholdAid");
+            fullAgencyLedger.Dismiss("test");
+        }
+        Check("encoded full invitation quota ledger survives reload",
+            fullAgencyLedger.Serialize().Length>18000 &&
+            SandboxAgencyDecisionState.Parse(fullAgencyLedger.Serialize()).Records.Count==64);
+        var reconciledBattles=new SandboxBattleHistoryState();
+        string reconciledKey=SandboxBattleHistoryState.EventKey("native-battle-example");
+        Check("battle ledger rejects overlap of fallen and wounded identities",
+            !reconciledBattles.RecordObserved(reconciledKey,1,"Field","Victory",
+                "PlayerParty","","","patron",1,1,"hero_a","hero_a"));
+        Check("battle ledger preserves observed casualties and deduplicates receipt",
+            reconciledBattles.RecordObserved(reconciledKey,1,"Field","Victory",
+                "PlayerParty","","","patron",1,1,"hero_a","hero_b") &&
+            !reconciledBattles.Record(reconciledKey,1,"Field","Victory","PlayerParty","","") &&
+            SandboxBattleHistoryState.Parse(reconciledBattles.Serialize()).Entries[0].PartyDead==1);
+        Check("legacy battle schema preserves unknown casualty counts",
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_1\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||").Entries[0].PartyDead==-1);
+        Check("legacy knight acknowledgement parser rejects impossible date",
+            SandboxKnightBattleRecognitionState.Parse(
+                "CU_KNIGHT_BATTLE_RECOGNITION_1\npatron|1|2000001").Stage==0);
+        var acceptanceSettings=new Settings{
+            EnablePlayerForaging=true,
+            EnableCivicSystems=true,
+            EnableAbstractShipments=true,
+            EnableEconomy=true,
+            EnableRecruitment=true,
+            EnableLocalDiplomacy=true,
+            EnablePhysicalConvoys=true,
+            EnableDepotTrade=true,
+            EnableKingdomLevies=true,
+            EnableKingdomDiplomacy=true,
+            EnableAutonomousClanResupply=true,
+            EnableAutonomousClanRecruitTrips=true,
+            EnableAutonomousClanPatrol=true,
+            EnableGarrisonTraining=true,
+            EnableAutoGarrisonWageCaps=true,
+            EnableManualGarrisonTransfers=true,
+            EnableManualGarrisonWageCaps=true,
+            EnableAutoGarrisonTraining=true,
+            EnableVillageHarvest=true,
+            EnableSurplusEstateSales=true,
+            EnableSupplyWarnings=true,EnableNpcAdvisory=true};
+        acceptanceSettings.ApplyAcceptanceFreeze();
+        Check("acceptance freeze overrides every legacy mutation flag",
+            !acceptanceSettings.EnablePlayerForaging &&
+            !acceptanceSettings.EnableCivicSystems &&
+            !acceptanceSettings.EnableAbstractShipments &&
+            !acceptanceSettings.EnableEconomy &&
+            !acceptanceSettings.EnableRecruitment &&
+            !acceptanceSettings.EnableLocalDiplomacy &&
+            !acceptanceSettings.EnablePhysicalConvoys &&
+            !acceptanceSettings.EnableDepotTrade &&
+            !acceptanceSettings.EnableKingdomLevies &&
+            !acceptanceSettings.EnableKingdomDiplomacy &&
+            !acceptanceSettings.EnableAutonomousClanResupply &&
+            !acceptanceSettings.EnableAutonomousClanRecruitTrips &&
+            !acceptanceSettings.EnableAutonomousClanPatrol &&
+            !acceptanceSettings.EnableGarrisonTraining &&
+            !acceptanceSettings.EnableAutoGarrisonWageCaps &&
+            !acceptanceSettings.EnableManualGarrisonTransfers &&
+            !acceptanceSettings.EnableManualGarrisonWageCaps &&
+            !acceptanceSettings.EnableAutoGarrisonTraining &&
+            !acceptanceSettings.EnableVillageHarvest &&
+            !acceptanceSettings.EnableSurplusEstateSales &&
+            acceptanceSettings.EnableSupplyWarnings && acceptanceSettings.EnableNpcAdvisory &&
+            !Settings.NativeOfficerTransfersEnabled);
+        Check("all held mutation keys reject enable through the settings menu",
+            new[]{"EnablePlayerForaging","EnableCivicSystems","EnableAbstractShipments","EnableEconomy","EnableRecruitment","EnableLocalDiplomacy","EnablePhysicalConvoys","EnableDepotTrade","EnableKingdomLevies","EnableKingdomDiplomacy","EnableAutonomousClanResupply","EnableAutonomousClanRecruitTrips","EnableAutonomousClanPatrol","EnableGarrisonTraining","EnableAutoGarrisonWageCaps","EnableManualGarrisonTransfers","EnableManualGarrisonWageCaps","EnableAutoGarrisonTraining","EnableVillageHarvest","EnableSurplusEstateSales"}
+                .All(Settings.IsHeldMutation) && !Settings.IsHeldMutation("EnableSupplyWarnings"));
+        var duplicateAgenda=SandboxCharacterAgendaState.Parse(
+            "CU_AGENDA_1\nP|hero_a|SupportHousehold||||||0|1\nP|hero_a|EstablishLivelihood||||||0|5");
+        Check("duplicate restored agenda retains first verified award count",
+            duplicateAgenda.Entries.Count==1 && duplicateAgenda.Get("hero_a").ComradeshipAwards==1);
+        Check("cultural conventions are explicit and unsupported cultures remain unknown",
+            new[]{"vlandia","sturgia","battania","empire","aserai","khuzait","nord"}
+                .All(id=>SandboxCulturalInheritancePolicy.CustomGuidance(id).Length>0 &&
+                    SandboxFamilyDevelopmentPolicy.IsUpbringing(
+                        SandboxCulturalInheritancePolicy.EducationConvention(id))) &&
+            SandboxCulturalInheritancePolicy.CustomGuidance("unknown")=="" &&
+            SandboxCulturalInheritancePolicy.Model("nord")=="Unestablished" &&
+            !SandboxCulturalInheritancePolicy.CanTransferEstateWithoutNativeAction());
+        Check("inheritance seniority cannot overflow on corrupted elder count",
+            SandboxCulturalInheritancePolicy.ClaimPriority("vlandia",Int32.MaxValue,true,false,0,0)==25);
+        Check("nord naming suggestions remain deterministic and respect exclusions",
+            SandboxCulturalNames.Suggest("nord",false,0,null)=="Harald" &&
+            SandboxCulturalNames.Suggest("nord",false,0,new[]{"Harald"})=="Eirik" &&
+            SandboxCulturalNames.Suggest("nord",true,0,null)=="Astrid");
+        var lifetimeTest=new SandboxLifetimeCareerState();
+        Check("career episodes require evidence and voluntary selection",
+            !lifetimeTest.Record("hero_a","Knight",0,false,true) &&
+            !lifetimeTest.Record("hero_a","Knight",0,true,false) &&
+            !lifetimeTest.Record("hero_a","Admiral",0,true,true) &&
+            lifetimeTest.Record("hero_a","Knight",0,true,true));
+        Check("career transition preserves earlier observation and prevents same-day change",
+            lifetimeTest.Record("hero_a","Knight",4,true,true) &&
+            !lifetimeTest.Record("hero_a","Lord",4,true,true) &&
+            lifetimeTest.Record("hero_a","Lord",5,true,true) &&
+            lifetimeTest.For("hero_a")[0].LastDay==4 &&
+            lifetimeTest.For("hero_a").Length==2);
+        Check("career retirement return and succession remain separate",
+            lifetimeTest.Record("hero_a","Wanderer",10,true,true) &&
+            lifetimeTest.Record("hero_b","Wanderer",10,true,true) &&
+            lifetimeTest.Record("hero_a","Knight",12,true,true) &&
+            SandboxLifetimeCareerState.Parse(lifetimeTest.Serialize()).For("hero_a").Length==4 &&
+            SandboxLifetimeCareerState.Parse(lifetimeTest.Serialize()).For("hero_b").Length==1);
+        Check("lifetime parser rejects overlapping episodes",
+            SandboxLifetimeCareerState.Parse("CU_LIFETIME_CAREER_1\nhero_a|Knight|0|7\nhero_a|Lord|7|9").For("hero_a").Length==0);
+        var peerTest=new SandboxPeerInitiativeState();
+        Check("peer initiative requires two eligible co-located distinct people",
+            !peerTest.Record("a","a","SupportHousehold",0,true,true,20,1,0) &&
+            !peerTest.Record("a","b","SupportHousehold",0,false,true,20,1,0) &&
+            !peerTest.Record("a","b","SupportHousehold",0,true,false,20,1,0) &&
+            peerTest.Record("a","b","SupportHousehold",0,true,true,20,1,0));
+        var peerRestored=SandboxPeerInitiativeState.Parse(peerTest.Serialize());
+        Check("peer receipts persist and respect global and individual cooldown",
+            peerRestored.Entries.Length==1 &&
+            peerRestored.Entries[0].Outcome=="ModeledInterest" &&
+            !peerRestored.Record("c","d","GainMilitaryTraining",6,true,true,0,0,0) &&
+            !peerRestored.Record("b","c","GainMilitaryTraining",7,true,true,0,0,0) &&
+            peerRestored.Record("c","d","GainMilitaryTraining",7,true,true,-20,0,0) &&
+            peerRestored.Entries[1].Outcome=="ModeledDecline");
+        Check("peer rotation includes previously overlooked eligible people",
+            peerRestored.PrioritizePeers(new[]{"a","b","c","d","e","f"},2)
+                .SequenceEqual(new[]{"e","f"}));
+        Check("peer parser rejects false native consent",
+            SandboxPeerInitiativeState.Parse("CU_PEER_INITIATIVE_1\na|b|PatronageInterest|NativeConsent|0").Entries.Length==0);
+        var accountTest=new SandboxHouseholdAccountsState();
+        Check("household account baseline never implies income",
+            accountTest.Observe("hero_a",0,100) &&
+            !accountTest.For("hero_a").LastChange.HasValue &&
+            !accountTest.Observe("hero_a",0,200) &&
+            accountTest.Observe("hero_a",3,75) &&
+            accountTest.For("hero_a").LastChange==-25);
+        Check("personal balances do not transfer to a successor",
+            accountTest.Observe("hero_b",3,20) &&
+            SandboxHouseholdAccountsState.Parse(accountTest.Serialize()).For("hero_b").Gold==20 &&
+            !SandboxHouseholdAccountsState.Parse(accountTest.Serialize()).For("hero_b").LastChange.HasValue);
+        Check("account parser rejects impossible previous gold and duplicate IDs",
+            SandboxHouseholdAccountsState.Parse("CU_HOUSEHOLD_ACCOUNTS_1\nhero_a|3|20|30").For("hero_a")==null &&
+            SandboxHouseholdAccountsState.Parse("CU_HOUSEHOLD_ACCOUNTS_1\nhero_a|3|20|\nhero_a|4|30|10").For("hero_a")==null);
+        var recurringLife=new SandboxCareerReviewState();
+        foreach(string path in SandboxStartingLifePolicy.SevenPaths)
+            Check("recurring review "+path+" requires evidence and respects interval",
+                SandboxCareerReviewState.Activity(path).Length>0 &&
+                !recurringLife.Record("hero_1",path,0,false) &&
+                recurringLife.Record("hero_1",path,0,true) &&
+                !recurringLife.Record("hero_1",path,6,true) &&
+                recurringLife.Record("hero_1",path,7,true));
+        var restoredLife=SandboxCareerReviewState.Parse(recurringLife.Serialize());
+        Check("recurring review receipts persist separately by career and hero",
+            restoredLife.For("hero_1","Knight").Count==2 &&
+            !restoredLife.Record("hero_1","Knight",7,true) &&
+            restoredLife.Record("heir_2","Knight",7,true) &&
+            !restoredLife.Record("hero_1","Admiral",14,true));
+        Check("recurring reviews reject impossible and duplicate rows",
+            SandboxCareerReviewState.Parse("CU_CAREER_REVIEWS_1\nhero_1|Knight|1|2").For("hero_1","Knight")==null &&
+            SandboxCareerReviewState.Parse("CU_CAREER_REVIEWS_1\nhero_1|Knight|7|2\nhero_1|Knight|7|2").For("hero_1","Knight")==null);
+        var independentMarriage=new SandboxLifeHistoryState();
+        Check("native marriage observation requires reciprocal link",
+            !independentMarriage.ObserveMarriage("npc_1","npc_2",false) &&
+            independentMarriage.Events.Count==0 &&
+            independentMarriage.ObserveMarriage("npc_1","npc_2",true));
+        var restoredMarriage=SandboxLifeHistoryState.Parse(independentMarriage.Serialize());
+        Check("NPC marriage is recorded once across both directions and reload",
+            !restoredMarriage.ObserveMarriage("npc_2","npc_1",true) &&
+            restoredMarriage.Bonds.Count==2 && restoredMarriage.Events.Count==1 &&
+            restoredMarriage.RecentFor("npc_2",5).Length==1 &&
+            restoredMarriage.RecentFor("unrelated",5).Length==0);
+        var rotation=new SandboxAgencyDecisionState();
+        rotation.Propose("npc_a","Recognition");
+        rotation.Dismiss("Test");
+        var rotated=SandboxAgencyDecisionState.Parse(rotation.Serialize());
+        Check("NPC opportunity rotation favors people with fewer prior requests",
+            rotated.Prioritize(new[]{"npc_a","npc_c","npc_b","npc_c"})
+                .SequenceEqual(new[]{"npc_b","npc_c","npc_a"}));
         // Stabilization pass 2: guided identities and honest recovery.
         var guidedSoldierLabel=new SandboxOriginProfile{
             Role="Soldier",SoldierGuidedStart=true};
@@ -289,6 +496,18 @@ internal static class Program
                 lateOrder.Serialize()+"|forged").Status=="Available");
 
         // v0.71c: pure-state tests, independent of a running campaign.
+        var repeatHousehold=new SandboxHouseholdDutyState();
+        Check("family conversation cooldown tracks benefit only",
+            repeatHousehold.RecordAudience("spouse_repeat",10) &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",10)==30 &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",39)==1 &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",40)==0 &&
+            !repeatHousehold.RecordAudience("spouse_repeat",10));
+        Check("gift cooldown independent of family audience",
+            repeatHousehold.GiftDaysRemaining("spouse_repeat",10)==0 &&
+            repeatHousehold.RecordGiftAttempt("spouse_repeat",10) &&
+            SandboxHouseholdDutyState.Parse(repeatHousehold.Serialize())
+                .GiftDaysRemaining("spouse_repeat",11)==29);
         var offices=new SandboxHouseholdDutyState();
         Check("household offices require a real bounded Hero ID",
             offices.Assign("Steward","")==
@@ -455,6 +674,40 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
+        Check("career roster exact ordered seven with no extra careers",
+            SandboxStartingLifePolicy.SevenPaths.SequenceEqual(new[]{
+                "Wanderer","Outlaw","Mercenary","Soldier","Knight","Lord","King"}) &&
+            SandboxStartingLifePolicy.SevenPaths.All(p=>
+                SandboxStartingLifePolicy.CareerContract(p).Length>0) &&
+            SandboxOriginProfile.Roles.Where(p=>
+                !SandboxStartingLifePolicy.SevenPaths.Contains(p)).All(p=>
+                    SandboxStartingLifePolicy.CareerContract(p)==""));
+        Check("political office independent of recorded career",
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,true,false)=="Native ruler" &&
+            SandboxStartingLifePolicy.PoliticalStanding(false,true,true,false)=="Ruling-clan member" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,false,true)=="Native mercenary clan" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,false,false,false)=="Independent clan" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,false,true,false)=="Unverified political status" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,true,true)=="Unverified political status");
+        var rememberedRefusal=new SandboxSocialBondState();
+        rememberedRefusal.RecordPetition("memory_hero",false,-1,1);
+        Check("one refusal does not block all future petitions",
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                rememberedRefusal.For("memory_hero"),-15));
+        rememberedRefusal.RecordPetition("memory_hero",false,-1,2);
+        var restoredRefusal=SandboxSocialBondState.Parse(rememberedRefusal.Serialize());
+        Check("verified repeated refusals influence future requests after reload",
+            !SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),-15) &&
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),0) &&
+            SandboxAgencyDecisionPolicy.CanReapproach(null,-15));
+        restoredRefusal.RecordPetition("memory_hero",true,2,3);
+        restoredRefusal.RecordPetition("memory_hero",true,2,4);
+        Check("verified support permits reconciliation",
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),-15));
+
         var royalCouncil=new SandboxRoyalCouncilState();
         Check("one actual Hero per royal council office",
             royalCouncil.Begin("vlandia","sargot","king",
@@ -4456,10 +4709,19 @@ internal static class Program
                 !Settings.LoadFromPaths(baseline, userIni).EnableSupplyWarnings);
             Check("settings experimental stays opt-in on reload",
                 !Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
-            Check("settings can enable and persist an opt-in feature",
-                settings.TrySetMenuValue("EnableEconomy", "true",
-                    userIni, out configError) && settings.EnableEconomy &&
-                Settings.LoadFromPaths(baseline, userIni).EnableEconomy);
+            string heldBefore=System.IO.File.ReadAllText(userIni);
+            Check("acceptance setting write cannot enable held economy",
+                !settings.TrySetMenuValue("EnableEconomy", "TRUE",
+                    userIni, out configError) && !settings.EnableEconomy &&
+                System.IO.File.ReadAllText(userIni)==heldBefore);
+            System.IO.File.AppendAllText(userIni,"EnableEconomy=true\n");
+            var legacyOverride=Settings.LoadFromPaths(baseline,userIni);
+            Check("legacy config stays readable but effective runtime blocks mutation",
+                legacyOverride.EnableEconomy);
+            legacyOverride.ApplyAcceptanceFreeze();
+            Check("legacy override cannot resurrect economy after runtime freeze",
+                !legacyOverride.EnableEconomy &&
+                System.IO.File.ReadAllText(userIni).Contains("EnableEconomy=true"));
             Check("settings numeric updates apply immediately",
                 settings.TrySetMenuValue("SupplyWarningDays", "5",
                     userIni, out configError) && settings.SupplyWarningDays == 5);
@@ -4470,8 +4732,8 @@ internal static class Program
                 System.IO.File.ReadAllText(userIni) == previousContents &&
                 settings.SupplyWarningDays == 5);
             Check("settings malformed path does not change live state",
-                !settings.TrySetMenuValue("EnableEconomy", "false",
-                    "", out configError) && settings.EnableEconomy);
+                !settings.TrySetMenuValue("SupplyWarningDays", "6",
+                    "", out configError) && settings.SupplyWarningDays==5);
             Check("settings preserving unrelated user entries",
                 SettingsMenuPolicy.UpdateLines("# keep\nExtraKey=hello\n",
                     "EnableCivicSystems", "false").Contains("ExtraKey=hello"));

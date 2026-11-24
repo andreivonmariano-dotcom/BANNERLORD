@@ -84,8 +84,9 @@ namespace CalradiaUnified
             string heroId,int day)
         {
             return Id(heroId) && day>=0 &&
-                (!receipts.ContainsKey(heroId) ||
-                 (long)day-receipts[heroId]>=FamilyCooldownDays);
+                (receipts.ContainsKey(heroId)?
+                 (long)day-receipts[heroId]>=FamilyCooldownDays:
+                 receipts.Count<16);
         }
         private static bool Record(Dictionary<string,int> receipts,
             string heroId,int day)
@@ -96,6 +97,18 @@ namespace CalradiaUnified
                 return false;
             receipts[heroId]=day;
             return true;
+        }
+        public int AudienceDaysRemaining(string heroId,int day)
+        {
+            int previous;
+            return familyAudience.TryGetValue(heroId??"",out previous)?
+                (int)Math.Min(Int32.MaxValue,Math.Max(0L,(long)previous+FamilyCooldownDays-day)):0;
+        }
+        public int GiftDaysRemaining(string heroId,int day)
+        {
+            int previous;
+            return familyGift.TryGetValue(heroId??"",out previous)?
+                (int)Math.Min(Int32.MaxValue,Math.Max(0L,(long)previous+FamilyCooldownDays-day)):0;
         }
         public bool CanAudience(string heroId,int day)
         {
@@ -158,7 +171,7 @@ namespace CalradiaUnified
         public static SandboxHouseholdDutyState Parse(string packed)
         {
             var empty=new SandboxHouseholdDutyState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>3000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>4096)
                 return empty;
             var rows=packed.Replace("\r","").Split('\n');
             if(rows.Length!=2 || rows[0]!=Version)return empty;

@@ -221,8 +221,7 @@ namespace CalradiaUnified
                     "WandererCompanionEnabled",
                     "Begin with a loyal companion?",
                     "Optional. Exactly one starting companion, relation 100, "+
-                    "no net wages while serving in your main party "+
-                    "(native wage reimbursed daily).", "boolean"));
+                    "Native wages apply; CU adds no separate reimbursement.", "boolean"));
                 list.Add(new Field("CHAPTER II | YOUR COMPANION",
                     "WandererCompanionName","Companion name",
                     "A unique named native Hero, not a random hired wanderer.",
@@ -1602,7 +1601,7 @@ namespace CalradiaUnified
                         "Companion: "+(profile.WandererCompanionEnabled?
                             profile.WandererCompanionName+" | "+
                             profile.WandererCompanionSpecialty+
-                            " | 100 relation | wage reimbursed":"none")+
+                            " | 100 relation | native wages":"none")+
                         "\nNative appearance, attributes, skills and "+
                         "traits remain editable.";
                 if(preCampaign)

@@ -235,8 +235,10 @@ namespace CalradiaUnified
         internal static void ObserveAgenda(SandboxLifeHistoryState life,
             SandboxCharacterAgendaState agenda,Hero player)
         {
-            if(life==null || agenda==null || player==null)return;
-            var alive=Hero.AllAliveHeroes.Where(h=>h!=null)
+            if(life==null || agenda==null || player==null || agenda.Entries.Count==0)return;
+            var tracked=new HashSet<string>(agenda.Entries.Select(e=>e.Id),
+                StringComparer.Ordinal);
+            var alive=Hero.AllAliveHeroes.Where(h=>h!=null && tracked.Contains(h.StringId))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),
                     StringComparer.Ordinal);
@@ -344,8 +346,10 @@ namespace CalradiaUnified
         {
             if(state==null || social==null || player==null ||
                 state.People.Count==0)return 0;
+            var tracked=new HashSet<string>(state.People.Select(p=>p.Id),
+                StringComparer.Ordinal);
             var living=Hero.AllAliveHeroes.Where(h=>h!=null &&
-                !String.IsNullOrEmpty(h.StringId))
+                !String.IsNullOrEmpty(h.StringId) && tracked.Contains(h.StringId))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),
                     StringComparer.Ordinal);
@@ -364,17 +368,14 @@ namespace CalradiaUnified
                     record.HouseholdId=clan;
                     events++;
                 }
-                if(hero.Spouse!=null &&
+                if(hero.Spouse!=null && hero.Spouse!=hero &&
+                    hero.Spouse.Spouse==hero &&
                     !state.Bonds.Any(x=>x.From==hero.StringId &&
                         x.To==hero.Spouse.StringId &&
                         x.Kind=="Spouse"))
                 {
-                    state.Tie(hero.StringId,hero.Spouse.StringId,
-                        "Spouse","VerifiedNativeMarriage");
-                    state.Remember("NativeMarriageObserved",
-                        hero.StringId,hero.Spouse.StringId,
-                        "native_marriage_seen=true|date_not_established");
-                    events++;
+                    if(state.ObserveMarriage(hero.StringId,
+                        hero.Spouse.StringId,true))events++;
                 }
                 if(hero!=player)
                 {

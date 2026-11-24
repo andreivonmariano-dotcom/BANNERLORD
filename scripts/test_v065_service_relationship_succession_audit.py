@@ -40,7 +40,10 @@ assert 'PotentialSuccessionReview' in bh
 assert 'native_fief_ownership_unchanged' in bh
 assert 'native_fiefs_transferred=0' in bh
 assert 'NativeRelationChangedObserved' in people
-assert 'NativeMarriageObserved' in people
+assert 'state.ObserveMarriage(hero.StringId,' in people
+assert 'hero.Spouse.Spouse==hero' in people
+assert 'NativeMarriageObserved' in ledger
+assert 'if(!reciprocal' in ledger
 assert 'NativeClanChangedObserved' in people
 assert 'cause=unverified' in people
 assert 'Uri.EscapeDataString' in social

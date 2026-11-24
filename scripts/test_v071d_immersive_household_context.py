@@ -37,12 +37,11 @@ assert 'RecordedBirthClan()' in menu
 assert 'claimReturnMenu=from;' in menu
 assert 'GameMenu.SwitchToMenu(claimReturnMenu)' in menu
 
-# Legacy saved menu IDs remain registered, but remote choices do not.
-for key in ("cu_people_accept","cu_people_decline","cu_people_requests"):
-    assert '"'+key+'"' in menu,key
-assert '"cu_people_accept","Provide the requested support",\n                args=>false' in menu
-assert '"cu_people_decline","Decline the request",\n                args=>false' in menu
-assert '"Private petitions and favors",\n                args=>false' in menu
+# Preserve legacy menu ID and a return route, not permanently hidden actions.
+assert 'starter.AddGameMenu("cu_people_requests"' in menu
+assert '"cu_people_requests_back"' in menu
+for key in ("cu_people_accept","cu_people_decline","cu_people_open_requests"):
+    assert '"'+key+'"' not in menu,key
 assert 'Hero.OneToOneConversationHero!=actor' in menu
 
 # Remote dossier is an index of the ACTUAL native actor's whereabouts.

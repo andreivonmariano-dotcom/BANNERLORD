@@ -38,7 +38,10 @@ assert 'InspectDossierHero' in house
 assert 'NativeCourtOfficer("Master of Arms")==person' in house
 assert 'NativeCourtOfficer("Marshal")==person' in house
 assert 'person.GovernorOf!=null' in house
-assert 'five existing' in house
+# Officer identities remain native, but duplicate direct roster changes are held.
+assert house.count('Direct CU garrison orders held; use native garrison controls.')==2
+assert 'if(!Settings.NativeOfficerTransfersEnabled)return false;' in read("SandboxOriginBehavior.NobleOfficerDialogues.cs")
+assert 'NativeOfficerTransfersEnabled { get { return false; } }' in read("Settings.cs")
 assert 'person.CompanionOf==clan' in house
 assert 'player.Children.Contains(person)' in house
 assert 'OpenDossierFamilyPortraits' in house

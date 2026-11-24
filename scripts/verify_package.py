@@ -32,8 +32,7 @@ def verify(filename, version):
             assert category.attrib.get("Name")=="ui_calradiaunified"
             assert category.find("AlwaysLoad") is not None
         gauntlet_prefab = prefix + "GUI/Prefabs/CUSettingsPanel.xml"
-        assert gauntlet_prefab in names, "Native UI prefab missing"
-        assert ET.fromstring(archive.read(gauntlet_prefab)).tag == "Prefab", "Invalid prefab XML"
+        assert gauntlet_prefab not in names, "Retired pre-MCM settings UI must not ship"
         # The former pre-game screen has an observed broken layout and blocked
         # Back navigation. It is intentionally excluded from shipped builds.
         origin_prefab = prefix + "GUI/Prefabs/CUOriginPanel.xml"
@@ -79,6 +78,16 @@ def verify(filename, version):
         assert root.find("Id").attrib["value"] == "CalradiaUnified"
         assert root.find("Version").attrib["value"] == version
         assert root.find(".//DLLName").attrib["value"] == "CalradiaUnified.dll"
+        identity=json.loads(archive.read(prefix+"ModuleData/CU-BuildIdentity.json").decode("utf-8-sig"))
+        assert identity["module_id"]=="CalradiaUnified"
+        assert identity["manifest_version"]==version
+        assert identity["assembly_version"]==version[1:]+".0"
+        assert identity["dll_sha256"]==hashlib.sha256(dll).hexdigest()
+        assert identity["acceptance"]=="COMPILED_UNTESTED"
+        if identity["source_commit"]!="unverified-local":
+            assert len(identity["source_commit"])==40
+            assert identity["source_commit"] in identity["informational_version"]
+            assert identity["ci_run_id"].isdigit()
     return {"result":"PASS","version":version,"runtime_files":len(names),
             "dll_bytes":len(dll),
             "dll_sha256":hashlib.sha256(dll).hexdigest(),

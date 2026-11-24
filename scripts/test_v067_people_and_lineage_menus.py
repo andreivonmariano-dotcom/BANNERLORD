@@ -29,8 +29,9 @@ assert '"Return to settlement"' in menu
 assert '"cu_household_view"' in menu
 assert '"cu_household_next"' in menu
 assert '"cu_people_request"' in menu
-assert '"cu_people_accept"' in menu
-assert '"cu_people_decline"' in menu
+assert '"cu_people_accept"' not in menu
+assert '"cu_people_decline"' not in menu
+assert '"cu_people_requests_back"' in menu
 assert '"cu_family_claim_review"' in menu
 assert '"cu_family_petition"' in menu
 assert '"cu_family_grant"' in menu
@@ -48,7 +49,8 @@ assert 'GameMenu.SwitchToMenu(affairsReturnMenu)' in menu
 assert 'InformationManager.ShowInquiry(new InquiryData(' in menu
 assert 'ConfirmCharacterSupport()' in menu
 assert 'ConfirmEstateInNativeDialog()' in menu
-assert '"cu_people_accept","Provide the requested support",\n                args=>false' in menu
+assert 'Hero.OneToOneConversationHero!=actor' in menu
+assert 'AnswerCharacterRequest(true)' in read("SandboxOriginBehavior.PetitionConversations.cs")
 assert '"cu_birth_family_council_entry_"' in menu
 assert 'Settlement.CurrentSettlement.OwnerClan==' in menu
 assert 'args=>ConfirmEstateInNativeDialog(),false' in menu

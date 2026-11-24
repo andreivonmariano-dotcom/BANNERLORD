@@ -70,3 +70,14 @@ assert 'ReviewDossierCalling' in house
 print("PASS v0.71c STATIC: officer appointments, real family meetings, "+
       "save-backed seven-role chapters, native campaign evidence and "+
       "no counterfeit salary, clan or kingdom actions.")
+
+# Live Lord feedback: dialogue visibility must not depend on receipt cooldown.
+assert '()=>SpeakingWithAdultFamily(),\n                ()=>DiscussFamilyAffairs()' in duties
+assert 'if(CanFamilyAudience())HoldFamilyAudience();' in duties
+assert '()=>CanDiscussHouseholdDuty(),\n                ()=>DiscussHouseholdDuty()' in duties
+assert 'ExistingCourtDuty(person).Length==0 && CanReportHouseholdDuty()' in duties
+assert 'if(ExistingCourtDuty(speaker).Length>0)return false;' in duties
+assert 'CU_FAMILY_CONVERSATION_REPLY' in duties
+assert 'CU_HOUSEHOLD_DUTY_REPLY' in duties
+assert 'garrison.MemberRoster.TotalManCount' in duties
+print("PASS: repeatable family and officer dialogue is independent of reward eligibility; actual scene behavior remains a live test.")

@@ -23,9 +23,11 @@ Copy-Item $manifest (Join-Path $stage 'SubModule.xml')
 $gui = Join-Path $module 'GUI'
 if (Test-Path -LiteralPath $gui) {
     Copy-Item $gui (Join-Path $stage 'GUI') -Recurse
-    $discontinued = Join-Path $stage 'GUI\Prefabs\CUOriginPanel.xml'
-    if (Test-Path -LiteralPath $discontinued) {
-        Remove-Item -LiteralPath $discontinued -Force
+    foreach ($retired in @('CUOriginPanel.xml','CUSettingsPanel.xml')) {
+        $discontinued = Join-Path $stage ("GUI\Prefabs\" + $retired)
+        if (Test-Path -LiteralPath $discontinued) {
+            Remove-Item -LiteralPath $discontinued -Force
+        }
     }
 }
 Copy-Item (Join-Path $module 'ModuleData') (Join-Path $stage 'ModuleData') -Recurse
@@ -36,6 +38,29 @@ New-Item -ItemType Directory -Path $bins -Force | Out-Null
 Copy-Item $source (Join-Path $bins 'CalradiaUnified.dll')
 $version = [string]$x.Module.Version.value
 if ($version -notmatch '^v[0-9]+[.][0-9]+[.][0-9]+$') { throw 'Unexpected manifest version.' }
+if ($assembly.Version.ToString() -ne ($version.Substring(1)+'.0')) {
+    throw 'Assembly and manifest version mismatch.'
+}
+$info = [Diagnostics.FileVersionInfo]::GetVersionInfo($source).ProductVersion
+$revision = [string]$env:GITHUB_SHA
+if ($env:GITHUB_ACTIONS -eq 'true') {
+    if ($revision -notmatch '^[a-f0-9]{40}$' -or
+        -not $info.Contains($revision)) { throw 'CI DLL source revision mismatch.' }
+} else {
+    $revision = 'unverified-local'
+}
+$identity = [ordered]@{
+    module_id = 'CalradiaUnified'
+    manifest_version = $version
+    assembly_version = $assembly.Version.ToString()
+    informational_version = $info
+    source_commit = $revision
+    ci_run_id = [string]$env:GITHUB_RUN_ID
+    dll_sha256 = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+    acceptance = 'COMPILED_UNTESTED'
+    target_game = '1.5.7.125802'
+}
+$identity | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stage 'ModuleData\CU-BuildIdentity.json') -Encoding UTF8
 $package = Join-Path $root ("CalradiaUnified_" + $version + "_COMPILED_UNTESTED.zip")
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal

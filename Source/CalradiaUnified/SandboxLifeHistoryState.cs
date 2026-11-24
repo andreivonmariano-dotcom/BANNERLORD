@@ -65,6 +65,26 @@ namespace CalradiaUnified
                 Evidence=evidence??""});
             return true;
         }
+        // A reciprocal native spouse link is evidence of a marriage,
+        // not proof of its date or a newly performed ceremony.
+        public bool ObserveMarriage(string hero,string spouse,bool reciprocal)
+        {
+            if(!reciprocal || String.IsNullOrWhiteSpace(hero) ||
+                String.IsNullOrWhiteSpace(spouse) || hero==spouse)return false;
+            bool known=Bonds.Any(b=>b.Kind=="Spouse" &&
+                ((b.From==hero && b.To==spouse) ||
+                 (b.From==spouse && b.To==hero)));
+            if(!Tie(hero,spouse,"Spouse","VerifiedNativeMarriage") || known)
+                return false;
+            return Remember("NativeMarriageObserved",hero,spouse,
+                "native_marriage_seen=true|date_not_established");
+        }
+        public Event[] RecentFor(string hero,int limit)
+        {
+            if(String.IsNullOrWhiteSpace(hero) || limit<=0)return new Event[0];
+            return Events.Where(e=>e.Actor==hero || e.Target==hero)
+                .Reverse().Take(Math.Min(limit,10)).ToArray();
+        }
         public bool Remember(string kind,string actor,string target,
             string detail)
         {
@@ -101,10 +121,10 @@ namespace CalradiaUnified
         public static SandboxLifeHistoryState Parse(string packed)
         {
             var state=new SandboxLifeHistoryState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>100000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>4194304)
                 return state;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length==0 || rows[0]!="CU_LIFE_1")
+            if(rows.Length==0 || rows.Length>MaxPeople+MaxBonds+MaxEvents+1 || rows[0]!="CU_LIFE_1")
                 return state;
             foreach(var row in rows.Skip(1))
             {
@@ -113,11 +133,14 @@ namespace CalradiaUnified
                 if(f.Length==11 && f[0]=="P" &&
                     Int32.TryParse(f[4],out age) &&
                     age>=0 && age<=120)
+                {
+                    if(!state.People.Any(p=>p.Id==Dec(f[1])))
                     state.Record(new Person{Id=Dec(f[1]),Name=Dec(f[2]),
                         Culture=Dec(f[3]),Age=age,Station=Dec(f[5]),
                         Occupation=Dec(f[6]),HouseholdId=Dec(f[7]),
                         Origin=Dec(f[8]),Ambition=Dec(f[9]),
                         Biography=Dec(f[10])});
+                }
                 else if(f.Length==5 && f[0]=="B")
                     state.Tie(Dec(f[1]),Dec(f[2]),Dec(f[3]),
                         Dec(f[4]));

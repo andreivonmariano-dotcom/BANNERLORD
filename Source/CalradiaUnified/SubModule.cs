@@ -96,7 +96,8 @@ namespace CalradiaUnified
                     if(settings.AutoSessionReports)
                         DiagnosticSessionReporter.Start();
                     DiagnosticJournal.Event("module_loaded",
-                        "version=0.38.0|auto_session_reports="+
+                        "version="+typeof(SubModule).Assembly.GetName().Version+
+                        "|auto_session_reports="+
                         settings.AutoSessionReports);
                 }
             }

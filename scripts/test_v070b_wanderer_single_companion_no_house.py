@@ -87,12 +87,8 @@ assert 'cu_wanderer_companion_start_contract' in behavior
 assert 'Clan.PlayerClan.Companions.Count!=1' in behavior
 assert 'CU_v070b_wanderer_companion' in behavior
 assert 'CU_v070b_wanderer_wage_credit_day' in behavior
-assert 'RefundWandererCompanionWage' in behavior
-assert 'Campaign.Current.Models.PartyWageModel' in behavior
-assert '.GetCharacterWage(companion.CharacterObject)' in behavior
-assert 'GiveGoldAction.ApplyBetweenCharacters(' in behavior
-assert 'wandererWageCreditDay=day;' in behavior
-assert 'companion_in_main_party=true' in behavior
-print("PASS v0.70b SOURCE: new Wanderer has no House overlay, "+
-      "player stats remain, optional single native companion and "+
-      "save-backed wage reimbursement. LIVE GAME CHECK REQUIRED.")
+assert 'RefundWandererCompanionWage' not in behavior
+assert 'wage_payment_policy=native_only' in comp
+assert 'Native wages apply; CU adds no separate reimbursement.' in vm
+assert 'cu_wanderer_wage_credit' not in behavior
+print("PASS v0.70b SOURCE: optional single native companion, native payroll only, and legacy receipt key retained. LIVE GAME CHECK REQUIRED.")

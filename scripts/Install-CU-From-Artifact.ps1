@@ -6,7 +6,7 @@
 param(
     [string]$GameRoot = "",
     [string]$ArtifactZip = "",
-    [string]$ExpectedVersion = "v0.38.0",
+    [string]$ExpectedVersion = "v0.74.0",
     [string]$ExpectedDllSha256 = "",
     [switch]$ReplaceExisting,
     [switch]$ShowLatest,
@@ -17,13 +17,13 @@ $ErrorActionPreference = "Stop"
 # This pinned candidate was verified by the Windows pipeline. It was NOT
 # play-tested in Bannerlord. Keep the historic module manifest version
 # separate from this source-development version for save compatibility.
-$latestLabel = "v0.69g"
+$latestLabel = "Seven-career foundation (pre-consolidation)"
 $latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
-$latestRun = "44867186334"
-$latestCommit = "8c2382461522907db63d5890e2204864a336e056"
+$latestRun = "45355054393"
+$latestCommit = "1f71b00a72d71717135d3c55e4e6da50a8bfae3f"
 $latestManifest = "v0.38.0"
-$latestDllSha256 = "d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10"
-$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274"
+$latestDllSha256 = "becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45355054393/artifacts/14901409008"
 
 function Write-LatestBuild {
     Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
@@ -45,7 +45,7 @@ if ($ShowLatest -or ($PSBoundParameters.Count -eq 0)) {
     return
 }
 if ($LatestVerified) {
-    if ($ExpectedVersion -ne $latestManifest -or
+    if (($PSBoundParameters.ContainsKey('ExpectedVersion') -and $ExpectedVersion -ne $latestManifest) -or
         ($ExpectedDllSha256 -and
          $ExpectedDllSha256.Trim().ToLowerInvariant() -ne $latestDllSha256)) {
         throw "The selected version/hash conflicts with the latest pinned CI candidate."
@@ -162,6 +162,20 @@ try {
     if ($trustedHash -and $sourceHash -ne $trustedHash) {
         throw ("Artifact rejected BEFORE installation. Expected CI DLL SHA256: " +
             $trustedHash + "; downloaded DLL SHA256: " + $sourceHash)
+    }
+    if ($ExpectedVersion -eq 'v0.74.0') {
+        $identityPath = Join-Path $source 'ModuleData\CU-BuildIdentity.json'
+        if (-not (Test-Path -LiteralPath $identityPath -PathType Leaf)) {
+            throw 'Artifact rejected BEFORE installation: missing build identity.'
+        }
+        $identity = Get-Content -LiteralPath $identityPath -Raw | ConvertFrom-Json
+        if ($identity.module_id -ne 'CalradiaUnified' -or
+            $identity.manifest_version -ne $ExpectedVersion -or
+            $identity.assembly_version -ne ($ExpectedVersion.Substring(1)+'.0') -or
+            $identity.dll_sha256 -ne $sourceHash -or
+            $identity.acceptance -ne 'COMPILED_UNTESTED') {
+            throw 'Artifact rejected BEFORE installation: inconsistent build identity.'
+        }
     }
     if (Test-Path -LiteralPath $destination) {
         if (-not $ReplaceExisting) {

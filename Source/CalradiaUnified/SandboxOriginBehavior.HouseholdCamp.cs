@@ -151,6 +151,7 @@ namespace CalradiaUnified
                 "\nStanding with you: "+
                 Hero.MainHero.GetRelation(person)+
                 "\n"+SocialBondDescription(person)+
+                "\n"+PersonalHistoryText(person)+
                 "\nKnown settlement: "+(place==null?
                     "not recorded":place.Name.ToString())+
                 "\nThis is an actual living companion in your "+
@@ -207,6 +208,11 @@ namespace CalradiaUnified
                     CurrentCareerRole().Length>0,
                 args=>ShowNativeDetail("Camp | Present duties",
                     CareerChronicleDescription()),false);
+            starter.AddGameMenuOption("cu_household_camp",
+                "cu_household_camp_recurring_review",
+                "Review recurring career duties",
+                args=>CanSetUpNativeCamp() && SelectedReviewRole().Length>0,
+                args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_petitions",
                 "Read private correspondence",

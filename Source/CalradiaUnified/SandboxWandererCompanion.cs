@@ -264,7 +264,7 @@ namespace CalradiaUnified
                     "|reverse_relation="+created.GetRelation(player)+
                     "|native_companion_count="+
                        Clan.PlayerClan.Companions.Count+
-                    "|wage_payment_policy=player_daily_reimbursement"+
+                    "|wage_payment_policy=native_only"+
                     "|native_wage_not_mutated=true");
                 return "created:"+created.StringId;
             }

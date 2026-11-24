@@ -85,7 +85,8 @@ namespace CalradiaUnified
         private Hero RequestedCharacter()
         {
             var target=FindLivingPerson(agencyDecisions.PendingHeroId);
-            return SamePlace(Hero.MainHero,target)?target:null;
+            return target!=null && target.IsActive && !target.IsPrisoner &&
+                target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
         }
         private bool HasRequest()
         {
@@ -111,18 +112,34 @@ namespace CalradiaUnified
         private void OfferLocalCharacterRequest(Hero player)
         {
             if(player==null || agencyDecisions.HasPending)return;
-            foreach(var record in characterAgendas.Entries
-                .OrderBy(a=>a.Id,StringComparer.Ordinal))
+            var ids=agencyDecisions.Prioritize(
+                characterAgendas.Entries.Select(a=>a.Id));
+            if(ids.Length==0)return;
+            // A fresh bounded index per offer avoids one world scan per agenda.
+            var wanted=new System.Collections.Generic.HashSet<string>(
+                ids,StringComparer.Ordinal);
+            var local=Hero.AllAliveHeroes.Where(h=>h!=null && h.IsAlive &&
+                wanted.Contains(h.StringId) && h!=player && SamePlace(player,h))
+                .GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
+            foreach(string id in ids)
             {
-                var hero=FindLivingPerson(record.Id);
+                var record=characterAgendas.Get(id);
+                if(record==null)continue;
+                Hero hero;
+                if(!local.TryGetValue(id,out hero))continue;
                 if(hero==null || hero==player ||
-                    !SamePlace(player,hero) || hero.Age<18f)
+                    !SamePlace(player,hero) || hero.Age<18f ||
+                    !hero.IsActive || hero.IsPrisoner)
                     continue;
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
                     continue;
                 var prior=agencyDecisions.For(hero.StringId);
+                int nativeRelation=player.GetRelation(hero);
+                if(!SandboxAgencyDecisionPolicy.CanReapproach(
+                    socialBonds.For(hero.StringId),nativeRelation))continue;
                 string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
-                    record.Goal,true,true,player.GetRelation(hero),
+                    record.Goal,true,true,nativeRelation,
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
                         agencyDecisions.Day-prior.LastDay,
@@ -143,8 +160,8 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
                         "|day="+agencyDecisions.Day);
+                    break;
                 }
-                break;
             }
         }
         private void DescribeCharacterRequest()
@@ -170,7 +187,23 @@ namespace CalradiaUnified
                     characterAgendas.Get(actor.StringId).Goal)+
                 ". This is a new request, not a fabricated earlier promise.");
         }
+        private bool answeringCharacterRequest;
         private void AnswerCharacterRequest(bool accept)
+        {
+            // Native actions can invoke other campaign callbacks synchronously.
+            if(answeringCharacterRequest)return;
+            answeringCharacterRequest=true;
+            try
+            {
+                AnswerCharacterRequestCore(accept);
+            }
+            finally
+            {
+                answeringCharacterRequest=false;
+            }
+        }
+
+        private void AnswerCharacterRequestCore(bool accept)
         {
             var player=Hero.MainHero;
             var actor=RequestedCharacter();
@@ -281,13 +314,13 @@ namespace CalradiaUnified
                 "|relation_proof="+relationProof+
                 "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
-            ResolvePetitionStory(actor,accept,kind,
-                giftProof=="confirmed",actualRelation,relationProof);
-            // A confirmed payment must never be duplicated if a following
-            // native relation action fails. The choice is terminal.
+            // Consume the choice before supplementary story/diagnostic UI work.
+            // A confirmed payment must not be replayed if story recording fails.
             agencyDecisions.Dismiss(relationProof?
                 (accept?"Accepted":"Declined"):
                 "NativeRelationUnverified");
+            ResolvePetitionStory(actor,accept,kind,
+                giftProof=="confirmed",actualRelation,relationProof);
             Notify(actor.Name.ToString()+": "+
                 (relationProof?
                     (actualRelation>0?
@@ -766,11 +799,6 @@ namespace CalradiaUnified
                 args=>livingPersons.People.Count>0,
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_open_requests",
-                "Private petitions and favors",
-                args=>false,
-                args=>GameMenu.SwitchToMenu("cu_people_requests"),false);
-            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_claim",
                 "Family council and inheritance",
                 args=>successionInterest.IsRecorded,
@@ -804,14 +832,6 @@ namespace CalradiaUnified
                 "cu_people_request","Read the pending correspondence",
                 args=>agencyDecisions.HasPending,
                 args=>HearDossierPetition(),false);
-            starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_accept","Provide the requested support",
-                args=>false,
-                args=>{},false);
-            starter.AddGameMenuOption("cu_people_requests",
-                "cu_people_decline","Decline the request",
-                args=>false,
-                args=>{},false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_no_requests","Read private correspondence",
                 args=>!agencyDecisions.HasPending,
