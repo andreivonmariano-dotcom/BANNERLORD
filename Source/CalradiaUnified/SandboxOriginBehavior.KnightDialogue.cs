@@ -54,6 +54,7 @@ namespace CalradiaUnified
             int day=CurrentOathDay();
             if(patron==null || !KnightConversationMusterAvailable())
                 return;
+            bool firstAudience=knightOath.LastMusterDay<0;
             string receipt=knightOath.RecordMuster(day,true);
             if(receipt!="native_meeting_muster_recorded")return;
             bool favor=KnightOathNativeRelation(patron,2,
@@ -65,7 +66,9 @@ namespace CalradiaUnified
                 "|native_favor_action="+favor+
                 "|completed="+knightOath.CompletedMusters+
                 "|next_review_day="+knightOath.NextMusterDay);
-            patronReply="I have heard you. Keep your company ready for our next muster. "+
+            patronReply=(firstAudience?
+                "I have heard your oath. Rise, and keep faith with my house. ":
+                "I have heard you. Keep your company ready for our next muster. ")+
                 SandboxPetitionVoicePolicy.Opinion(PersonalVoice(patron),"Service");
         }
         private void ReleaseByPatronConversation()
