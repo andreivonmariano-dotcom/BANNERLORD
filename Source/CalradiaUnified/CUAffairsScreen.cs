@@ -144,7 +144,7 @@ namespace CalradiaUnified
             var senderClan=hero==null?null:hero.Clan;
             HasSenderBanner=senderClan!=null && senderClan.Banner!=null;
             try{SenderBanner=new BannerImageIdentifierVM(HasSenderBanner?
-                BannerCode.CreateFrom(senderClan.Banner):null);}
+                senderClan.Banner:null);}
             catch(Exception error){HasSenderBanner=false;SenderBanner=null;
                 DiagnosticJournal.Exception("cu_affairs_banner_unavailable",error);}
             LetterSender=hero==null?(item==null?"":"Campaign record"):

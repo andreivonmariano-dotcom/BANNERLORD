@@ -30,7 +30,16 @@ NATIVE_UI_FIELDS=(
  "ui_clan_native_extension_after_reload",
  "ui_party_native_extension_after_reload",
  "ui_mcm_mod_options_available",
+ "ui_affairs_map_entry_after_reload",
+ "ui_affairs_pending_notification_click",
+ "ui_affairs_no_remote_payment_or_relation",
+ "ui_affairs_sender_portrait_banner_matches",
+ "ui_affairs_native_navigation",
+ "ui_affairs_tabs_pagination_and_escape",
+ "ui_affairs_native_assets_rendered",
+ "ui_affairs_expired_request_history",
 )
+AFFAIRS_UI_SCREENS=("affairs_journal","affairs_notice","affairs_sender")
 ROLE_UI_SCREENSHOTS={
  "Knight":("knight_oath_ui.png","knight_household_ui.png",
            "knight_patron_conversation.png",
@@ -242,6 +251,13 @@ def audit_role(role,rows,evidence_root):
     for field in NATIVE_UI_FIELDS:
         if evidence.get(field) is not True:
             problems.append("native_ui_unverified_"+field)
+    for screen in AFFAIRS_UI_SCREENS:
+        filename=role.lower()+"_"+screen+".png"
+        if not screenshot_ok(evidence_root/filename):
+            problems.append("missing_native_ui_"+filename)
+    affairs_events=[x for x in group if x.get("context")=="cu_campaign_affairs_open"]
+    if not affairs_events or detail(affairs_events[-1]).get("read_only")!="true":
+        problems.append("missing_verified_campaign_affairs_open")
     for filename in ROLE_UI_SCREENSHOTS.get(role,()):
         if not screenshot_ok(evidence_root/filename):
             problems.append("missing_native_ui_"+filename)

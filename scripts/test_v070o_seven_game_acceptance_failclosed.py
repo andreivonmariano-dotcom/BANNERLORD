@@ -85,6 +85,7 @@ def fixtures(role):
         events.append(row(role,context,receipt+extras))
     events.append(row(role,"sandbox_start_contract",
                       "result=PASS|role="+role))
+    events.append(row(role,"cu_campaign_affairs_open","records=1|read_only=true"))
     if role in module.ROLE_UI_SCREENSHOTS:
         events.append(row(role,"cu_native_household_display_opened",
                           "result=OPENED|role="+role+
@@ -109,6 +110,8 @@ def proof_for(role):
         ui_clan_native_extension_after_reload=True,
         ui_party_native_extension_after_reload=True,
         ui_mcm_mod_options_available=True)
+    for field in module.NATIVE_UI_FIELDS:
+        if field.startswith("ui_affairs_"):proof[field]=True
     if role in ("Lord","King"):
         proof["ui_kingdom_native_extension_after_reload"]=True
     if role in module.ROLE_UI_SCREENSHOTS:
@@ -136,6 +139,8 @@ with tempfile.TemporaryDirectory() as folder:
         (native/(role.lower()+".json")).write_text(
             json.dumps(proof_for(role)),encoding="utf-8")
         (native/(role.lower()+".png")).write_bytes(native_png())
+        for screen in module.AFFAIRS_UI_SCREENS:
+            (native/(role.lower()+"_"+screen+".png")).write_bytes(native_png())
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
     for role in module.ROLES:
         screens=("clan","party","mcm")
@@ -150,6 +155,12 @@ with tempfile.TemporaryDirectory() as folder:
     cases=[x for role in module.ROLES for x in fixtures(role)]
     good=module.audit_all(cases,native)
     assert len(good)==7 and all(x["result"]=="PASS" for x in good)
+    letter=native/"wanderer_affairs_sender.png"
+    letter.unlink()
+    assert "missing_native_ui_wanderer_affairs_sender.png" in module.audit_role("Wanderer",cases,native)["missing"]
+    letter.write_bytes(native_png())
+    no_open=[x for x in cases if not (x["session_id"]=="session_Wanderer" and x["context"]=="cu_campaign_affairs_open")]
+    assert "missing_verified_campaign_affairs_open" in module.audit_role("Wanderer",no_open,native)["missing"]
     # A signed-looking fixture passes format validation, not genuine-game
     # provenance. It must never be published as a live session result.
     assert all(x["session_id"].startswith("session_") for x in good)

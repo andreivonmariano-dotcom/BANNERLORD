@@ -88,9 +88,17 @@ for e in journal.iter():
         if v.startswith("@") and e.tag!="ImageIdentifierWidget":assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
 assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{Portrait}" for e in journal.iter())
 assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{SenderBanner}" for e in journal.iter())
-assert "BannerCode.CreateFrom(senderClan.Banner)" in journal_vm
+assert "new BannerImageIdentifierVM(HasSenderBanner?" in journal_vm
+assert "senderClan.Banner:null" in journal_vm
 for name in active:
+    movie=ET.parse(ui/name).getroot()
+    sprites={e.get("Sprite") for e in movie.iter()}
+    assert "StdAssets\\Popup\\canvas" in sprites,name
+    assert "frame_9" in sprites,name
     assert "Popup.Done.Button.NineGrid" in (ui/name).read_text(),name
+assert any(e.get("Sprite")=="Quest\\header left" for e in journal.iter())
+assert any(e.get("Sprite")=="SPGeneral\\MapNotification\\kingdom_banner_frame_2" for e in journal.iter())
+assert "Map.Notification.More.Panel" in affairs
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",

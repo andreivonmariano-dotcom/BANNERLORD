@@ -11,18 +11,19 @@
                 HeightSizePolicy="Fixed" SuggestedHeight="650"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+            <Widget Sprite="StdAssets\Popup\canvas"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#231910FF"
+            <Widget Sprite="StdAssets\Popup\canvas"
                     WidthSizePolicy="Fixed" SuggestedWidth="1074"
                     HeightSizePolicy="Fixed" SuggestedHeight="644"
                     PositionXOffset="3" PositionYOffset="3"/>
-            <Widget Sprite="General\CharacterCreation\character_creation_background_gradient"
+            <Widget Sprite="frame_9" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
+            <Widget Sprite="Clan\clan_header"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="86"
                     PositionXOffset="15" PositionYOffset="15"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#BD9661FF"
+            <Widget Sprite="StdAssets\Popup\divider"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionXOffset="15" PositionYOffset="107"/>
@@ -77,7 +78,7 @@
                 </ListPanel>
               </ItemTemplate>
             </ListPanel>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+            <Widget Sprite="StdAssets\Popup\divider"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionXOffset="15" PositionYOffset="589"/>

@@ -66,6 +66,6 @@ namespace CalradiaUnified
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => "<ButtonWidget Id=\"CUMapAffairsNotice\" IsVisible=\"@CUHasPendingAffairs\" Brush=\"Popup.Done.Button.NineGrid\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"228\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"48\" HorizontalAlignment=\"Center\" Command.Click=\"ExecuteCUAffairsNotice\"><Children><TextWidget Brush=\"Popup.Button.Text\" Brush.FontSize=\"15\" Text=\"@CUAffairsNotice\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
+        public string Content => "<ButtonWidget Id=\"CUMapAffairsNotice\" IsVisible=\"@CUHasPendingAffairs\" Brush=\"Map.Notification.More.Panel\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"228\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"48\" HorizontalAlignment=\"Center\" Command.Click=\"ExecuteCUAffairsNotice\"><Children><TextWidget Brush=\"Map.Notification.More.Text\" Brush.FontSize=\"15\" Text=\"@CUAffairsNotice\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
 }

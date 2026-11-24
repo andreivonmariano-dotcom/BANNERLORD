@@ -89,7 +89,7 @@ def main():
                 if not isinstance(node,dict):return
                 attrs=node.get("a") or node.get("attributes") or {}
                 for key in ("Brush","Sprite"):
-                    if key in attrs and not str(attrs[key]).startswith(("@","!","$")):
+                    if key in attrs and not str(attrs[key]).startswith(("@","!","$","*")):
                         yield key,str(attrs[key])
                 for child in node.get("c") or node.get("children") or []:
                     yield from all_assets(child)
