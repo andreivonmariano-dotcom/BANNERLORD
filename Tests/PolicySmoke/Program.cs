@@ -1335,6 +1335,29 @@ internal static class Program
                 royalCouncil.Serialize()+"|extra").IsRecorded &&
             royalCouncil.Convene(99,true,true,true,true,true)==
                 "council_day_invalid");
+        var restoredCourt=SandboxRoyalCouncilState.Parse(royalCouncil.Serialize());
+        Check("court cannot rebind across kingdoms or without native proof or on same meeting day",
+            restoredCourt.Rebind("battania","newseat","heir","marshal","minister","guard",102,true)=="native_court_rebind_refused" &&
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",102,false)=="native_court_rebind_refused" &&
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",101,true)=="native_court_rebind_refused" &&
+            restoredCourt.KingId=="king");
+        Check("court continuity preserves prior meetings and saves exact successor and replacement identities",
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",102,true)=="native_court_rebound" &&
+            restoredCourt.KingId=="heir" && restoredCourt.SeatId=="newseat" &&
+            restoredCourt.Meetings==2 && restoredCourt.LastMeetingDay==101 &&
+            SandboxRoyalCouncilState.Parse(restoredCourt.Serialize()).KingsguardHeroId=="guard" &&
+            restoredCourt.Convene(102,true,true,true,true,true)=="real_royal_hero_council_convened" &&
+            restoredCourt.Meetings==3);
+        var replacementOffices=new SandboxRetinueOfficeState();
+        Check("office replacement preserves revoked identity and refuses occupied or unknown roles",
+            replacementOffices.Register("old","Marshal") &&
+            replacementOffices.Register("minister","RoyalMinister") &&
+            !replacementOffices.Replace("old","minister","Marshal") &&
+            !replacementOffices.Replace("old","new","Kingsguard") &&
+            replacementOffices.Replace("old","new","Marshal") &&
+            replacementOffices.HasIdentity("old") && replacementOffices.OfficeFor("old")=="" &&
+            SandboxRetinueOfficeState.Parse(replacementOffices.Serialize()).OfficeFor("new")=="Marshal" &&
+            !replacementOffices.Replace("new","old","Marshal"));
         Check("current noble authority follows native political station rather than original start",
             SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,false,false,false,false,false) &&
             SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,false) &&
