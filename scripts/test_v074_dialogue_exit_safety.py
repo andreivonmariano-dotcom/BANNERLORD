@@ -174,7 +174,7 @@ assert 'Pairs.Any(p=>p.LastDay>=day)' in peerstate
 assert 'player.Spouse.Spouse==player' in group and 'groupParticipants.Contains(player.Spouse)' in group
 assert 'RememberedFamilyMember()!=null' in group
 assert 'occasion=="CourtAssembly")return groupParent=="cu_native_royal_council"' in group
-assert 'GroupOccasionArgument(preference,speaker)' in group
+assert 'GroupOccasionArgument(preference,speaker,variant)' in group
 assert 'ShowGroupPeerStanding()' in group
 for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
     assert forbidden not in peer and forbidden not in group,forbidden
@@ -187,7 +187,7 @@ assert 'GroupTopicPreference(groupTopic' in group and 'GroupNuance(groupTopic,pr
 assert 'if(!GroupCanContinue() || groupSecondRound)return;' in group
 assert 'GameMenu.SwitchToMenu("cu_group_reconsider");' in group
 assert 'GroupChallenge(groupTopic,groupPreferences[i]' in group
-assert 'DialogueVariant(speaker.StringId,groupTopic' in group
+assert 'NextDialogueVariant(speaker,"Group:"+' in group
 assert 'store.SyncData("CU_gathering_plan_1",ref plannedGathering);' in origin
 assert 'gatheringPlan.Expire(CurrentHouseholdDay());' in origin
 assert 'gatheringPlan.Accepted.Contains(h.StringId)' in group
@@ -204,3 +204,25 @@ assert 'people.Skip(offset).Concat(people.Take(offset)).Take(12)' in peer
 assert 'SandboxPeerSocialState.Trend(record)' in group
 assert 'uint hash=2166136261u;' in voice
 print("PASS deeper deliberation, local scheduled attendance, backward-compatible peer trends. SOURCE ONLY.")
+
+# Bounded campaign-local variation advances only after an explicit action.
+variety=(src/"SandboxDialogueVarietyState.cs").read_text()
+assert 'Capacity=96' in variety and 'Entries.RemoveAt(0)' in variety
+assert 'Seed+"|"+player+"|"+speaker+"|"+topic' in variety
+assert 'e.Player==player && e.Speaker==speaker && e.Topic==topic' in variety
+assert 'store.SyncData("CU_dialogue_variety_1",ref variety);' in origin
+assert '()=>CanSpeakSocially(),()=>BeginPersonalConversation(),105' in depth
+assert 'personalOpeningVariant=NextDialogueVariant(actor,"Greeting",3);' in depth
+assert 'NextDialogueVariant(actor,topic,3)' in depth
+assert 'personalInitiative=PersonalInitiativeTopic();' in depth
+assert '()=>SelectedInitiative().Length>0' in depth
+assert 'ObservedStandingShift(player,actor)' in depth
+assert 'after!=player.GetRelation(actor)' in depth
+greeting=depth[depth.index("private bool PreparePersonalGreeting"):depth.index("private string PersonalGreetingText")]
+prepare=depth[depth.index("private bool PreparePersonalTopic"):depth.index("private void RegisterLivingDialogueDepth")]
+for block in (greeting,prepare):
+    assert 'NextDialogueVariant(' not in block and 'dialogueVariety.Advance(' not in block
+assert 'AvailableGroupParticipants(groupParent,true)' in group
+assert 'AvailableGroupParticipants(parent,true).Where(h=>gatheringPlan.Accepted.Contains(h.StringId))' in group
+assert 'if(!includeAll && result.Count>=4)break;' in group
+print("PASS campaign-specific variation, action-only exposure, observed relation shifts and stable planned attendance. SOURCE ONLY.")
