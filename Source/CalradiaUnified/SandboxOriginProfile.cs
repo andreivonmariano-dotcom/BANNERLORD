@@ -15,8 +15,8 @@ namespace CalradiaUnified
     {
         public const int MaxChildren = 6;
         public const int MaxSiblings = 4;
-        // The first three are reviewed new-game life paths. Legacy
-        // entries remain selectable until each later path is rebuilt.
+        // Legacy serialized role values remain readable. Only SevenPaths
+        // in SandboxStartingLifePolicy are selectable in guided new games.
         public static readonly string[] Roles =
             { "Wanderer", "Outlaw", "Mercenary", "Soldier", "Recruit",
               "HouseholdKnight", "Knight", "NobleCadet", "Lord",
@@ -226,7 +226,27 @@ namespace CalradiaUnified
             SoldierEntryRank="Recruit";
             NobleBirthPosition="Independent";
             NobleElderHeroId="";
+            if(KnightGuidedStart && Role=="Knight")
+            {
+                RoleAffiliationsEnabled=false;
+                RetinueMode="RoleBased";
+                StartingFiefMode="Native";
+                StartingFiefId="";
+                AllowStartingFiefTransfer=false;
+                FamilyHomeMode="None";
+                FamilyHomeId="";
+                Gold=-1;Influence=-1;Troops=0;
+            }
             return true;
+        }
+
+        public bool IsFixedGuidedKnightField(string key)
+        {
+            return KnightGuidedStart && Role=="Knight" &&
+                (key=="RetinueMode" || key=="StartingFiefMode" ||
+                 key=="StartingFiefId" || key=="AllowStartingFiefTransfer" ||
+                 key=="Gold" || key=="Influence" || key=="Troops" ||
+                 key=="FamilyHomeMode" || key=="FamilyHomeId");
         }
 
         public void ResetForNewCampaign()
