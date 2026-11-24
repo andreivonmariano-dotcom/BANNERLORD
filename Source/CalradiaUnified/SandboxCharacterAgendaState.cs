@@ -156,10 +156,10 @@ namespace CalradiaUnified
         public static SandboxCharacterAgendaState Parse(string packed)
         {
             var result=new SandboxCharacterAgendaState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>45000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>1048576)
                 return result;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length==0 || rows[0]!="CU_AGENDA_1")
+            if(rows.Length==0 || rows.Length>MaxEntries+1 || rows[0]!="CU_AGENDA_1")
                 return result;
             foreach(var row in rows.Skip(1).Take(MaxEntries))
             {
