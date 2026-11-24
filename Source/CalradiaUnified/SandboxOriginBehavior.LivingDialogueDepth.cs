@@ -37,7 +37,7 @@ namespace CalradiaUnified
         {
             personalTopicActorId=""; personalTopicName=""; personalReply="";
             MBTextManager.SetTextVariable("CU_PERSONAL_GREETING",
-                new TextObject(PersonalGreetingText()));
+                new TextObject(PersonalGreetingText()+PersonalInitiativeGreeting()));
             return true;
         }
         // Transient conversation context only. Never saved or used for rewards.
@@ -69,6 +69,123 @@ namespace CalradiaUnified
                 "Of course. Is there something you need my counsel on?":
                 "I am listening. What do you need?";
             return SandboxPetitionVoicePolicy.Greeting(tone);
+        }
+
+        // NPC chooses a real subject within a conversation the player opens.
+        // No forced dialogue, map interruption, task creation or native AI order.
+        private string PersonalInitiativeTopic()
+        {
+            if(!CanSpeakSocially() || !CanDiscussPersonalMatters() ||
+                SpeakingWithPendingPetitioner())return "";
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            int day=CurrentHouseholdDay();
+            var clan=Clan.PlayerClan;
+            var candidates=new System.Collections.Generic.List<string>();
+            if(clan!=null && CanDiscussEstateTopic() &&
+                clan.Settlements.Any(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege))
+                candidates.Add("Concerns");
+            if(player.GetRelation(actor)<0)candidates.Add("Standing");
+            if(CanCounselCareer() && IsPersonalChargeActive())candidates.Add("Service");
+            if(actor==player.Spouse && actor.Spouse==player && player.Children!=null &&
+                player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f &&
+                    (h.Father==actor || h.Mother==actor)))candidates.Add("Family");
+            if(characterAgendas.Get(actor.StringId)!=null)candidates.Add("Ambitions");
+            if(PersonalMemoryText().Length>0)candidates.Add("Memory");
+            return candidates.FirstOrDefault(topic=>CanDiscussPersonalTopic(topic) &&
+                !livingPersons.HasRecentConversationChoice(player.StringId,actor.StringId,topic,day))??"";
+        }
+
+        private string PersonalInitiativeGreeting()
+        {
+            if(!CanSpeakSocially())return "";
+            if(SpeakingWithPendingPetitioner())return " There is something I have been meaning to ask you.";
+            string topic=PersonalInitiativeTopic();
+            switch(topic)
+            {
+                case "Concerns":return " Before we part, I would speak of the danger to our holdings.";
+                case "Standing":return " I would rather not leave matters between us unspoken.";
+                case "Service":return " There is the duty we agreed upon, too.";
+                case "Family":return " I have been thinking about the children.";
+                case "Ambitions":return " There is something I wish to tell you about my own plans.";
+                case "Memory":return " There is something from our earlier dealings I would like to revisit.";
+                default:return "";
+            }
+        }
+
+        private string PersonalMemoryText()
+        {
+            if(!CanSpeakSocially())return "";
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            var story=petitionStories.For(actor.StringId);
+            if(story!=null && petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay()))
+            {
+                if(story.Outcome=="Declined")return "I remember the request you declined. I will not pretend you made a promise.";
+                if(story.NativePaymentVerified)return "I remember the silver you gave me when I asked for help. That matter is settled.";
+                if(story.Kind=="Audience")return "We spoke of our houses before. I valued the chance to hear your views.";
+                if(story.Kind=="Recognition")return "You acknowledged my work when I asked. I have not forgotten.";
+            }
+            var e=livingPersons.SharedConversationMemory(player.StringId,actor.StringId);
+            if(e!=null)
+            {
+                switch(e.Kind)
+                {
+                    case "FamilyVisit":return "I remember the last time we made time for our family affairs.";
+                    case "FamilyGiftConfirmed":return "I remember the gift you placed in my hands. You owe me nothing further for it.";
+                    case "HouseholdDutyAppointed":return "We spoke of the office you entrusted to me. I know what was asked of me then.";
+                    case "HouseholdDutyReleased":return "We spoke when you released me from my former duty.";
+                    case "HouseholdDutyReviewed":return "We reviewed my responsibilities together before.";
+                    case "NativeMarriageObserved":
+                        if(actor==player.Spouse && actor.Spouse==player)return "We are married, and I value the chance to speak without ceremony.";
+                        break;
+                    case "VerifiedSiblingComradeship":return "We spent time in the same company. Those days are part of our history.";
+                    case "PersonalAudienceAnswered":return "We have had a private audience before. We need not settle everything in one sitting.";
+                    case "PersonalDialogueChoice":
+                        var fields=e.Detail.Split('|');
+                        if(fields.Length==3 && fields[1].StartsWith("topic=",StringComparison.Ordinal))
+                        {
+                            string subject=fields[1].Substring(6);
+                            if(SandboxLifeHistoryState.IsConversationTopic(subject))
+                            {
+                                string words=subject=="Family"?"our family":subject=="Estate"?"the holdings":
+                                    subject=="Finances"?"money":subject=="Service"?"our duties":
+                                    subject=="Standing"?"our standing":subject=="Ambitions"?"my ambitions":
+                                    subject=="Concerns"?"our concerns":subject=="Memory"?"our earlier dealings":"our beliefs";
+                                if(fields[2]=="stance=disagreed")return "Last time we spoke of "+words+
+                                    ", you saw things differently. I am willing to hear you again.";
+                                if(fields[2]=="stance=asked_advice")return "You asked my counsel about "+words+
+                                    ". I would be glad to revisit it.";
+                            }
+                        }
+                        break;
+                }
+            }
+            // Only the named wounded Hero or a recorded patron/host is a
+            // witness; mere current membership is not proof of past presence.
+            var battle=battleHistory.Entries.LastOrDefault(b=>
+                b.PatronWitnessId==actor.StringId ||
+                (b.Source=="ServeAsSoldier" && b.LordId==actor.StringId) ||
+                b.WoundedHeroIds.Split(',').Contains(actor.StringId));
+            if(battle!=null)
+            {
+                if(battle.WoundedHeroIds.Split(',').Contains(actor.StringId))
+                    return "I remember being wounded in that campaign. Let us not treat the cost of battle lightly.";
+                return "I remember the service we witnessed in battle. "+
+                    (battle.Outcome=="Victory"?"We had the better of that encounter.":
+                    battle.Outcome=="Defeat"?"The encounter did not go our way.":"Its outcome was not settled.");
+            }
+            return "";
+        }
+
+        private void RecordPersonalFollowUp(bool disagreed)
+        {
+            if(!CanFollowPersonalTopic())return;
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            if(CanDiscussPersonalMatters())
+                livingPersons.RecordConversationChoice(player.StringId,actor.StringId,
+                    personalTopicName,disagreed,CurrentHouseholdDay());
         }
 
         private void SelectPersonalTopic(string topic)
@@ -151,12 +268,9 @@ namespace CalradiaUnified
                         "We need time and honest dealings before I can speak of deeper trust.";
                     break;
                 case "Memory":
-                    var story=petitionStories.For(actor.StringId);
-                    answer=story!=null && story.Outcome=="Supported"?
-                        "What you did mattered to me. I ask no further payment for what is already settled.":
-                        story!=null && story.Outcome=="Declined"?
-                        "I heard your answer. We need not agree on everything to speak civilly.":
-                        "There is no settled answer I can claim yet.";
+                    answer=PersonalMemoryText();
+                    if(answer.Length==0)answer="There is nothing more I can recall with certainty.";
+                    else answer+=" We can take account of that without making another bargain.";
                     break;
                 case "Ambitions":
                     string office=RecordedRetinueOffice(actor);
@@ -252,8 +366,8 @@ namespace CalradiaUnified
             if(topic=="Memory")
             {
                 var story=petitionStories.For(actor.StringId);
-                return story!=null &&
-                    petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay());
+                return (story!=null &&
+                    petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay())) || PersonalMemoryText().Length>0;
             }
             return topic=="Ambitions" && characterAgendas.Get(actor.StringId)!=null;
         }
@@ -508,7 +622,7 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
             string reply="Let us speak again when we are together.";
-            if(CanDiscussPersonalTopic(topic))
+            if(SandboxLifeHistoryState.IsConversationTopic(topic) && CanDiscussPersonalTopic(topic))
             {
                 var agenda=characterAgendas.Get(actor.StringId);
                 int relation=player.GetRelation(actor);
@@ -626,20 +740,8 @@ namespace CalradiaUnified
                 }
                 else if(topic=="Memory")
                 {
-                    var story=petitionStories.For(actor.StringId);
-                    reply=story==null?"There is nothing further to say on that matter.":
-                        story.Kind=="Audience"?
-                            (story.Outcome=="Supported"?"We have spoken of the matter. Our houses shall each keep their own counsel.":
-                             "You gave me your answer. Let us leave the matter there."):
-                        story.Outcome=="Supported"?
-                            (tone=="Guarded"?"I remember what you did. Deeds carry more weight than words.":
-                             tone=="Warm"?"I have not forgotten your kindness to me.":
-                             "I remember your help in that matter."):
-                        story.Outcome=="Declined"?
-                            (tone=="Guarded"?"I remember your answer. I have kept my own counsel.":
-                             tone=="Bold"?"You had your reasons. I shall find my own way.":
-                             "I remember your answer. We need not quarrel over it."):
-                        "There is still a matter awaiting your answer.";
+                    reply=PersonalMemoryText();
+                    if(reply.Length==0)reply="There is nothing further I can recall with certainty.";
                 }
                 string opinion=topic=="Opinions"?"":SandboxPetitionVoicePolicy.Opinion(tone,topic);
                 if(opinion.Length>0 && topic!="Concerns" && !reply.Contains(opinion))reply+=" "+opinion;
@@ -689,12 +791,20 @@ namespace CalradiaUnified
             starter.AddDialogLine("cu_personal_topic_reply__cu_safe_exit"+topic,"cu_personal_topic_reply_"+topic,
                 "close_window","We can speak again another time.",null,null,1);
             }
+            starter.AddPlayerLine("cu_personal_initiative","cu_personal_matters_topics",
+                "cu_personal_initiative_reply","You had something in mind. Tell me.",
+                ()=>PersonalInitiativeTopic().Length>0,()=>SelectPersonalTopic(PersonalInitiativeTopic()),112);
+            starter.AddDialogLine("cu_personal_initiative_reply","cu_personal_initiative_reply",
+                "cu_personal_followup_choices","{CU_PERSONAL_TOPIC_REPLY}",
+                ()=>PreparePersonalTopic(CanFollowPersonalTopic()?personalTopicName:""),null,100);
+            starter.AddDialogLine("cu_personal_initiative_safe","cu_personal_initiative_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine("cu_personal_followup_ask","cu_personal_followup_choices",
                 "cu_personal_followup_reply","What would you do in my place?",
-                ()=>CanFollowPersonalTopic(),()=>personalReply=PersonalFollowUpText(false),100);
+                ()=>CanFollowPersonalTopic(),()=>{personalReply=PersonalFollowUpText(false);RecordPersonalFollowUp(false);},100);
             starter.AddPlayerLine("cu_personal_followup_disagree","cu_personal_followup_choices",
                 "cu_personal_followup_reply","I see the matter differently.",
-                ()=>CanFollowPersonalTopic(),()=>personalReply=PersonalFollowUpText(true),95);
+                ()=>CanFollowPersonalTopic(),()=>{personalReply=PersonalFollowUpText(true);RecordPersonalFollowUp(true);},95);
             starter.AddDialogLine("cu_personal_followup_reply","cu_personal_followup_reply",
                 "cu_personal_matters_topics","{CU_PERSONAL_FOLLOWUP}",()=>PreparePersonalFollowUp(),null,100);
             starter.AddDialogLine("cu_personal_followup_reply_safe","cu_personal_followup_reply",
