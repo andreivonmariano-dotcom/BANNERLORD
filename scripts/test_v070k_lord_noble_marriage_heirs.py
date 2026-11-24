@@ -77,3 +77,28 @@ for text in (native,inherited,record,policy):
 print("PASS v0.70k SOURCE: guided Lord has real noble in-laws, "
       "read-only saved heir claims, and no forged native inheritance. "
       "LIVE GAME, DEATH, AND SAVE/RELOAD NOT TESTED.")
+
+# Dynastic branch reviews are on-demand, bounded and read-only.
+assert 'BranchBudget=128, BranchDepth=5' in inherited
+assert 'new HashSet<string>(StringComparer.Ordinal){founderId}' in inherited
+assert 'if(!seen.Add(person.Id))continue;' in inherited
+assert 'if(person.Verified)result.Add(' in inherited
+assert 'visit(children,1,"Descendant");' in inherited
+assert 'visit(siblings,1,"Collateral");' in inherited
+assert 'founder.Father.Children.Contains(founder)' in native
+assert 'founder.Mother.Children.Contains(founder)' in native
+assert 'manager.GetObject<Hero>(c.Id).Mother==founder.Mother' in native
+assert 'args=>ShowDynasticBranches(false)' in native
+assert 'args=>ShowDynasticBranches(true)' in read("SandboxOriginBehavior.KingSuccession.cs")
+assert 'not a legal succession order' in native
+duties=read("SandboxOriginBehavior.HouseholdDuties.cs")
+office=read("SandboxRetinueOfficePolicy.cs")
+variety=read("SandboxDialogueVarietyState.cs")
+assert 'public static string DutyFocus(' in office
+assert 'SandboxRetinueOfficePolicy.DutyFocus(office,owned,' in duties
+assert 'dutyReplyVariant=NextDialogueVariant(person,"OfficerDuty",2);' in duties
+assert 's=="OfficerDuty"' in variety
+assert 'e.Kind=="CourtDutyConsulted"' in duties
+assert 'e.Actor==person.StringId && e.Target==Hero.MainHero.StringId && e.Detail==detail' in duties
+assert 'recent recorded consultations:' in duties
+print("PASS bounded native family branch review and office-specific consultation contracts. SOURCE ONLY.")
