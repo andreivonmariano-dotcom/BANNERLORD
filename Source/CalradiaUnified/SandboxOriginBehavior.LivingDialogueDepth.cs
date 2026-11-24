@@ -33,9 +33,48 @@ namespace CalradiaUnified
                 actor!=player && actor.IsAlive && actor.IsActive && !actor.IsPrisoner &&
                 actor.Age>=18f;
         }
+        private SandboxDialogueVarietyState dialogueVariety=new SandboxDialogueVarietyState();
+        private string personalOpeningActor="",personalOpeningPlayer="",personalInitiative="";
+        private int personalOpeningVariant,personalTopicVariant;
+        private void EnsureDialogueSeed()
+        {
+            if(dialogueVariety.Seed.Length==0)
+                dialogueVariety.Initialize(Guid.NewGuid().ToString("N"));
+        }
+        private int NextDialogueVariant(Hero speaker,string topic,int count)
+        {
+            var player=Hero.MainHero;
+            if(player==null || speaker==null || speaker==player)return 0;
+            EnsureDialogueSeed();
+            int value=dialogueVariety.Variant(player.StringId,speaker.StringId,topic,count);
+            dialogueVariety.Advance(player.StringId,speaker.StringId,topic,CurrentHouseholdDay());
+            return value;
+        }
+        private void BeginPersonalConversation()
+        {
+            if(!CanSpeakSocially())return;
+            var actor=Hero.OneToOneConversationHero;
+            personalOpeningActor=actor.StringId;personalOpeningPlayer=Hero.MainHero.StringId;
+            personalTopicActorId="";personalTopicName="";personalReply="";personalTopicVariant=0;
+            personalOpeningVariant=NextDialogueVariant(actor,"Greeting",3);
+            personalInitiative=PersonalInitiativeTopic();
+            if(personalInitiative.Length>0)NextDialogueVariant(actor,"Initiative",3);
+        }
+        private bool OpeningMatches()
+        {
+            return CanSpeakSocially() && personalOpeningActor==Hero.OneToOneConversationHero.StringId &&
+                personalOpeningPlayer==Hero.MainHero.StringId;
+        }
+        private string SelectedInitiative()
+        {
+            if(!OpeningMatches() || SpeakingWithPendingPetitioner() ||
+                personalInitiative.Length==0 || !CanDiscussPersonalTopic(personalInitiative) ||
+                livingPersons.HasRecentConversationChoice(personalOpeningPlayer,personalOpeningActor,
+                    personalInitiative,CurrentHouseholdDay()))return "";
+            return personalInitiative;
+        }
         private bool PreparePersonalGreeting()
         {
-            personalTopicActorId=""; personalTopicName=""; personalReply="";
             MBTextManager.SetTextVariable("CU_PERSONAL_GREETING",
                 new TextObject(PersonalGreetingText()+PersonalInitiativeGreeting()));
             return true;
@@ -52,6 +91,12 @@ namespace CalradiaUnified
             if(!CanSpeakSocially())return "Let us speak another time.";
             int relation=player.GetRelation(actor);
             string tone=PersonalVoice(actor);
+            string role=actor==player.Spouse && actor.Spouse==player?"Spouse":
+                SpeakingWithSwornPatron()?"Patron":SpeakingWithAdultFamily()?"Kin":
+                SpeakingWithHouseholdCompanion()?"Companion":"Other";
+            string alternate=SandboxPetitionVoicePolicy.PersonalOpening(role,tone,relation,
+                OpeningMatches()?personalOpeningVariant:0);
+            if(alternate.Length>0)return alternate;
             if(actor==player.Spouse && actor.Spouse==player)
             {
                 if(relation<0)return "We have not been of one mind lately. What is it?";
@@ -96,15 +141,18 @@ namespace CalradiaUnified
                     (h.Father==actor || h.Mother==actor)))candidates.Add("Family");
             if(characterAgendas.Get(actor.StringId)!=null)candidates.Add("Ambitions");
             if(PersonalMemoryText().Length>0)candidates.Add("Memory");
-            return candidates.FirstOrDefault(topic=>CanDiscussPersonalTopic(topic) &&
-                !livingPersons.HasRecentConversationChoice(player.StringId,actor.StringId,topic,day))??"";
+            var eligible=candidates.Distinct().Where(topic=>CanDiscussPersonalTopic(topic) &&
+                !livingPersons.HasRecentConversationChoice(player.StringId,actor.StringId,topic,day)).ToArray();
+            if(eligible.Length==0)return "";
+            if(eligible.Contains("Concerns"))return "Concerns"; // Actual siege is urgent.
+            return eligible[dialogueVariety.Variant(player.StringId,actor.StringId,"Initiative",eligible.Length)];
         }
 
         private string PersonalInitiativeGreeting()
         {
             if(!CanSpeakSocially())return "";
             if(SpeakingWithPendingPetitioner())return " There is something I have been meaning to ask you.";
-            string topic=PersonalInitiativeTopic();
+            string topic=SelectedInitiative();
             switch(topic)
             {
                 case "Concerns":return " Before we part, I would speak of the danger to our holdings.";
@@ -273,6 +321,7 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             personalTopicActorId=actor==null?"":actor.StringId;
             personalTopicName=topic;
+            personalTopicVariant=actor!=null && CanDiscussPersonalTopic(topic)?NextDialogueVariant(actor,topic,3):0;
             personalReply="";
         }
 
@@ -740,7 +789,10 @@ namespace CalradiaUnified
                 int relation=player.GetRelation(actor);
                 string tone=PersonalVoice(actor);
                 if(topic=="Opinions")
-                    reply=SandboxPetitionVoicePolicy.Opinion(tone,"Opinions");
+                {
+                    reply=SandboxPetitionVoicePolicy.PersonalReflection(topic,tone,personalTopicVariant);
+                    if(reply.Length==0)reply=SandboxPetitionVoicePolicy.Opinion(tone,"Opinions");
+                }
                 else if(topic=="Concerns")
                 {
                     var clan=Clan.PlayerClan;
@@ -875,7 +927,8 @@ namespace CalradiaUnified
                     reply=PersonalMemoryText();
                     if(reply.Length==0)reply="There is nothing further I can recall with certainty.";
                 }
-                string opinion=topic=="Opinions"?"":SandboxPetitionVoicePolicy.Opinion(tone,topic);
+                string opinion=topic=="Opinions" || topic=="Memory"?"":SandboxPetitionVoicePolicy.PersonalReflection(topic,tone,personalTopicVariant);
+                if(opinion.Length==0 && topic!="Opinions" && topic!="Memory")opinion=SandboxPetitionVoicePolicy.Opinion(tone,topic);
                 if(opinion.Length>0 && topic!="Concerns" && !reply.Contains(opinion))reply+=" "+opinion;
             }
             MBTextManager.SetTextVariable("CU_PERSONAL_TOPIC_REPLY",new TextObject(reply));
@@ -898,7 +951,7 @@ namespace CalradiaUnified
         {
             starter.AddPlayerLine("cu_personal_matters_open","hero_main_options",
                 "cu_personal_matters_intro","Let us speak privately for a moment.",
-                ()=>CanSpeakSocially(),null,105);
+                ()=>CanSpeakSocially(),()=>BeginPersonalConversation(),105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
                 "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro_cu_safe_exit","cu_personal_matters_intro",
@@ -925,7 +978,7 @@ namespace CalradiaUnified
             }
             starter.AddPlayerLine("cu_personal_initiative","cu_personal_matters_topics",
                 "cu_personal_initiative_reply","You had something in mind. Tell me.",
-                ()=>PersonalInitiativeTopic().Length>0,()=>SelectPersonalTopic(PersonalInitiativeTopic()),112);
+                ()=>SelectedInitiative().Length>0,()=>SelectPersonalTopic(SelectedInitiative()),112);
             starter.AddDialogLine("cu_personal_initiative_reply","cu_personal_initiative_reply",
                 "cu_personal_followup_choices","{CU_PERSONAL_TOPIC_REPLY}",
                 ()=>PreparePersonalTopic(CanFollowPersonalTopic()?personalTopicName:""),null,100);
