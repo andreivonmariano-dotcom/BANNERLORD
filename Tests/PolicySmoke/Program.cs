@@ -23,6 +23,22 @@ internal static class Program
     }
     private static void Main()
     {
+        var reconciledBattles=new SandboxBattleHistoryState();
+        string reconciledKey=SandboxBattleHistoryState.EventKey("native-battle-example");
+        Check("battle ledger rejects overlap of fallen and wounded identities",
+            !reconciledBattles.RecordObserved(reconciledKey,1,"Field","Victory",
+                "PlayerParty","","","patron",1,1,"hero_a","hero_a"));
+        Check("battle ledger preserves observed casualties and deduplicates receipt",
+            reconciledBattles.RecordObserved(reconciledKey,1,"Field","Victory",
+                "PlayerParty","","","patron",1,1,"hero_a","hero_b") &&
+            !reconciledBattles.Record(reconciledKey,1,"Field","Victory","PlayerParty","","") &&
+            SandboxBattleHistoryState.Parse(reconciledBattles.Serialize()).Entries[0].PartyDead==1);
+        Check("legacy battle schema preserves unknown casualty counts",
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_1\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||").Entries[0].PartyDead==-1);
+        Check("legacy knight acknowledgement parser rejects impossible date",
+            SandboxKnightBattleRecognitionState.Parse(
+                "CU_KNIGHT_BATTLE_RECOGNITION_1\npatron|1|2000001").Stage==0);
         var acceptanceSettings=new Settings{
             EnablePlayerForaging=true,
             EnableCivicSystems=true,
