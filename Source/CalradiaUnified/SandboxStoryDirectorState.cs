@@ -33,6 +33,30 @@ namespace CalradiaUnified
         }
         private static bool ValidResponse(string response)
         {return response=="Listen" || response=="Caution" || response=="Defer";}
+        // Inferred concerns, not hidden native traits or private secrets.
+        public static string MotiveWords(string goal,string tone,int relation,bool swornDuty)
+        {
+            if(swornDuty && relation<0)return "I have duties to discharge, but I cannot pretend that duty and personal trust are the same thing.";
+            if(swornDuty && tone=="Dutiful")return "My concern is that I should fail those who count on my service.";
+            if(goal=="ProtectSharedHousehold" || goal=="SupportHousehold" || goal=="ProtectDescendants" || goal=="MaintainHousehold")
+                return tone=="Bold"?"I fear leaving our kin unable to protect themselves.":
+                    tone=="Prudent"?"I worry that our obligations may outgrow what we can provide.":
+                    "I would not have our family scattered by the demands placed upon us.";
+            if(goal=="GainMilitaryTraining" || goal=="KeepCompanyTogether")
+                return tone=="Guarded"?"I am wary of being asked to risk more than others are willing to risk themselves.":
+                    tone=="Bold"?"I would hate to remain untested when there is useful work I can do.":
+                    "I want to prove useful to the people with whom I serve.";
+            if(goal=="EstablishLivelihood" || goal=="BuildTradingContacts")
+                return tone=="Prudent"?"My concern is losing the little independence I have managed to build.":
+                    "I want to be able to stand on my own means, without becoming a burden to others.";
+            if(goal=="PreserveFamilyPosition" || goal=="DefendClanStanding")
+                return "I worry that a choice made for immediate advantage can cost our house the trust it has earned.";
+            if(goal=="MapSafePassages")return "I would rather know the dangers of a road than rely on assurances from someone who has never traveled it.";
+            if(relation<0)return "I am not ready to confide every concern. Trust must be earned.";
+            if(tone=="Warm")return "I care about retaining the regard of those close to me.";
+            if(tone=="Guarded")return "I prefer to keep some matters to myself until I know whom I can trust.";
+            return "";
+        }
         public static string Fingerprint(string actor,string kind,string detail)
         {
             uint hash=2166136261u;
@@ -42,7 +66,7 @@ namespace CalradiaUnified
         public bool Active {get{return Stage=="Open" || Stage=="FollowUp";}}
         public bool CanOpen(int day)
         {
-            return Detail!=0 && !Active && day>=0 && day<=1999960 &&
+            return Detail!=0 && !Active && day>=0 && day<=1999940 &&
                 (Closed<0 || (long)day-Closed>=StoryCooldown(Detail));
         }
         public bool Open(string owner,string actor,string kind,string evidence,int day)
@@ -100,7 +124,7 @@ namespace CalradiaUnified
                 return f.Skip(2).Take(6).All(x=>x=="") && created==-1 && due==-1 && closed==-1 &&
                     receipts.Length==0?s:new SandboxStoryDirectorState();
             if(!Id(f[2]) || !Id(f[3]) || f[2]==f[3] || !ValidKind(f[4]) ||
-                !Id(f[5]) || !receipts.Contains(f[5]) || created<0 || created>1999960 ||
+                !Id(f[5]) || !receipts.Contains(f[5]) || created<0 || created>1999940 ||
                 (f[6]!="Open" && f[6]!="FollowUp" && f[6]!="Closed" && f[6]!="Expired"))
                 return new SandboxStoryDirectorState();
             bool follow=f[7]=="Listen" || f[7]=="Caution";
