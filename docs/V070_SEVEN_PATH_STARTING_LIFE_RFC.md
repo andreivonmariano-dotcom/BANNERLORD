@@ -2,6 +2,10 @@
 
 **Status:** Design RFC, not implemented or game-tested. Recorded 21 November 2026 in the draft acceptance branch, PR #93. No source gameplay code or saved game is changed by this document.
 
+## Final scope decision (24 November 2026)
+
+The seven listed paths are the final, exclusive top-level playable career roster. No eighth path. This supersedes older 12/13-role development targets. Preserve the six historical role IDs Recruit, HouseholdKnight, NobleCadet, Admiral, Trader and Beggar for existing profiles and saved campaigns; do not present them as new top-level careers. Recruit is a Soldier sub-rank, household knight is a Knight subtype, noble cadet is birth status, Admiral is a verified naval office, and Trader/Beggar are Wanderer pursuits or backgrounds. The seven-path lock does not waive any existing gameplay, native authority or persistence gate.
+
 ## User decisions already given
 
 Show exactly seven top-level starting paths, in a single screen:
