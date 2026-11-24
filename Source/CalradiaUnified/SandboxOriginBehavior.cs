@@ -406,6 +406,9 @@ namespace CalradiaUnified
             string variety=dialogueVariety.Serialize();
             store.SyncData("CU_dialogue_variety_1",ref variety);
             dialogueVariety=SandboxDialogueVarietyState.Parse(variety);
+            string story=storyDirector.Serialize();
+            store.SyncData("CU_story_director_1",ref story);
+            storyDirector=SandboxStoryDirectorState.Parse(story);
             string social=socialObservations.Serialize();
             store.SyncData("CU_v065_social_observations",ref social);
             socialObservations=SandboxSocialObservationState.Parse(social);
@@ -515,6 +518,7 @@ namespace CalradiaUnified
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
             RegisterGroupDiscussionMenus(starter);
+            RegisterStoryDetailMenus(starter);
             ProbeNativeGroupConversationApi();
             starter.AddGameMenu("cu_origin_main",
                 "This legacy editor is retired. Start a new Sandbox to use the guided creator.",
@@ -679,10 +683,12 @@ namespace CalradiaUnified
                         if(officer==player || officer.Clan!=Clan.PlayerClan || officer.CompanionOf!=Clan.PlayerClan)
                             if(retinueOffices.Revoke(officer.StringId))
                                 DiagnosticJournal.Event("cu_retinue_office_revoked","hero="+officer.StringId+"|native_membership_lost=true");
+                var lastStoryObservation=livingPersons.Events.LastOrDefault();
                 SandboxLivingPersons.ObserveDaily(livingPersons,
                     socialObservations,player);
                 SandboxLivingPersons.ObserveAgenda(livingPersons,
                     characterAgendas,player);
+                ObserveStoryDirector(player,lastStoryObservation);
                 ObserveAgencyDaily(player);
                 ObservePeerSocialDaily(player);
                 gatheringPlan.Expire(CurrentHouseholdDay());
