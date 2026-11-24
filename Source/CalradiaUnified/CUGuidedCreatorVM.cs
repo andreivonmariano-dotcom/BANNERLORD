@@ -269,7 +269,10 @@ namespace CalradiaUnified
                     "number",min:18,max:70,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseGender",
                     "Spouse gender","Auto chooses the opposite of the player's sex. Native marriage rules apply.",
-                    choices:new[]{"Auto","Female","Male"},advanced:true));
+                    choices:(profile.LordGuidedStart || profile.KingGuidedStart)?
+                        (Hero.MainHero==null?new[]{"Auto"}:
+                            new[]{"Auto",Hero.MainHero.IsFemale?"Male":"Female"}):
+                        new[]{"Auto","Female","Male"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBackground",
                     "Spouse's origin","Lord: a genuine foreign noble birth clan. "+
                     "Verified married parents are used where available; unknown ancestry stays unknown. "+
@@ -662,6 +665,10 @@ namespace CalradiaUnified
                 Report("Invalid value for "+key+".");
                 return false;
             }
+            if(!preCampaign && (copy.LordGuidedStart || copy.KingGuidedStart) &&
+                key=="SpouseGender" && Hero.MainHero!=null &&
+                SandboxFamilyPolicy.ResolveSpouseFemale(copy.SpouseGender,Hero.MainHero.IsFemale)==Hero.MainHero.IsFemale)
+            {Report("That choice is not supported by the native marriage model.");return false;}
             // Turning off Knight marriage also clears dependent children.
             // ChildCount disappears from House when marriage is disabled.
             if(!preCampaign && copy.KnightGuidedStart &&
@@ -1190,6 +1197,9 @@ namespace CalradiaUnified
             }
             var hero=Hero.MainHero;
             int actualAge=hero==null?30:(int)hero.Age;
+            if((candidate.LordGuidedStart || candidate.KingGuidedStart) && hero!=null &&
+                SandboxFamilyPolicy.ResolveSpouseFemale(candidate.SpouseGender,hero.IsFemale)==hero.IsFemale)
+            {Report("Choose Auto or a spouse supported by the native marriage model.");return;}
             // Old profiles can contain sibling choices that predate the
             // editor guard. Refuse them here, without losing the draft,
             // and open the exact advanced sibling-age field for repair.
