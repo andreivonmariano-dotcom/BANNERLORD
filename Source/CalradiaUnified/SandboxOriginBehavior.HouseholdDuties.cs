@@ -129,10 +129,11 @@ namespace CalradiaUnified
                 if(ExistingCourtDuty(speaker).Length==0)
                 {
                     int reports=householdDuties.ReportCount(office);
-                    reply+=" I have submitted "+reports+" formal reports. "+
-                        "We can review the situation whenever we speak.";
+                    reply+=reports==0?" We have yet to go over these matters together.":" We have spoken of these matters before.";
                 }
             }
+            reply+=" "+SandboxPetitionVoicePolicy.Opinion(PersonalVoice(speaker),
+                office=="Steward" || office=="Royal Minister"?"Finances":"Service");
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_DUTY_REPLY",new TextObject(reply));
             return true;
         }
@@ -237,6 +238,7 @@ namespace CalradiaUnified
                 if(days>0)reply+="You have already provided for me recently. ";
                 reply+="Let us talk of our house again whenever you return.";
             }
+            reply+=" "+SandboxPetitionVoicePolicy.Opinion(PersonalVoice(person),"Family");
             MBTextManager.SetTextVariable("CU_FAMILY_CONVERSATION_REPLY",new TextObject(reply));
             return true;
         }
@@ -297,8 +299,15 @@ namespace CalradiaUnified
                     Hero.OneToOneConversationHero.StringId,
                     CurrentHouseholdDay());
         }
+        private string familyGiftReply="";
+        private bool PrepareFamilyGiftReply()
+        {
+            MBTextManager.SetTextVariable("CU_FAMILY_GIFT_REPLY",new TextObject(familyGiftReply));
+            return true;
+        }
         private void GiveFamilyGift()
         {
+            familyGiftReply="Let us leave that matter for now.";
             if(!CanFamilyGift())return;
             var player=Hero.MainHero;
             var recipient=Hero.OneToOneConversationHero;
@@ -325,47 +334,45 @@ namespace CalradiaUnified
                 "|amount_requested=100"+
                 "|native_result="+proof+
                 "|no_automatic_salary_or_free_gold=true");
-            Notify(proof=="confirmed"?
-                "You have given "+recipient.Name+
-                    " 100 denars from your own purse.":
-                "The native gift could not be verified. "+
-                    "No gift success was recorded.");
+            familyGiftReply=SandboxPetitionVoicePolicy.DecisionReply(
+                PersonalVoice(recipient),true,proof=="confirmed");
+            if(proof!="confirmed")Notify("The transfer could not be confirmed.");
         }
         private void RegisterHouseholdConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
             starter.AddPlayerLine(
-                "cu_family_house_audience","hero_main_options",
+                "cu_family_house_audience","cu_personal_matters_topics",
                 "cu_family_house_audience_reply",
-                "Let us speak together of our family's affairs.",
+                "Let us spend some time together.",
                 ()=>SpeakingWithAdultFamily(),
                 ()=>DiscussFamilyAffairs(),115);
             starter.AddDialogLine(
                 "cu_family_house_audience_reply",
-                "cu_family_house_audience_reply","hero_main_options",
+                "cu_family_house_audience_reply","cu_personal_matters_topics",
                 "{CU_FAMILY_CONVERSATION_REPLY}",
                 ()=>PrepareFamilyConversationReply(),null,110);
             starter.AddPlayerLine(
-                "cu_family_house_gift","hero_main_options",
+                "cu_family_house_gift","cu_personal_matters_topics",
                 "cu_family_house_gift_reply",
                 "I have brought 100 denars for your household.",
                 ()=>CanFamilyGift(),()=>GiveFamilyGift(),105);
             starter.AddDialogLine(
                 "cu_family_house_gift_reply",
-                "cu_family_house_gift_reply","hero_main_options",
-                "Your offer is received. May our house stand firm.",
-                null,null,100);
+                "cu_family_house_gift_reply","cu_personal_matters_topics",
+                "{CU_FAMILY_GIFT_REPLY}",
+                ()=>PrepareFamilyGiftReply(),null,100);
 
             foreach(var officeName in new[]{"Steward","Captain","Envoy"})
             {
                 string office=officeName;
                 starter.AddPlayerLine(
                     "cu_household_appoint_"+office.ToLowerInvariant(),
-                    "hero_main_options","cu_household_appoint_reply_"+
+                    "cu_personal_matters_topics","cu_household_appoint_reply_"+
                     office.ToLowerInvariant(),
-                    "I appoint you "+office+
-                    " of my household. Will you serve?",
+                    "I would have you serve as "+office+
+                    " in my household.",
                     ()=>CanAppointHouseholdCompanion(office),
                     ()=>AppointHouseholdCompanion(office),100);
                 starter.AddDialogLine(
@@ -373,20 +380,20 @@ namespace CalradiaUnified
                         office.ToLowerInvariant(),
                     "cu_household_appoint_reply_"+
                         office.ToLowerInvariant(),
-                    "hero_main_options",
-                    "I accept this duty to our house. "+
-                    "Your own clan command remains unchanged.",
+                    "cu_personal_matters_topics",
+                    "I have heard your charge. "+
+                    "I will attend to the duties you have entrusted to me.",
                     null,null,100);
             }
             starter.AddPlayerLine(
-                "cu_household_duty_report","hero_main_options",
+                "cu_household_duty_report","cu_personal_matters_topics",
                 "cu_household_duty_report_reply",
-                "Tell me how matters stand in our household.",
+                "How fare your duties to our house?",
                 ()=>CanDiscussHouseholdDuty(),
                 ()=>DiscussHouseholdDuty(),110);
             starter.AddDialogLine(
                 "cu_household_duty_report_reply",
-                "cu_household_duty_report_reply","hero_main_options",
+                "cu_household_duty_report_reply","cu_personal_matters_topics",
                 "{CU_HOUSEHOLD_DUTY_REPLY}",
                 ()=>PrepareHouseholdDutyReply(),null,100);
         }
