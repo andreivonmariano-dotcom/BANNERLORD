@@ -151,13 +151,22 @@ namespace CalradiaUnified
             if(group!=null)
             {
                 var fields=group.Detail.Split('|');
-                if(fields.Length==3 && fields[1].StartsWith("topic=",StringComparison.Ordinal) &&
+                if((fields.Length==3 || fields.Length==4) && fields[1].StartsWith("topic=",StringComparison.Ordinal) &&
                     fields[2].StartsWith("priority=",StringComparison.Ordinal))
                 {
                     string subject=fields[1].Substring(6),priority=fields[2].Substring(9);
                     if(SandboxPetitionVoicePolicy.GroupTopic(subject) &&
                         SandboxPetitionVoicePolicy.GroupPriority(priority))
                     {
+                        if(fields.Length==4 && fields[3].StartsWith("occasion=",StringComparison.Ordinal))
+                        {
+                            string occasion=fields[3].Substring(9);
+                            if(occasion=="Remembrance")return "I remember our time honoring the departed. There was room for each of us to grieve in our own way.";
+                            if(occasion=="MarriageCelebration")return "I remember the gathering to celebrate your marriage. Those words were about the life you share.";
+                            if(occasion=="Fellowship")return "I remember the time we set business aside and simply spoke as companions.";
+                            if(occasion=="FamilyGathering")return "I remember our gathering to hear the concerns of the family.";
+                            if(occasion=="CourtAssembly")return "I remember the assembly where we weighed the interests of the house. We did not settle every matter there.";
+                        }
                         string topicWords=subject=="Family"?"the future of our household":
                             subject=="Defense"?"our defenses":subject=="Livelihood"?"our livelihood":"our dealings with other houses";
                         return "At our gathering we spoke of "+topicWords+". You favored "+
