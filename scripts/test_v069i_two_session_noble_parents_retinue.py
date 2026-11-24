@@ -82,8 +82,8 @@ assert "SandboxStartContract.RetinueReadyForOtherGrants(" in apply
 # younger brother is already traveling with the player.
 assert 'case "Lord":return new[]{"MasterOfArms","Knight"};' in pol
 assert "EquipForStyle(officer,sources[i]," in retinue
-assert "EquipCivilian(officer,sources[i],offices[i]);" in retinue
-assert "TrainForOffice(officer,offices[i]);" in retinue
+assert "EquipCivilian(officer,sources[i],offices[i],random);" in retinue
+assert "TrainForOffice(officer,offices[i],random);" in retinue
 assert "AddCompanionAction.Apply(Clan.PlayerClan,officer);" in retinue
 assert "AddHeroToPartyAction.Apply(" in retinue
 
