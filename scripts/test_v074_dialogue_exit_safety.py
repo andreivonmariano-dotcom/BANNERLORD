@@ -97,3 +97,24 @@ officer=(src/"SandboxOriginBehavior.NobleOfficerDialogues.cs").read_text()
 assert officer.count('"{CU_OFFICER_TRANSFER_REPLY}"')==2
 assert 'confirmed?"Five of your recruits' in officer
 print("PASS read-only follow-up, speaker binding, petition consumption ordering, civic icon source and officer result reply contracts. SOURCE ONLY.")
+
+# Living dialogue: exact pair, no reward, no forced native conversation.
+history=(src/"SandboxLifeHistoryState.cs").read_text()
+assert 'SharedConversationMemory(string player,string speaker)' in history
+assert 'e.Actor==player && e.Target==speaker' in history
+assert 'e.Actor==speaker && e.Target==player' in history
+assert 'RecordConversationChoice(string player,string speaker,string topic' in history
+assert 'HasRecentConversationChoice(string player,string speaker,string topic,int day)' in history
+assert '(long)day-recorded<7' in history
+assert 'CU_LIFE_1' in history
+initiative=depth[depth.index("private string PersonalInitiativeTopic"):depth.index("private void RecordPersonalFollowUp")]
+for mutation in ("GiveGoldAction","ChangeRelationAction","AddToCounts","Remember(","RecordConversationChoice(","OpenConversation","StartConversation"):
+    assert mutation not in initiative,mutation
+assert 'SpeakingWithPendingPetitioner()' in initiative
+assert 'HasRecentConversationChoice(player.StringId,actor.StringId,topic,day)' in initiative
+assert 'e.Actor==actor.StringId && e.Target==player.StringId' in initiative
+assert 'b.WoundedHeroIds.Split' in initiative
+assert 'RecordPersonalFollowUp(false)' in depth and 'RecordPersonalFollowUp(true)' in depth
+assert 'speaker==player.Father || speaker==player.Mother' in (src/"SandboxOriginBehavior.HouseholdDuties.cs").read_text()
+assert 'if(proof=="confirmed")livingPersons.Remember("FamilyGiftConfirmed"' in (src/"SandboxOriginBehavior.HouseholdDuties.cs").read_text()
+print("PASS exact speaker memory, no reward or forced native dialogue, native parents and confirmed family gifts. SOURCE ONLY.")
