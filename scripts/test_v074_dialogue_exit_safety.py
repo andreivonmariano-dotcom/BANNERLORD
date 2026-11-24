@@ -144,3 +144,13 @@ assert 'if(valid)GameMenu.SwitchToMenu(parent);' in group and 'else GameMenu.Exi
 for forbidden in ("GiveGoldAction","ChangeRelationAction","AddToCounts","OpenConversation","StartConversation","AddPlayerLine","AddDialogLine","SyncData(","ChangeOwnerOfSettlementAction","SetParty"):
     assert forbidden not in group,forbidden
 print("PASS group discussion attendance, peer response, bounded memory and unconditional menu exits. SOURCE ONLY.")
+
+# Personal repair and care are stated intentions, not free native relation.
+intention=depth[depth.index("private void ExpressRelationshipIntention"):depth.index("private void SelectPersonalTopic")]
+assert 'CanExpressRelationshipIntention(repair)' in intention
+assert 'livingPersons.RecordRelationshipIntention(player.StringId,actor.StringId' in intention
+assert 'LatestRelationshipIntention(player.StringId,actor.StringId)' in depth
+assert 'ObservedGoalReassessment' in depth
+for forbidden in ("GiveGoldAction","ChangeRelationAction","AddToCounts","SetRelation","ChangeOwnerOfSettlementAction"):
+    assert forbidden not in intention,forbidden
+print("PASS personal intention and evolving goal references. SOURCE ONLY.")
