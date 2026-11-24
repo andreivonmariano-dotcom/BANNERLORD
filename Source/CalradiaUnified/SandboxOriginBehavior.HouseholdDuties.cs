@@ -40,15 +40,41 @@ namespace CalradiaUnified
             var speaker=Hero.OneToOneConversationHero;
             if(ExistingCourtDuty(speaker).Length>0)return false;
             string id=speaker.StringId;
-            if(householdDuties.AssignedId(office)==id)return false;
+            string incumbent=householdDuties.AssignedId(office);
+            if(incumbent==id)return false;
+            if(incumbent.Length>0)
+            {
+                var old=ResolveCampaignHero(incumbent);
+                // Unknown identity is not proof of a vacancy.
+                if(old==null || (old.IsAlive && old.Clan==Clan.PlayerClan &&
+                    old.CompanionOf==Clan.PlayerClan))return false;
+            }
             return new[]{"Steward","Captain","Envoy"}
                 .Where(x=>x!=office).All(x=>
                     householdDuties.AssignedId(x)!=id);
         }
+        private string appointmentReply="";
+        private bool PrepareAppointmentReply()
+        {
+            MBTextManager.SetTextVariable("CU_APPOINTMENT_REPLY",new TextObject(appointmentReply));
+            return true;
+        }
         private void AppointHouseholdCompanion(string office)
         {
+            appointmentReply="Let us leave the matter for now.";
             if(!CanAppointHouseholdCompanion(office))return;
             var speaker=Hero.OneToOneConversationHero;
+            string tone=PersonalVoice(speaker);
+            if(!SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(
+                Hero.MainHero.GetRelation(speaker),
+                speaker.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor),
+                speaker.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)))
+            {
+                appointmentReply="I would rather not take on that duty just now.";
+                return;
+            }
+            string previous=householdDuties.AssignedId(office);
+            if(previous.Length>0 && !householdDuties.Release(office,previous))return;
             string status=householdDuties.Assign(office,speaker.StringId);
             DiagnosticJournal.Event("cu_household_officer_appointed",
                 "result="+status+"|office="+office+
@@ -56,8 +82,33 @@ namespace CalradiaUnified
                 "|native_party_role_unchanged=true"+
                 "|native_governorship_unchanged=true");
             if(status=="personal_duty_recorded")
-                Notify(speaker.Name+" now serves as your household "+
-                    office+" in your personal household ledger.");
+            {
+                appointmentReply=SandboxPetitionVoicePolicy.DecisionReply(tone,true,true)+
+                    " I shall attend to the duties of "+office+".";
+                livingPersons.Remember("HouseholdDutyAppointed",speaker.StringId,
+                    Hero.MainHero.StringId,"office="+office+"|previous="+previous);
+            }
+        }
+        private bool CanReleaseHouseholdDuty()
+        {
+            return SpeakingWithHouseholdCompanion() &&
+                ExistingCourtDuty(Hero.OneToOneConversationHero).Length==0 &&
+                HouseholdOfficeFor(Hero.OneToOneConversationHero.StringId).Length>0;
+        }
+        private void ReleaseHouseholdDuty()
+        {
+            appointmentReply="Let us leave the matter for now.";
+            if(!CanReleaseHouseholdDuty())return;
+            var speaker=Hero.OneToOneConversationHero;
+            string office=HouseholdOfficeFor(speaker.StringId);
+            if(!householdDuties.Release(office,speaker.StringId))return;
+            livingPersons.Remember("HouseholdDutyReleased",speaker.StringId,
+                Hero.MainHero.StringId,"office="+office);
+            appointmentReply=Hero.MainHero.GetRelation(speaker)<0?
+                "Very well. I shall be glad to be free of that charge.":
+                "Then I lay that duty aside. I remain in your company.";
+            DiagnosticJournal.Event("cu_household_duty_released",
+                "hero="+speaker.StringId+"|office="+office+"|native_role_unchanged=true");
         }
         private static string ExistingCourtDuty(Hero person)
         {
@@ -191,10 +242,7 @@ namespace CalradiaUnified
                 "|companion="+speaker.StringId+
                 "|reports="+householdDuties.ReportCount(office)+
                 "|actual_native_evidence=true|free_rewards=0");
-            if(result=="native_duty_report_recorded")
-                Notify("A verified "+office+" duty was recorded for "+
-                    speaker.Name+". No salary, troops or native office "+
-                    "was granted.");
+            // The conversation itself reports the state; no receipt popup.
         }
         private static int CurrentHouseholdDay()
         {
@@ -234,8 +282,7 @@ namespace CalradiaUnified
                     reply+="Our family has "+children+" living children, "+minors+
                         " still young. ";
                 if(home!=null)reply+="I am presently at "+home.Name+". ";
-                int days=householdDuties.GiftDaysRemaining(person.StringId,CurrentHouseholdDay());
-                if(days>0)reply+="You have already provided for me recently. ";
+                // A gift-attempt cooldown is not proof of payment.
                 reply+="Let us talk of our house again whenever you return.";
             }
             reply+=" "+SandboxPetitionVoicePolicy.Opinion(PersonalVoice(person),"Family");
@@ -267,29 +314,12 @@ namespace CalradiaUnified
             var person=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
             int day=CurrentHouseholdDay();
-            // Save the audience first, before any native relation change,
-            // so reloading cannot duplicate earned relation.
-            if(!householdDuties.RecordAudience(person.StringId,day))
-                return;
-            int before=player.GetRelation(person);
-            try
-            {
-                ChangeRelationAction.ApplyRelationChangeBetweenHeroes(
-                    player,person,1,false);
-            }
-            catch(Exception error)
-            {
-                DiagnosticJournal.Exception(
-                    "cu_family_audience_native_relation_failed",error);
-            }
-            int after=player.GetRelation(person);
+            // A visit is a memory, not a repeatable relation bonus.
+            if(!householdDuties.RecordAudience(person.StringId,day))return;
+            livingPersons.Remember("FamilyVisit",person.StringId,player.StringId,"day="+day);
             DiagnosticJournal.Event("cu_family_in_person_audience",
-                "native_hero="+person.StringId+
-                "|day="+day+
-                "|relation_before="+before+
-                "|relation_after="+after+
-                "|native_action_verified="+(after>before)+
-                "|personal_visit_recorded=true");
+                "native_hero="+person.StringId+"|day="+day+
+                "|personal_visit_recorded=true|extra_relation=false");
         }
         private bool CanFamilyGift()
         {
@@ -381,10 +411,14 @@ namespace CalradiaUnified
                     "cu_household_appoint_reply_"+
                         office.ToLowerInvariant(),
                     "cu_personal_matters_topics",
-                    "I have heard your charge. "+
-                    "I will attend to the duties you have entrusted to me.",
-                    null,null,100);
+                    "{CU_APPOINTMENT_REPLY}",
+                    ()=>PrepareAppointmentReply(),null,100);
             }
+            starter.AddPlayerLine("cu_household_duty_release","cu_personal_matters_topics",
+                "cu_household_duty_release_reply","I release you from your household duty.",
+                ()=>CanReleaseHouseholdDuty(),()=>ReleaseHouseholdDuty(),100);
+            starter.AddDialogLine("cu_household_duty_release_reply","cu_household_duty_release_reply",
+                "cu_personal_matters_topics","{CU_APPOINTMENT_REPLY}",()=>PrepareAppointmentReply(),null,100);
             starter.AddPlayerLine(
                 "cu_household_duty_report","cu_personal_matters_topics",
                 "cu_household_duty_report_reply",
