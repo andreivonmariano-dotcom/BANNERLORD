@@ -205,6 +205,7 @@ namespace CalradiaUnified
 
         private void AnswerCharacterRequestCore(bool accept)
         {
+            petitionDecisionReply="Let us leave that matter unsettled for now.";
             var player=Hero.MainHero;
             var actor=RequestedCharacter();
             if(player==null || actor==null ||
@@ -319,6 +320,8 @@ namespace CalradiaUnified
             agencyDecisions.Dismiss(relationProof?
                 (accept?"Accepted":"Declined"):
                 "NativeRelationUnverified");
+            petitionDecisionReply=SandboxPetitionVoicePolicy.DecisionReply(
+                PersonalVoice(actor),accept,relationProof || (accept && giftProof=="confirmed"));
             ResolvePetitionStory(actor,accept,kind,
                 giftProof=="confirmed",actualRelation,relationProof);
             Notify(actor.Name.ToString()+": "+
