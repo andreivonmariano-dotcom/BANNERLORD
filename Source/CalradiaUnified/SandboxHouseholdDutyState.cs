@@ -57,10 +57,22 @@ namespace CalradiaUnified
             if(officerIds.Where((id,index)=>index!=slot)
                     .Any(id=>id==heroId))
                 return "companion_already_has_duty";
+            if(!String.IsNullOrEmpty(officerIds[slot]))
+                return "office_occupied";
             officerIds[slot]=heroId;
             lastReportDays[slot]=-1;
             reportCounts[slot]=0;
             return "personal_duty_recorded";
+        }
+        public bool Release(string office,string expectedHeroId)
+        {
+            int slot=Slot(office);
+            if(slot<0 || !Id(expectedHeroId) || officerIds[slot]!=expectedHeroId)
+                return false;
+            officerIds[slot]="";
+            lastReportDays[slot]=-1;
+            reportCounts[slot]=0;
+            return true;
         }
         public bool CanReport(string office,string heroId,int day)
         {
