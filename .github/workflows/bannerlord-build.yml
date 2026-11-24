@@ -41,6 +41,8 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Audit ownership freeze and retired feature paths
+        run: python scripts/test_cu_acceptance_freeze_ownership.py
       - name: Audit stabilization pass 2 existing role and creator wiring
         run: python scripts/test_cu_stabilization_pass_2.py
       - name: Audit current creator Back state and NPC save provenance
