@@ -35,10 +35,159 @@ namespace CalradiaUnified
         }
         private bool PreparePersonalGreeting()
         {
+            personalTopicActorId=""; personalTopicName=""; personalReply="";
             MBTextManager.SetTextVariable("CU_PERSONAL_GREETING",
-                new TextObject(SandboxPetitionVoicePolicy.Greeting(PersonalVoice(Hero.OneToOneConversationHero))));
+                new TextObject(PersonalGreetingText()));
             return true;
         }
+        // Transient conversation context only. Never saved or used for rewards.
+        private string personalTopicActorId="";
+        private string personalTopicName="";
+        private string personalReply="";
+
+        private string PersonalGreetingText()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            if(!CanSpeakSocially())return "Let us speak another time.";
+            int relation=player.GetRelation(actor);
+            string tone=PersonalVoice(actor);
+            if(actor==player.Spouse && actor.Spouse==player)
+            {
+                if(relation<0)return "We have not been of one mind lately. What is it?";
+                if(relation>=20)return tone=="Prudent"?
+                    "Come, sit with me. Is this a matter for our house, or for the two of us?":
+                    tone=="Bold"?"It is good to have a moment to ourselves. Speak freely.":
+                    "I am glad we have a moment together. What is on your mind?";
+                return "Of course. What would you like us to talk about?";
+            }
+            if(SpeakingWithSwornPatron())return "Come, speak freely. Is this a matter of your service?";
+            if(SpeakingWithAdultFamily())return relation>=10?
+                "We are kin. You need not stand on ceremony with me.":
+                "What matter brings you to me?";
+            if(SpeakingWithHouseholdCompanion())return relation>=10?
+                "Of course. Is there something you need my counsel on?":
+                "I am listening. What do you need?";
+            return SandboxPetitionVoicePolicy.Greeting(tone);
+        }
+
+        private void SelectPersonalTopic(string topic)
+        {
+            var actor=Hero.OneToOneConversationHero;
+            personalTopicActorId=actor==null?"":actor.StringId;
+            personalTopicName=topic;
+            personalReply="";
+        }
+
+        private bool CanFollowPersonalTopic()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            return actor!=null && personalTopicActorId==actor.StringId &&
+                personalTopicName.Length>0 && CanDiscussPersonalTopic(personalTopicName);
+        }
+
+        private string PersonalFollowUpText(bool disagree)
+        {
+            if(!CanFollowPersonalTopic())return "We can leave that subject for another time.";
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            string tone=PersonalVoice(actor);
+            int relation=player.GetRelation(actor);
+            string answer;
+            switch(personalTopicName)
+            {
+                case "Family":
+                    var children=player.Children==null?null:player.Children.Where(h=>
+                        h!=null && h.IsAlive && h.Age<18f &&
+                        (actor!=player.Spouse || h.Father==actor || h.Mother==actor))
+                        .OrderBy(h=>h.Age).ToArray();
+                    answer=children!=null && children.Length>0?
+                        "Think of "+children[0].Name+". At "+(int)children[0].Age+
+                        ", there is still time to shape the habits that will carry into adulthood. "+
+                        (tone=="Bold"?"Courage can be taught without courting danger.":
+                        tone=="Prudent"?"I would teach sound judgment before giving them great responsibilities.":
+                        "I would rather we gave our time than tried to settle everything with gifts."):
+                        "Kinship is not a duty we can discharge once and forget. I would keep the door open to our family.";
+                    break;
+                case "Estate":
+                case "Concerns":
+                    var clan=Clan.PlayerClan;
+                    var siege=clan==null?null:clan.Settlements.FirstOrDefault(x=>
+                        x!=null && x.OwnerClan==clan && x.IsUnderSiege);
+                    var seat=Settlement.CurrentSettlement;
+                    if(SpeakingWithPendingPetitioner())answer=
+                        "I would rather explain the matter itself. Ask me about my petition, and judge it for yourself.";
+                    else if(siege!=null && CanDiscussEstateTopic())answer=siege.Name+
+                        " cannot be treated like any other holding just now. "+
+                        (tone=="Bold"?"We should think about relieving the siege before other business.":
+                        "I would put the safety of its people ahead of any new undertaking.");
+                    else if(CanDiscussEstateTopic() && seat!=null && clan!=null &&
+                        seat.OwnerClan==clan && seat.IsFortification)
+                    {
+                        var g=seat.Town==null?null:seat.Town.GarrisonParty;
+                        answer=g!=null && g.MemberRoster!=null?
+                            "There are "+g.MemberRoster.TotalManCount+" soldiers in the garrison of "+seat.Name+
+                            ". That is a beginning, not a measure of every threat. Consider what you can spare before moving any men.":
+                            "I would speak to the castellan before committing men we have not counted.";
+                    }
+                    else if(IsPersonalChargeActive() && CanCounselCareer())answer=
+                        ChargeDescription()+" I would finish what we have undertaken before taking on more.";
+                    else answer="I have no particular danger to point to. Let us not invent trouble where there is none.";
+                    break;
+                case "Finances":
+                    answer="Your purse holds "+player.Gold+" denars. "+
+                        (tone=="Prudent"?"I would count the next expenses before promising any of it.":
+                        tone=="Bold"?"Spend for a clear purpose, not to impress someone at court.":
+                        "I would keep a reserve for the people who rely on you. A gift should not leave them wanting.");
+                    break;
+                case "Service":
+                    answer=IsPersonalChargeActive()?ChargeDescription()+
+                        " I would judge our progress by what we have actually done.":
+                        "We have agreed no particular charge. I would rather choose a duty we can carry out than make a grand promise.";
+                    break;
+                case "Standing":
+                    answer=relation<0?"Trust is not restored by asking for it. Give me reason to see matters differently.":
+                        relation>=20?"I value our good standing. I would not put it at risk with a promise neither of us can keep.":
+                        "We need time and honest dealings before I can speak of deeper trust.";
+                    break;
+                case "Memory":
+                    var story=petitionStories.For(actor.StringId);
+                    answer=story!=null && story.Outcome=="Supported"?
+                        "What you did mattered to me. I ask no further payment for what is already settled.":
+                        story!=null && story.Outcome=="Declined"?
+                        "I heard your answer. We need not agree on everything to speak civilly.":
+                        "There is no settled answer I can claim yet.";
+                    break;
+                case "Ambitions":
+                    string office=RecordedRetinueOffice(actor);
+                    answer=office=="MasterOfArms" || office=="Marshal" || office=="Kingsguard"?
+                        "Judge my service by the duties I actually carry out. I would rather earn your confidence than be praised for my title.":
+                        tone=="Prudent"?"I would take a small step I can sustain rather than make a promise beyond my means.":
+                        tone=="Bold"?"I would rather attempt something difficult than wait for fortune to find me.":
+                        "I want the chance to make my own choices, not have every matter settled for me.";
+                    break;
+                default:
+                    answer=SandboxPetitionVoicePolicy.Opinion(tone,"Opinions");
+                    answer+=" I do not expect every person to see things as I do.";
+                    break;
+            }
+            if(!disagree)return answer;
+            string preface=relation<0?"I expected you to differ. ":
+                tone=="Guarded"?"You need not take my word for it. ":
+                tone=="Bold"?"Then speak plainly. I stand by my judgment. ":
+                tone=="Prudent"?"There is room to weigh both views. ":
+                tone=="Dutiful"?"We can differ without breaking faith. ":
+                "I hear you. We need not think alike. ";
+            return preface+answer;
+        }
+
+        private bool PreparePersonalFollowUp()
+        {
+            MBTextManager.SetTextVariable("CU_PERSONAL_FOLLOWUP",new TextObject(
+                CanFollowPersonalTopic()?personalReply:"Let us leave that subject for another time."));
+            return true;
+        }
+
         private bool CanDiscussPersonalMatters()
         {
             var actor=Hero.OneToOneConversationHero;
@@ -429,8 +578,10 @@ namespace CalradiaUnified
                 }
                 else if(topic=="Family")
                 {
-                    int children=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive);
-                    int young=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive && h.Age<18f);
+                    var kin=player.Children==null?new Hero[0]:player.Children.Where(h=>h!=null && h.IsAlive &&
+                        (actor!=player.Spouse || h.Father==actor || h.Mother==actor)).ToArray();
+                    int children=kin.Length;
+                    int young=kin.Count(h=>h.Age<18f);
                     reply=children==0?(actor==player.Spouse?
                         "We have no living children of our own.":"You have no living children of your own."):
                         (actor==player.Spouse?"Our family":"Your family")+" has "+children+
@@ -438,8 +589,7 @@ namespace CalradiaUnified
                     if(actor==player.Spouse)reply+=" Let us discuss how we provide for them.";
                     if(player.Children!=null)
                     {
-                        var living=player.Children.Where(h=>h!=null && h.IsAlive)
-                            .OrderByDescending(h=>h.Age).Take(3).ToArray();
+                        var living=kin.OrderByDescending(h=>h.Age).Take(3).ToArray();
                         if(living.Length>0)
                             reply+=" We should consider "+String.Join(", ",living.Select(h=>
                                 h.Name.ToString()))+".";
@@ -492,7 +642,7 @@ namespace CalradiaUnified
                         "There is still a matter awaiting your answer.";
                 }
                 string opinion=topic=="Opinions"?"":SandboxPetitionVoicePolicy.Opinion(tone,topic);
-                if(opinion.Length>0)reply+=" "+opinion;
+                if(opinion.Length>0 && topic!="Concerns" && !reply.Contains(opinion))reply+=" "+opinion;
             }
             MBTextManager.SetTextVariable("CU_PERSONAL_TOPIC_REPLY",new TextObject(reply));
             return true;
@@ -532,13 +682,29 @@ namespace CalradiaUnified
                     "Do you remember our earlier affairs?";
                 starter.AddPlayerLine("cu_personal_topic_"+topic,"cu_personal_matters_topics",
                     "cu_personal_topic_reply_"+topic,question,
-                    ()=>CanDiscussPersonalTopic(topic),null,100);
+                    ()=>CanDiscussPersonalTopic(topic),()=>SelectPersonalTopic(topic),100);
                 starter.AddDialogLine("cu_personal_topic_reply_"+topic,"cu_personal_topic_reply_"+topic,
-                    "cu_personal_matters_topics","{CU_PERSONAL_TOPIC_REPLY}",
+                    "cu_personal_followup_choices","{CU_PERSONAL_TOPIC_REPLY}",
                     ()=>PreparePersonalTopic(topic),null,100);
             starter.AddDialogLine("cu_personal_topic_reply__cu_safe_exit"+topic,"cu_personal_topic_reply_"+topic,
                 "close_window","We can speak again another time.",null,null,1);
             }
+            starter.AddPlayerLine("cu_personal_followup_ask","cu_personal_followup_choices",
+                "cu_personal_followup_reply","What would you do in my place?",
+                ()=>CanFollowPersonalTopic(),()=>personalReply=PersonalFollowUpText(false),100);
+            starter.AddPlayerLine("cu_personal_followup_disagree","cu_personal_followup_choices",
+                "cu_personal_followup_reply","I see the matter differently.",
+                ()=>CanFollowPersonalTopic(),()=>personalReply=PersonalFollowUpText(true),95);
+            starter.AddDialogLine("cu_personal_followup_reply","cu_personal_followup_reply",
+                "cu_personal_matters_topics","{CU_PERSONAL_FOLLOWUP}",()=>PreparePersonalFollowUp(),null,100);
+            starter.AddDialogLine("cu_personal_followup_reply_safe","cu_personal_followup_reply",
+                "close_window","We can speak again another time.",null,null,1);
+            starter.AddPlayerLine("cu_personal_followup_back","cu_personal_followup_choices",
+                "cu_personal_followup_back_reply","Let us speak of something else.",null,null,85);
+            starter.AddDialogLine("cu_personal_followup_back_reply","cu_personal_followup_back_reply",
+                "cu_personal_matters_topics","Of course. What else is on your mind?",null,null,85);
+            starter.AddPlayerLine("cu_personal_followup_exit","cu_personal_followup_choices",
+                "close_window","That is all for now.",null,null,80);
             for(int i=0;i<6;i++)
             {
                 int slot=i;
