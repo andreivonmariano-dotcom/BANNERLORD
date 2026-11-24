@@ -114,24 +114,57 @@ namespace CalradiaUnified
                     CurrentHouseholdDay(),"Unavailable");
                 agencyDecisions.Dismiss("Unavailable");
             }
-            if(agencyDecisions.Day<15 ||
-                agencyDecisions.Day%5!=0 || agencyDecisions.HasPending)
-                return;
-            OfferLocalCharacterRequest(player);
+            if(agencyDecisions.Day>=15 && agencyDecisions.Day%5==0 && !agencyDecisions.HasPending)
+                OfferLocalCharacterRequest(player);
+            // Separate read-only ordinary news never occupies the one
+            // pending petition slot or adds a notification requiring action.
+            ObserveOrdinaryCorrespondence(player);
         }
         private bool CanWriteDistantPetition(Hero player,Hero actor)
         {
             if(player==null || actor==null || actor==player)return false;
-            bool family=actor==player.Spouse || actor.Father==player || actor.Mother==player ||
-                player.Father==actor || player.Mother==actor ||
-                (player.Father!=null && player.Mother!=null && actor.Father==player.Father && actor.Mother==player.Mother);
-            bool companion=Clan.PlayerClan!=null && actor.CompanionOf==Clan.PlayerClan;
+            string contact=CorrespondenceContact(player,actor);
+            bool family=contact=="Spouse" || contact=="Kin";
+            bool companion=Clan.PlayerClan!=null && actor.Clan==Clan.PlayerClan && actor.CompanionOf==Clan.PlayerClan;
             bool patron=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId && actor.StringId==knightOath.PatronId;
             bool knownNoble=actor.Clan!=null && actor.Clan.Leader==actor &&
                 player.GetRelation(actor)>=25;
             return SandboxAgencyDecisionPolicy.CanSendDistantLetter(actor.Age>=18f,
                 actor.IsAlive && actor.IsActive,actor.IsPrisoner,family || companion || patron || knownNoble,
                 actor.LastKnownClosestSettlement!=null,player.GetRelation(actor));
+        }
+        private void ObserveOrdinaryCorrespondence(Hero player)
+        {
+            if(player==null || agencyDecisions.Day<15 || agencyDecisions.Day%7!=0)return;
+            int day=CurrentHouseholdDay();
+            if(characterAgendas.Entries.Any(e=>e.NewsDay>=0 &&
+                (long)day-e.NewsDay<SandboxCharacterAgendaState.NewsInterval))return;
+            var eligible=new System.Collections.Generic.HashSet<string>(
+                characterAgendas.Entries.Where(e=>e.NewsDay<0 ||
+                    (long)day-e.NewsDay>=SandboxCharacterAgendaState.PersonalNewsInterval)
+                    .Select(e=>e.Id),StringComparer.Ordinal);
+            if(eligible.Count==0)return;
+            var known=new System.Collections.Generic.HashSet<string>(
+                livingPersons.People.Select(p=>p.Id),StringComparer.Ordinal);
+            var candidates=Hero.AllAliveHeroes.Where(h=>h!=null && h!=player &&
+                eligible.Contains(h.StringId) && known.Contains(h.StringId) &&
+                !SamePlace(player,h) && h.StringId!=agencyDecisions.PendingHeroId &&
+                CanWriteDistantPetition(player,h))
+                .OrderBy(h=>characterAgendas.Get(h.StringId).NewsDay)
+                .ThenBy(h=>h.StringId,StringComparer.Ordinal);
+            foreach(var person in candidates)
+            {
+                var entry=characterAgendas.Get(person.StringId);
+                string letter=SandboxPetitionVoicePolicy.OrdinaryLetter(entry.Goal,PersonalVoice(person),
+                    person.Culture==null?"":person.Culture.StringId,
+                    CorrespondenceContact(player,person),player.GetRelation(person));
+                if(!characterAgendas.RecordNews(person.StringId,player.StringId,day,
+                    player.GetRelation(person),letter))continue;
+                DiagnosticJournal.Event("cu_ordinary_correspondence_recorded",
+                    "sender="+person.StringId+"|recipient="+player.StringId+
+                    "|day="+day+"|modeled_letter=true|requires_answer=false|native_mutation=false");
+                break;
+            }
         }
         private void OfferLocalCharacterRequest(Hero player)
         {

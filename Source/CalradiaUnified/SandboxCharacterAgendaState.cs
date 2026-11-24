@@ -16,6 +16,10 @@ namespace CalradiaUnified
             public string Id="",Goal="",HomeId="",HomeEvidence="Unverified",
                 CurrentOccupation="",Culture="",ClanId="";
             public int ConsecutiveDaysTogether,ComradeshipAwards;
+            // Latest non-transactional letter per tracked person. The owner
+            // is the actual recipient, not a transferable household asset.
+            public string NewsRecipient="",NewsText="",NewsGoal="";
+            public int NewsDay=-1,NewsStanding;
             // One transient proposal per daily observation. A proposal
             // is never serialized as a confirmed native relationship.
             public bool AwardProposed;
@@ -125,6 +129,34 @@ namespace CalradiaUnified
             e.ComradeshipAwards++;
             return true;
         }
+        public const int NewsInterval=14, PersonalNewsInterval=60;
+        public static int StandingBand(int nativeRelation)
+        {
+            return nativeRelation<=-30?-2:nativeRelation<0?-1:
+                nativeRelation>=50?2:nativeRelation>=20?1:0;
+        }
+        public bool CanWriteNews(string sender,string recipient,int day,
+            int nativeRelation)
+        {
+            var entry=Get(sender);
+            if(entry==null || String.IsNullOrWhiteSpace(recipient) || recipient.Length>180 ||
+                sender==recipient || day<0 || day>2000000 ||
+                nativeRelation<10 || nativeRelation>100)return false;
+            if(Entries.Any(e=>e.NewsDay>=0 &&
+                (long)day-e.NewsDay<NewsInterval))return false;
+            return entry.NewsDay<0 || (long)day-entry.NewsDay>=PersonalNewsInterval;
+        }
+        public bool RecordNews(string sender,string recipient,int day,
+            int nativeRelation,string text)
+        {
+            if(!CanWriteNews(sender,recipient,day,nativeRelation) ||
+                String.IsNullOrWhiteSpace(text) || text.Length>180)return false;
+            var entry=Get(sender);
+            entry.NewsRecipient=recipient;entry.NewsDay=day;
+            entry.NewsStanding=StandingBand(nativeRelation);
+            entry.NewsGoal=entry.Goal;entry.NewsText=text;
+            return true;
+        }
         private static string E(string value)
         {
             value=value??"";
@@ -150,7 +182,9 @@ namespace CalradiaUnified
                     E(e.HomeEvidence),E(e.CurrentOccupation),
                     E(e.Culture),E(e.ClanId),
                     e.ConsecutiveDaysTogether.ToString(),
-                    e.ComradeshipAwards.ToString()}));
+                    e.ComradeshipAwards.ToString(),
+                    E(e.NewsRecipient),e.NewsDay.ToString(),e.NewsStanding.ToString(),
+                    E(e.NewsGoal),E(e.NewsText)}));
             return String.Join("\n",rows);
         }
         public static SandboxCharacterAgendaState Parse(string packed)
@@ -165,7 +199,7 @@ namespace CalradiaUnified
             {
                 var f=row.Split('|');
                 int days,pulses;
-                if(f.Length!=10 || f[0]!="P" ||
+                if((f.Length!=10 && f.Length!=15) || f[0]!="P" ||
                     !Int32.TryParse(f[8],out days) ||
                     !Int32.TryParse(f[9],out pulses) ||
                     days<0 || pulses<0 || pulses>5)continue;
@@ -176,6 +210,15 @@ namespace CalradiaUnified
                 var e=result.Get(id);
                 e.ConsecutiveDaysTogether=days;
                 e.ComradeshipAwards=pulses;
+                int newsDay,standing;
+                if(f.Length==15 && Int32.TryParse(f[11],out newsDay) &&
+                    newsDay>=0 && newsDay<=2000000 &&
+                    Int32.TryParse(f[12],out standing) && standing>=0 && standing<=2 &&
+                    D(f[10]).Length>0 && D(f[10])!=id && D(f[14]).Length>0)
+                {
+                    e.NewsRecipient=D(f[10]);e.NewsDay=newsDay;
+                    e.NewsStanding=standing;e.NewsGoal=D(f[13]);e.NewsText=D(f[14]);
+                }
             }
             return result;
         }

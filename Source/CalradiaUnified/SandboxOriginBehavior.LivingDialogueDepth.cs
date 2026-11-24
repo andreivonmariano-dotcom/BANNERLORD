@@ -94,6 +94,7 @@ namespace CalradiaUnified
             if(topic=="Concerns")return SpeakingWithAdultFamily() ||
                 CanDiscussHouseholdDuty() || SpeakingWithPendingPetitioner() || CanCounselCareer();
             if(!CanDiscussPersonalMatters())return false;
+            if(topic=="Standing")return livingPersons.People.Any(p=>p.Id==actor.StringId);
             if(topic=="Family")return SpeakingWithAdultFamily();
             if(topic=="Finances")return player.GetRelation(actor)>=10 &&
                 (SpeakingWithAdultFamily() || CanDiscussHouseholdDuty());
@@ -383,6 +384,18 @@ namespace CalradiaUnified
                             SandboxPetitionVoicePolicy.Opinion(tone,"Family");
                     else reply="There is nothing urgent I can tell you just now.";
                 }
+                else if(topic=="Standing")
+                {
+                    reply=SandboxPetitionVoicePolicy.StandingReply(relation);
+                    var bond=socialBonds.For(actor.StringId);
+                    if(bond!=null && bond.Supported>0 && bond.Positive>0 && relation>=20)
+                        reply+=" I remember the help you gave in earlier matters.";
+                    else if(bond!=null && bond.Declined>0 && bond.Negative<0 && relation<0)
+                        reply+=" I remember that we did not agree on earlier matters.";
+                    if(agenda!=null && agenda.NewsRecipient==player.StringId && agenda.NewsDay>=0 &&
+                        SandboxCharacterAgendaState.StandingBand(relation)!=agenda.NewsStanding)
+                        reply+=" Our standing is not quite as it was when last I wrote.";
+                }
                 else if(topic=="Ambitions")
                 {
                     string goal=agenda==null?"":agenda.Goal;
@@ -497,7 +510,7 @@ namespace CalradiaUnified
                 ()=>CanSpeakSocially(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
                 "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
-            foreach(string topicName in new[]{"Opinions","Concerns","Ambitions","Family","Finances","Estate","Service","Memory"})
+            foreach(string topicName in new[]{"Opinions","Concerns","Ambitions","Family","Finances","Estate","Service","Standing","Memory"})
             {
                 string topic=topicName;
                 string question=topic=="Opinions"?"What matters most to you in life?":
@@ -506,6 +519,7 @@ namespace CalradiaUnified
                     topic=="Finances"?"How stand our personal finances?":
                     topic=="Estate"?"What concerns our holdings?":
                     topic=="Service"?"What charge lies before us?":
+                    topic=="Standing"?"How do matters stand between us?":
                     "Do you remember our earlier affairs?";
                 starter.AddPlayerLine("cu_personal_topic_"+topic,"cu_personal_matters_topics",
                     "cu_personal_topic_reply_"+topic,question,

@@ -130,6 +130,8 @@ namespace CalradiaUnified
             var clan=Clan.PlayerClan;
             int day=CurrentHouseholdDay();
             var ids=new HashSet<string>(petitionStories.Stories.Select(s=>s.HeroId),StringComparer.Ordinal);
+            foreach(var news in characterAgendas.Entries.Where(e=>e.NewsRecipient==player.StringId && e.NewsDay>=0))
+                ids.Add(news.Id);
             if(agencyDecisions.HasPending)ids.Add(agencyDecisions.PendingHeroId);
             if(knightOath.HasCurrentOath)ids.Add(knightOath.PatronId);
             foreach(var office in new[]{"Steward","Captain","Envoy"})
@@ -174,6 +176,16 @@ namespace CalradiaUnified
                     Detail=(story.Letter.Length>0?story.Letter:PetitionConcern(story.Kind))+"\n\n"+AffairLocation(p)+"\n"+
                         (due?"Ask how their affairs have fared since your decision.":
                          "An earlier matter from your personal history.")});
+            }
+            foreach(var news in characterAgendas.Entries.Where(e=>e.NewsRecipient==player.StringId &&
+                e.NewsDay>=0 && e.NewsText.Length>0))
+            {
+                var sender=find(news.Id);
+                var historical=livingPersons.People.FirstOrDefault(x=>x.Id==news.Id);
+                string name=sender!=null?AffairPerson(sender):historical==null?"Recorded correspondent":historical.Name;
+                rows.Add(new SandboxAffair{Id="news:"+news.Id,Category="Letters",HeroId=news.Id,
+                    Title=name+" | Personal letter",Status="No reply required",Day=news.NewsDay,
+                    Pending=false,Detail=news.NewsText+"\n\n"+AffairLocation(sender)});
             }
             if(IsPersonalChargeActive())
                 rows.Add(new SandboxAffair{Id="charge",Category="Service",Title="Your agreed duty",

@@ -9,10 +9,9 @@ namespace CalradiaUnified
         private SandboxPetitionStoryState petitionStories=
             new SandboxPetitionStoryState();
 
-        private string ComposePetitionLetter(Hero person,string kind)
+        private string CorrespondenceContact(Hero player,Hero person)
         {
-            var player=Hero.MainHero;
-            if(person==null || player==null)return "";
+            if(person==null || player==null)return "Other";
             bool spouse=person==player.Spouse && person.Spouse==player;
             bool kin=person.Father==player || person.Mother==player ||
                 player.Father==person || player.Mother==person ||
@@ -20,12 +19,18 @@ namespace CalradiaUnified
                     person.Father==player.Father && person.Mother==player.Mother);
             bool patron=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId &&
                 knightOath.PatronId==person.StringId;
+            return spouse?"Spouse":kin?"Kin":patron?"Patron":"Other";
+        }
+        private string ComposePetitionLetter(Hero person,string kind)
+        {
+            var player=Hero.MainHero;
+            if(person==null || player==null)return "";
             var clan=Clan.PlayerClan;
             bool ruler=clan!=null && clan.Kingdom!=null && clan.Kingdom.RulingClan==clan && clan.Leader==player;
             bool noble=clan!=null && clan.Kingdom!=null && clan.Leader==player;
             return SandboxPetitionVoicePolicy.Letter(kind,PersonalVoice(person),
                 person.Culture==null?"":person.Culture.StringId,
-                spouse?"Spouse":kin?"Kin":patron?"Patron":"Other",
+                CorrespondenceContact(player,person),
                 ruler,noble,player.GetRelation(person));
         }
         private void RememberPetitionStory(Hero person,string kind)

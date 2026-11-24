@@ -37,6 +37,29 @@ internal static class Program
             voices.All(t=>SandboxPetitionVoicePolicy.Letter("HouseholdAid",t,"empire","Other",false,false,10).Contains("150 denars")) &&
             SandboxPetitionVoicePolicy.Letter("Audience","Warm","empire","Spouse",false,false,40).StartsWith("My dear companion") &&
             SandboxPetitionVoicePolicy.Letter("Audience","Plain","empire","Other",true,true,10).StartsWith("To the sovereign"));
+        var newsAgenda=new SandboxCharacterAgendaState();
+        newsAgenda.Register("family_a","SupportHousehold","","Unverified","","empire","");
+        newsAgenda.Register("family_b","GainMilitaryTraining","","Unverified","","vlandia","");
+        string familyNews=SandboxPetitionVoicePolicy.OrdinaryLetter("SupportHousehold","Warm","empire","Spouse",40);
+        Check("ordinary news carries no demand and is globally and personally bounded",
+            familyNews.Length<=180 && !familyNews.Contains("denars") &&
+            !newsAgenda.RecordNews("family_a","player",15,5,familyNews) &&
+            newsAgenda.RecordNews("family_a","player",15,40,familyNews) &&
+            !newsAgenda.RecordNews("family_b","player",28,40,familyNews) &&
+            newsAgenda.RecordNews("family_b","player",29,40,familyNews) &&
+            !newsAgenda.CanWriteNews("family_a","player",74,40) &&
+            newsAgenda.CanWriteNews("family_a","player",75,40));
+        var savedNews=SandboxCharacterAgendaState.Parse(newsAgenda.Serialize());
+        Check("ordinary correspondence persists recipient, original words and native standing band",
+            savedNews.Get("family_a").NewsText==familyNews &&
+            savedNews.Get("family_a").NewsRecipient=="player" &&
+            savedNews.Get("family_a").NewsDay==15 && savedNews.Get("family_a").NewsStanding==1 &&
+            savedNews.Get("family_a").NewsGoal=="SupportHousehold" &&
+            SandboxCharacterAgendaState.Parse("CU_AGENDA_1\nP|old|SupportHousehold||||||0|1").Get("old").NewsDay==-1);
+        Check("ordinary relationship dialogue follows observed native score without inventing friend or enemy flags",
+            new[]{-40,-5,0,25,60}.Select(SandboxPetitionVoicePolicy.StandingReply).Distinct().Count()==5 &&
+            SandboxCharacterAgendaState.StandingBand(-30)==-2 &&
+            SandboxCharacterAgendaState.StandingBand(50)==2);
         var writtenStory=new SandboxPetitionStoryState();
         string originalLetter=SandboxPetitionVoicePolicy.Letter("Audience","Bold","vlandia","Other",false,true,30);
         Check("letter snapshot round trips and old stories remain readable",

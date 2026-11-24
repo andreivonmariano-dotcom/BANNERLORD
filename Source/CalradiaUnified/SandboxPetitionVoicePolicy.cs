@@ -148,6 +148,52 @@ namespace CalradiaUnified
             }
             return greeting+"\n\n"+concern+" "+voice+"\n\n"+closing;
         }
+        // Ordinary correspondence conveys a modeled thought, not a
+        // new event, quest, request, reward or claim of actual native dispatch.
+        public static string OrdinaryLetter(string goal,string tone,string culture,
+            string contact,int relation)
+        {
+            string greeting=contact=="Spouse" && relation>=20?"My dear companion,":
+                contact=="Kin"?"To my kin,":contact=="Patron"?"To my sworn companion,":"Greetings,";
+            string thought;
+            switch(goal)
+            {
+                case "ProtectSharedHousehold":case "SupportHousehold":case "MaintainHousehold":
+                    thought="I keep our household's welfare in mind.";break;
+                case "GainMilitaryTraining":thought="I mean to learn more of the soldier's craft.";break;
+                case "BuildTradingContacts":case "EstablishLivelihood":
+                    thought="I still hope to make a living through my own efforts.";break;
+                case "DefendClanStanding":case "PreserveFamilyPosition":
+                    thought="I hold the name of my house dear.";break;
+                case "ProtectDescendants":thought="I think often of the years ahead for my kin.";break;
+                case "MapSafePassages":thought="I wish to learn more of the roads between our towns.";break;
+                case "KeepCompanyTogether":thought="I value the company that shares our hardships.";break;
+                default:thought="I have been thinking of the years ahead.";break;
+            }
+            string voice=tone=="Warm"?"I think of you kindly.":
+                tone=="Dutiful"?"May we keep faith.":
+                tone=="Prudent"?"I shall take care in my affairs.":
+                tone=="Bold"?"I shall face what comes.":
+                tone=="Guarded"?"I ask nothing of you.":"I send my regards.";
+            string closing=(culture??"").ToLowerInvariant()=="aserai"?"Peace to you.":
+                (culture??"").ToLowerInvariant()=="sturgia"?"Safe roads.":
+                (culture??"").ToLowerInvariant()=="battania"?"A warm hearth.":
+                (culture??"").ToLowerInvariant()=="khuzait"?"Fair travels.":
+                (culture??"").ToLowerInvariant()=="empire"?"With respect.":"In good faith.";
+            string text=greeting+" "+thought+" "+voice+" "+closing;
+            return text.Length<=180?text:greeting+" "+thought+" "+closing;
+        }
+        public static string StandingReply(int nativeRelation)
+        {
+            // Describes today's native relation. It does not label a
+            // person a native friend/enemy or manufacture a grievance.
+            int band=SandboxCharacterAgendaState.StandingBand(nativeRelation);
+            return band==-2?"There is little trust between us.":
+                band==-1?"Our dealings have not been easy.":
+                band==2?"I regard you with considerable goodwill.":
+                band==1?"We stand on friendly terms.":
+                "We have no particular cause for ill will or great trust.";
+        }
         public static bool AcceptsHouseholdDuty(int relation,int honor,int calculating)
         {
             return relation>=0 && (relation>=20 || honor>0 || calculating<=0);
