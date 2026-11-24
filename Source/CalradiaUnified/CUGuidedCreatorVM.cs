@@ -1336,7 +1336,9 @@ namespace CalradiaUnified
                          "Independent Lord requires you to be the eldest "+
                          "brother. Older sisters and younger brothers "+
                          "are allowed. " :
-                         "Older siblings are allowed for this origin. ")+
+                         (profile.KnightGuidedStart || profile.KingGuidedStart)?
+                         "Older sisters and younger brothers are allowed. ":
+                         "Older siblings are allowed for this career. ")+
                         "Edit names and ages in Advanced.";
                 if(!preCampaign && profile.Role=="Lord" &&
                     profile.NobleBirthPosition=="Independent" &&
@@ -1569,15 +1571,13 @@ namespace CalradiaUnified
                         "Starting kingdom: "+
                         (profile.StartingKingdomId.Length==0?"None":
                             profile.StartingKingdomId)+"\n"+
-                        "Birth: "+DisplayChoice("NobleBirthPosition",
-                            profile.NobleBirthPosition)+"\n"+
+                        
                         (SandboxServicePolicy.NeedsPatron(profile.Role)?
                             "Service: named native lord appointed at start\n":"")+
                         "World: "+
                         DisplayChoice("StartingScenario",profile.StartingScenario)+
                         "\nCulture, appearance and origins follow.";
                 var hero=Hero.MainHero;
-                string elderPreview=projectedElderName;
                 return "Native character: "+
                     (hero==null?"pending":hero.Name.ToString())+
                     " | Age "+ActualFounderAge+"\n"+
@@ -1606,9 +1606,7 @@ namespace CalradiaUnified
                         profile.FamilyScenario:"None")+"\n"+
                     "Children: "+profile.ChildCount+"\n"+
                     "Siblings: "+profile.SiblingCount+"\n"+
-                    "Noble origin: "+DisplayChoice("NobleBirthPosition",
-                        profile.NobleBirthPosition)+"\n"+
-                    "Older relative: "+elderPreview+"\n"+
+
                     "Household officers: "+DisplayChoice("RetinueMode",
                         profile.RetinueMode)+"\n"+
                     (SandboxServicePolicy.NeedsPatron(profile.Role)?
