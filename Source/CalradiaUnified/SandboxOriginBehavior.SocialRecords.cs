@@ -84,7 +84,14 @@ namespace CalradiaUnified
             if(person==null)return "No identified person.";
             var account=householdAccounts.For(person.StringId);
             int milestone=familyGrowth.LastMilestone(person.StringId);
+            var clan=person.Clan;
+            string estates=clan==null || clan.Settlements==null?"unverified":
+                clan.Settlements.Count.ToString();
             return "Current native Hero gold: "+person.Gold+
+                "\nNative clan: "+(clan==null?"none":clan.Name.ToString())+
+                " | Clan settlements: "+estates+
+                " (clan property, not individual assets)"+
+                "\nNative clan leadership: "+(clan!=null && clan.Leader==person?"yes":"no")+
                 (account==null?"\nNo saved account observation.":
                     "\nObserved balance day "+account.Day+": "+account.Gold+
                     " | Change since previous observation: "+
