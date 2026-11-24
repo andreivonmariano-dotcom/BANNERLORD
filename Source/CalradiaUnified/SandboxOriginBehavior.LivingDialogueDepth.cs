@@ -49,6 +49,7 @@ namespace CalradiaUnified
                 livingPersons.People.Any(p=>p.Id==actor.StringId))return true;
             if(knightOath.PlayerId==player.StringId && knightOath.HasCurrentOath &&
                 actor==KnightOathPatron())return true;
+            if(SelectedReviewRole()!="Soldier")return false;
             var service=SandboxSaSBridge.Read();
             return service.Available && service.Enlisted && service.LordId==actor.StringId;
         }
@@ -84,6 +85,8 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
             if(topic=="Opinions")return true;
+            if(topic=="Concerns")return SpeakingWithAdultFamily() ||
+                CanDiscussHouseholdDuty() || SpeakingWithPendingPetitioner() || CanCounselCareer();
             if(!CanDiscussPersonalMatters())return false;
             if(topic=="Family")return SpeakingWithAdultFamily();
             if(topic=="Finances")return player.GetRelation(actor)>=10 &&
@@ -93,8 +96,11 @@ namespace CalradiaUnified
             if(topic=="Memory")
             {
                 var story=petitionStories.For(actor.StringId);
-                return story!=null && (story.ResolvedDay>=0 ||
-                    (agencyDecisions.HasPending && agencyDecisions.PendingHeroId==actor.StringId));
+                return story!=null &&
+                    ((story.ResolvedDay>=0 &&
+                      (long)CurrentHouseholdDay()-story.ResolvedDay<SandboxPetitionStoryState.FollowUpDays) ||
+                     (story.Outcome=="Pending" && agencyDecisions.HasPending &&
+                      agencyDecisions.PendingHeroId==actor.StringId));
             }
             return topic=="Ambitions" && characterAgendas.Get(actor.StringId)!=null;
         }
@@ -348,6 +354,24 @@ namespace CalradiaUnified
                 string tone=PersonalVoice(actor);
                 if(topic=="Opinions")
                     reply=SandboxPetitionVoicePolicy.Opinion(tone,"Opinions");
+                else if(topic=="Concerns")
+                {
+                    var clan=Clan.PlayerClan;
+                    var siege=clan==null?null:clan.Settlements.FirstOrDefault(
+                        x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
+                    if(SpeakingWithPendingPetitioner())
+                        reply="There is still the matter I wished to put before you.";
+                    else if(siege!=null && (SpeakingWithAdultFamily() || CanDiscussHouseholdDuty()))
+                        reply=siege.Name+" is under siege. "+
+                            SandboxPetitionVoicePolicy.Opinion(tone,"Estate");
+                    else if(IsPersonalChargeActive() && CanCounselCareer())
+                        reply=ChargeDescription()+" "+SandboxPetitionVoicePolicy.Opinion(tone,"Service");
+                    else if(SpeakingWithAdultFamily() && player.Children!=null &&
+                        player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f))
+                        reply="The young ones are growing. "+
+                            SandboxPetitionVoicePolicy.Opinion(tone,"Family");
+                    else reply="There is nothing urgent I can tell you just now.";
+                }
                 else if(topic=="Ambitions")
                 {
                     string goal=agenda==null?"":agenda.Goal;
@@ -372,7 +396,8 @@ namespace CalradiaUnified
                 {
                     int children=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive);
                     int young=player.Children==null?0:player.Children.Count(h=>h!=null && h.IsAlive && h.Age<18f);
-                    reply=children==0?"We have no children of yours to provide for at present.":
+                    reply=children==0?(actor==player.Spouse?
+                        "We have no living children of our own.":"You have no living children of your own."):
                         (actor==player.Spouse?"Our family":"Your family")+" has "+children+
                         " children living. "+(young>0?"The younger ones still need care.":"They have their own lives to lead.");
                     if(actor==player.Spouse)reply+=" Let us discuss how we provide for them.";
@@ -448,10 +473,11 @@ namespace CalradiaUnified
                 ()=>CanSpeakSocially(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
                 "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
-            foreach(string topicName in new[]{"Opinions","Ambitions","Family","Finances","Estate","Service","Memory"})
+            foreach(string topicName in new[]{"Opinions","Concerns","Ambitions","Family","Finances","Estate","Service","Memory"})
             {
                 string topic=topicName;
-                string question=topic=="Opinions"?"What matters most to you in life?":topic=="Ambitions"?"What do you wish for yourself?":
+                string question=topic=="Opinions"?"What matters most to you in life?":
+                    topic=="Concerns"?"Is there anything that needs our attention?":topic=="Ambitions"?"What do you wish for yourself?":
                     topic=="Family"?"How shall we care for the family?":
                     topic=="Finances"?"How stand our personal finances?":
                     topic=="Estate"?"What concerns our holdings?":
