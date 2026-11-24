@@ -357,6 +357,29 @@ internal static class Program
                 "MapSafePassages",0,2,0,25)=="Warm" &&
             SandboxPetitionVoicePolicy.Style(
                 "MapSafePassages",0,0,0,25)=="Direct");
+        Check("native personality voice uses five traits and current trust",
+            SandboxPetitionVoicePolicy.Tone(2,0,0,0,0,25)=="Dutiful" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,2,0,0,25)=="Prudent" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,0,2,0,25)=="Bold" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,0,0,2,25)=="Warm" &&
+            SandboxPetitionVoicePolicy.Tone(2,2,2,2,2,-20)=="Guarded");
+        Check("each personality has distinct greetings and opinions",
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}
+                .Select(SandboxPetitionVoicePolicy.Greeting).Distinct().Count()==6 &&
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}
+                .Select(t=>SandboxPetitionVoicePolicy.Opinion(t,"Family")).Distinct().Count()==6);
+        Check("failed native transfer never produces a successful thank you",
+            SandboxPetitionVoicePolicy.DecisionReply("Warm",true,false)!=
+                SandboxPetitionVoicePolicy.DecisionReply("Warm",true,true));
+        var revisedGrowth=new SandboxFamilyGrowthState();
+        revisedGrowth.Register("child_a","Martial",10);
+        Check("co-parent education revision preserves completed milestone and cannot affect adult or unknown child",
+            revisedGrowth.ReviseUpbringing("child_a","Scholarly",10) &&
+            !revisedGrowth.ReviseUpbringing("child_a","Kind",18) &&
+            !revisedGrowth.ReviseUpbringing("unknown","Kind",10) &&
+            revisedGrowth.LastMilestone("child_a")==10 &&
+            SandboxFamilyGrowthState.Parse(revisedGrowth.Serialize()).UpbringingFor("child_a")=="Scholarly" &&
+            SandboxFamilyGrowthState.Parse(revisedGrowth.Serialize()).LastMilestone("child_a")==10);
         Check("knight rank requires service, lord favor and renown",
             SandboxKnightStandingPolicy.Standing(9,200f,6,3)==
                 "Newly sworn knight" &&
