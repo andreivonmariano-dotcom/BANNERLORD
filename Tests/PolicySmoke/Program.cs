@@ -146,6 +146,10 @@ internal static class Program
             !restoredTalk.HasRecentConversationChoice("player","spouse","Family",5) &&
             !restoredTalk.HasRecentConversationChoice("player","other","Family",12) &&
             !restoredTalk.HasRecentConversationChoice("successor","spouse","Family",12));
+        Check("memory discussions do not overwrite the meaningful recalled event",
+            restoredTalk.RecordConversationChoice("player","spouse","Memory",false,14) &&
+            restoredTalk.HasRecentConversationChoice("player","spouse","Memory",14) &&
+            restoredTalk.SharedConversationMemory("player","spouse").Detail=="day=6|topic=Family|stance=disagreed");
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
