@@ -82,8 +82,26 @@ namespace CalradiaUnified
             return settlement!=null &&
                 other.StayingInSettlement==settlement;
         }
+        private string petitionRecipient="";
+        private bool PetitionsBelongToCurrentPlayer()
+        {
+            return Hero.MainHero!=null && (String.IsNullOrEmpty(petitionRecipient) ||
+                petitionRecipient==Hero.MainHero.StringId);
+        }
+        private void BindPetitionsToPlayer(Hero player)
+        {
+            if(player==null)return;
+            if(!String.IsNullOrEmpty(petitionRecipient) && petitionRecipient!=player.StringId)
+                foreach(var request in agencyDecisions.PendingRequests)
+                {
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Unavailable");
+                    agencyDecisions.RemovePending(request.HeroId,"RecipientChanged");
+                }
+            petitionRecipient=player.StringId;
+        }
         private Hero RequestedCharacter(string id=null)
         {
+            if(!PetitionsBelongToCurrentPlayer())return null;
             var target=FindLivingPerson(id??agencyDecisions.PendingHeroId);
             return target!=null && target.IsActive && !target.IsPrisoner &&
                 target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
@@ -95,6 +113,7 @@ namespace CalradiaUnified
         }
         private void ObserveAgencyDaily(Hero player)
         {
+            BindPetitionsToPlayer(player);
             // Reconcile every request independently; a distant first petitioner does not block others.
             foreach(var story in petitionStories.Stories.Where(s=>s.Outcome=="Pending" &&
                 (agencyDecisions.PendingFor(s.HeroId)==null ||
@@ -165,7 +184,9 @@ namespace CalradiaUnified
         }
         private void OfferLocalCharacterRequest(Hero player)
         {
-            if(player==null || !agencyDecisions.HasRoom)return;
+            if(player==null)return;
+            BindPetitionsToPlayer(player);
+            if(!agencyDecisions.HasRoom)return;
             var ids=agencyDecisions.Prioritize(
                 characterAgendas.Entries.Select(a=>a.Id));
             if(ids.Length==0)return;
@@ -864,6 +885,10 @@ namespace CalradiaUnified
                 "cu_people_affairs_journal","Review correspondence and pending matters",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenCampaignAffairs(),false);
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_affairs_list","Browse correspondence (native list)",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
+                args=>OpenNativeAffairsList(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "People of my household",

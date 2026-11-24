@@ -60,7 +60,7 @@ assert 'Text="Correspondence"' in (
 assert 'Hero.OneToOneConversationHero' in petition
 assert 'agencyDecisions.PendingFor(actor.StringId)!=null' in petition
 assert 'RequestedCharacter(actor.StringId)==actor' in petition
-assert 'RequestedCharacter()==actor' in petition
+assert 'RequestedCharacter(actor.StringId)==actor' in petition
 assert 'SamePlace(player,actor)' in petition
 assert 'actor.Age<18f' in petition
 assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in petition
@@ -103,3 +103,11 @@ assert 'bool pending=PendingAffairsGathering(day);' in affairs
 assert 'gatheringPlan.Owner==Hero.MainHero.StringId' in affairs
 assert '"cu_people_affairs_journal"' in menu
 print("PASS native correspondence containment and shared gathering notification predicate. SOURCE ONLY.")
+
+assert 'agencyDecisions.SelectPending(actor.StringId)' in menu
+assert 'agencyDecisions.PendingCount' in affairs
+assert 'foreach(var request in agencyDecisions.PendingRequests)' in menu
+assert 'CU_petition_recipient_1' in origin
+assert 'MBInformationManager.ShowMultiSelectionInquiry' in affairs
+assert '"cu_people_affairs_list"' in menu
+assert 'new InquiryElement(index,item.Title+" | "+item.Status,null)' in affairs

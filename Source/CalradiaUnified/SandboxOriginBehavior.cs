@@ -446,6 +446,7 @@ namespace CalradiaUnified
             string requests=agencyDecisions.Serialize();
             store.SyncData("CU_v067_character_requests",ref requests);
             agencyDecisions=SandboxAgencyDecisionState.Parse(requests);
+            store.SyncData("CU_petition_recipient_1",ref petitionRecipient);
             string court=inheritanceNegotiation.Serialize();
             store.SyncData("CU_v067_family_negotiation",ref court);
             inheritanceNegotiation=SandboxInheritanceNegotiationState

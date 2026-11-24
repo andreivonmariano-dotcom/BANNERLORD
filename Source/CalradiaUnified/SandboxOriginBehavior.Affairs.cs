@@ -5,6 +5,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Library;
+using TaleWorlds.Core;
 
 namespace CalradiaUnified
 {
@@ -69,7 +70,7 @@ namespace CalradiaUnified
         {
             int day=CurrentHouseholdDay();
             var player=Hero.MainHero;
-            int count=agencyDecisions.PendingCount;
+            int count=PetitionsBelongToCurrentPlayer()?agencyDecisions.PendingCount:0;
             count+=petitionStories.Stories.Count(s=>petitionStories.CanFollowUp(s.HeroId,day) &&
                 LivingFollowUp(s.HeroId,day));
             if(IsPersonalChargeActive())count++;
@@ -110,6 +111,36 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception("cu_affairs_native_failed",error);
                 return false;
+            }
+        }
+        // Optional game-owned list from a settlement; the known inquiry route
+        // stays available from all original buttons during live crash recovery.
+        private void OpenNativeAffairsList()
+        {
+            if(AffairsBehavior()!=this || Hero.MainHero.IsPrisoner ||
+                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return;
+            string owner=Hero.MainHero.StringId;
+            try
+            {
+                var all=BuildAffairs().Where(x=>x!=null).GroupBy(x=>x.Id,StringComparer.Ordinal)
+                    .Select(g=>g.First()).OrderByDescending(x=>x.Pending).ThenByDescending(x=>x.Unread)
+                    .ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
+                if(all.Length==0){ShowAffairsNativePage(all,0);return;}
+                var entries=all.Select((item,index)=>new InquiryElement(index,item.Title+" | "+item.Status,null)).ToList();
+                MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
+                    "Correspondence and affairs","Select a matter to read. Decisions still require the actual person.",
+                    entries,true,1,1,"Read","Close",selected=>
+                    {
+                        if(AffairsBehavior()!=this || Hero.MainHero.StringId!=owner || selected==null ||
+                            selected.Count!=1 || !(selected[0].Identifier is int))return;
+                        ShowAffairsNativePage(all,(int)selected[0].Identifier);
+                    },selected=>{}),true);
+                DiagnosticJournal.Event("cu_affairs_native_list_open","records="+all.Length+"|custom_movie=false|images=false");
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception("cu_affairs_native_list_failed",error);
+                OpenCampaignAffairs();
             }
         }
         private void ShowAffairsNativePage(SandboxAffair[] records,int index)
@@ -182,7 +213,7 @@ namespace CalradiaUnified
             var ids=new HashSet<string>(petitionStories.Stories.Select(s=>s.HeroId),StringComparer.Ordinal);
             foreach(var news in characterAgendas.Entries.Where(e=>e.NewsRecipient==player.StringId && e.NewsDay>=0))
                 ids.Add(news.Id);
-            foreach(var request in agencyDecisions.PendingRequests)ids.Add(request.HeroId);
+            if(PetitionsBelongToCurrentPlayer())foreach(var request in agencyDecisions.PendingRequests)ids.Add(request.HeroId);
             if(knightOath.HasCurrentOath)ids.Add(knightOath.PatronId);
             foreach(var office in new[]{"Steward","Captain","Envoy"})
                 ids.Add(householdDuties.AssignedId(office));
@@ -192,7 +223,7 @@ namespace CalradiaUnified
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
             Func<string,Hero> find=id=>!String.IsNullOrEmpty(id) && known.ContainsKey(id)?known[id]:null;
-            foreach(var request in agencyDecisions.PendingRequests)
+            foreach(var request in PetitionsBelongToCurrentPlayer()?agencyDecisions.PendingRequests:new SandboxAgencyDecisionState.PendingRequest[0])
             {
                 var p=find(request.HeroId);
                 var pendingStory=petitionStories.For(request.HeroId);

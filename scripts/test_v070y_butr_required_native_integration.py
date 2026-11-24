@@ -77,7 +77,7 @@ assert 'CUMapNotificationAffairsMixin.Pulse(dt);' in core
 assert 'CUMapNotificationAffairsMixin.Clear();' in core
 journal=(source/"SandboxOriginBehavior.Affairs.cs").read_text()
 assert 'petitionStories.CanFollowUp(' in journal
-assert 'agencyDecisions.HasPending' in journal
+assert 'agencyDecisions.PendingCount' in journal
 assert 'ScreenManager.PushScreen(new CUAffairsScreen(' not in journal
 assert 'b.ShowAffairsNativePage(all,0)' in journal
 assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,' in journal

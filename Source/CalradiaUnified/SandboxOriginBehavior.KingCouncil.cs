@@ -4,6 +4,7 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.CampaignSystem.Settlements.Locations;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
 
@@ -184,6 +185,25 @@ namespace CalradiaUnified
                     speaker.StringId==royalCouncil.MinisterId || speaker.StringId==royalCouncil.KingsguardHeroId) &&
                 CanDiscussHouseholdDuty();
         }
+        private void ReviewNativeKeepRoster()
+        {
+            if(!NativeRoyalCouncilPresent(true))return;
+            var complex=LocationComplex.Current;
+            var keep=complex==null?null:complex.GetLocationWithId("lordshall");
+            if(keep==null)
+            {
+                ShowNativeDetail("Royal hall","The native keep roster is not currently available. Enter the keep through its ordinary settlement menu.");
+                return;
+            }
+            var officers=new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")};
+            var lines=officers.Where(h=>h!=null).Select(h=>h.Name+" | "+
+                (complex.GetLocationOfCharacter(h)==keep?"Assigned to native hall":"Not confirmed in native hall")).ToArray();
+            DiagnosticJournal.Event("cu_royal_keep_roster_observed","seat="+royalCouncil.SeatId+
+                "|native_location=lordshall|assigned="+officers.Count(h=>h!=null && complex.GetLocationOfCharacter(h)==keep)+
+                "|spawned_by_cu=false");
+            ShowNativeDetail("Royal hall | Native roster",String.Join("\n",lines)+
+                "\nNative location assignment is not proof of a rendered Agent. Enter the keep and speak to those actually present.");
+        }
         private bool PrepareRoyalOfficerAudience()
         {
             if(!CanHearRoyalOfficerInPerson())
@@ -338,6 +358,10 @@ namespace CalradiaUnified
                 "cu_restore_royal_court","Restore royal court",
                 args=>CanRestoreRoyalCourt(),
                 args=>RestoreRoyalCourt(),false);
+            starter.AddGameMenuOption("cu_native_royal_council",
+                "cu_royal_keep_roster","Review native keep attendance",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return NativeRoyalCouncilPresent(true);},
+                args=>ReviewNativeKeepRoster(),false);
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_native_royal_council_view",
                 "Review the native royal council",

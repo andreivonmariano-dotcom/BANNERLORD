@@ -15,7 +15,7 @@ namespace CalradiaUnified
         private bool SpeakingWithPendingPetitioner()
         {
             var actor=Hero.OneToOneConversationHero;
-            return applied && actor!=null && actor.IsAlive &&
+            return applied && PetitionsBelongToCurrentPlayer() && actor!=null && actor.IsAlive &&
                 actor.IsActive && !actor.IsPrisoner &&
                 agencyDecisions.PendingFor(actor.StringId)!=null &&
                 RequestedCharacter(actor.StringId)==actor;
@@ -31,7 +31,7 @@ namespace CalradiaUnified
         {
             var player=Hero.MainHero;
             var actor=Hero.OneToOneConversationHero;
-            if(!applied || player==null || actor==null ||
+            if(!applied || !PetitionsBelongToCurrentPlayer() || player==null || actor==null ||
                 (!agencyDecisions.HasRoom || agencyDecisions.PendingFor(actor.StringId)!=null) || !actor.IsAlive ||
                 !actor.IsActive || actor.IsPrisoner ||
                 actor.Age<18f || !SamePlace(player,actor) ||
@@ -73,6 +73,7 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             string kind=AvailablePetitionForSpeaker();
             if(actor==null || kind.Length==0)return;
+            BindPetitionsToPlayer(Hero.MainHero);
             if(agencyDecisions.Enqueue(actor.StringId,kind))
             {
                 RememberPetitionStory(actor,kind);
