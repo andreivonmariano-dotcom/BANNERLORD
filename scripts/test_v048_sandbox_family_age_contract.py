@@ -17,7 +17,7 @@ age_policy=read("SandboxFamilyAgePolicy.cs")
 home=read("SandboxFamilyHome.cs")
 shell=read("CUNativeStateShell.cs")
 
-assert 'birthClan = profile.SpouseBackground == "NobleRandom" ?' in noble
+assert 'birthClan = profile.SpouseBackground == "NobleRandom" && !preview ?' in noble
 assert '"|ancestry=unrecorded"' in noble
 assert 'father=unknown|mother=unknown' in noble
 assert '"no_valid_noble_clan_in_selected_kingdom"' in noble
