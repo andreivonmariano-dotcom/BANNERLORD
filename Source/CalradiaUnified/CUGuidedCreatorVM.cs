@@ -268,11 +268,11 @@ namespace CalradiaUnified
                     "Spouse age","Ages must permit the selected children.",
                     "number",min:18,max:70,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseGender",
-                    "Spouse gender","Auto chooses the opposite of the player's sex.",
+                    "Spouse gender","Auto chooses the opposite of the player's sex. Native marriage rules apply.",
                     choices:new[]{"Auto","Female","Male"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseBackground",
-                    "Spouse's origin","Lord: a genuinely noble native "+
-                    "birth clan with two existing married noble parents. "+
+                    "Spouse's origin","Lord: a genuine foreign noble birth clan. "+
+                    "Verified married parents are used where available; unknown ancestry stays unknown. "+
                     "Commoner is not a guided Lord option.",
                     choices:profile.LordGuidedStart?
                         new[]{"NobleRandom","NobleChosen"}:
@@ -377,7 +377,8 @@ namespace CalradiaUnified
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeMode",
                     "Household residence",
                     "None means no owned home is promised. A permanent residence requires a clan-owned safe town or castle.",
-                    choices:SandboxFamilyHomePolicy.Modes,advanced:true));
+                    choices:(profile.LordGuidedStart || profile.KingGuidedStart)?
+                        new[]{"None","OwnedFief","ClanHome"}:SandboxFamilyHomePolicy.Modes,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","FamilyHomeId",
                     "Exact family residence",
                     "Specify your owned town or castle's settlement ID.",
@@ -394,6 +395,8 @@ namespace CalradiaUnified
             if(field.Advanced && !advanced) return false;
             string key=field.Key;
             if(!preCampaign && profile.IsFixedGuidedKnightField(key))return false;
+            if(!preCampaign && (profile.LordGuidedStart || profile.KingGuidedStart) &&
+                key=="FamilyHomeId")return false;
             if(key=="EarlyHousehold" && preCampaign &&
                 profile.Role=="Wanderer")return false;
             if(!preCampaign && profile.LordGuidedStart &&
@@ -650,6 +653,9 @@ namespace CalradiaUnified
             if(key=="KnightOrigin" || key=="SoldierEntryRank" ||
                 key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;
             if(key=="Role" && Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,value)<0)return false;
+            if(!preCampaign && (profile.LordGuidedStart || profile.KingGuidedStart) &&
+                (key=="FamilyHomeId" || (key=="FamilyHomeMode" && value=="SpecificOwned")))
+            {Report("Choose an owned residence after the native estate is assigned.");return false;}
             var copy=SandboxOriginProfile.Parse(profile.Serialize());
             if(!copy.TrySet(key,value))
             {
@@ -1125,6 +1131,8 @@ namespace CalradiaUnified
             var candidate=SandboxOriginProfile.Parse(profile.Serialize());
             if(!candidate.NormalizeGuidedCareerDraft())
             {Report("Return to World and choose one of the seven starting careers.");return;}
+            if((candidate.LordGuidedStart || candidate.KingGuidedStart) && candidate.FamilyHomeMode=="SpecificOwned")
+            {Report("Choose OwnedFief, ClanHome or None. Select an exact owned residence after starting.");return;}
             candidate.RealFamilyEnabled=candidate.SpouseEnabled ||
                 candidate.ChildCount>0 || candidate.SiblingCount>0;
             string error;
