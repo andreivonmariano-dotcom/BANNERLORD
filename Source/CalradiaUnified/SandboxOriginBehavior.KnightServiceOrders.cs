@@ -20,8 +20,8 @@ namespace CalradiaUnified
                 return "Unverified sworn service";
             return SandboxKnightStandingPolicy.Standing(
                 player.GetRelation(patron),clan.Renown,
-                knightServiceOrders.CompletedOrders,
-                knightEscort.CompletedEscorts);
+                knightServiceOrders.PatronId==patron.StringId?knightServiceOrders.CompletedOrders:0,
+                knightEscort.PatronId==patron.StringId?knightEscort.CompletedEscorts:0);
         }
         private bool KnightCanAskRecommendation()
         {
@@ -36,8 +36,8 @@ namespace CalradiaUnified
                     patron.StringId,CurrentOathDay()) &&
                 SandboxKnightStandingPolicy.CanRequestRoyalHearing(
                     player.GetRelation(patron),clan.Renown,
-                    knightServiceOrders.CompletedOrders,
-                    knightEscort.CompletedEscorts,
+                    knightServiceOrders.PatronId==patron.StringId?knightServiceOrders.CompletedOrders:0,
+                    knightEscort.PatronId==patron.StringId?knightEscort.CompletedEscorts:0,
                     patron.Clan.Kingdom!=null,
                     clan.Kingdom==null);
         }
@@ -113,6 +113,8 @@ namespace CalradiaUnified
                 knightServiceOrders.PatronId);
             var speaker=Hero.OneToOneConversationHero;
             if(!applied || clan==null || clan.Kingdom!=null ||
+                Hero.MainHero==null || knightOath.PlayerId!=Hero.MainHero.StringId ||
+                !knightOath.HasCurrentOath || knightOath.PatronId!=knightServiceOrders.PatronId ||
                 patron==null || patron.Clan==null ||
                 patron.Clan.Kingdom==null ||
                 knightServiceOrders.RoyalHearingDay<0 ||

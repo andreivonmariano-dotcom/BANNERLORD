@@ -108,6 +108,14 @@ namespace CalradiaUnified
                 successor.StringId,successor.Clan.StringId,
                 successor.Clan.Kingdom.StringId,day,true);
             if(receipt!="oath_renewed_to_native_successor")return;
+            // Record previous service as history, never as the successor's credit.
+            if(knightServiceOrders.PatronId.Length>0 || knightEscort.PatronId.Length>0)
+                livingPersons.Remember("FormerKnightService",Hero.MainHero.StringId,
+                    knightServiceOrders.PatronId.Length>0?knightServiceOrders.PatronId:knightEscort.PatronId,
+                    "orders="+knightServiceOrders.CompletedOrders+"|escorts="+knightEscort.CompletedEscorts+
+                    "|successor="+successor.StringId);
+            knightServiceOrders=new SandboxKnightServiceOrderState();
+            knightEscort=new SandboxKnightEscortState();
             KnightOathNativeRelation(successor,2,
                 "cu_knight_successor_oath_relation");
             DiagnosticJournal.Event("cu_knight_patron_conversation_successor",

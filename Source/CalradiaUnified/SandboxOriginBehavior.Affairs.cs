@@ -61,9 +61,10 @@ namespace CalradiaUnified
             if(oath && knightServiceOrders.Active &&
                 knightServiceOrders.PatronId==knightOath.PatronId)count++;
             if(oath && knightOath.CanMuster(day,true))count++;
-            if(oath && knightServiceOrders.PatronId==knightOath.PatronId &&
-                knightServiceOrders.RecommendationDay>=0 &&
-                knightServiceOrders.RoyalHearingDay<0)count++;
+            if(oath && Clan.PlayerClan.Kingdom==null &&
+                knightServiceOrders.PatronId==knightOath.PatronId &&
+                knightServiceOrders.CanHearKing(CurrentOathDay()))count++;
+            if(oath && knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)count++;
             if(OpenAffairsClaim())count++;
             var clan=Clan.PlayerClan;
             if(clan.Settlements!=null)
@@ -195,11 +196,21 @@ namespace CalradiaUnified
                         HeroId=knightOath.PatronId,Title="Audience with "+AffairPerson(patron),Status="Muster due",
                         Pending=true,Day=knightOath.NextMusterDay,Detail=location+
                             "\nMeet your sworn lord to review your service."});
-                if(knightServiceOrders.PatronId==knightOath.PatronId &&
-                    knightServiceOrders.RecommendationDay>=0 && knightServiceOrders.RoyalHearingDay<0)
+                if(knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)
+                    rows.Add(new SandboxAffair{Id="knight-escort",Category="Service",HeroId=knightOath.PatronId,
+                        Title="Escort "+AffairPerson(patron),Status="Field escort",
+                        Pending=true,Day=knightEscort.StartDay,Detail="Keep company with your sworn lord on the campaign map. "+
+                        knightEscort.ConsecutiveDays+" of "+SandboxKnightEscortState.RequiredDays+" consecutive days recorded.\n"+location});
+                if(clan.Kingdom==null && knightServiceOrders.PatronId==knightOath.PatronId &&
+                    knightServiceOrders.CanHearKing(CurrentOathDay()))
+                {
+                    var kingdom=patron==null || patron.Clan==null?null:patron.Clan.Kingdom;
+                    var ruler=kingdom==null || kingdom.RulingClan==null?null:kingdom.RulingClan.Leader;
                     rows.Add(new SandboxAffair{Id="royal-audience",Category="Service",Title="Audience with the ruler",
+                        HeroId=ruler==null?"":ruler.StringId,
                         Status="Recommendation recorded",Pending=true,Day=knightServiceOrders.RecommendationDay,
-                        Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title."});
+                        Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title.\n"+AffairLocation(ruler)});
+                }
             }
             if(OpenAffairsClaim())
             {

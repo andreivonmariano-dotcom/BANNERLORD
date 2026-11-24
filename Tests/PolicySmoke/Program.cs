@@ -1494,6 +1494,10 @@ internal static class Program
             SandboxKnightEscortState.Parse(knightEscort.Serialize())
                 .CompletedEscorts==1);
         knightEscort.Begin("lord_4_16",43);
+        Check("renewed active escort survives save and reload with prior completion",
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).IsActive &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).CompletedEscorts==1 &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).LastFinishedDay==13);
         Check("Knight escort presence requires consecutive map days",
             knightEscort.Observe(44,true)==
                 "native_field_escort_day_verified" &&
@@ -1507,6 +1511,19 @@ internal static class Program
             knightEscort.Observe(49,true)==
                 "verified_native_party_escort_completed" &&
             knightEscort.CompletedEscorts==2);
+        var changedPatronOrders=new SandboxKnightServiceOrderState{
+            PatronId="old_lord",Status="Reported",CompletedOrders=3,LastReportedDay=20,
+            RecommendationDay=21,RoyalHearingDay=22};
+        Check("new patron cannot inherit completed orders or former ruler hearing",
+            changedPatronOrders.Begin("new_lord","Scout",30)=="native_patron_order_accepted" &&
+            changedPatronOrders.CompletedOrders==0 &&
+            !changedPatronOrders.CanHearKing(31) &&
+            !changedPatronOrders.CanPresentRecommendation("new_lord",31));
+        var changedPatronEscort=new SandboxKnightEscortState{
+            PatronId="old_lord",Status="Completed",CompletedEscorts=2,LastFinishedDay=10};
+        Check("new patron escort starts without former patron's credit",
+            changedPatronEscort.Begin("new_lord",40)=="native_patron_field_escort_accepted" &&
+            changedPatronEscort.CompletedEscorts==0 && changedPatronEscort.LastFinishedDay==-1);
         Check("Knight native verified muster accrues once",
             knightOath.Observe(33,true,true,true,true)==
                 "muster_window_open" &&
