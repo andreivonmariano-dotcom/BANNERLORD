@@ -22,7 +22,9 @@ namespace CalradiaUnified
                seat.Town.GarrisonParty==null || seat.Culture==null ||
                seat.Culture.BasicTroop==null ||
                Settlement.CurrentSettlement!=seat ||
-               party.LeaderHero!=Hero.MainHero ||
+               party.LeaderHero!=Hero.MainHero || party.MapEvent!=null ||
+               Hero.MainHero==null || Hero.MainHero.CurrentSettlement!=seat ||
+               (seat.Party!=null && seat.Party.MapEvent!=null) ||
                party.MemberRoster==null ||
                seat.Town.GarrisonParty.MemberRoster==null)return false;
             var troop=seat.Culture.BasicTroop;
@@ -41,7 +43,7 @@ namespace CalradiaUnified
                 officer.IsActive && !officer.IsPrisoner &&
                 Hero.OneToOneConversationHero==officer &&
                 officer.CompanionOf==clan && officer.Clan==clan &&
-                party!=null && party.MemberRoster!=null &&
+                party!=null && party.MemberRoster!=null && officer.PartyBelongedTo==party &&
                 officer.CharacterObject!=null &&
                 party.MemberRoster.GetTroopCount(
                     officer.CharacterObject)==1;
@@ -49,11 +51,11 @@ namespace CalradiaUnified
         private bool LordMasterAvailable()
         {
             var seat=Settlement.CurrentSettlement;
-            return lordInheritance.IsRecorded &&
-                Clan.PlayerClan!=null &&
+            return lordInheritance.IsRecorded && CurrentNobleAuthority(false) &&
+                Clan.PlayerClan!=null && Clan.PlayerClan.StringId==lordInheritance.ClanId &&
                 Clan.PlayerClan.Leader==Hero.MainHero &&
                 RealOfficerSpeaking("Master of Arms") &&
-                seat!=null && seat.IsCastle &&
+                seat!=null && seat.IsFortification &&
                 CanNativeOfficerTransfer(seat);
         }
         private bool KingMarshalAvailable()
@@ -118,8 +120,8 @@ namespace CalradiaUnified
             Notify(confirmed?
                 "Five of your existing recruits now serve "+
                     "in "+seat.Name+"'s native garrison.":
-                "The native garrison rejected this order. "+
-                    "No soldiers were granted.");
+                "The native transfer was not confirmed. "+
+                    "Check both rosters before issuing another order.");
         }
         private void RegisterNobleOfficerConversations(
             CampaignGameStarter starter)
@@ -127,7 +129,7 @@ namespace CalradiaUnified
             if(starter==null)return;
             starter.AddPlayerLine("cu_lord_master_order",
                 "hero_main_options","cu_lord_master_order_reply",
-                "Master of Arms, station five of my recruits in this castle.",
+                "Master of Arms, station five of my recruits in this holding.",
                 ()=>LordMasterAvailable(),
                 ()=>TransferExistingTroopsByOfficer(false),100);
             starter.AddDialogLine("cu_lord_master_order_reply",
