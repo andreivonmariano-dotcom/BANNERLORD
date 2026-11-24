@@ -196,6 +196,7 @@ namespace CalradiaUnified
                 actor.Name.ToString()+" asks for "+
                 (agencyDecisions.PendingKind=="Recognition"?
                     "public acknowledgment of their work":
+                    agencyDecisions.PendingKind=="Audience"?"a private audience":
                     amount+" denars of household support")+
                 ". Their personal goal is "+
                 (characterAgendas.Get(actor.StringId)==null?"unknown":
@@ -233,6 +234,18 @@ namespace CalradiaUnified
             string kind=agencyDecisions.PendingKind;
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             if(amount<0)return;
+            // An actual audience settles only the request for conversation.
+            // It never produces a gift, relation bonus or political receipt.
+            if(kind=="Audience")
+            {
+                agencyDecisions.Dismiss(accept?"AudienceHeard":"AudienceDeclined");
+                petitionStories.Resolve(actor.StringId,accept,CurrentHouseholdDay(),false,0);
+                livingPersons.Remember("PersonalAudienceAnswered",actor.StringId,player.StringId,
+                    "accepted="+accept+"|face_to_face=true|reward=false");
+                petitionDecisionReply=accept?"Then we understand one another. I thank you for hearing me.":
+                    "Very well. We shall leave the matter there.";
+                return;
+            }
             int requestedRelation=SandboxAgencyDecisionPolicy.RelationDelta(
                 kind,accept);
             string giftProof="not_requested";

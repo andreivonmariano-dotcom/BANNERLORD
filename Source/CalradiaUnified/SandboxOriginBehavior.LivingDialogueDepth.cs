@@ -458,6 +458,9 @@ namespace CalradiaUnified
                 {
                     var story=petitionStories.For(actor.StringId);
                     reply=story==null?"There is nothing further to say on that matter.":
+                        story.Kind=="Audience"?
+                            (story.Outcome=="Supported"?"We have spoken of the matter. Our houses shall each keep their own counsel.":
+                             "You gave me your answer. Let us leave the matter there."):
                         story.Outcome=="Supported"?
                             (tone=="Guarded"?"I remember what you did. Deeds carry more weight than words.":
                              tone=="Warm"?"I have not forgotten your kindness to me.":

@@ -127,6 +127,12 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics","There is nothing I need to ask of you just now.",
                 ()=>!SpeakingWithPendingPetitioner(),null,80);
             starter.AddDialogLine(
+                "cu_petition_audience","cu_petition_open",
+                "cu_petition_answers",
+                "I wished to speak with you about our houses. Let us part with a clear understanding.",
+                ()=>SpeakingWithPendingPetitioner() &&
+                    agencyDecisions.PendingKind=="Audience",null,125);
+            starter.AddDialogLine(
                 "cu_petition_recognition","cu_petition_open",
                 "cu_petition_answers",
                 "I have served as best I can. I ask that "+
@@ -157,7 +163,7 @@ namespace CalradiaUnified
                 "cu_petition_personal_reason","cu_petition_answers",
                 "cu_petition_personal_reason_reply",
                 "What is most important to you in this matter?",
-                ()=>SpeakingWithPendingPetitioner(),null,90);
+                ()=>SpeakingWithPendingPetitioner() && agencyDecisions.PendingKind!="Audience",null,90);
             starter.AddDialogLine(
                 "cu_petition_reason_guarded",
                 "cu_petition_personal_reason_reply",
@@ -199,10 +205,16 @@ namespace CalradiaUnified
                 ()=>SpeakingWithPendingPetitioner() &&
                     PetitionerStyle()=="Direct",null,120);
             starter.AddPlayerLine(
+                "cu_petition_accept_audience","cu_petition_answers",
+                "cu_petition_accept_reply",
+                "You have my ear. Let us remain on good terms.",
+                ()=>SpeakingWithPendingPetitioner() && agencyDecisions.PendingKind=="Audience",
+                ()=>AnswerCharacterRequest(true),125);
+            starter.AddPlayerLine(
                 "cu_petition_accept","cu_petition_answers",
                 "cu_petition_accept_reply",
                 "You shall have my support.",
-                ()=>CanAcceptPetitionInConversation(),
+                ()=>CanAcceptPetitionInConversation() && agencyDecisions.PendingKind!="Audience",
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
                 "cu_petition_accept_reply","cu_petition_accept_reply",

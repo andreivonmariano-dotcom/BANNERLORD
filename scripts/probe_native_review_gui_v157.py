@@ -79,6 +79,21 @@ def main():
                              "child_tags":[k.get("n") or k.get("name") or "" for k in kids if isinstance(k,dict)]}]+[
                                  row for k in kids for row in roots(k,depth+1)]
                 map_details[name]=[row for node in nodes for row in roots(node)][:80]
+            # Record actual native campaign brush/sprite references for future
+            # layout and atlas checks; never extract or redistribute textures.
+            campaign_movies=[n for n in names if n.lower().endswith(".json")
+                and n.rsplit("/",1)[-1].lower() in
+                ("mapbar.json","mapnotificationui.json","mapnotificationitem.json",
+                 "clan.json","kingdom.json","party.json","quest.json","quests.json","questscreen.json")]
+            campaign_assets={}
+            for name in campaign_movies:
+                data=json.loads(z.read(name).decode("utf-8"))
+                rows=list(scan_node(data))
+                campaign_assets[name]={key:sorted(set(str(r["attrs"][key]) for r in rows
+                    if key in r["attrs"])) for key in ("Brush","Sprite")}
+            report["campaign_native_asset_references"]=campaign_assets
+            for name,assets in campaign_assets.items():
+                print("NATIVE CAMPAIGN ASSETS",name,json.dumps(assets,ensure_ascii=False))
             report["map_hud_root_metadata"]=map_details
             print("NATIVE MAP HUD CANDIDATES",map_candidates)
             for name,rows in map_details.items():

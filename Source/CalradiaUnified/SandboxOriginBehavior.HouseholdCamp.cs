@@ -93,8 +93,8 @@ namespace CalradiaUnified
                     person.PartyBelongedTo.Name.ToString():
                     "location not verified";
             var story=petitionStories.For(person.StringId);
-            return person.Name+" seeks "+agencyDecisions.PendingKind+
-                ".\nLast known location: "+where+
+            return person.Name+": "+PetitionConcern(agencyDecisions.PendingKind)+
+                "\nLast known location: "+where+
                 "\nPersonal history: "+(story==null?
                     "no earlier outcome":story.Outcome)+
                 "\nAnswer only by speaking with this person.";

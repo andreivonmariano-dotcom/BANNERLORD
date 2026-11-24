@@ -65,6 +65,8 @@ namespace CalradiaUnified
                 CloseSafely();
                 var map=ScreenManager.TopScreen as MapScreen;
                 if(map!=null)map.FastMoveCameraToPosition(place.GatePosition);
+                else if(Campaign.Current!=null)
+                    Campaign.Current.EncyclopediaManager.GoToLink("Settlement",place.StringId);
             }
             catch(Exception error){DiagnosticJournal.Exception("cu_affairs_map_location_failed",error);}
         }

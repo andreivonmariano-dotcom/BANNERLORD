@@ -117,6 +117,7 @@ namespace CalradiaUnified
         }
         private static string PetitionConcern(string kind)
         {
+            if(kind=="Audience")return "Requests a private conversation about the standing of your houses.";
             if(kind=="Recognition")return "Wishes their service to be acknowledged.";
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             return amount>0?"Asks for "+amount+" denars of support.":"Wishes to discuss a private matter.";
@@ -156,7 +157,8 @@ namespace CalradiaUnified
                     petitionStories.CanFollowUp(story.HeroId,day);
                 bool supported=story.Outcome=="Supported";
                 string status=due?"Conversation due":story.Outcome=="Pending"?
-                    "No longer awaiting a reply":supported?"Help given":"Request declined";
+                    "No longer awaiting a reply":supported?
+                    (story.Kind=="Audience"?"Audience heard":"Help given"):"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
                 rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",HeroId=story.HeroId,
                     Title=AffairPerson(p)+(due?" | Follow-up":" | Earlier matter"),

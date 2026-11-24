@@ -29,6 +29,16 @@ internal static class Program
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,true,true,true,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,false,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,9));
+        var nobleAudience=new SandboxPetitionStoryState();
+        Check("noble audience is an actual conversation without payment or relationship reward",
+            SandboxAgencyDecisionPolicy.Choose("DefendClanStanding",true,true,10,0,70)=="Audience" &&
+            SandboxAgencyDecisionPolicy.Amount("Audience")==0 &&
+            SandboxAgencyDecisionPolicy.RelationDelta("Audience",true)==0 &&
+            SandboxAgencyDecisionPolicy.RelationDelta("Audience",false)==0 &&
+            nobleAudience.Begin("noble", "Audience", 1) &&
+            nobleAudience.Resolve("noble",true,2,false,0) &&
+            !nobleAudience.CanFollowUp("noble",20) &&
+            SandboxPetitionStoryState.Parse(nobleAudience.Serialize()).CanRecall("noble",20));
         var affairs=new[]{
             new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
             new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},

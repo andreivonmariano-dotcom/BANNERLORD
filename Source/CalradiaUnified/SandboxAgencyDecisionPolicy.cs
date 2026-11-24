@@ -18,6 +18,8 @@ namespace CalradiaUnified
             if(!adult || !present || relation< -35 ||
                 priorRequests>=MaxRequestsPerHero ||
                 daysFromLast<CooldownDays)return "";
+            // A known noble asks for a conversation, never a fictitious reward.
+            if(goal=="DefendClanStanding")return relation>=10?"Audience":"";
             if(goal=="ProtectSharedHousehold" ||
                goal=="SupportHousehold" ||
                goal=="MaintainHousehold")
@@ -82,11 +84,11 @@ namespace CalradiaUnified
         {
             if(kind=="HouseholdAid")return 150;
             if(kind=="LivelihoodAid")return 200;
-            return kind=="Recognition"?0:-1;
+            return kind=="Recognition" || kind=="Audience"?0:-1;
         }
         public static int RelationDelta(string kind,bool accepted)
         {
-            if(Amount(kind)<0)return 0;
+            if(Amount(kind)<0 || kind=="Audience")return 0;
             return accepted?(kind=="Recognition"?1:2):
                 (kind=="Recognition"?0:-1);
         }
