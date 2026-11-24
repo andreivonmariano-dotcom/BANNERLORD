@@ -106,6 +106,10 @@ namespace CalradiaUnified
                 default:return "";
             }
         }
+        public static bool AcceptsHouseholdDuty(int relation,int honor,int calculating)
+        {
+            return relation>=0 && (relation>=20 || honor>0 || calculating<=0);
+        }
         public static string DecisionReply(string tone,bool accepted,bool confirmed)
         {
             if(!confirmed)return "Let us settle the matter properly before we speak of it as done.";
