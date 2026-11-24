@@ -65,6 +65,26 @@ namespace CalradiaUnified
                 Evidence=evidence??""});
             return true;
         }
+        // A reciprocal native spouse link is evidence of a marriage,
+        // not proof of its date or a newly performed ceremony.
+        public bool ObserveMarriage(string hero,string spouse,bool reciprocal)
+        {
+            if(!reciprocal || String.IsNullOrWhiteSpace(hero) ||
+                String.IsNullOrWhiteSpace(spouse) || hero==spouse)return false;
+            bool known=Bonds.Any(b=>b.Kind=="Spouse" &&
+                ((b.From==hero && b.To==spouse) ||
+                 (b.From==spouse && b.To==hero)));
+            if(!Tie(hero,spouse,"Spouse","VerifiedNativeMarriage") || known)
+                return false;
+            return Remember("NativeMarriageObserved",hero,spouse,
+                "native_marriage_seen=true|date_not_established");
+        }
+        public Event[] RecentFor(string hero,int limit)
+        {
+            if(String.IsNullOrWhiteSpace(hero) || limit<=0)return new Event[0];
+            return Events.Where(e=>e.Actor==hero || e.Target==hero)
+                .Reverse().Take(Math.Min(limit,10)).ToArray();
+        }
         public bool Remember(string kind,string actor,string target,
             string detail)
         {
