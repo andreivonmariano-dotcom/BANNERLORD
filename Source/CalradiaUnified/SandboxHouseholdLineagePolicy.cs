@@ -39,10 +39,58 @@ namespace CalradiaUnified
                 plannedOlderBrothers))return -1;
             return required-existingOlderBrothers-plannedOlderBrothers;
         }
+        // Independent Lords keep their player-character position as
+        // the eldest brother. This is a creation rule, not a native
+        // Clan.Leader transfer or a blanket ban on older sisters.
+        // Return a 1-based index so House can focus the exact age field.
+        public static int FirstOlderBrotherInIndependentLordHouse(
+            SandboxOriginProfile p,int founderAge)
+        {
+            if(p==null || p.Role!="Lord" ||
+                p.NobleBirthPosition!="Independent")return 0;
+            int count=Math.Min(p.SiblingCount,p.Siblings.Count);
+            for(int i=0;i<count;i++)
+            {
+                var sibling=p.Siblings[i];
+                if(sibling!=null && sibling.Gender=="Male" &&
+                    sibling.Age>founderAge)return i+1;
+            }
+            return 0;
+        }
+        public static int FirstOlderBrotherInSwornKnightHouse(
+            SandboxOriginProfile p,int founderAge)
+        {
+            if(p==null || !p.KnightGuidedStart ||
+                p.KnightOrigin!="SwornHouse")return 0;
+            int count=Math.Min(p.SiblingCount,p.Siblings.Count);
+            for(int i=0;i<count;i++)
+                if(p.Siblings[i]!=null &&
+                    p.Siblings[i].Gender=="Male" &&
+                    p.Siblings[i].Age>founderAge)return i+1;
+            return 0;
+        }
+        public static int FirstOlderBrotherInFoundingKingHouse(
+            SandboxOriginProfile p,int founderAge)
+        {
+            if(p==null || !p.KingGuidedStart ||
+                p.NobleBirthPosition!="Independent")return 0;
+            int count=Math.Min(p.SiblingCount,p.Siblings.Count);
+            for(int i=0;i<count;i++)
+                if(p.Siblings[i]!=null &&
+                    p.Siblings[i].Gender=="Male" &&
+                    p.Siblings[i].Age>founderAge)return i+1;
+            return 0;
+        }
         public static string ValidateHousePlan(
             SandboxOriginProfile p,int founderAge)
         {
             if(p==null)return "missing_profile";
+            if(FirstOlderBrotherInFoundingKingHouse(p,founderAge)>0)
+                return "founding_king_older_brother";
+            if(FirstOlderBrotherInIndependentLordHouse(p,founderAge)>0)
+                return "independent_lord_older_brother";
+            if(FirstOlderBrotherInSwornKnightHouse(p,founderAge)>0)
+                return "sworn_knight_older_brother";
             if(!SandboxNobleStartPolicy.IsSonOrigin(
                 p.NobleBirthPosition))return "";
             int required=SandboxNobleStartPolicy.RequiredOlderSons(

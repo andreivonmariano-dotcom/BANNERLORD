@@ -90,9 +90,10 @@ namespace CalradiaUnified
                 case "King":return brotherAvailable ?
                     new[]{"Knight","Chamberlain"} :
                     new[]{"Marshal","MasterOfArms"};
-                case "Lord":return brotherAvailable ?
-                    new[]{"Knight","HouseholdSteward"} :
-                    new[]{"MasterOfArms","Knight"};
+                // A brother is kin, not an automatic replacement for
+                // professional household officers. Every Lord begins
+                // with a martial master and a sworn household knight.
+                case "Lord":return new[]{"MasterOfArms","Knight"};
                 case "Knight":return new[]{"Squire"};
                 case "Admiral":return new[]{"FirstMate","Navigator"};
                 case "Soldier":return new[]{"Sergeant"};
@@ -108,6 +109,10 @@ namespace CalradiaUnified
         }
         public static string CultureTitle(string culture,string office)
         {
+            // The outlaw lieutenant is not knighted, ennobled or
+            // appointed by any kingdom. Never prefix a bandit with Ser,
+            // Druzhinnik, Noyan or another aristocratic honorific.
+            if(office=="SecondInCommand")return "Band Lieutenant";
             string prefix= culture=="vlandia"?"Ser " :
                 culture=="sturgia"?"Druzhinnik " :
                 culture=="battania"?"Champion " :

@@ -31,6 +31,83 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Audit stabilization pass 2 existing role and creator wiring
+        run: python scripts/test_cu_stabilization_pass_2.py
+      - name: Audit current creator Back state and NPC save provenance
+        shell: pwsh
+        run: python scripts/test_v069f_creator_back_state_and_agency_save.py
+      - name: Regress live-reported missing noble elder and House family recovery
+        shell: pwsh
+        run: python scripts/test_v069g_noble_house_preflight.py
+      - name: Audit all twelve starts, world scenarios, noble origins and native handoff
+        shell: pwsh
+        run: python scripts/test_v069h_all_starting_options.py
+      - name: Regress Soldier Recruit Sergeant Captain real native SaS service and pending save
+        shell: pwsh
+        run: python scripts/test_v070g_soldier_native_enlistment.py
+      - name: Regress Knight personal oath native effects and clan-join safety
+        run: python scripts/test_v070i_knight_oath_and_native_kin_guard.py
+      - name: Regress real sworn-lord conversations, first audience and visible service
+        run: python scripts/test_v070t_knight_patron_dialogue.py
+      - name: Regress Lord native vassal estate and real two-officer household
+        run: python scripts/test_v070j_lord_vassal_native_contract.py
+      - name: Regress Lord noble in-laws and saved child inheritance claims
+        run: python scripts/test_v070k_lord_noble_marriage_heirs.py
+      - name: Regress King native ruling clan, royal court and saved heir claims
+        run: python scripts/test_v070l_king_native_crown_and_royal_house.py
+      - name: Regress in-person native royal council, Kingsguard and real royal seat
+        run: python scripts/test_v070n_royal_seat_council_kingsguard.py
+      - name: Guard native household screens, readable hero labels and seven-path UI release evidence
+        run: python scripts/test_v070s_native_household_integration.py
+      - name: Audit Gauntlet noble dossier and small-screen family gallery layouts
+        run: python scripts/test_v070x_gauntlet_dossier_layout.py
+      - name: Knight arrival and immersive UI source gate
+        run: python scripts/test_v071a_knight_arrival_and_immersion.py
+      - name: Seven-role portrait-led household actions and first-audience gate
+        run: python scripts/test_v071b_household_portraits_roles_and_decisions.py
+      - name: Native household duties and seven-role career chapters
+        run: python scripts/test_v071c_career_chapters_and_household_duties.py
+      - name: Immersive household access and face-to-face petition source gate
+        run: python scripts/test_v071d_immersive_household_context.py
+      - name: Native household camp, petitioner stories and knight service orders
+        run: python scripts/test_v071e_camp_petition_stories_knight_orders.py
+      - name: Illustrated 2D camp, personality petitions and verified knight standing
+        run: python scripts/test_v071f_illustrated_camp_personality_knight_standing.py
+      - name: Verified household social history and native vassal witness gate
+        run: python scripts/test_v071g_social_history_and_native_military_witness.py
+      - name: Guard required BUTR stack, native mixins and patch placement
+        run: python scripts/test_v070y_butr_required_native_integration.py
+      - name: Audit every custom Gauntlet prefab and native BUTR patch
+        run: python scripts/audit_v070y_all_prefab_layouts.py
+      - name: Audit settlement entry budget and context placement for all starts
+        run: python scripts/test_v070v_native_menu_placement.py
+      - name: Guard native Lord and King officer garrison orders
+        run: python scripts/test_v070w_officer_native_garrison_orders.py
+      - name: Regress live Knight Lord King failed-family handoffs
+        run: python scripts/test_v070q_failed_native_family_handoffs.py
+      - name: Verify seven-path native-game acceptance fails shut without playthrough evidence
+        run: python scripts/test_v070o_seven_game_acceptance_failclosed.py
+      - name: Regress mercenary low-pay consent, protected exit bond and renegotiation
+        shell: pwsh
+        run: python scripts/test_v070f_mercenary_three_consent_rules.py
+      - name: Regress mercenary company runway, funded-offer economics and design boundary
+        shell: pwsh
+        run: python scripts/test_v070e_mercenary_solvent_contract_design.py
+      - name: Regress native Mercenary company identity, kingdom oath and family safety
+        shell: pwsh
+        run: python scripts/test_v070d_native_mercenary_company_contract.py
+      - name: Regress new Outlaw paid native band, real fourteen-day wages and food
+        shell: pwsh
+        run: python scripts/test_v070c_outlaw_paid_band_and_payroll.py
+      - name: Regress new Wanderer no-House and one loyal wage-free companion
+        shell: pwsh
+        run: python scripts/test_v070b_wanderer_single_companion_no_house.py
+      - name: Regress latest native noble loop, historical parents and cultural retinue
+        shell: pwsh
+        run: python scripts/test_v069i_two_session_noble_parents_retinue.py
+      - name: Simulate active creator controls and hit boxes at three viewports
+        shell: pwsh
+        run: python scripts/simulate_v069e_creator_hitboxes.py
       - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
         shell: pwsh
         run: python scripts/test_v060_noble_start_and_retinue.py
@@ -306,6 +383,16 @@ jobs:
         run: |
           dotnet run --project Tests/CampaignSimulator/CampaignSimulator.csproj --configuration Release -- --seed 157 --runs 40 --days 365 --json BuildResults/campaign-simulation.json 2>&1 | Tee-Object -FilePath BuildResults/campaign-simulation.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Simulate existing campaign systems for 96 seeds x 730 model days
+        shell: pwsh
+        run: |
+          dotnet run --no-build --project Tests/CampaignSimulator/CampaignSimulator.csproj --configuration Release -- --seed 20261121 --runs 96 --days 730 --json BuildResults/audit-campaign-stress.json 2>&1 | Tee-Object -FilePath BuildResults/audit-campaign-stress.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Simulate 12-role creator and family-NPC save policy stability
+        shell: pwsh
+        run: |
+          dotnet run --project Tests/AuditSimulator/AuditSimulator.csproj --configuration Release -- --json BuildResults/audit-personal-stress.json 2>&1 | Tee-Object -FilePath BuildResults/audit-personal-stress.log
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Restore pinned game references from NuGet
         shell: pwsh
         run: |
@@ -319,6 +406,12 @@ jobs:
           $null = [System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path scripts/Inspect-CU-Creator-API.ps1).Path,[ref]$tokens,[ref]$parseErrors)
           if ($parseErrors.Count -gt 0) { throw ("Native creator audit syntax: " + ($parseErrors -join ', ')) }
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Creator-API.ps1
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Inspect pinned Knight clan membership action metadata
+        continue-on-error: true
+        shell: pwsh
+        run: |
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Inspect-CU-Knight-Clan-API.ps1
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Audit exact v1.5.7 Gauntlet widget and brush APIs
         shell: pwsh
@@ -351,6 +444,15 @@ jobs:
           $native = Join-Path $fake "Modules/Native"
           New-Item -ItemType Directory -Force -Path $native | Out-Null
           '<Module><Id value="Native"/></Module>' | Set-Content -LiteralPath (Join-Path $native "SubModule.xml")
+          # Synthetic dependencies for installer contract testing only.
+          # Do not interpret these as real BUTR runtime loading.
+          foreach ($dependency in @('Bannerlord.Harmony','Bannerlord.ButterLib',
+                  'Bannerlord.UIExtenderEx','Bannerlord.MBOptionScreen')) {
+            $target = Join-Path $fake ("Modules/" + $dependency)
+            New-Item -ItemType Directory -Force -Path $target | Out-Null
+            ('<Module><Id value="' + $dependency + '"/></Module>') |
+              Set-Content -LiteralPath (Join-Path $target "SubModule.xml")
+          }
           $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
           Compress-Archive -LiteralPath (Resolve-Path "Output/CalradiaUnified_v0.38.0_COMPILED_UNTESTED.zip").Path -DestinationPath $outer -Force
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer
@@ -360,6 +462,76 @@ jobs:
           ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
           if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne 1) { throw "Backup missing" }
           Write-Output "PASS: nested GitHub ZIP installation, correct module root and backup"
+          # Missing required dependency must refuse replacement BEFORE
+          # moving the existing module or creating another backup.
+          $butr = Join-Path $fake "Modules/Bannerlord.ButterLib"
+          $disabledButr = Join-Path $fake "ButterLib_InstallerTestDisabled"
+          Move-Item -LiteralPath $butr -Destination $disabledButr
+          $before = (Get-FileHash -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll") -Algorithm SHA256).Hash
+          $backupsBefore = @(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count
+          $rejected = $false
+          try {
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -ReplaceExisting
+          }
+          catch {
+            if ($_.Exception.Message -notmatch 'Required BUTR module not installed: Bannerlord.ButterLib') { throw }
+            $rejected = $true
+          }
+          if (-not $rejected) { throw "Installer accepted missing mandatory BUTR." }
+          $after = (Get-FileHash -LiteralPath (Join-Path $module "bin/Win64_Shipping_Client/CalradiaUnified.dll") -Algorithm SHA256).Hash
+          if ($before -ne $after) { throw "Mandatory dependency failure modified the installed DLL." }
+          if (@(Get-ChildItem -LiteralPath $fake -Directory -Filter "CalradiaUnified_Backup_*").Count -ne $backupsBefore) { throw "Rejected dependency changed backups." }
+          Move-Item -LiteralPath $disabledButr -Destination $butr
+          Write-Output "PASS: required BUTR failure blocks replacement without touching installed files."
+      - name: Show latest verified PowerShell installer candidate and fail-closed selection
+        shell: pwsh
+        run: |
+          $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
+          foreach ($required in @(
+            'Development version: v0.69g',
+            'Windows CI run: 44867186334',
+            '8c2382461522907db63d5890e2204864a336e056',
+            'd6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10',
+            'Internal Bannerlord manifest version: v0.38.0',
+            'game-tested build')) {
+            if (-not $listing.Contains($required)) {
+              throw "Latest installer listing did not include $required"
+            }
+          }
+          $noArgs = @(./scripts/Install-CU-From-Artifact.ps1) -join "`n"
+          if ($noArgs -ne $listing) {
+            throw "Installer without arguments must display the latest verified candidate."
+          }
+          $fake = Join-Path (Get-Location) "BuildResults/FakeBannerlord"
+          $outer = Join-Path (Get-Location) "BuildResults/FakeGitHubDownload.zip"
+          $dll = Join-Path $fake "Modules/CalradiaUnified/bin/Win64_Shipping_Client/CalradiaUnified.dll"
+          $beforeHash = (Get-FileHash -LiteralPath $dll -Algorithm SHA256).Hash.ToLowerInvariant()
+          $beforeBackups = @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count
+          $conflictBlocked = $false
+          try {
+            ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ExpectedDllSha256 ('0' * 64) -ReplaceExisting
+          } catch {
+            $conflictBlocked = $_.Exception.Message -match 'conflicts with the latest pinned CI candidate'
+          }
+          if (-not $conflictBlocked) { throw 'Conflicting latest selection was not rejected.' }
+          if ((Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $beforeHash -or
+              @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
+            throw 'Conflicting latest selection changed an installed DLL or backup.'
+          }
+          if ($beforeHash -ne '3a890f016bebe9b1a1a6941d09ef98922d479d744187727a812f3a65def83684') {
+            $wrongBuildBlocked = $false
+            try {
+              ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ReplaceExisting
+            } catch {
+              $wrongBuildBlocked = $_.Exception.Message -match 'Artifact rejected BEFORE installation'
+            }
+            if (-not $wrongBuildBlocked) { throw 'Latest verified pin accepted an unrelated compiled DLL.' }
+            if ((Get-FileHash $dll -Algorithm SHA256).Hash.ToLowerInvariant() -ne $beforeHash -or
+                @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
+              throw 'Wrong latest artifact changed an installed DLL or backup.'
+            }
+          }
+          Write-Output 'PASS: Latest v0.69g candidate visible, pinned identity and no-modification guard'
       - name: Test pinned CI SHA-256 before install and latest-session playthrough report
         shell: pwsh
         run: |
@@ -422,6 +594,46 @@ jobs:
           } catch { $nativeMismatchRejected = $true }
           if (-not $nativeMismatchRejected) { throw 'Missing opt-in native 3D stage must fail.' }
           Write-Output 'PASS: pinned CI hash, latest-session one child, exact three Hero portraits, required native stage and negative audit fixtures'
+      - name: Regress guided creator session evidence and phase-9 failure detection
+        shell: pwsh
+        run: |
+          $fake = Join-Path (Get-Location) 'BuildResults/FakeBannerlord'
+          $events = Join-Path (Get-Location) 'BuildResults/sample-guided-start-failure.csv'
+          @(
+            'utc,context,detail',
+            '2026-11-21T04:23:00Z,sandbox_overhaul_accepted,role=Lord|child_count=1',
+            '2026-11-21T04:23:10Z,sandbox_start_contract,result=PASS|requested_children=1|children=1',
+            '2026-11-21T04:54:42Z,cu_guided_world_start_committed,role=HouseholdKnight|kingdom=vlandia|scenario=none',
+            '2026-11-21T04:55:21Z,cu_guided_house_fortune_committed,age=25|spouse=False|children=0|siblings=0|noble_birth=Independent',
+            '2026-11-21T04:55:24Z,cu_native_start_preflight_snapshot,role=HouseholdKnight|expected_type=default|actual_type=unknown|kingdom=none|fiefs=0|ruling=False',
+            '2026-11-21T04:55:25Z,cu_starting_life_preflight,result=FAIL|reason=native_start:native_start_type_mismatch|role=HouseholdKnight',
+            '2026-11-21T04:55:26Z,sandbox_start_contract,result=FAIL|reason=preflight_native_start:native_start_type_mismatch|no_custom_grants_applied=true'
+          ) | Set-Content -LiteralPath $events -Encoding UTF8
+          $report = Join-Path (Get-Location) 'BuildResults/sample-guided-failure-report.json'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $events -ReportJson $report
+          $r = Get-Content -LiteralPath $report -Raw | ConvertFrom-Json
+          if ($r.status -ne 'FAIL' -or $r.creator_source -ne 'guided_world' -or
+              $r.contract_result -ne 'FAIL' -or $r.expected_children -ne 0 -or
+              -not $r.guided_house_committed) {
+            throw 'Latest guided failed campaign was masked by earlier legacy PASS.'
+          }
+          $blocked = $false
+          try {
+            ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $events -Assert
+          } catch { $blocked = $true }
+          if (-not $blocked) { throw 'Guided contract failure must fail assertion.' }
+          $eventsIncomplete = Join-Path (Get-Location) 'BuildResults/sample-guided-no-contract.csv'
+          @(
+            'utc,context,detail',
+            '2026-11-21T05:00:00Z,cu_guided_world_start_committed,role=HouseholdKnight|kingdom=vlandia',
+            '2026-11-21T05:00:01Z,cu_guided_house_fortune_committed,age=25|children=0|siblings=0'
+          ) | Set-Content -LiteralPath $eventsIncomplete -Encoding UTF8
+          $reportIncomplete = Join-Path (Get-Location) 'BuildResults/sample-guided-incomplete.json'
+          ./scripts/Test-CU-Playthrough.ps1 -GameRoot $fake -ExpectedChildren 0 -EventsCsv $eventsIncomplete -ReportJson $reportIncomplete
+          if ((Get-Content $reportIncomplete -Raw | ConvertFrom-Json).status -ne 'INCOMPLETE') {
+            throw 'Missing guided phase-9 contract must not pass.'
+          }
+          Write-Output 'PASS: latest guided World/House failure and missing-contract sessions are not marked successful'
       - name: Upload untested paste-ready compiled candidate
         uses: actions/upload-artifact@v4
         with:
@@ -436,6 +648,11 @@ jobs:
           path: |
             BuildResults/campaign-simulation.json
             BuildResults/campaign-simulation.log
+            BuildResults/audit-campaign-stress.json
+            BuildResults/audit-campaign-stress.log
+            BuildResults/audit-personal-stress.json
+            BuildResults/audit-personal-stress.log
+            BuildResults/v069e_creator_hitbox_simulation.json
             BuildResults/policy-tests.log
           if-no-files-found: ignore
       - name: Upload build diagnostics
@@ -454,6 +671,14 @@ jobs:
           path: |
             BuildResults/native-widget-api-v157.txt
             BuildResults/native-layout-metadata-v157.txt
+            BuildResults/v070y-all-gauntlet-layouts.json
+          if-no-files-found: ignore
+      - name: Upload Knight native clan API audit
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: CU-v070i-knight-native-clan-api
+          path: BuildResults/knight-clan-api-v157.txt
           if-no-files-found: ignore
       - name: Upload native creator API metadata
         if: always()

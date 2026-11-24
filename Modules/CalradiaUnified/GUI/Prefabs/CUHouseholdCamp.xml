@@ -1,0 +1,219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Prefab>
+  <Window>
+    <Widget WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent">
+      <Children>
+        <Widget Sprite="BlankWhiteSquare_9" Color="#0B0A0AAB"
+            WidthSizePolicy="StretchToParent"
+            HeightSizePolicy="StretchToParent"/>
+        <Widget WidthSizePolicy="Fixed" SuggestedWidth="970"
+            HeightSizePolicy="Fixed" SuggestedHeight="618"
+            HorizontalAlignment="Center" VerticalAlignment="Center">
+          <Children>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B89968FF"
+                WidthSizePolicy="StretchToParent"
+                HeightSizePolicy="StretchToParent"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#251B14FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="964"
+                HeightSizePolicy="Fixed" SuggestedHeight="612"
+                PositionXOffset="3" PositionYOffset="3"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#413025FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="936"
+                HeightSizePolicy="Fixed" SuggestedHeight="100"
+                PositionXOffset="17" PositionYOffset="17"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B89968FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="936"
+                HeightSizePolicy="Fixed" SuggestedHeight="3"
+                PositionXOffset="17" PositionYOffset="124"/>
+            <TextWidget Text="THE TRAVELING HOUSEHOLD"
+                Brush.FontSize="27" Color="#F9D9A4FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="875"
+                HeightSizePolicy="Fixed" SuggestedHeight="38"
+                PositionXOffset="38" PositionYOffset="30"/>
+            <TextWidget Text="@Banner" Brush.FontSize="16"
+                Color="#E3C59CFF" WidthSizePolicy="Fixed"
+                SuggestedWidth="878" HeightSizePolicy="Fixed"
+                SuggestedHeight="26" PositionXOffset="38"
+                PositionYOffset="76"/>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="48" PositionYOffset="134"
+                Command.Click="ExecutePeople">
+              <Children>
+                <TextWidget Text="People" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="231" PositionYOffset="134"
+                Command.Click="ExecuteOfficers">
+              <Children>
+                <TextWidget Text="Officers" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="414" PositionYOffset="134"
+                Command.Click="ExecuteLetters">
+              <Children>
+                <TextWidget Text="Letters" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="597" PositionYOffset="134"
+                Command.Click="ExecuteService">
+              <Children>
+                <TextWidget Text="Service" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="166"
+                HeightSizePolicy="Fixed" SuggestedHeight="43"
+                PositionXOffset="780" PositionYOffset="134"
+                Command.Click="ExecuteChronicle">
+              <Children>
+                <TextWidget Text="Chronicle" Brush.FontSize="17"
+                    Color="#F6E2BAFF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#3B2C20FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="405"
+                HeightSizePolicy="Fixed" SuggestedHeight="335"
+                PositionXOffset="30" PositionYOffset="189"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#322419FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="491"
+                HeightSizePolicy="Fixed" SuggestedHeight="335"
+                PositionXOffset="449" PositionYOffset="189"/>
+            <TextWidget Text="PEOPLE PRESENT" Brush.FontSize="19"
+                Color="#E9C58DFF" WidthSizePolicy="Fixed"
+                SuggestedWidth="367" HeightSizePolicy="Fixed"
+                SuggestedHeight="28" PositionXOffset="46"
+                PositionYOffset="199"/>
+            <TextWidget Text="@Attendance" Brush.FontSize="14"
+                Color="#D7BDA1FF" WidthSizePolicy="Fixed"
+                SuggestedWidth="362" HeightSizePolicy="Fixed"
+                SuggestedHeight="20" PositionXOffset="46"
+                PositionYOffset="227"/>
+            <ListPanel DataSource="{Attendees}"
+                WidthSizePolicy="Fixed" SuggestedWidth="378"
+                HeightSizePolicy="Fixed" SuggestedHeight="262"
+                StackLayout.LayoutMethod="VerticalTopToBottom"
+                PositionXOffset="44" PositionYOffset="254">
+              <ItemTemplate>
+                <ButtonWidget Brush="ButtonBrush"
+                    Command.Click="ExecuteInspect"
+                    DoNotPassEventsToChildren="true"
+                    UpdateChildrenStates="true"
+                    WidthSizePolicy="Fixed" SuggestedWidth="372"
+                    HeightSizePolicy="Fixed" SuggestedHeight="42">
+                  <Children>
+                    <ImageIdentifierWidget DataSource="{Portrait}"
+                        WidthSizePolicy="Fixed" SuggestedWidth="39"
+                        HeightSizePolicy="Fixed" SuggestedHeight="39"
+                        PositionXOffset="4" PositionYOffset="2"
+                        AdditionalArgs="@AdditionalArgs"
+                        ImageId="@Id"
+                        TextureProviderName="@TextureProviderName"/>
+                    <TextWidget Text="@Name" Brush.FontSize="17"
+                        Color="#F9E3C0FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="309"
+                        HeightSizePolicy="Fixed" SuggestedHeight="27"
+                        PositionXOffset="52" PositionYOffset="1"/>
+                    <TextWidget Text="@Relationship" Brush.FontSize="12"
+                        Color="#D5B389FF"
+                        WidthSizePolicy="Fixed" SuggestedWidth="309"
+                        HeightSizePolicy="Fixed" SuggestedHeight="18"
+                        PositionXOffset="52" PositionYOffset="24"/>
+                  </Children>
+                </ButtonWidget>
+              </ItemTemplate>
+            </ListPanel>
+            <TextWidget Text="@SectionTitle" Brush.FontSize="22"
+                Brush.TextHorizontalAlignment="Left"
+                Color="#EECF9EFF" WidthSizePolicy="Fixed"
+                SuggestedWidth="449" HeightSizePolicy="Fixed"
+                SuggestedHeight="45" PositionXOffset="465"
+                PositionYOffset="207"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#AE8957FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="456"
+                HeightSizePolicy="Fixed" SuggestedHeight="2"
+                PositionXOffset="465" PositionYOffset="252"/>
+            <TextWidget Text="@SectionBody" Brush.FontSize="17"
+                Brush.TextHorizontalAlignment="Left"
+                Brush.TextVerticalAlignment="Top"
+                Color="#F0E5D5FF" WidthSizePolicy="Fixed"
+                SuggestedWidth="446" HeightSizePolicy="Fixed"
+                SuggestedHeight="235" PositionXOffset="466"
+                PositionYOffset="264"/>
+            <Widget Sprite="BlankWhiteSquare_9" Color="#B89968FF"
+                WidthSizePolicy="Fixed" SuggestedWidth="937"
+                HeightSizePolicy="Fixed" SuggestedHeight="2"
+                PositionXOffset="16" PositionYOffset="543"/>
+            <TextWidget Text="@SectionHint" Brush.FontSize="14"
+                Brush.TextHorizontalAlignment="Left"
+                Color="#CFB999FF" WidthSizePolicy="Fixed"
+                SuggestedWidth="686" HeightSizePolicy="Fixed"
+                SuggestedHeight="40" PositionXOffset="33"
+                PositionYOffset="558"/>
+            <ButtonWidget Brush="ButtonBrush"
+                DoNotPassEventsToChildren="true"
+                UpdateChildrenStates="true"
+                WidthSizePolicy="Fixed" SuggestedWidth="180"
+                HeightSizePolicy="Fixed" SuggestedHeight="44"
+                PositionXOffset="753" PositionYOffset="554"
+                Command.Click="ExecuteClose">
+              <Children>
+                <TextWidget Text="Return to camp"
+                    Brush.FontSize="16" Color="#F6DFC0FF"
+                    WidthSizePolicy="StretchToParent"
+                    HeightSizePolicy="StretchToParent"
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"/>
+              </Children>
+            </ButtonWidget>
+          </Children>
+        </Widget>
+      </Children>
+    </Widget>
+  </Window>
+</Prefab>

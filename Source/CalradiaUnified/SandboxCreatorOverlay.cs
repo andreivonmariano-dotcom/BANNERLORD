@@ -65,6 +65,9 @@ namespace CalradiaUnified
             catch (Exception error)
             {
                 creatorOpen = false;
+                cancelled = true;
+                acceptedCustomStart=false;
+                launchQueued=false;
                 DiagnosticJournal.Exception("sandbox_creator_screen_failed", error);
                 // Never pop the native main-menu screen on failure.
                 // This only owns its own Gauntlet layer.
@@ -81,6 +84,14 @@ namespace CalradiaUnified
             // Keep the original menu active and rendering until removed.
             bool wasAttached=SandboxCreatorMenuLayer.IsAttached;
             SandboxCreatorMenuLayer.Tick();
+            // Losing the host screen without Accept/Cancel abandons
+            // this draft. Never leave a stale open flag or arm grants.
+            if(wasAttached && !SandboxCreatorMenuLayer.IsAttached &&
+                creatorOpen)
+            {
+                Cancel();
+                return;
+            }
             if(wasAttached || SandboxCreatorMenuLayer.IsAttached ||
                 !launchQueued)return;
             launchQueued = false;
@@ -96,6 +107,8 @@ namespace CalradiaUnified
                 if (!profile.Enabled ||
                     !SandboxNativeStartOptions.TryPrepare(profile,out options,out reason))
                 {
+                    cancelled=true;
+                    acceptedCustomStart=false;
                     DiagnosticJournal.Event("sandbox_direct_game_start_refused",
                         "profile_enabled=" + profile.Enabled + "|reason=" + reason);
                     return;
@@ -107,12 +120,14 @@ namespace CalradiaUnified
                     () => new Campaign(CampaignGameMode.Campaign,gameOptions)));
                 DiagnosticJournal.Event("sandbox_direct_game_start_requested",
                     "role=" + profile.Role + "|type=" +
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role) +
+                    SandboxNativeStartOptions.StartTypeForProfile(profile) +
                     "|kingdom=" + profile.StartingKingdomId +
                     "|scenario=" + profile.StartingScenario);
             }
             catch (Exception error)
             {
+                cancelled=true;
+                acceptedCustomStart=false;
                 DiagnosticJournal.Exception("sandbox_direct_game_start_failed",
                     error);
             }
@@ -448,8 +463,10 @@ namespace CalradiaUnified
             string key=field.Key;
             if (page=="Review") return false;
             if (key == "StartingKingdomId")
-                return SandboxNativeStartOptions.RequiresKingdom(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role));
+                return profile.SoldierGuidedStart ||
+                    SandboxNativeStartOptions.RequiresKingdom(
+                        SandboxNativeStartOptions.StartTypeForProfile(
+                            profile));
             // Native compositing is now selected automatically for every
             // accepted CU Sandbox start. No experimental toggle is exposed
             // in the player-facing five-chapter form. The native fallback

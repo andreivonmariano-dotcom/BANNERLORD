@@ -10,7 +10,7 @@ namespace CalradiaUnified
     {
         private void RegisterDepotTradeMenu(CampaignGameStarter starter, string menu)
         {
-            starter.AddGameMenuOption(menu, "cu_purchase_depot_grain", "CU: Purchase 5 grain from your depot",
+            starter.AddGameMenuOption(menu, "cu_purchase_depot_grain", "Buy five grain from the storehouse",
                 x => CanVisit() && CanPurchaseDepotGrain(), x => Safe(PurchaseDepotGrain), false);
         }
 

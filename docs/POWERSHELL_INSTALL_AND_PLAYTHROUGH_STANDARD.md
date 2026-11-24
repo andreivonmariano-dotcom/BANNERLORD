@@ -1,5 +1,37 @@
 # Calradia Unified: mandatory PowerShell install and playthrough test standard
 
+## Current playable-test candidate | v0.69g (21 November 2026)
+
+The currently **compiled and policy-tested** stabilization candidate is **v0.69g**, source commit `8c2382461522907db63d5890e2204864a336e056`. It addresses a real Vlandian Younger Brother of a Lord test in which a missing native older-lord candidate blocked all custom family creation after native finalization. The new House check catches that missing elder *before* completing the native wizard, returns the cursor to the existing noble-birth choice and preserves the requested spouse, two children and two siblings. The Siblings screen now explains that generating an older brother does **not** create the existing clan-leading lord required by that origin. A true older-lord family link still requires a qualified native Hero.
+
+**[Exact v0.69g Windows CI 44867186334](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334)** passed **910 independent C# policy checks**, 0 compile warnings/errors, 1,159,203 audit model assertions and 1,441,129 extended campaign model checks. **This repaired build is not yet verified inside a live game.** The recorded earlier session is proof that the previous version failed.
+
+The in-game `SubModule.xml` still says historical **v0.38.0**. The PowerShell installer prints the distinct development label and refuses any DLL except the pinned successful artifact. Do not rename the ZIP or rewrite `SubModule.xml` to conceal its actual metadata.
+
+- [Download the exact v0.69g game-untested compiled artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274) (GitHub login may be required).
+- DLL SHA-256: `d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10`.
+- [Pinpointed live-session fault and repair](V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md).
+- The [v0.69g PowerShell installer](https://github.com/andreivonmariano-dotcom/BANNERLORD/blob/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1) supports `-ShowLatest` and `-LatestVerified`. These commands show the current label, exact CI artifact, DLL hash, and historical manifest, then check the downloaded DLL **before** moving any installed files.
+
+```powershell
+$Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
+$Source = 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri $Source -OutFile $Installer
+Set-ExecutionPolicy -Scope Process Bypass -Force
+
+& $Installer -ShowLatest
+
+# Download the exact artifact from the link above first.
+$GameRoot = 'D:\Steam\steamapps\common\Mount & Blade II Bannerlord'
+$Zip = Join-Path $env:USERPROFILE 'Downloads\CalradiaUnified-v0.38.0-compiled-untested.zip'
+if (-not (Test-Path -LiteralPath $Zip -PathType Leaf)) {
+    throw 'Download the pinned Actions artifact and set its actual ZIP filename.'
+}
+& $Installer -GameRoot $GameRoot -ArtifactZip $Zip -LatestVerified -ReplaceExisting
+```
+
+Close and restart Bannerlord completely. **Use a disposable new campaign for the repaired character-creation test**. An already-failed start cannot be retroactively given a spouse, children, or fabricated older noble by replacing its DLL. This install verifies files, not actual gameplay, native Hero creation or save/reload. The older v0.29 examples below are historical.
+
 **Standing project decision:** Windows PowerShell 5.1 is the default player-facing method for installing the compiled Calradia Unified module, checking its exact identity, inspecting the latest campaign diagnostics, and collecting a private diagnostic ZIP. This replaces one-off chat-only install snippets. Follow it in every future BANNERLORD chat and every compiled test milestone.
 
 **Game baseline:** Mount & Blade II: Bannerlord PC v1.5.7.125802.

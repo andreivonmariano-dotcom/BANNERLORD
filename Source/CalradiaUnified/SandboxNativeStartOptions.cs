@@ -17,6 +17,19 @@ namespace CalradiaUnified
             return type.Length==0?null:type;
         }
 
+        public static string StartTypeForProfile(
+            SandboxOriginProfile profile)
+        {
+            if(profile==null)return null;
+            // Only the newly guided Soldier is a genuine individual
+            // applicant, never a native mercenary-clan captain.
+            // Legacy Soldier saves retain the old "mercenary" mapping.
+            return ((profile.SoldierGuidedStart &&
+                profile.Role=="Soldier") ||
+                (profile.KnightGuidedStart && profile.Role=="Knight")) ?
+                "default":StartTypeForRole(profile.Role);
+        }
+
         public static bool RequiresKingdom(string type)
         {
             return type == "king" || type == "vassal" ||
@@ -37,17 +50,20 @@ namespace CalradiaUnified
             // provider. The public Serve as Soldier API is read-only.
             // A Recruit begins independently and enlists through that
             // mod's own lord dialogue, never through a forged action.
-            if(profile.Role=="Recruit" &&
+            if((profile.Role=="Recruit" ||
+                profile.SoldierGuidedStart) &&
                 !SandboxSaSBridge.HasSupportedProvider())
             {
-                error="Recruit needs Serve as Soldier public API v1 installed. "+
-                    "Without it, choose Soldier (native mercenary captain).";
+                error="The enlisted Soldier start requires an installed, "+
+                    "compatible Serve as Soldier provider (public API v1). "+
+                    "Without it, no native NPC-party enlistment can be "+
+                    "verified. The independent Mercenary option is separate.";
                 return false;
             }
             try
             {
                 var candidate = AdvancedStartOptionsManager.CreateCampaignStartOptions();
-                var type = StartTypeForRole(profile.Role);
+                var type = StartTypeForProfile(profile);
                 var types = candidate.GetOption<ListAdvancedStartOption>("StartType");
                 if (type == null || types == null ||
                     !types.GetItems().Any(item => item.Identifier == type))
@@ -61,13 +77,17 @@ namespace CalradiaUnified
                 // engine's documented scenario value, not its locked selector.
                 types.SetValue(type);
 
-                if(SandboxCustomLifeRolePolicy.NeedsKingdomContext(
-                    profile.Role) &&
+                if((SandboxCustomLifeRolePolicy.NeedsKingdomContext(
+                    profile.Role) || profile.KnightGuidedStart) &&
                     String.IsNullOrEmpty(profile.StartingKingdomId))
                 {
                     error="Select your birth-family or patron's kingdom.";
                     return false;
                 }
+                // A guided Soldier's kingdom is a genuine enlistment
+                // TARGET, not a native political clan contract. SaS will
+                // present its own start-enlisted troop/kingdom selection.
+                // This does not silently appoint a lord or set a rank.
                 if (RequiresKingdom(type))
                 {
                     var kingdom = candidate.GetOption<ListAdvancedStartOption>("KingdomId");

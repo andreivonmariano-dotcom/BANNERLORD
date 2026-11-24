@@ -86,9 +86,12 @@ namespace CalradiaUnified
         private static string OfficerName(string culture,
             string office,int index)
         {
-            bool female=office=="Chamberlain" || office=="Navigator";
+            bool female=office=="Chamberlain" ||
+                office=="RoyalMinister" || office=="Navigator";
+            string title=office=="RoyalMinister"?
+                "Royal Minister":office.Replace("Of"," of ");
             return SandboxCulturalNames.Suggest(culture,female,index+2,
-                new string[0])+" ("+office.Replace("Of"," of ")+")";
+                new string[0])+" ("+title+")";
         }
 
         private static void EquipFromNativeDonor(Hero officer,
@@ -213,10 +216,12 @@ namespace CalradiaUnified
                 if(native.Any(h=>h.Clan!=Clan.PlayerClan ||
                     h.CompanionOf!=Clan.PlayerClan))
                     return "refused:native_companion_not_firable";
-                // Multi-companion dismissal is not an atomic native
-                // transaction. Never strand half the old roster.
-                if(native.Length>1)
-                    return "refused:multi_companion_dismissal_not_atomic";
+                // Native Fire operates one companion at a time. Validate
+                // all candidates first and check EVERY confirmed removal.
+                // A partial native mutation is reported as partial rather
+                // than a fabricated atomic success.
+                if(native.Length>16)
+                    return "refused:native_companion_roster_too_large";
                 int fired=0;
                 try
                 {
@@ -230,6 +235,11 @@ namespace CalradiaUnified
                                 "Native companion was not dismissed");
                         fired++;
                     }
+                    if(fired!=native.Length || native.Any(old=>
+                        old.CompanionOf==Clan.PlayerClan ||
+                        Clan.PlayerClan.Companions.Contains(old)))
+                        throw new InvalidOperationException(
+                            "Not all native wanderers were dismissed");
                     DiagnosticJournal.Event("cu_cultural_retinue_replacement",
                         "mode=FamilyOnly"+
                         "|native_companions_before="+native.Length+
@@ -249,6 +259,10 @@ namespace CalradiaUnified
             }
             string[] offices=SandboxNobleStartPolicy.RetinueOffices(
                 profile.Role,HasBrother(player));
+            // Keep the original native court for historical King saves.
+            // Only the new guided King fixes its three royal officers.
+            if(profile.KingGuidedStart)
+                offices=SandboxKingStartPolicy.CourtOffices;
             if(offices.Length==0)
                 return "refused:no_retinue_for_role";
             // RoleBased is an actual replacement, not an additive court.
@@ -263,12 +277,21 @@ namespace CalradiaUnified
                 old.Clan!=Clan.PlayerClan ||
                 old.CompanionOf!=Clan.PlayerClan))
                 return "refused:native_companion_not_firable";
-            if(replace && existing.Length>1)
-                return "refused:multi_companion_dismissal_not_atomic";
+            if(replace && existing.Length>16)
+                return "refused:native_companion_roster_too_large";
+            DiagnosticJournal.Event("cu_cultural_retinue_roster_preflight",
+                "mode="+profile.RetinueMode+
+                "|native_companions_before="+existing.Length+
+                "|every_native_companion_firable="+
+                    !existing.Any(old=>old.CompanionOf!=Clan.PlayerClan)+
+                "|staged_before_dismissal=true"+
+                "|native_fire_sequential=true"+
+                "|failed_removal_reported_partial=true");
             var sources=new CharacterObject[offices.Length];
             for(int i=0;i<offices.Length;i++)
             {
                 bool female=offices[i]=="Chamberlain" ||
+                    offices[i]=="RoyalMinister" ||
                     offices[i]=="Navigator";
                 sources[i]=FindNobleSource(player,female,offices[i]);
                 if(sources[i]==null)
@@ -328,29 +351,55 @@ namespace CalradiaUnified
                 {
                     var officer=staged[i];
                     AddCompanionAction.Apply(Clan.PlayerClan,officer);
-                    AddHeroToPartyAction.Apply(
-                        officer,MobileParty.MainParty,true);
+                    bool royalMinister=profile.KingGuidedStart &&
+                        offices[i]=="RoyalMinister";
+                    string duty="unassigned";
+                    if(royalMinister)
+                    {
+                        // A governor serves at the owned fief, not in the
+                        // traveling King's army. The native action is
+                        // the sole authority for the appointment.
+                        string holding;
+                        duty=SandboxKingNativeMinistry.TryAppoint(
+                            officer,out holding);
+                        if(!duty.StartsWith(
+                            "native_royal_minister_governs:",
+                            StringComparison.Ordinal) ||
+                            !SandboxKingNativeMinistry.VerifiedGovernor(
+                                officer))
+                            throw new InvalidOperationException(
+                                "Royal minister native governor not verified: "+
+                                duty);
+                    }
+                    else
+                    {
+                        AddHeroToPartyAction.Apply(
+                            officer,MobileParty.MainParty,true);
+                        try
+                        {
+                            duty=AssignNativeDuty(officer,offices[i]);
+                        }
+                        catch(Exception roleError)
+                        {
+                            DiagnosticJournal.Exception(
+                                "cu_cultural_retinue_duty_failed",roleError);
+                            duty="native_assignment_failed";
+                        }
+                    }
                     bool confirmed=Clan.PlayerClan.Companions
                         .Contains(officer) &&
                         officer.Culture==player.Culture &&
                         officer.Clan==Clan.PlayerClan &&
-                        MobileParty.MainParty.MemberRoster
-                            .GetTroopCount(officer.CharacterObject)>0;
+                        officer.CompanionOf==Clan.PlayerClan &&
+                        (royalMinister?
+                            SandboxKingNativeMinistry.VerifiedGovernor(
+                                officer):
+                            MobileParty.MainParty.MemberRoster
+                                .GetTroopCount(officer.CharacterObject)>0);
                     if(!confirmed)
                         throw new InvalidOperationException(
-                            "Retinue officer not registered as clan companion");
+                            "Retinue officer native assignment not verified");
                     created++;
-                    string duty="unassigned";
-                    try
-                    {
-                        duty=AssignNativeDuty(officer,offices[i]);
-                    }
-                    catch(Exception roleError)
-                    {
-                        DiagnosticJournal.Exception(
-                            "cu_cultural_retinue_duty_failed",roleError);
-                        duty="native_assignment_failed";
-                    }
                     DiagnosticJournal.Event("cu_cultural_retinue_officer",
                         "id="+officer.StringId+
                         "|office="+offices[i]+
@@ -363,7 +412,8 @@ namespace CalradiaUnified
                         "|duty="+duty+
                         "|native_occupation="+officer.Occupation+
                         "|clan_companion=true"+
-                        "|party_member=true");
+                        "|party_member="+(!royalMinister)+
+                        "|native_governor="+royalMinister);
                 }
                 if(replace)
                 {
@@ -382,6 +432,12 @@ namespace CalradiaUnified
                                 "Native companion dismissal was not confirmed");
                     }
                 }
+                if(replace && (replaced!=existing.Length ||
+                    existing.Any(old=>
+                        old.CompanionOf==Clan.PlayerClan ||
+                        Clan.PlayerClan.Companions.Contains(old))))
+                    throw new InvalidOperationException(
+                        "Native companion replacement not fully verified");
                 DiagnosticJournal.Event("cu_cultural_retinue_replacement",
                     "mode="+profile.RetinueMode+
                     "|native_companions_before="+existing.Length+

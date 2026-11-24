@@ -27,7 +27,7 @@ assert 'string familyHome = family.StartsWith("spouse="' in origin
 assert "SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome)" in origin
 assert "SandboxFamilyHome.PlaceExistingFamilyAt(" in origin
 assert "cu_family_home_status" in origin
-assert '"cu_family_residence_here_" + from' in origin
+assert '"cu_family_residence_here"' in origin
 assert "Settlement.CurrentSettlement.OwnerClan ==" in origin
 
 # Settlements must be player-owned fortified locations, never villages.

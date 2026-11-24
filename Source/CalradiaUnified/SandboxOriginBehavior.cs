@@ -39,6 +39,8 @@ namespace CalradiaUnified
             new SandboxServiceCareerState();
         private SandboxRoleEconomyState roleEconomy=
             new SandboxRoleEconomyState();
+        private SandboxCareerChronicleState careerChronicle=
+            new SandboxCareerChronicleState();
         private SandboxSuccessionInterestState successionInterest=
             new SandboxSuccessionInterestState();
         private SandboxCharacterAgendaState characterAgendas=
@@ -60,6 +62,17 @@ namespace CalradiaUnified
         private string dynasticOlderSons = "";
         private string servicePatronHeroId = "";
         private string servicePatronName = "";
+        // A Soldier cannot receive a false "start passed" merely when
+        // an external enlistment screen has not yet completed. This
+        // pending state is save-backed, including across game reloads.
+        private bool soldierPendingStartSaved;
+        private bool soldierPendingNoticeShown;
+        // Snapshot the exact requesting profile, so a newer new-game
+        // .ini cannot silently alter a pending saved Soldier campaign.
+        private string soldierPendingOriginProfile="";
+        // These belong to this campaign save, not an external profile.
+        private string wandererCompanionId = "";
+        private int wandererWageCreditDay = -1;
 
         public override void RegisterEvents()
         {
@@ -70,7 +83,23 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, TryApplyOnDailyTick);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveCareerChronicleDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, AdvanceFamilyUpbringing);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, RefundWandererCompanionWage);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightOathDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightEscortDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKnightServiceOrderDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveNativeMilitaryAppointmentsDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveLordInheritanceDaily);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveKingSuccessionDaily);
             // v1.5.7 fires ten completion phases. Native King/Vassal starts
             // run at phase 8; our resources and family run at phase 9.
             CampaignEvents.OnCharacterCreationIsOverEvent.AddNonSerializedListener(
@@ -328,6 +357,14 @@ namespace CalradiaUnified
                 ref servicePatronHeroId);
             store.SyncData("CU_v063_service_patron_name",
                 ref servicePatronName);
+            store.SyncData("CU_v070g_soldier_native_enlistment_pending",
+                ref soldierPendingStartSaved);
+            store.SyncData("CU_v070g_soldier_pending_origin_profile",
+                ref soldierPendingOriginProfile);
+            store.SyncData("CU_v070b_wanderer_companion",
+                ref wandererCompanionId);
+            store.SyncData("CU_v070b_wanderer_wage_credit_day",
+                ref wandererWageCreditDay);
             // Keep only our generated children's personal upbringing
             // records in the actual campaign save. A different player's
             // profile.ini cannot rewrite this campaign after creation.
@@ -346,6 +383,22 @@ namespace CalradiaUnified
             string service=serviceCareer.Serialize();
             store.SyncData("CU_v065_service_career",ref service);
             serviceCareer=SandboxServiceCareerState.Parse(service);
+            string oath=knightOath.Serialize();
+            store.SyncData("CU_v070i_knight_personal_oath",ref oath);
+            knightOath=SandboxKnightOathState.Parse(oath);
+            string escort=knightEscort.Serialize();
+            store.SyncData("CU_v070t_knight_native_escort",ref escort);
+            knightEscort=SandboxKnightEscortState.Parse(escort);
+            string heirs=lordInheritance.Serialize();
+            store.SyncData("CU_v070k_lord_native_heir_claims",ref heirs);
+            lordInheritance=SandboxLordInheritanceState.Parse(heirs);
+            string royal=kingSuccession.Serialize();
+            store.SyncData("CU_v070l_native_royal_household",ref royal);
+            kingSuccession=SandboxKingSuccessionState.Parse(royal);
+            string council=royalCouncil.Serialize();
+            store.SyncData("CU_v070n_single_hero_royal_council",
+                ref council);
+            royalCouncil=SandboxRoyalCouncilState.Parse(council);
             string economy=roleEconomy.Serialize();
             store.SyncData("CU_v069d_role_economy",ref economy);
             roleEconomy=SandboxRoleEconomyState.Parse(economy);
@@ -362,6 +415,28 @@ namespace CalradiaUnified
             store.SyncData("CU_v067_family_negotiation",ref court);
             inheritanceNegotiation=SandboxInheritanceNegotiationState
                 .Parse(court);
+            string duties=householdDuties.Serialize();
+            store.SyncData("CU_v071c_household_duties",ref duties);
+            householdDuties=SandboxHouseholdDutyState.Parse(duties);
+            string chapters=careerChronicle.Serialize();
+            store.SyncData("CU_v071c_career_chronicle",ref chapters);
+            careerChronicle=SandboxCareerChronicleState.Parse(chapters);
+            string stories=petitionStories.Serialize();
+            store.SyncData("CU_v071e_personal_petition_stories",
+                ref stories);
+            petitionStories=SandboxPetitionStoryState.Parse(stories);
+            string orders=knightServiceOrders.Serialize();
+            store.SyncData("CU_v071e_native_knight_orders",ref orders);
+            knightServiceOrders=SandboxKnightServiceOrderState.Parse(
+                orders);
+            string bonds=socialBonds.Serialize();
+            store.SyncData("CU_v071g_social_bonds",ref bonds);
+            socialBonds=SandboxSocialBondState.Parse(bonds);
+            string military=militaryWitness.Serialize();
+            store.SyncData("CU_v071g_native_military_witness",
+                ref military);
+            militaryWitness=SandboxNativeMilitaryWitnessState.Parse(
+                military);
         }
 
         private static void Notify(string text)
@@ -382,6 +457,18 @@ namespace CalradiaUnified
             TryApplyOnce();
             if (starter == null || !IsStandaloneSandbox()) return;
             RegisterPeopleAndLineageMenus(starter);
+            RegisterKnightOathMenus(starter);
+            RegisterKnightPatronConversations(starter);
+            RegisterNobleOfficerConversations(starter);
+            RegisterHouseholdConversations(starter);
+            RegisterPrivatePetitionConversations(starter);
+            RegisterPetitionStoryConversations(starter);
+            RegisterCareerChronicleMenus(starter);
+            RegisterKnightServiceOrders(starter);
+            RegisterHouseholdCampMenus(starter);
+            RegisterLordInheritanceMenus(starter);
+            RegisterKingSuccessionMenus(starter);
+            RegisterNativeRoyalCouncilMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "Calradia Unified | Prepare an origin for your NEXT Sandbox game. " +
                 "This menu does not edit an existing campaign.", args => { });
@@ -403,19 +490,12 @@ namespace CalradiaUnified
             starter.AddGameMenu("cu_origin_location",
                 "Choose a town for your next Sandbox profile. Relocation is " +
                 "disabled pending game tests.", args => { });
-            foreach (string sourceMenu in new[] { "town", "castle" })
-            {
-                string from = sourceMenu;
-                starter.AddGameMenuOption(sourceMenu, "cu_origin_entry_" + sourceMenu,
-                    "CU: Design my NEXT Sandbox starting life",
-                    args => true, args =>
-                    {
-                        returnMenu = from;
-                        GameMenu.SwitchToMenu("cu_origin_main");
-                    }, false);
-                starter.AddGameMenuOption(from,
-                    "cu_family_portraits_" + from,
-                    "CU: View my household portraits",
+            // Pre-campaign character design is already available through
+            // the guided creator. Never advertise a NEXT GAME editor in
+            // every active town/castle.
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_portraits",
+                "View my household portraits",
                     args => Hero.MainHero != null &&
                         (Hero.MainHero.Spouse != null ||
                          (Hero.MainHero.Children != null &&
@@ -451,9 +531,9 @@ namespace CalradiaUnified
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to
                 // a party. It is not an automatic retroactive save migration.
-                starter.AddGameMenuOption(from,
-                    "cu_family_residence_here_" + from,
-                    "CU: Make this my family's home",
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_family_residence_here",
+                "Make this owned holding my family's home",
                     args => Hero.MainHero != null &&
                         Hero.MainHero.Spouse != null &&
                         Clan.PlayerClan != null &&
@@ -465,9 +545,7 @@ namespace CalradiaUnified
                         SandboxFamilyHome.PlaceExistingFamilyAt(
                             Hero.MainHero, Settlement.CurrentSettlement)),
                     false);
-                // v0.67 consolidates older status buttons into one
-                // native People & Lineage entry rather than duplicate menus.
-            }
+
             starter.AddGameMenuOption("cu_origin_main", "cu_origin_preview",
                 "Preview my next-game setup", args => true,
                 args => Notify(Editing.Describe()), false);
@@ -727,7 +805,8 @@ namespace CalradiaUnified
 
         private void TryApplyOnDailyTick()
         {
-            if (characterCreationComplete && startedNewGame && !applied)
+            if(((characterCreationComplete && startedNewGame) ||
+                soldierPendingStartSaved) && !applied)
                 TryApplyOnce();
             ObserveLivingWorld();
         }
@@ -926,6 +1005,49 @@ namespace CalradiaUnified
             }
         }
 
+        private void RefundWandererCompanionWage()
+        {
+            if(!applied || !IsStandaloneSandbox() ||
+                String.IsNullOrEmpty(wandererCompanionId) ||
+                Campaign.Current==null || Hero.MainHero==null ||
+                MobileParty.MainParty==null)return;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            if(wandererWageCreditDay==day)return;
+            // Record the day before any native gold action, preventing a
+            // repeated payment on an exception, reload or second tick.
+            wandererWageCreditDay=day;
+            var companion=Hero.AllAliveHeroes.FirstOrDefault(h=>
+                h!=null && h.StringId==wandererCompanionId);
+            if(companion==null || !companion.IsActive ||
+                companion.Clan!=Clan.PlayerClan ||
+                companion.CompanionOf!=Clan.PlayerClan ||
+                MobileParty.MainParty.MemberRoster.GetTroopCount(
+                    companion.CharacterObject)!=1)return;
+            try
+            {
+                int listed=Campaign.Current.Models.PartyWageModel
+                    .GetCharacterWage(companion.CharacterObject);
+                if(listed<0 || listed>10000)
+                    throw new InvalidOperationException(
+                        "Companion native daily wage outside accepted bounds");
+                if(listed>0)
+                    GiveGoldAction.ApplyBetweenCharacters(
+                        null,Hero.MainHero,listed,false);
+                DiagnosticJournal.Event("cu_wanderer_wage_credit",
+                    "companion="+companion.StringId+
+                    "|day="+day+"|native_character_wage="+listed+
+                    "|player_reimbursement="+listed+
+                    "|source=native_party_wage_model"+
+                    "|not_global_wage_model_override=true"+
+                    "|companion_in_main_party=true");
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception(
+                    "cu_wanderer_wage_credit_failed",error);
+            }
+        }
+
         private void AdvanceFamilyUpbringing()
         {
             if(familyGrowth==null || familyGrowth.Count==0 ||
@@ -1020,23 +1142,59 @@ namespace CalradiaUnified
 
         private void TryApplyOnce()
         {
-            if (!characterCreationComplete || !startedNewGame ||
-                applied || !IsStandaloneSandbox()) return;
-            var hero = Hero.MainHero;
-            if (hero == null || Clan.PlayerClan == null) return;
+            if(!((characterCreationComplete && startedNewGame) ||
+                soldierPendingStartSaved) || applied ||
+                !IsStandaloneSandbox())return;
+            var hero=Hero.MainHero;
+            if(hero==null || Clan.PlayerClan==null)return;
+            SandboxOriginProfile profile=soldierPendingStartSaved &&
+                !String.IsNullOrEmpty(soldierPendingOriginProfile)?
+                SandboxOriginProfile.Parse(soldierPendingOriginProfile):
+                SandboxOriginProfile.Load(SandboxOriginProfile.UserPath);
+            if(!SandboxCreatorOverlay.BlockNewGameProfile &&
+                profile.Enabled && profile.SoldierGuidedStart)
+            {
+                // SaS may open its start-enlisted menu AFTER our own
+                // character-creation-complete callback. Never commit a
+                // failed one-shot grant while that UI is unresolved.
+                // The native lord, wages and rank must be visible through
+                // the public API before any custom family/grant action.
+                var waiting=SandboxSaSBridge.Read();
+                if(!waiting.Available || !waiting.Enlisted)
+                {
+                    soldierPendingStartSaved=true;
+                    soldierPendingOriginProfile=profile.Serialize();
+                    if(!soldierPendingNoticeShown)
+                    {
+                        soldierPendingNoticeShown=true;
+                        DiagnosticJournal.Event(
+                            "cu_soldier_native_enlistment_pending",
+                            "result=PENDING|provider="+waiting.Available+
+                            "|enlisted="+waiting.Enlisted+
+                            "|requested_rank="+profile.SoldierEntryRank+
+                            "|no_native_rank_or_grant_fabricated=true");
+                        Notify("Soldier enlistment awaits the real "+
+                            "Serve as Soldier enlistment action. "+
+                            "Choose the requested troop grade and "+
+                            "commanding kingdom; no Soldier start "+
+                            "will be marked successful beforehand.");
+                    }
+                    return;
+                }
+            }
 
             // Commit the one-shot barrier before any resources are changed.
             // Save/load or partial action failure must not duplicate grants.
             applied = true;
             startedNewGame = false;
+            soldierPendingStartSaved=false;
+            soldierPendingOriginProfile="";
             if (SandboxCreatorOverlay.BlockNewGameProfile)
             {
                 DiagnosticJournal.Event("sandbox_creator_cancelled_no_grants",
                     "native_start_only=true");
                 return;
             }
-            SandboxOriginProfile profile = SandboxOriginProfile.Load(
-                SandboxOriginProfile.UserPath);
             if (!profile.Enabled)
             {
                 DiagnosticJournal.Event("sandbox_origin_disabled_for_new_game",
@@ -1240,6 +1398,15 @@ namespace CalradiaUnified
                     profile.RealFamilyEnabled,family,finalSonRankValid,
                     SandboxNobleStartPolicy.RequiresNobleElder(
                         profile.NobleBirthPosition),dynasty);
+                // The new guided Lord cannot proceed on a mere spouse
+                // receipt. Require native marriage, clan membership and
+                // distinct children with verified reciprocal parent links.
+                if(postFamilyGate.Length==0 && profile.LordGuidedStart)
+                    postFamilyGate=VerifyGuidedLordNativeFamily(
+                        profile,hero);
+                if(postFamilyGate.Length==0 && profile.KingGuidedStart)
+                    postFamilyGate=VerifyGuidedKingNativeFamily(
+                        profile,hero);
                 if(postFamilyGate.Length>0)
                 {
                     RecordFailedNativeFamily(profile,hero,postFamilyGate);
@@ -1268,10 +1435,20 @@ namespace CalradiaUnified
                 {
                     servicePatronHeroId=patron.StringId;
                     servicePatronName=patron.Name.ToString();
-                    Notify(profile.Role+" service confirmed under "+
-                        servicePatronName+" of "+
-                        patron.Clan.Name.ToString()+
-                        ". The kingdom contract remains native.");
+                    Notify(profile.SoldierGuidedStart?
+                        "Actual enlisted service confirmed under "+
+                            servicePatronName+" of "+
+                            patron.Clan.Name.ToString()+
+                            ". Rank and wage are controlled by "+
+                            "Serve as Soldier.":
+                        profile.KnightGuidedStart?
+                        "Personal patron recorded: "+servicePatronName+
+                            " of "+patron.Clan.Name.ToString()+
+                            ". No formal native vassalage or binding oath.":
+                        profile.Role+" service confirmed under "+
+                            servicePatronName+" of "+
+                            patron.Clan.Name.ToString()+
+                            ". The kingdom contract remains native.");
                 }
                 DiagnosticJournal.Event("cu_service_start_status",
                     "role="+profile.Role+
@@ -1361,9 +1538,9 @@ namespace CalradiaUnified
                     return;
                 }
 
-                // Role-based officers use same-culture native noble donors.
-                // FamilyOnly removes native wanderers without adding
-                // unrelated officers. Native preserves the original roster.
+                // The optional named Wanderer friend is not a household
+                // officer. First dismiss native starter wanderers using
+                // the checked FamilyOnly path; only then register one Hero.
                 string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
                 DiagnosticJournal.Event("cu_cultural_retinue_status",
                     "role="+profile.Role+
@@ -1371,7 +1548,9 @@ namespace CalradiaUnified
                     "|result="+retinue);
                 if(retinue.StartsWith("refused:",StringComparison.Ordinal) ||
                    retinue.StartsWith("partial:",StringComparison.Ordinal))
-                    Notify("Starting household officers: "+retinue);
+                    Notify("Household officer assignment incomplete. "+
+                        "Inspect your actual Clan and Party screens; "+
+                        "the full cause is recorded in diagnostics.");
 
                 if(!SandboxStartContract.RetinueReadyForOtherGrants(
                     profile.RetinueMode,retinue))
@@ -1382,9 +1561,223 @@ namespace CalradiaUnified
                         "result=FAIL|reason=retinue_not_verified"+
                         "|retinue="+retinue+
                         "|no_discretionary_gold_troops_items_or_renown=true");
-                    Notify("The chosen retinue could not be verified. "+
-                        "Optional Starting Life grants were withheld.");
+                    Notify("Starting Life is incomplete: not all "+
+                        "officers joined the native household. "+
+                        "Extra starting grants were withheld.");
                     return;
+                }
+
+                // The King owns three REAL starting officers.
+                // Marshal and Kingsguard travel in the native party.
+                // Royal Minister serves as the actual governor of a
+                // vacant native-owned town or castle, not a fake court
+                // label or another field troop.
+                if(profile.KingGuidedStart)
+                {
+                    var royalOfficers=Clan.PlayerClan.Companions.ToArray();
+                    var marshal=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(Marshal)",StringComparison.Ordinal));
+                    var minister=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(Royal Minister)",StringComparison.Ordinal));
+                    var kingsguard=royalOfficers.FirstOrDefault(o=>
+                        o!=null && o.Name.ToString().EndsWith(
+                            "(Kingsguard)",StringComparison.Ordinal));
+                    bool marshalRole=marshal!=null &&
+                        marshal.Occupation==Occupation.Lord;
+                    bool ministerRole=minister!=null &&
+                        minister.Occupation==Occupation.Wanderer;
+                    bool kingsguardRole=kingsguard!=null &&
+                        kingsguard.Occupation==Occupation.Lord;
+                    bool registered=royalOfficers.All(o=>
+                        o!=null && o.Clan==Clan.PlayerClan &&
+                        o.CompanionOf==Clan.PlayerClan);
+                    bool real=royalOfficers.All(o=>
+                        o!=null && o.IsAlive && o.IsActive &&
+                        o.CharacterObject!=null);
+                    bool culture=royalOfficers.All(o=>
+                        o!=null && o.Culture==hero.Culture);
+                    bool marshalParty=marshal!=null &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            marshal.CharacterObject)==1;
+                    bool guardParty=kingsguard!=null &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            kingsguard.CharacterObject)==1;
+                    bool governor=minister!=null &&
+                        SandboxKingNativeMinistry.VerifiedGovernor(
+                            minister) &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            minister.CharacterObject)==0;
+                    string court=SandboxKingStartPolicy.ValidateCourt(
+                        retinue,royalOfficers.Length,culture,registered,
+                        real,marshalParty,governor,guardParty,
+                        marshalRole,ministerRole,kingsguardRole);
+                    DiagnosticJournal.Event(
+                        "cu_king_native_court_verification",
+                        "result="+(court.Length==0?"PASS":"FAIL")+
+                        "|reason="+court+
+                        "|marshal="+(marshal==null?"none":marshal.StringId)+
+                        "|royal_minister="+
+                            (minister==null?"none":minister.StringId)+
+                        "|kingsguard="+
+                            (kingsguard==null?"none":kingsguard.StringId)+
+                        "|marshal_in_party="+marshalParty+
+                        "|minister_native_governor="+governor+
+                        "|minister_fief="+(minister==null ||
+                            minister.GovernorOf==null?"none":
+                            minister.GovernorOf.StringId)+
+                        "|kingsguard_in_party="+guardParty+
+                        "|same_culture="+culture+
+                        "|real_native_heroes="+real+
+                        "|native_clan="+registered+
+                        "|royal_office_authority_not_invented=true");
+                    if(court.Length>0)
+                    {
+                        RecordFailedNativeFamily(profile,hero,
+                            "royal_court:"+court);
+                        DiagnosticJournal.Event(
+                            "sandbox_start_contract",
+                            "result=FAIL|reason=royal_court:"+court+
+                            "|no_discretionary_grants=true");
+                        Notify("Royal court is incomplete. Check "+
+                            "your Royal Minister in the native settlement "+
+                            "governor screen. Details are in diagnostics.");
+                        return;
+                    }
+                }
+
+                // A guided Lord receives two named, culturally-equipped
+                // genuine Hero companions, never a fictional court list.
+                // Both must exist in the actual native clan and main party.
+                if(profile.LordGuidedStart)
+                {
+                    var lordOfficers=Clan.PlayerClan.Companions.ToArray();
+                    bool nativeHeroes=lordOfficers.All(o=>
+                        o!=null && o.IsActive && o.IsAlive &&
+                        o.Occupation==Occupation.Lord &&
+                        o.CharacterObject!=null &&
+                        o.Clan==Clan.PlayerClan &&
+                        o.CompanionOf==Clan.PlayerClan);
+                    bool cultural=lordOfficers.All(o=>
+                        o!=null && o.Culture==hero.Culture);
+                    bool inParty=MobileParty.MainParty!=null &&
+                        lordOfficers.All(o=>o!=null &&
+                            o.CharacterObject!=null &&
+                            MobileParty.MainParty.MemberRoster
+                                .GetTroopCount(o.CharacterObject)==1);
+                    bool offices=lordOfficers.Length==2 &&
+                        lordOfficers.Count(o=>o!=null &&
+                            o.Name.ToString().EndsWith(
+                                "(Master of Arms)",
+                                StringComparison.Ordinal))==1 &&
+                        lordOfficers.Count(o=>o!=null &&
+                            o.Name.ToString().EndsWith(
+                                "(Knight)",StringComparison.Ordinal))==1;
+                    string lordRetinue=SandboxLordStartPolicy
+                        .ValidateOfficers(retinue,lordOfficers.Length,
+                            !offices,cultural,nativeHeroes,
+                            inParty,offices);
+                    DiagnosticJournal.Event(
+                        "cu_lord_native_household_officers",
+                        "result="+(lordRetinue.Length==0?"PASS":"FAIL")+
+                        "|reason="+lordRetinue+
+                        "|native_receipt="+retinue+
+                        "|count="+lordOfficers.Length+
+                        "|same_culture="+cultural+
+                        "|real_hero_companions="+nativeHeroes+
+                        "|native_party_members="+inParty+
+                        "|master_of_arms_and_knight="+offices);
+                    if(lordRetinue.Length>0)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL|reason=lord_officers:"+
+                            lordRetinue+
+                            "|no_extra_grants_applied=true");
+                        Notify("Lord household officers are incomplete. "+
+                            "Check Master of Arms and Knight in your "+
+                            "native Clan and Party screens.");
+                        return;
+                    }
+                }
+
+                // The new Outlaw starts with a single real band lieutenant.
+                // A title or creator choice does not establish a native
+                // companion, and an unrelated starting wanderer must not
+                // remain in the saved clan roster.
+                if(profile.OutlawGuidedStart)
+                {
+                    var officers=Clan.PlayerClan.Companions.ToArray();
+                    bool valid=profile.Role=="Outlaw" &&
+                        retinue.StartsWith("officers=1|",
+                            StringComparison.Ordinal) &&
+                        retinue.EndsWith("|same_culture=true",
+                            StringComparison.Ordinal) &&
+                        officers.Length==1 && officers[0]!=null &&
+                        officers[0].Occupation==Occupation.Wanderer &&
+                        officers[0].Culture==hero.Culture &&
+                        officers[0].Clan==Clan.PlayerClan &&
+                        officers[0].CompanionOf==Clan.PlayerClan &&
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.MemberRoster.GetTroopCount(
+                            officers[0].CharacterObject)==1;
+                    DiagnosticJournal.Event(
+                        "cu_outlaw_lieutenant_start_contract",
+                        "result="+(valid?"PASS":"FAIL")+
+                        "|native_outlaw_requested=true"+
+                        "|retinue_receipt="+retinue+
+                        "|clan_companion_count="+officers.Length+
+                        "|actual_companion_id="+(officers.Length==1 &&
+                            officers[0]!=null?officers[0].StringId:"none")+
+                        "|native_lordship_not_granted=true"+
+                        "|bandit_faction_not_invented=true");
+                    if(!valid)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL"+
+                            "|reason=outlaw_lieutenant_not_verified"+
+                            "|no_discretionary_grants_applied=true");
+                        Notify("The Outlaw's named lieutenant was not "+
+                            "verified in the actual native party.");
+                        return;
+                    }
+                }
+
+                string wandererCompanionResult="not_applicable";
+                if(profile.WandererNoHouseStart && profile.Role=="Wanderer")
+                {
+                    Hero companion;
+                    wandererCompanionResult=
+                        SandboxWandererCompanion.TryCreate(
+                            profile,hero,out companion);
+                    bool good=profile.WandererCompanionEnabled ?
+                        companion!=null &&
+                        wandererCompanionResult.StartsWith("created:",
+                            StringComparison.Ordinal) :
+                        wandererCompanionResult=="not_requested" &&
+                        Clan.PlayerClan.Companions.Count==0;
+                    DiagnosticJournal.Event(
+                        "cu_wanderer_companion_start_contract",
+                        "requested="+profile.WandererCompanionEnabled+
+                        "|result="+(good?"PASS":"FAIL")+
+                        "|native_receipt="+wandererCompanionResult+
+                        "|roster_count="+Clan.PlayerClan.Companions.Count+
+                        "|native_stats_preserved=true");
+                    if(!good)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL"+
+                            "|reason=wanderer_companion_not_verified"+
+                            "|no_discretionary_grants_applied=true");
+                        Notify("The single Wanderer companion could not "+
+                            "be verified: "+wandererCompanionResult);
+                        return;
+                    }
+                    wandererCompanionId=companion==null ?
+                        "" : companion.StringId;
                 }
 
                 if (profile.Gold >= 0)
@@ -1405,7 +1798,11 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Kingdom != null,
                         Clan.PlayerClan.Kingdom != null &&
                         Clan.PlayerClan.Kingdom.RulingClan == Clan.PlayerClan);
-                int troops = profile.RoleAffiliationsEnabled && realRank
+                // Outlaw gets genuine Bandit-occupation regulars through
+                // the bounded native roster grant below. Never add
+                // culturally ordinary recruits on top of that band.
+                int troops = profile.OutlawGuidedStart ? 0 :
+                    profile.RoleAffiliationsEnabled && realRank
                     ? Math.Max(profile.Troops,
                         SandboxRolePolicy.BonusRecruits(profile.Role))
                     : profile.Troops;
@@ -1421,6 +1818,32 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_role_bonus_refused",
                         "role=" + profile.Role + "|affiliation_not_confirmed");
 
+                string outlawBand="not_applicable";
+                if(profile.OutlawGuidedStart)
+                {
+                    outlawBand=SandboxOutlawStartingBand.TryGrant(
+                        profile,hero);
+                    bool accepted=outlawBand.StartsWith("bandits=",
+                        StringComparison.Ordinal) &&
+                        outlawBand.EndsWith("|native_verified=true",
+                            StringComparison.Ordinal);
+                    DiagnosticJournal.Event("cu_outlaw_band_start_contract",
+                        "result="+(accepted?"PASS":"FAIL")+
+                        "|receipt="+outlawBand+
+                        "|native_outlaw_start=true"+
+                        "|payroll_not_permanently_free=true");
+                    if(!accepted)
+                    {
+                        DiagnosticJournal.Event("sandbox_start_contract",
+                            "result=FAIL|reason=outlaw_band_not_verified"+
+                            "|receipt="+outlawBand+
+                            "|no_extra_item_or_renown_grants=true");
+                        Notify("The Outlaw's native bandit band or "+
+                            "opening wage reserve failed: "+outlawBand);
+                        return;
+                    }
+                }
+
                 ApplyExistingItems(profile);
 
                 // Acceptance is based on observed Bannerlord state, not a
@@ -1428,9 +1851,11 @@ namespace CalradiaUnified
                 var observedClan = Clan.PlayerClan;
                 var observedKingdom = observedClan.Kingdom;
                 string[] failures = SandboxStartContract.Validate(
-                    SandboxNativeStartOptions.StartTypeForRole(profile.Role),
+                    SandboxNativeStartOptions.StartTypeForProfile(profile),
                     actualStart,
-                    profile.StartingKingdomId,
+                    (profile.SoldierGuidedStart ||
+                        profile.KnightGuidedStart)?"":
+                        profile.StartingKingdomId,
                     observedKingdom == null ? "" : observedKingdom.StringId,
                     observedKingdom != null &&
                         observedKingdom.RulingClan == observedClan,
@@ -1549,11 +1974,171 @@ namespace CalradiaUnified
                     patron==null)
                     failures=failures.Concat(new[]{
                         "commanding_lord_not_bound"}).ToArray();
+                string soldierReceipt="not_requested";
+                if(profile.SoldierGuidedStart)
+                {
+                    var soldier=SandboxSaSBridge.Read();
+                    soldierReceipt=SandboxSoldierEnlistmentPolicy
+                        .ValidateEnlisted(soldier.Available,
+                            soldier.Enlisted,profile.StartingKingdomId,
+                            profile.ServicePatronHeroId,soldier.LordId,
+                            soldier.LordKingdomId,soldier.RankId,
+                            soldier.LordIsNativeLord &&
+                                soldier.NativeHostPartyLedByLord,
+                            observedClan.IsUnderMercenaryService,
+                            observedClan.Settlements!=null &&
+                                observedClan.Settlements.Count>0);
+                    if(soldierReceipt.Length==0)
+                        soldierReceipt=SandboxSoldierEnlistmentPolicy
+                            .ValidateRequestedEntryRank(
+                                profile.SoldierEntryRank,soldier.RankId);
+                    // Keep integer Rank for audit. Only the public,
+                    // stable RankId is an accepted status authority.
+                    if(soldierReceipt.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_enlisted_soldier_unverified:"+
+                                soldierReceipt}).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_soldier_native_start_verification",
+                        "result="+(soldierReceipt.Length==0?"PASS":"FAIL")+
+                        "|reason="+soldierReceipt+
+                        "|lord="+soldier.LordId+
+                        "|actual_kingdom="+soldier.LordKingdomId+
+                        "|requested_rank="+profile.SoldierEntryRank+
+                        "|actual_rank="+soldier.RankId+
+                        "|native_rank_num="+soldier.RankNumber+
+                        "|career_stage="+
+                            SandboxSoldierEnlistmentPolicy.CareerStage(
+                                soldier.RankId)+
+                        "|actual_native_daily_wage="+soldier.Wage+
+                        "|enlisted_troop_not_mercenary_clan=true");
+                }
+                // Re-check native paid-company status after the marriage,
+                // companion dismissal and resource stages. The contract is
+                // not the same as a personal NPC-party enlisted rank.
+                string mercenaryReceipt="not_requested";
+                if(profile.MercenaryGuidedStart)
+                {
+                    mercenaryReceipt=SandboxMercenaryStartPolicy.Validate(
+                        profile.Role,profile.StartingKingdomId,
+                        observedKingdom==null?"":observedKingdom.StringId,
+                        observedClan.IsUnderMercenaryService,
+                        observedClan.Leader==hero,
+                        MobileParty.MainParty!=null &&
+                        MobileParty.MainParty.LeaderHero==hero,
+                        observedKingdom!=null &&
+                            observedKingdom.RulingClan==observedClan,
+                        observedClan.Settlements==null?
+                            0:observedClan.Settlements.Count);
+                    if(mercenaryReceipt.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_mercenary_contract_unverified:"+
+                                mercenaryReceipt}).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_mercenary_company_native_verification",
+                        "result="+(mercenaryReceipt.Length==0?"PASS":"FAIL")+
+                        "|reason="+mercenaryReceipt+
+                        "|employer="+(observedKingdom==null?
+                            "none":observedKingdom.StringId)+
+                        "|true_native_mercenary="+
+                            observedClan.IsUnderMercenaryService+
+                        "|player_clan_head="+
+                            (observedClan.Leader==hero)+
+                        "|self_led_party="+(
+                            MobileParty.MainParty!=null &&
+                            MobileParty.MainParty.LeaderHero==hero)+
+                        "|salary_and_term_owned_by_native=true"+
+                        "|not_enlisted_in_foreign_party=true");
+                }
+                bool verifiedNobleHandoff=SandboxNativeNobleHandoffPolicy
+                    .HasVerifiedNativeNobleAuthority(actualStart,
+                        observedKingdom!=null,
+                        observedClan.Leader==hero,
+                        MobileParty.MainParty!=null &&
+                            MobileParty.MainParty.LeaderHero==hero,
+                        observedKingdom!=null &&
+                            observedKingdom.RulingClan==observedClan,
+                        observedClan.IsUnderMercenaryService,
+                        observedClan.IsBanditFaction,
+                        observedClan.IsRebelClan,
+                        observedClan.Settlements==null?0:
+                            observedClan.Settlements.Count);
+                if(profile.KingGuidedStart)
+                {
+                    string crownFinal=SandboxKingStartPolicy
+                        .ValidateNativeCrown(actualStart,
+                            profile.StartingKingdomId,
+                            observedKingdom==null?"":observedKingdom.StringId,
+                            observedClan.Leader==hero,
+                            MobileParty.MainParty!=null &&
+                                MobileParty.MainParty.LeaderHero==hero,
+                            observedKingdom!=null &&
+                                observedKingdom.RulingClan==observedClan,
+                            observedClan.IsUnderMercenaryService,
+                            verifiedNobleHandoff,
+                            observedClan.IsEliminated,
+                            observedClan.Settlements==null?0:
+                                observedClan.Settlements.Count);
+                    if(crownFinal.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_crown_contract_unverified:"+crownFinal
+                        }).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_king_native_final_verification",
+                        "result="+(crownFinal.Length==0?"PASS":"FAIL")+
+                        "|reason="+crownFinal+
+                        "|player_ruling_clan_head="+
+                            (observedClan.Leader==hero)+
+                        "|native_ruler="+(observedKingdom==null ||
+                            observedKingdom.RulingClan==null ||
+                            observedKingdom.RulingClan.Leader==null?
+                            "none":
+                            observedKingdom.RulingClan.Leader.StringId)+
+                        "|native_fiefs="+observedClan.Settlements.Count+
+                        "|native_crown_not_invented=true"+
+                        "|royal_treasury_unchanged=true");
+                }
+                if(profile.LordGuidedStart)
+                {
+                    string lordFinal=SandboxLordStartPolicy
+                        .ValidateNativeHouse(actualStart,
+                            profile.StartingKingdomId,
+                            observedKingdom==null?"":observedKingdom.StringId,
+                            observedClan.Leader==hero,
+                            MobileParty.MainParty!=null &&
+                                MobileParty.MainParty.LeaderHero==hero,
+                            observedKingdom!=null &&
+                                observedKingdom.RulingClan==observedClan,
+                            observedClan.IsUnderMercenaryService,
+                            verifiedNobleHandoff,
+                            observedClan.IsEliminated,
+                            observedClan.Settlements==null?0:
+                                observedClan.Settlements.Count);
+                    if(lordFinal.Length>0)
+                        failures=failures.Concat(new[]{
+                            "native_lord_contract_unverified:"+lordFinal
+                        }).ToArray();
+                    DiagnosticJournal.Event(
+                        "cu_lord_native_final_verification",
+                        "result="+(lordFinal.Length==0?"PASS":"FAIL")+
+                        "|reason="+lordFinal+
+                        "|player_leads_clan="+(observedClan.Leader==hero)+
+                        "|actual_fiefs="+observedClan.Settlements.Count+
+                        "|native_vassal_not_king=true"+
+                        "|fief_transfer_not_requested=true");
+                }
                 if(profile.RetinueMode=="FamilyOnly" &&
-                    Clan.PlayerClan.Companions.Count>0)
+                    (profile.WandererNoHouseStart && profile.Role=="Wanderer" ?
+                        (profile.WandererCompanionEnabled ?
+                            Clan.PlayerClan.Companions.Count!=1 ||
+                            Clan.PlayerClan.Companions[0].StringId!=
+                                wandererCompanionId :
+                            Clan.PlayerClan.Companions.Count!=0) :
+                        Clan.PlayerClan.Companions.Count>0))
                     failures=failures.Concat(new[]{
                         "family_only_has_unrelated_companions"}).ToArray();
-                if(SandboxCustomLifeRolePolicy.IsLandless(profile.Role) &&
+                if((profile.KnightGuidedStart ||
+                    SandboxCustomLifeRolePolicy.IsLandless(profile.Role)) &&
                     !SandboxCustomLifeRolePolicy.NativeLandlessContract(
                         Clan.PlayerClan.Kingdom!=null,
                         Clan.PlayerClan.Settlements.Count))
@@ -1573,6 +2158,11 @@ namespace CalradiaUnified
                     "|requested_children=" + profile.ChildCount +
                     "|children=" + (hero.Children == null ?
                         0 : hero.Children.Count) +
+                    "|wanderer_companion="+wandererCompanionResult+
+                    "|wanderer_companion_id="+wandererCompanionId+
+                    "|outlaw_band="+outlawBand+
+                    "|mercenary_receipt="+mercenaryReceipt+
+                    "|soldier_receipt="+soldierReceipt+
                     "|failures=" + String.Join(",",failures));
                 if (failures.Length != 0)
                 {
@@ -1588,27 +2178,122 @@ namespace CalradiaUnified
                     try
                     {
                         SandboxLivingPersons.Capture(
-                            profile,hero,patron,livingPersons);
+                            profile,hero,patron,livingPersons,
+                            profile.SoldierGuidedStart &&
+                            soldierReceipt.Length==0);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
-                        roleEconomy.Start(profile.Role,hero.Gold,
-                            agencyDecisions.Day);
+                        if(profile.KingGuidedStart)
+                        {
+                            string council=BeginNativeRoyalCouncil(hero);
+                            if(council!="native_royal_hero_council_commissioned")
+                            {
+                                DiagnosticJournal.Event(
+                                    "sandbox_start_contract",
+                                    "result=FAIL"+
+                                    "|reason=royal_council:"+council+
+                                    "|native_capital_unchanged=true"+
+                                    "|no_false_royal_council=true");
+                                Notify("Native royal court could not be "+
+                                    "commissioned: "+council);
+                                return;
+                            }
+                            string royalRecorded=BeginGuidedKingSuccession(
+                                profile,hero);
+                            if(royalRecorded!="native_royal_household_recorded")
+                                DiagnosticJournal.Event(
+                                    "cu_royal_claim_record_refused",
+                                    "result="+royalRecorded+
+                                    "|native_kingdom_unchanged=true"+
+                                    "|native_ownership_unchanged=true");
+                        }
+                        if(profile.LordGuidedStart)
+                        {
+                            string heirRecorded=BeginGuidedLordInheritance(
+                                profile,hero);
+                            if(heirRecorded!="native_household_heirs_recorded")
+                                DiagnosticJournal.Event(
+                                    "cu_lord_heir_record_refused",
+                                    "result="+heirRecorded+
+                                    "|native_owner_unchanged=true"+
+                                    "|no_false_succession_result=true");
+                        }
+                        roleEconomy.Start(
+                            profile.KnightGuidedStart?
+                                "HouseholdKnight":profile.SoldierGuidedStart?
+                                "EnlistedSoldier":profile.Role,
+                            hero.Gold,agencyDecisions.Day);
                         socialObservations=new SandboxSocialObservationState();
                         SandboxLivingPersons.ObserveDaily(livingPersons,
                             socialObservations,hero);
+                        if(profile.KnightGuidedStart &&
+                            profile.KnightOrigin=="SwornHouse" &&
+                            patron!=null && patron.Clan!=null &&
+                            patron.Clan.Kingdom!=null)
+                        {
+                            int oathDay=CurrentOathDay();
+                            string oathStatus=knightOath.Begin(
+                                hero.StringId,patron.StringId,
+                                patron.Clan.StringId,
+                                patron.Clan.Kingdom.StringId,oathDay);
+                            DiagnosticJournal.Event(
+                                "cu_knight_oath_start",
+                                "result="+oathStatus+
+                                "|patron="+patron.StringId+
+                                "|patron_clan="+patron.Clan.StringId+
+                                "|player_clan="+Clan.PlayerClan.StringId+
+                                "|native_relation="+hero.GetRelation(patron)+
+                                "|independent_house=true"+
+                                "|native_vassalage=false");
+                            if(oathStatus=="oath_recorded")
+                            {
+                                IntroduceKnightHouseholdAndArrive(patron);
+                                Notify("Sworn Knight: your personal oath "+
+                                    "to Lord "+patron.Name+" of "+
+                                    patron.Clan.Name+" is now active. "+
+                                    "Native relation "+
+                                    hero.GetRelation(patron)+
+                                    ". You lead your own house. "+
+                                    "FIRST GOAL: find this lord in the "+
+                                    "native Encyclopedia and speak to "+
+                                    "him about your sworn service.");
+                            }
+                        }
                         if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                             patron!=null)
                         {
-                            serviceCareer.Start(profile.Role,
+                            serviceCareer.Start(profile.KnightGuidedStart?
+                                "HouseholdKnight":profile.Role,
                                 patron.StringId,
                                 profile.StartingKingdomId);
-                            DiagnosticJournal.Event(
-                                "cu_personal_service_career_started",
-                                "role="+profile.Role+
-                                "|patron="+patron.StringId+
-                                "|native_wages_authoritative=true"+
-                                "|enlisted_in_npc_party=false"+
-                                "|automatic_promotion=false");
+                            if(profile.SoldierGuidedStart)
+                            {
+                                var native=SandboxSaSBridge.Read();
+                                serviceCareer.ObserveExternal(
+                                    native.LordId,native.RankId,
+                                    native.DutyId,native.Wage,
+                                    native.Days,native.TermDaysLeft,
+                                    native.InsideHostParty);
+                                DiagnosticJournal.Event(
+                                    "cu_soldier_real_career_started",
+                                    "result=PASS|lord="+native.LordId+
+                                    "|native_rank="+native.RankId+
+                                    "|career_stage="+
+                                        SandboxSoldierEnlistmentPolicy
+                                            .CareerStage(native.RankId)+
+                                    "|native_wage="+native.Wage+
+                                    "|host_party_verified="+
+                                        native.NativeHostPartyLedByLord+
+                                    "|native_sas_promotion_authority=true");
+                            }
+                            else
+                                DiagnosticJournal.Event(
+                                    "cu_personal_service_career_started",
+                                    "role="+profile.Role+
+                                    "|patron="+patron.StringId+
+                                    "|native_wages_authoritative=true"+
+                                    "|enlisted_in_npc_party=false"+
+                                    "|automatic_promotion=false");
                         }
                         if(SandboxCustomLifeRolePolicy.IsNobleFamilyRole(
                             profile.Role) &&
@@ -1652,8 +2337,9 @@ namespace CalradiaUnified
                     }
                 }
 
-                // Relocation and direct face sliders remain disabled. The
-                // opt-in family helper uses native hero/marriage APIs.
+                // The verified Sworn Knight start attempts one guarded
+                // relocation to a real native field lord. Other starting
+                // roles and the direct face sliders remain unchanged.
                 DiagnosticJournal.Event("sandbox_origin_applied",
                     "role=" + profile.Role +
                     "|family_home=" + familyHome +
@@ -1663,7 +2349,11 @@ namespace CalradiaUnified
                     "|family_status=" + family +
                     "|start_contract_passed=" + (failures.Length == 0) +
                     "|appearance_template_lookup_only=true" +
-                    "|relocation_pending=true" +
+                    "|knight_patron_arrival_attempted=" +
+                        (profile.KnightGuidedStart &&
+                         profile.KnightOrigin=="SwornHouse" &&
+                         failures.Length==0) +
+                    "|other_relocations_pending=true" +
                     "|progression_mode=" + profile.ProgressionMode +
                     "|progression_requested=" + profile.Overrides.Count +
                     "|individual_items_requested=" + profile.ItemIds.Count);

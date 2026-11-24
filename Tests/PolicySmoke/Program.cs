@@ -11,6 +11,11 @@ internal static class Program
         passed++;
         Console.WriteLine("PASS " + name);
     }
+    private static string SandboxNativeTypeForPolicy(string role)
+    {
+        return SandboxRoleConsistencyPolicy.NativeType(role);
+    }
+
     private static bool ResetAndCheck(SandboxOriginProfile plan)
     {
         plan.ResetForNewCampaign();
@@ -18,6 +23,1196 @@ internal static class Program
     }
     private static void Main()
     {
+        // Stabilization pass 2: guided identities and honest recovery.
+        var guidedSoldierLabel=new SandboxOriginProfile{
+            Role="Soldier",SoldierGuidedStart=true};
+        Check("guided soldier preview does not claim a mercenary company",
+            SandboxStartingLifePolicy.Station(guidedSoldierLabel)=="ProspectiveEnlistedRecruit" &&
+            SandboxStartingLifePolicy.Occupation(guidedSoldierLabel)=="EnlistmentApplicant" &&
+            SandboxStartingLifePolicy.Obligation(guidedSoldierLabel)=="PendingVerifiedEnlistment");
+        Check("soldier biography needs verified start receipt",
+            SandboxStartingLifePolicy.Station(guidedSoldierLabel,true)=="VerifiedEnlistedSoldier" &&
+            SandboxStartingLifePolicy.Occupation(guidedSoldierLabel,true)=="VerifiedEnlistedSoldier");
+        var guidedKnightLabel=new SandboxOriginProfile{
+            Role="Knight",KnightGuidedStart=true};
+        Check("guided knight biography does not invent landed status",
+            SandboxStartingLifePolicy.Station(guidedKnightLabel)=="UnlandedKnightRetainer" &&
+            SandboxStartingLifePolicy.Occupation(guidedKnightLabel)=="HouseholdKnightRetainer" &&
+            SandboxStartingLifePolicy.Obligation(guidedKnightLabel)=="RecordedPersonalPatronNoFormalVassalage");
+        Check("legacy soldier and knight roles preserve prior definitions",
+            SandboxStartingLifePolicy.Station(new SandboxOriginProfile{Role="Soldier"})=="MercenaryCompany" &&
+            SandboxStartingLifePolicy.Station(new SandboxOriginProfile{Role="Knight"})=="LandedKnightVassal");
+        var inconsistentRecovery=SandboxFamilyRecoveryState.Parse(
+            "CU_FAMILY_RECOVERY_1\nplayer|Lord|partial|NativeCountsMatchReviewStillRequired|1|0|2|1|0|0|1");
+        Check("inconsistent family recount preserves failure without claiming match",
+            inconsistentRecovery.NeedsReview &&
+            inconsistentRecovery.Status=="PartialStartNeedsReview" &&
+            inconsistentRecovery.PlayerId=="player" &&
+            inconsistentRecovery.Failure=="partial" &&
+            inconsistentRecovery.ChildrenRequested==2);
+
+        // Compatibility stabilization: reject impossible history and unknown SaS contracts.
+        Check("social save requires an actual recorded petition",
+            SandboxSocialBondState.Parse("CU_SOCIAL_BONDS_1\nhero_a|0|0|5|0|1|10").People.Count==0);
+        var rewindWitness=new SandboxNativeMilitaryWitnessState();
+        Check("army receipt cannot predate native vassalage",
+            rewindWitness.Observe(10,"kingdom_1",true,false) &&
+            !rewindWitness.Observe(9,"kingdom_1",true,true) &&
+            rewindWitness.ArmyCommandDay==-1 &&
+            rewindWitness.Observe(10,"kingdom_1",true,true) &&
+            SandboxNativeMilitaryWitnessState.Parse(rewindWitness.Serialize()).ArmyCommandDay==10);
+        Check("military save rejects orphan kingdom without vassalage",
+            SandboxNativeMilitaryWitnessState.Parse(
+                "CU_NATIVE_MILITARY_WITNESS_1\nkingdom_1|-1|-1").KingdomId=="");
+        Check("chronicle rejects progress before any evidence day",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|2|-1|0||").Started);
+        Check("chronicle rejects a completed or threshold-crossing saved streak",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|3|20|1||").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nMercenary|1|20|7||").Started);
+        Check("wanderer save requires the correct distinct native town receipts",
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|2|20|0|town_1|town_1").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|1|20|0||").Started &&
+            !SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nLord|1|20|0|town_1|").Started);
+        Check("valid career partial streak and initial state survive load",
+            SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nMercenary|1|20|6||").ConsecutiveDays==6 &&
+            SandboxCareerChronicleState.Parse("CU_CAREER_CHRONICLE_1\nWanderer|0|-1|0||").Started);
+        Check("SaS bridge supports documented v1 shape only",
+            SandboxSaSApiContract.IsSupported(typeof(SaSV1Fixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSV2Fixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSMissingSnapshotFixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSVoidSnapshotFixture)) &&
+            !SandboxSaSApiContract.IsSupported(typeof(SaSBadEnlistedFixture)) &&
+            !SandboxSaSApiContract.IsSupported(null));
+
+        // v0.71g: observed social bonds and genuine army/vassal status.
+        var nativeBonds=new SandboxSocialBondState();
+        Check("social records reject fictional IDs and invalid deltas",
+            !nativeBonds.RecordPetition("",true,2,1) &&
+            !nativeBonds.RecordPetition("hero_a",true,101,1) &&
+            nativeBonds.RecordPetition("hero_a",true,2,1) &&
+            !nativeBonds.RecordPetition("hero_a",true,2,1));
+        Check("social trust needs repeated help and actual relations",
+            nativeBonds.SocialStanding("hero_a",55)==
+                "Recorded goodwill" &&
+            nativeBonds.RecordPetition("hero_a",true,2,3) &&
+            nativeBonds.SocialStanding("hero_a",55)==
+                "Established goodwill" &&
+            nativeBonds.RecordFollowUp("hero_a",1,10) &&
+            !nativeBonds.RecordFollowUp("hero_a",1,10));
+        Check("native relation alone does not invent a rivalry",
+            nativeBonds.SocialStanding("hero_unknown",-60)==
+                "No petition history recorded");
+        Check("repeated refused petitions and real hostility substantiate grievance",
+            nativeBonds.RecordPetition("hero_b",false,-1,4) &&
+            nativeBonds.RecordPetition("hero_b",false,0,9) &&
+            nativeBonds.SocialStanding("hero_b",-35)==
+                "Repeated grievance" &&
+            nativeBonds.SocialStanding("hero_b",15)==
+                "History recorded, current standing uncertain");
+        Check("social records survive load without extra native actions",
+            SandboxSocialBondState.Parse(nativeBonds.Serialize())
+                .Serialize()==nativeBonds.Serialize() &&
+            SandboxSocialBondState.Parse(
+                nativeBonds.Serialize()+"|forged").People.Count==0);
+        var trueAppointment=new SandboxNativeMilitaryWitnessState();
+        Check("an audience alone never counts as native vassalage",
+            !trueAppointment.Observe(1,"kingdom_1",false,false) &&
+            trueAppointment.VassalDay==-1 &&
+            !trueAppointment.Observe(2,"kingdom_1",false,true));
+        Check("real native vassalage precedes acknowledged army command",
+            trueAppointment.Observe(10,"kingdom_1",true,false) &&
+            !trueAppointment.Observe(11,"kingdom_1",true,false) &&
+            !trueAppointment.Observe(12,"kingdom_2",true,true) &&
+            trueAppointment.Observe(13,"kingdom_1",true,true) &&
+            trueAppointment.VassalDay==10 &&
+            trueAppointment.ArmyCommandDay==13);
+        Check("native appointment receipts persist and reject tampering",
+            SandboxNativeMilitaryWitnessState.Parse(
+                trueAppointment.Serialize()).Serialize()==
+                trueAppointment.Serialize() &&
+            SandboxNativeMilitaryWitnessState.Parse(
+                trueAppointment.Serialize()+"|forged")
+                .VassalDay==-1);
+        
+        // v0.71f: native personality and earned political audience.
+        Check("reserved petitioners speak from actual low native relation",
+            SandboxPetitionVoicePolicy.Style(
+                "SupportHousehold",2,2,0,-3)=="Guarded" &&
+            SandboxPetitionVoicePolicy.Style(
+                "EstablishLivelihood",0,0,2,10)=="Guarded");
+        Check("household duty ambition affects native-trait dialogue",
+            SandboxPetitionVoicePolicy.Style(
+                "MaintainHousehold",1,0,0,15)=="Duty" &&
+            SandboxPetitionVoicePolicy.Style(
+                "BuildTradingContacts",0,0,1,15)=="Ambitious");
+        Check("generous petitioner remains warm only after trust",
+            SandboxPetitionVoicePolicy.Style(
+                "MapSafePassages",0,2,0,25)=="Warm" &&
+            SandboxPetitionVoicePolicy.Style(
+                "MapSafePassages",0,0,0,25)=="Direct");
+        Check("knight rank requires service, lord favor and renown",
+            SandboxKnightStandingPolicy.Standing(9,200f,6,3)==
+                "Newly sworn knight" &&
+            SandboxKnightStandingPolicy.Standing(20,10f,1,0)==
+                "Proven sworn sword" &&
+            SandboxKnightStandingPolicy.Standing(25,50f,3,1)==
+                "Trusted household knight" &&
+            SandboxKnightStandingPolicy.Standing(40,125f,6,2)==
+                "Veteran retainer" &&
+            SandboxKnightStandingPolicy.Standing(40,124f,6,2)==
+                "Trusted household knight");
+        Check("political recommendation needs actual renown and service",
+            SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,74f,3,1,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,0,true,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,false,true) &&
+            !SandboxKnightStandingPolicy.CanRequestRoyalHearing(
+                30,75f,3,1,true,false));
+        var royalRecord=new SandboxKnightServiceOrderState();
+        royalRecord.Begin("lord_royal","Muster",0);
+        royalRecord.Report("lord_royal",3,true);
+        royalRecord.Begin("lord_royal","Muster",10);
+        royalRecord.Report("lord_royal",13,true);
+        royalRecord.Begin("lord_royal","Muster",20);
+        royalRecord.Report("lord_royal",23,true);
+        Check("a patron recommendation needs three witnessed reports",
+            royalRecord.CompletedOrders==3 &&
+            royalRecord.RecordRecommendation("lord_royal",24) &&
+            !royalRecord.RecordRecommendation("lord_royal",24) &&
+            !royalRecord.RecordRecommendation("other_lord",25));
+        Check("royal audience is one-shot after a native patron review",
+            !royalRecord.CanHearKing(23) &&
+            royalRecord.CanHearKing(24) &&
+            royalRecord.RecordRoyalHearing(25) &&
+            !royalRecord.RecordRoyalHearing(26));
+        Check("patron and ruler receipts survive save/load exactly",
+            SandboxKnightServiceOrderState.Parse(royalRecord.Serialize())
+                .Serialize()==royalRecord.Serialize() &&
+            SandboxKnightServiceOrderState.Parse(royalRecord.Serialize())
+                .RoyalHearingDay==25);
+        var oldService=royalRecord.Serialize().Split('\n');
+        var oldParts=oldService[1].Split('|');
+        var oldEleven=oldService[0]+"\n"+
+            String.Join("|",oldParts.Take(11));
+        Check("old eleven-field knight saves remain loadable",
+            SandboxKnightServiceOrderState.Parse(oldEleven)
+                .CompletedOrders==3 &&
+            SandboxKnightServiceOrderState.Parse(oldEleven)
+                .RecommendationDay==-1);
+
+        // v0.71e: grounded petition story arcs and sworn-lord orders.
+        var petitionStory=new SandboxPetitionStoryState();
+        Check("petition stories require actual supported actor/kind",
+            !petitionStory.Begin("","Recognition",1) &&
+            !petitionStory.Begin("actor_1","Invention",1) &&
+            petitionStory.Begin("actor_1","HouseholdAid",1) &&
+            !petitionStory.Begin("actor_1","HouseholdAid",1));
+        Check("petition story refuses unverified monetary support",
+            !petitionStory.Resolve("actor_1",true,2,false,1) &&
+            petitionStory.Resolve("actor_1",true,3,true,2) &&
+            !petitionStory.Resolve("actor_1",true,3,true,2));
+        Check("petitioner returns only after seven native days",
+            !petitionStory.CanFollowUp("actor_1",9) &&
+            petitionStory.CanFollowUp("actor_1",10) &&
+            petitionStory.RecordFollowUp("actor_1",10)==
+                "face_to_face_story_followup_recorded" &&
+            !petitionStory.CanFollowUp("actor_1",11));
+        Check("petition story preserves outcome and one-shot follow-up",
+            SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()).Serialize()==
+                petitionStory.Serialize() &&
+            !SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()).CanFollowUp("actor_1",15) &&
+            !SandboxPetitionStoryState.Parse(
+                petitionStory.Serialize()+"|forged")
+                .Stories.Any());
+        var declinedStory=new SandboxPetitionStoryState();
+        Check("declined petition gives a later conversation, not money",
+            declinedStory.Begin("actor_2","Recognition",5) &&
+            declinedStory.Resolve("actor_2",false,6,false,0) &&
+            declinedStory.CanFollowUp("actor_2",13) &&
+            declinedStory.For("actor_2").Outcome=="Declined");
+        var scoutOrder=new SandboxKnightServiceOrderState();
+        Check("scout order is issued by a specific native patron",
+            !scoutOrder.Begin("","Scout",10).Equals(
+                "native_patron_order_accepted") &&
+            scoutOrder.Begin("lord_1","Scout",10)==
+                "native_patron_order_accepted" &&
+            !scoutOrder.CanBegin("lord_1",10));
+        Check("scouting needs two distinct native kingdom towns",
+            scoutOrder.Observe(11,true,"town_a",true)==
+                "native_first_town_scouted" &&
+            scoutOrder.Observe(11,true,"town_b",true)==
+                "not_new_native_day" &&
+            scoutOrder.Observe(12,true,"town_a",true)==
+                "native_scout_evidence_missing" &&
+            scoutOrder.Observe(13,true,"town_b",false)==
+                "native_scout_evidence_missing" &&
+            scoutOrder.Observe(14,true,"town_b",true)==
+                "native_second_town_scouted");
+        Check("scout report requires original in-person patron identity",
+            !scoutOrder.CanReport("lord_2",14,true) &&
+            scoutOrder.Report("lord_1",14,true)==
+                "native_patron_service_report_completed" &&
+            scoutOrder.CompletedOrders==1 &&
+            scoutOrder.PersonalStanding()=="Proven sworn sword" &&
+            scoutOrder.Report("lord_1",14,true)==
+                "unverified_native_service_report");
+        Check("scout service report and rank survive campaign reload",
+            SandboxKnightServiceOrderState.Parse(
+                scoutOrder.Serialize()).Serialize()==
+                scoutOrder.Serialize() &&
+            SandboxKnightServiceOrderState.Parse(
+                scoutOrder.Serialize()).CompletedOrders==1);
+        var musterOrder=new SandboxKnightServiceOrderState();
+        musterOrder.Begin("lord_2","Muster",20);
+        Check("muster requires verified party strength after three days",
+            !musterOrder.CanReport("lord_2",22,true) &&
+            !musterOrder.CanReport("lord_2",23,false) &&
+            musterOrder.CanReport("lord_2",23,true) &&
+            musterOrder.Report("lord_2",23,true)==
+                "native_patron_service_report_completed");
+        var lateOrder=new SandboxKnightServiceOrderState();
+        lateOrder.Begin("lord_3","Scout",5);
+        Check("unreported service order expires exactly once",
+            lateOrder.Expire(19)=="order_not_expired" &&
+            lateOrder.Expire(20)=="native_order_expired" &&
+            lateOrder.Expire(21)=="order_not_expired" &&
+            lateOrder.MissedOrders==1 &&
+            !lateOrder.Active);
+        Check("invalid service orders do not restore as native proof",
+            SandboxKnightServiceOrderState.Parse(
+                lateOrder.Serialize()+"|forged").Status=="Available");
+
+        // v0.71c: pure-state tests, independent of a running campaign.
+        var offices=new SandboxHouseholdDutyState();
+        Check("household offices require a real bounded Hero ID",
+            offices.Assign("Steward","")==
+                "invalid_office_or_native_hero" &&
+            offices.Assign("Emperor","companion_1")==
+                "invalid_office_or_native_hero");
+        Check("one companion holds one personal household duty",
+            offices.Assign("Steward","companion_1")==
+                "personal_duty_recorded" &&
+            offices.Assign("Captain","companion_1")==
+                "companion_already_has_duty" &&
+            offices.Assign("Captain","companion_2")==
+                "personal_duty_recorded");
+        Check("household report is one native day per office",
+            offices.Report("Steward","companion_1",13)==
+                "native_duty_report_recorded" &&
+            offices.Report("Steward","companion_1",13)==
+                "already_reported_today" &&
+            offices.Report("Steward","companion_2",14)==
+                "duty_identity_not_verified" &&
+            offices.ReportCount("Steward")==1);
+        Check("family audience has thirty-day native cooldown",
+            offices.RecordAudience("spouse_1",3) &&
+            !offices.CanAudience("spouse_1",32) &&
+            offices.CanAudience("spouse_1",33) &&
+            offices.RecordAudience("spouse_1",33));
+        Check("family gifts are attempted once each thirty days",
+            offices.RecordGiftAttempt("child_1",5) &&
+            !offices.RecordGiftAttempt("child_1",5) &&
+            !offices.CanGift("child_1",34) &&
+            offices.CanGift("child_1",35));
+        Check("household assignments and audience receipts reload",
+            SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .Serialize()==offices.Serialize() &&
+            SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .ReportCount("Steward")==1 &&
+            !SandboxHouseholdDutyState.Parse(offices.Serialize())
+                .CanGift("child_1",34));
+        Check("invalid household saves fail to empty without grants",
+            SandboxHouseholdDutyState.Parse(
+                offices.Serialize()+"|forged")
+                .AssignedId("Steward")=="" &&
+            SandboxHouseholdDutyState.Parse(
+                "CU_HOUSEHOLD_DUTIES_1\\nunsafe")
+                .ReportCount("Captain")==0);
+
+        var journey=new SandboxCareerChronicleState();
+        Check("career only accepts seven native-backed role paths",
+            !journey.Begin("Admiral") &&
+            journey.Begin("Wanderer") &&
+            !journey.Begin("King"));
+        Check("wanderer chapters require three different real towns",
+            journey.Observe(10,true,true,true,"town_1")==
+                "career_chapter_1_verified" &&
+            journey.Observe(10,true,true,true,"town_2")==
+                "not_new_native_day" &&
+            journey.Observe(11,true,true,true,"town_1")==
+                "native_objective_not_verified" &&
+            journey.Observe(12,true,true,true,"town_2")==
+                "career_chapter_2_verified" &&
+            journey.Observe(13,true,true,true,"town_3")==
+                "career_chapter_3_verified" &&
+            journey.Chapter==3);
+        Check("wanderer visits persist without inferred new towns",
+            SandboxCareerChronicleState.Parse(journey.Serialize())
+                .Serialize()==journey.Serialize() &&
+            journey.FirstTownId=="town_1" &&
+            journey.SecondTownId=="town_2");
+        var band=new SandboxCareerChronicleState();
+        band.Begin("Outlaw");
+        Check("outlaw gathering requires actual first proof",
+            band.Observe(0,false,false,false,"")==
+                "native_objective_not_verified" &&
+            band.Observe(1,true,true,true,"")==
+                "career_chapter_1_verified");
+        band.Observe(2,true,true,true,"");
+        Check("outlaw chapter streak breaks across missing days",
+            band.Observe(4,true,true,true,"")==
+                "native_objective_in_progress" &&
+            band.ConsecutiveDays==1);
+        band.Observe(5,true,true,true,"");
+        Check("outlaw three-day band tenure is confirmed",
+            band.Observe(6,true,true,true,"")==
+                "career_chapter_2_verified" &&
+            band.Chapter==2);
+        for(int day=7;day<=12;day++)
+            band.Observe(day,true,true,true,"");
+        Check("outlaw seven-day larger band opens final chapter",
+            band.Observe(13,true,true,true,"")==
+                "career_chapter_3_verified" &&
+            band.Chapter==3);
+        var hire=new SandboxCareerChronicleState();
+        hire.Begin("Mercenary");
+        hire.Observe(0,true,true,true,"");
+        for(int day=1;day<=6;day++)
+            hire.Observe(day,true,true,true,"");
+        Check("mercenary seven-day verified contract chapter",
+            hire.Observe(7,true,true,true,"")==
+                "career_chapter_2_verified");
+        for(int day=8;day<=27;day++)
+            hire.Observe(day,true,true,true,"");
+        Check("mercenary third chapter requires 21 more days",
+            hire.Observe(28,true,true,true,"")==
+                "career_chapter_3_verified" &&
+            hire.Chapter==3);
+        foreach(var role in new[]{"Soldier","Knight","King"})
+        {
+            var story=new SandboxCareerChronicleState();
+            story.Begin(role);
+            Check(role+" native-proof chapters cannot auto-skip",
+                story.Observe(0,false,false,false,"")==
+                    "native_objective_not_verified" &&
+                story.Observe(1,true,true,true,"")==
+                    "career_chapter_1_verified" &&
+                story.Observe(2,true,true,true,"")==
+                    "career_chapter_2_verified" &&
+                story.Observe(3,true,true,true,"")==
+                    "career_chapter_3_verified" &&
+                story.Chapter==3);
+        }
+        var estate=new SandboxCareerChronicleState();
+        estate.Begin("Lord");
+        estate.Observe(0,true,true,true,"");
+        for(int day=1;day<=6;day++)
+            estate.Observe(day,true,true,true,"");
+        Check("lord's recorded estate must endure seven days",
+            estate.Observe(7,true,true,true,"")==
+                "career_chapter_2_verified" &&
+            estate.Observe(8,true,true,false,"")==
+                "native_objective_not_verified" &&
+            estate.Observe(9,true,true,true,"")==
+                "career_chapter_3_verified");
+        Check("chronicle save is versioned and malformed data rejected",
+            SandboxCareerChronicleState.Parse(estate.Serialize())
+                .Serialize()==estate.Serialize() &&
+            !SandboxCareerChronicleState.Parse(
+                estate.Serialize()+"|forged").Started &&
+            !SandboxCareerChronicleState.Parse(
+                "CU_CAREER_CHRONICLE_1\\nAdmiral|3|5|0||")
+                .Started);
+
+        // v0.69h source/model matrix audit. A passing assertion does not
+        // prove a Bannerlord campaign start or saved native Hero state.
+        var nativeRoles=new [] {
+            "Wanderer","Outlaw","Mercenary","Soldier","Recruit",
+            "HouseholdKnight","Knight","NobleCadet","Lord","King",
+            "Admiral","Trader","Beggar"
+        };
+        var expectedTypes=new [] {
+            "default","outlaw","mercenary","mercenary","default",
+            "default","vassal","default","vassal","king",
+            "fleetadmiral","trader","beggar"
+        };
+        Check("13 compatible roles retain exact native start IDs",
+            SandboxOriginProfile.Roles.Length==13 &&
+            SandboxOriginProfile.Roles.Distinct().Count()==13);
+        for(int i=0;i<nativeRoles.Length;i++)
+            Check("native role matrix "+nativeRoles[i],
+                SandboxOriginProfile.Roles.Contains(nativeRoles[i]) &&
+                SandboxNativeTypeForPolicy(nativeRoles[i])==
+                    expectedTypes[i]);
+
+        Check("seven new-game paths retain historical role parsers",
+            SandboxStartingLifePolicy.SevenPaths.Length==7 &&
+            !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
+            SandboxOriginProfile.Roles.Contains("Trader"));
+        var royalCouncil=new SandboxRoyalCouncilState();
+        Check("one actual Hero per royal council office",
+            royalCouncil.Begin("vlandia","sargot","king",
+                "marshal","minister","kingsguard")==
+                    "native_royal_hero_council_commissioned" &&
+            royalCouncil.IsRecorded &&
+            royalCouncil.KingsguardHeroId=="kingsguard" &&
+            royalCouncil.MarshalId=="marshal" &&
+            royalCouncil.MinisterId=="minister" &&
+            royalCouncil.Begin("vlandia","other","king",
+                "marshal","minister","kingsguard")==
+                    "already_commissioned");
+        Check("royal council rejects duplicate Hero and king as guard",
+            new SandboxRoyalCouncilState().Begin(
+                "vlandia","sargot","king","marshal",
+                "minister","king")==
+                    "native_royal_council_hero_identity_unverified");
+        Check("royal council requires all native Heroes and governor",
+            royalCouncil.Convene(100,true,true,true,true,true)==
+                "real_royal_hero_council_convened" &&
+            royalCouncil.Meetings==1 &&
+            royalCouncil.Convene(100,true,true,true,true,true)==
+                "already_convened_today" &&
+            royalCouncil.Convene(101,true,false,true,true,true)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Convene(101,true,true,true,false,true)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Convene(101,true,true,true,true,false)==
+                "native_royal_council_not_present" &&
+            royalCouncil.Meetings==1);
+        Check("in-person royal council persisted without troop state",
+            royalCouncil.Convene(101,true,true,true,true,true)==
+                "real_royal_hero_council_convened" &&
+            royalCouncil.Meetings==2 &&
+            SandboxRoyalCouncilState.Parse(royalCouncil.Serialize())
+                .Serialize()==royalCouncil.Serialize() &&
+            SandboxRoyalCouncilState.Parse(royalCouncil.Serialize())
+                .KingsguardHeroId=="kingsguard");
+        Check("royal council strict saves and monotonic meeting day",
+            !SandboxRoyalCouncilState.Parse(
+                "CU_ROYAL_HERO_COUNCIL_1\\ninvalid").IsRecorded &&
+            !SandboxRoyalCouncilState.Parse(
+                royalCouncil.Serialize()+"|extra").IsRecorded &&
+            royalCouncil.Convene(99,true,true,true,true,true)==
+                "council_day_invalid");
+        Check("native handoff accepts established King and Lord even before Hero.IsLord",
+            SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,false,false,false,false,3) &&
+            SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,false,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,false,false,false,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,true,false,false,false,3) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,true,false,6) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "vassal",true,true,true,false,true,false,false,3) &&
+            !SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
+                "king",true,true,true,true,false,false,false,0));
+        Check("guided King requires exact native crown and player clan",
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,false,true,false,1)=="" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "vassal","vlandia","vlandia",
+                true,true,true,false,true,false,1)==
+                    "not_native_king_start" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","battania",
+                true,true,true,false,true,false,1)==
+                    "royal_kingdom_mismatch" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,false,false,true,false,1)==
+                    "not_real_kingdom_ruling_clan");
+        Check("guided King refuses shadow ruler and fabricated royal estate",
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                false,true,true,false,true,false,1)==
+                    "not_native_ruling_clan_head" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,false,true,false,true,false,1)==
+                    "royal_main_party_not_commanded" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,true,true,false,1)==
+                    "royal_clan_marked_mercenary" &&
+            SandboxKingStartPolicy.ValidateNativeCrown(
+                "king","vlandia","vlandia",
+                true,true,true,false,true,false,0)==
+                    "royal_native_fief_missing");
+        Check("guided King court requires Marshal, Kingsguard and native Minister",
+            SandboxKingStartPolicy.CourtOffices.SequenceEqual(
+                new[]{"Marshal","Kingsguard","RoyalMinister"}) &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=3|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,true,true,true,true,true)=="" &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,true,true,true,true,true)==
+                    "native_royal_court_receipt_missing" &&
+            SandboxKingStartPolicy.ValidateCourt(
+                "officers=3|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,false,true,true,true,true)==
+                    "native_royal_court_unverified" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,true,true,true)=="" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,false,true,true)==
+                    "royal_governor_seat_occupied_or_missing" &&
+            SandboxKingStartPolicy.ValidateNativeMinistry(
+                true,true,false,true)==
+                    "native_royal_governor_not_verified");
+        var guidedKing=new SandboxOriginProfile();
+        guidedKing.Role="King";
+        guidedKing.KingGuidedStart=true;
+        guidedKing.StartingKingdomId="vlandia";
+        guidedKing.RetinueMode="RoleBased";
+        Check("guided King requires real marriage and native royal heir",
+            !guidedKing.IsValid(30,out _) &&
+            SandboxKingStartPolicy.ValidateRequiredRoyalFamily(false,0)==
+                "royal_spouse_required");
+        guidedKing.SpouseEnabled=true;
+        Check("guided King refuses spouse without a child",
+            !guidedKing.IsValid(30,out _) &&
+            SandboxKingStartPolicy.ValidateRequiredRoyalFamily(true,0)==
+                "royal_child_required");
+        guidedKing.ChildCount=1;
+        Check("guided King validates native royal family and legacy ID",
+            guidedKing.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedKing.Serialize())
+                .KingGuidedStart &&
+            SandboxNativeTypeForPolicy("King")=="king" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                true,true,1,1)=="" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                false,true,1,1)=="native_royal_marriage_unverified" &&
+            SandboxKingStartPolicy.ValidateObservedRoyalFamily(
+                true,true,2,1)=="native_royal_children_unverified");
+        guidedKing.StartingFiefMode="Castle";
+        guidedKing.AllowStartingFiefTransfer=true;
+        Check("guided King refuses arbitrary donor castle",
+            !guidedKing.IsValid(30,out _));
+        guidedKing.StartingFiefMode="Native";
+        guidedKing.AllowStartingFiefTransfer=false;
+        guidedKing.Gold=500000;
+        Check("guided King refuses invented royal treasury",
+            !guidedKing.IsValid(30,out _));
+        guidedKing.Gold=-1;
+        guidedKing.NobleBirthPosition="YoungerBrotherOfKing";
+        Check("guided King refuses decorative royal elder lineage",
+            !guidedKing.IsValid(30,out _));
+        guidedKing.NobleBirthPosition="Independent";
+        guidedKing.SiblingCount=1;
+        guidedKing.Siblings[0].Age=36;
+        guidedKing.Siblings[0].Gender="Male";
+        Check("guided King rejects older founding brother",
+            !guidedKing.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                guidedKing,30)=="founding_king_older_brother");
+        guidedKing.Siblings[0].Gender="Female";
+        Check("guided King permits older sister with actual family",
+            guidedKing.IsValid(30,out _));
+        Check("guided King supports two safe child priority customs",
+            guidedKing.TrySet("KingSuccessionRule","MalePreference") &&
+            guidedKing.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedKing.Serialize())
+                .KingSuccessionRule=="MalePreference" &&
+            !SandboxKingStartPolicy.CanAppointNativeRuler() &&
+            !SandboxKingStartPolicy.CanGrantNativeFief() &&
+            !SandboxKingStartPolicy.CanInstallRegent());
+        var kingClaims=new SandboxKingSuccessionState();
+        Check("guided King cannot record empty native dynasty",
+            kingClaims.Begin("founder","house","vlandia",
+                "EldestChild",
+                new SandboxLordSuccessionPolicy.Candidate[0],100)==
+                    "no_verified_native_royal_child" &&
+            !kingClaims.IsRecorded);
+        var daughter=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter",22,true,0,true,true,true);
+        var son=new SandboxLordSuccessionPolicy.Candidate(
+            "son",17,false,1,true,true,true);
+        Check("King saves a real daughter and son with exact identities",
+            kingClaims.Begin("founder","house","vlandia",
+                "EldestChild",new[]{daughter,son},100)==
+                    "native_royal_household_recorded" &&
+            kingClaims.IsRecorded &&
+            kingClaims.PreferredHeirId=="daughter" &&
+            kingClaims.Status=="NativeReignHouseholdClaimOnly" &&
+            SandboxKingSuccessionState.Parse(
+                kingClaims.Serialize()).Serialize()==
+                kingClaims.Serialize());
+        Check("King native claims follow observed eldest living heir",
+            kingClaims.Observe(101,true,"house","founder",
+                new[]{daughter,son})=="native_crown_unchanged" &&
+            kingClaims.PreferredHeirId=="daughter" &&
+            kingClaims.Status=="NativeReignHouseholdClaimOnly");
+        Check("King cannot invent automatic regency on death",
+            kingClaims.Observe(102,false,"other_house","other_ruler",
+                new[]{son})=="native_crown_observation_changed" &&
+            kingClaims.Status=="MinorRoyalClaimNativeDecisionPending" &&
+            kingClaims.PreferredHeirId=="son");
+        Check("King records genuine native heir only if crown actually changes",
+            kingClaims.Observe(103,false,"house","daughter",
+                new[]{daughter,son})==
+                    "native_crown_observation_changed" &&
+            kingClaims.Status=="NativeRoyalHeirObserved" &&
+            kingClaims.ActualRulerId=="daughter");
+        Check("King succession refuses corrupt save and backward time",
+            !SandboxKingSuccessionState.Parse(
+                "CU_KING_CLAIMS_1\ninvalid").IsRecorded &&
+            kingClaims.Observe(1,false,"house","daughter",
+                new[]{son})=="invalid_observation_day");
+        guidedKing.ResetForNewCampaign();
+        Check("new King profile clears new crown and succession settings",
+            !guidedKing.KingGuidedStart &&
+            guidedKing.KingSuccessionRule=="EldestChild" &&
+            guidedKing.Role=="King");
+        Check("historical King save keeps legacy no-crown-validation profile",
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=King\n"+
+                "StartingFiefMode=Castle\nGold=150000\n")
+                .KingGuidedStart);
+        Check("Lord accepts genuine noble clan without invented parents",
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                false,false,false,false,true,true)==
+                    "native_noble_birth_house_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,true,false)==
+                    "native_noble_married_parents_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,false,true,true,false)==
+                    "native_noble_parentage_unverified" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,false,false,false,true)==
+                    "native_chosen_noble_house_mismatch");
+        Check("guided Lord true native vassal contract only",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,false,1)=="" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "king","vlandia","vlandia",
+                true,true,false,false,true,false,1)==
+                    "not_native_vassal_start" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","battania",
+                true,true,false,false,true,false,1)==
+                    "wrong_native_kingdom");
+        Check("guided Lord is own clan head, not king or mercenary",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                false,true,false,false,true,false,1)==
+                    "player_not_native_clan_head" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,false,false,false,true,false,1)==
+                    "player_not_main_party_leader" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,true,false,true,false,1)==
+                    "king_not_lord" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,true,true,false,1)==
+                    "mercenary_not_vassal");
+        Check("guided Lord requires actual native noble estate",
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,false,0)==
+                    "native_vassal_holding_missing" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,false,false,1)==
+                    "not_active_noble_house" &&
+            SandboxLordStartPolicy.ValidateNativeHouse(
+                "vassal","vlandia","vlandia",
+                true,true,false,false,true,true,1)==
+                    "not_active_noble_house");
+        Check("guided Lord has two verified native martial officers",
+            SandboxLordStartPolicy.Officers.SequenceEqual(
+                new[]{"MasterOfArms","Knight"}) &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=1|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,true,true)==
+                    "two_native_officers_unverified" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                3,true,true,true,true,true)==
+                    "native_retinue_roster_mismatch" &&
+            SandboxLordStartPolicy.ValidateOfficers(
+                "officers=2|native_companions_dismissed=1|same_culture=true",
+                2,false,true,true,false,true)==
+                    "native_retinue_identity_or_assignment_mismatch");
+        var guidedLord=new SandboxOriginProfile();
+        guidedLord.Role="Lord";
+        guidedLord.LordGuidedStart=true;
+        guidedLord.StartingKingdomId="vlandia";
+        guidedLord.RetinueMode="RoleBased";
+        Check("guided Lord rejects missing spouse and lone bachelor house",
+            SandboxLordStartPolicy.ValidateRequiredFamily(false,0)==
+                "lord_spouse_required" &&
+            !guidedLord.IsValid(30,out _) &&
+            SandboxLordStartPolicy.ValidateRequiredFamily(false,2)==
+                "lord_spouse_required");
+        guidedLord.SpouseEnabled=true;
+        Check("guided Lord rejects childless spouse-only household",
+            SandboxLordStartPolicy.ValidateRequiredFamily(true,0)==
+                "lord_child_required" &&
+            !guidedLord.IsValid(30,out _));
+        guidedLord.ChildCount=1;
+        Check("guided Lord rejects commoner spouse and invalid noble ID",
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "Commoner","")=="lord_spouse_requires_native_noble_house" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleChosen","")=="lord_named_noble_house_required" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleRandom","")=="" &&
+            SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                "NobleChosen","clan_royal")=="");
+        guidedLord.SpouseBackground="NobleRandom";
+        Check("guided Lord needs real marriage and exact native parentage",
+            SandboxLordStartPolicy.ValidateRequiredFamily(true,1)=="" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,true,1,1)=="" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                false,true,1,1)=="native_lord_marriage_missing" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,false,1,1)=="native_lord_marriage_missing" &&
+            SandboxLordStartPolicy.ValidateObservedFamily(
+                true,true,2,1)=="native_lord_children_or_parentage_missing");
+        Check("guided Lord native in-laws cannot be decorative",
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,true,true)=="" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                false,true,true,true,true)==
+                    "native_noble_birth_house_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,false,true,true,true)==
+                    "native_noble_married_parents_missing" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,false,true,true)==
+                    "native_noble_parentage_unverified" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,false,true)==
+                    "native_noble_origin_clan_mismatch" &&
+            SandboxLordStartPolicy.ValidateNativeNobleSpouse(
+                true,true,true,true,false)==
+                    "native_chosen_noble_house_mismatch");
+        Check("guided Lord profile is independently valid and save-backed",
+            guidedLord.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .LordGuidedStart &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .RetinueMode=="RoleBased" &&
+            SandboxRoleConsistencyPolicy.NativeType("Lord")=="vassal");
+        guidedLord.StartingFiefMode="Castle";
+        guidedLord.AllowStartingFiefTransfer=true;
+        Check("guided Lord forbids donor-fief reassignment",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.StartingFiefMode="Native";
+        guidedLord.AllowStartingFiefTransfer=false;
+        guidedLord.Gold=50000;
+        Check("guided Lord forbids arbitrary starter treasury",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.Gold=-1;
+        guidedLord.NobleBirthPosition="YoungerBrotherOfLord";
+        Check("guided Lord refuses borrowed NPC-house founding claim",
+            !guidedLord.IsValid(30,out _));
+        guidedLord.NobleBirthPosition="Independent";
+        guidedLord.SiblingCount=1;
+        guidedLord.Siblings[0].Age=35;
+        guidedLord.Siblings[0].Gender="Male";
+        Check("guided Lord founding older brother refused",
+            !guidedLord.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                guidedLord,30)=="independent_lord_older_brother");
+        guidedLord.Siblings[0].Gender="Female";
+        Check("guided Lord permits older sister and preserves family",
+            guidedLord.IsValid(30,out _));
+        var heirDaughter=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter_1",20,true,0,true,true,true);
+        var heirSon=new SandboxLordSuccessionPolicy.Candidate(
+            "son_1",17,false,1,true,true,true);
+        var heirOther=new SandboxLordSuccessionPolicy.Candidate(
+            "daughter_2",15,true,2,true,true,true);
+        var heirInvalid=new SandboxLordSuccessionPolicy.Candidate(
+            "unrelated",30,false,3,true,true,false);
+        var successors=new[]{heirDaughter,heirSon,heirOther,
+            heirInvalid};
+        Check("Lord eldest-child claim honors birth age regardless sex",
+            SandboxLordSuccessionPolicy.Order("EldestChild",
+                successors).Select(c=>c.Id).SequenceEqual(
+                    new[]{"daughter_1","son_1","daughter_2"}) &&
+            SandboxLordSuccessionPolicy.Order("unknown",
+                successors).Length==0);
+        Check("Lord male-preference ranks real sons then daughters",
+            SandboxLordSuccessionPolicy.Order("MalePreference",
+                successors).Select(c=>c.Id).SequenceEqual(
+                    new[]{"son_1","daughter_1","daughter_2"}) &&
+            !SandboxLordSuccessionPolicy.CanSetNativeClanLeader() &&
+            !SandboxLordSuccessionPolicy.CanTransferNativeFief() &&
+            !SandboxLordSuccessionPolicy.HasNativeRegency());
+        Check("Lord young heir has claim only, not adult or crown",
+            SandboxLordSuccessionPolicy.Status(
+                true,true,"founder",heirSon)==
+                    "MinorHouseholdClaimOnly" &&
+            SandboxLordSuccessionPolicy.Status(
+                false,false,"other",heirSon)==
+                    "MinorClaimNativeDecisionPending" &&
+            SandboxLordSuccessionPolicy.Status(
+                false,false,"daughter_1",heirDaughter)==
+                    "NativeHeirLeadershipObserved");
+        var inheritance=new SandboxLordInheritanceState();
+        Check("Lord inheritance record begins from real living child",
+            inheritance.Begin("founder","spouse","house","vlandia",
+                "EldestChild",successors,100)==
+                    "native_household_heirs_recorded" &&
+            inheritance.PrimaryHeirId=="daughter_1" &&
+            inheritance.Status=="AdultHouseholdClaimOnly" &&
+            inheritance.Begin("founder","spouse","house","vlandia",
+                "EldestChild",successors,100)=="already_recorded");
+        Check("Lord inheritance is saved with native child order",
+            SandboxLordInheritanceState.Parse(inheritance.Serialize())
+                .Serialize()==inheritance.Serialize() &&
+            SandboxLordInheritanceState.Parse(inheritance.Serialize())
+                .PrimaryHeirId=="daughter_1");
+        Check("Lord read-only succession observes real native leadership",
+            inheritance.Observe(101,true,"founder",successors)==
+                "native_succession_unchanged" &&
+            inheritance.Observe(102,false,"other",successors)==
+                "native_succession_observation_changed" &&
+            inheritance.Status==
+                "NativeSuccessionNotFollowingHouseholdOrder" &&
+            inheritance.NativeLeaderId=="other" &&
+            inheritance.Observe(103,false,"daughter_1",
+                successors)=="native_succession_observation_changed" &&
+            inheritance.Status=="NativeHeirLeadershipObserved");
+        Check("Lord dead heir changes claim without native property grant",
+            inheritance.Observe(104,false,"other",
+                new[]{heirSon,heirOther})==
+                    "native_succession_observation_changed" &&
+            inheritance.PrimaryHeirId=="son_1" &&
+            inheritance.Status=="MinorClaimNativeDecisionPending" &&
+            SandboxLordSuccessionPolicy.Order("EldestChild",
+                new[]{heirInvalid}).Length==0);
+        Check("Lord heir corrupt saves fail shut",
+            !SandboxLordInheritanceState.Parse(
+                "CU_LORD_HEIRS_1\ninvalid").IsRecorded &&
+            !SandboxLordInheritanceState.Parse(
+                inheritance.Serialize()+"|extra").IsRecorded &&
+            inheritance.Observe(1,false,"other",successors)==
+                "invalid_observation_day");
+        Check("Lord birth claims remain optional for old Lord profiles",
+            guidedLord.LordSuccessionRule=="EldestChild" &&
+            guidedLord.TrySet("LordSuccessionRule",
+                "MalePreference") &&
+            guidedLord.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(guidedLord.Serialize())
+                .LordSuccessionRule=="MalePreference");
+        guidedLord.ResetForNewCampaign();
+        Check("guided Lord flags reset but legacy Lord ID retained",
+            !guidedLord.LordGuidedStart &&
+            guidedLord.LordSuccessionRule=="EldestChild" &&
+            guidedLord.Role=="Lord" &&
+            SandboxOriginProfile.Roles.Contains("Lord"));
+        Check("legacy Lord still reads without guided restrictions",
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=Lord\nStartingFiefMode=Castle\n"+
+                "AllowStartingFiefTransfer=true\nGold=50000\n")
+                .LordGuidedStart &&
+            !SandboxOriginProfile.Parse(
+                "Version=CU_ORIGIN_1\nRole=Lord\nSpouseEnabled=false\n"+
+                "ChildCount=0\n").LordGuidedStart);
+        Check("guided sworn Knight refuses native vassal and mercenary",
+            SandboxKnightStartPolicy.ValidateRequest(
+                "SwornHouse","vlandia",0)=="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "default",false,0,false,true)=="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "vassal",true,1,false,true)!="" &&
+            SandboxKnightStartPolicy.ValidateNativeSwornHouse(
+                "default",false,0,true,true)!="");
+        Check("younger sibling blocked until verified native clan joining",
+            SandboxKnightStartPolicy.ValidateRequest(
+                "YoungerSibling","vlandia",0)==
+                    "native_same_clan_kinship_not_implemented" &&
+            SandboxKnightStartPolicy.ValidateRequest(
+                "YoungerSibling","vlandia",1)==
+                    "generated_siblings_not_allowed");
+        var knight=new SandboxOriginProfile();
+        knight.Role="Knight";
+        knight.KnightGuidedStart=true;
+        knight.StartingKingdomId="vlandia";
+        knight.RetinueMode="FamilyOnly";
+        knight.FamilyHomeMode="None";
+        Check("Knight permits real family and a same-culture Squire",
+            knight.TrySet("RetinueMode","RoleBased") &&
+            knight.TrySet("SpouseEnabled","true") &&
+            knight.TrySet("ChildCount","1") &&
+            knight.TrySet("FamilyHomeMode","None") &&
+            knight.IsValid(30,out _) &&
+            SandboxNobleStartPolicy.RetinueOffices("Knight",false)
+                .SequenceEqual(new[]{"Squire"}) &&
+            SandboxOriginProfile.Parse(knight.Serialize())
+                .RetinueMode=="RoleBased");
+        knight.SpouseEnabled=false;
+        knight.ChildCount=0;
+        knight.RetinueMode="FamilyOnly";
+        Check("Knight guided profile is separate from landed legacy Knight",
+            SandboxRoleConsistencyPolicy.NativeType("Knight")=="vassal" &&
+            SandboxStartingLifePolicy.Station(knight)==
+                "UnlandedKnightRetainer" &&
+            knight.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(knight.Serialize()).KnightGuidedStart &&
+            SandboxOriginProfile.Parse(knight.Serialize())
+                .KnightOrigin=="SwornHouse");
+        knight.SiblingCount=1;
+        knight.Siblings[0].Age=35;
+        knight.Siblings[0].Gender="Male";
+        Check("sworn Knight founding house refuses older brother",
+            !knight.IsValid(30,out _) &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                knight,30)=="sworn_knight_older_brother");
+        knight.Siblings[0].Gender="Female";
+        Check("sworn Knight accepts older sister",
+            knight.IsValid(30,out _));
+        knight.ResetForNewCampaign();
+        Check("Knight guided flag cleared for new campaign",
+            !knight.KnightGuidedStart &&
+            knight.KnightOrigin=="SwornHouse");
+        var soldierKin=new SandboxOriginProfile();
+        soldierKin.Role="Soldier";
+        soldierKin.SoldierGuidedStart=true;
+        soldierKin.StartingKingdomId="vlandia";
+        soldierKin.RetinueMode="FamilyOnly";
+        soldierKin.SiblingCount=1;
+        Check("guided Soldier refuses stale generated sibling",
+            !soldierKin.IsValid(30,out _));
+        var knightOath=new SandboxKnightOathState();
+        Check("Knight oath needs real identities and an initial day",
+            knightOath.Begin("player","player","clan","vlandia",10)==
+                "invalid_native_oath_identity" &&
+            knightOath.Begin("player","lord","clan","vlandia",10)==
+                "oath_recorded" &&
+            knightOath.PatronId=="lord" &&
+            knightOath.NextMusterDay==40 &&
+            knightOath.Begin("player","another","clan","vlandia",10)==
+                "already_configured");
+        Check("Knight oath survives valid native save round trip",
+            SandboxKnightOathState.Parse(knightOath.Serialize())
+                .Serialize()==knightOath.Serialize() &&
+            !SandboxKnightOathState.Parse(
+                "CU_KNIGHT_OATH_1\nplayer|lord|clan").IsConfigured);
+        Check("Knight first audience is immediate but never remote",
+            knightOath.CanMuster(10,true) &&
+            !knightOath.CanMuster(40,false) &&
+            knightOath.RecordMuster(32,false)=="muster_not_eligible" &&
+            !knightOath.CanMuster(9,true));
+        var firstAudience=new SandboxKnightOathState();
+        firstAudience.Begin("player","lord","house","vlandia",10);
+        Check("Knight first audience earns one verified term, not repeatable",
+            firstAudience.RecordMuster(10,true)==
+                "native_meeting_muster_recorded" &&
+            firstAudience.CompletedMusters==1 &&
+            firstAudience.NextMusterDay==40 &&
+            firstAudience.RecordMuster(10,true)=="muster_not_eligible" &&
+            !firstAudience.CanMuster(32,true) &&
+            firstAudience.RecordMuster(33,true)==
+                "native_meeting_muster_recorded" &&
+            firstAudience.CompletedMusters==2 &&
+            SandboxKnightOathState.Parse(firstAudience.Serialize())
+                .CompletedMusters==2);
+        var knightEscort=new SandboxKnightEscortState();
+        Check("Knight field service needs a real accepted duty",
+            knightEscort.Begin("lord_4_16",10)==
+                "native_patron_field_escort_accepted" &&
+            knightEscort.IsActive &&
+            knightEscort.Observe(10,true)=="no_new_campaign_day" &&
+            knightEscort.Observe(11,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(11,true)=="no_new_campaign_day" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(12,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(13,true)==
+                "verified_native_party_escort_completed" &&
+            knightEscort.CompletedEscorts==1 &&
+            !knightEscort.CanBegin("lord_4_16",20) &&
+            knightEscort.CanBegin("lord_4_16",43) &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize())
+                .CompletedEscorts==1);
+        knightEscort.Begin("lord_4_16",43);
+        Check("Knight escort presence requires consecutive map days",
+            knightEscort.Observe(44,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(45,false)=="field_escort_separated" &&
+            knightEscort.ConsecutiveDays==0 &&
+            knightEscort.Observe(47,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.ConsecutiveDays==1 &&
+            knightEscort.Observe(48,true)==
+                "native_field_escort_day_verified" &&
+            knightEscort.Observe(49,true)==
+                "verified_native_party_escort_completed" &&
+            knightEscort.CompletedEscorts==2);
+        Check("Knight native verified muster accrues once",
+            knightOath.Observe(33,true,true,true,true)==
+                "muster_window_open" &&
+            knightOath.RecordMuster(34,true)==
+                "native_meeting_muster_recorded" &&
+            knightOath.CompletedMusters==1 &&
+            knightOath.NextMusterDay==64 &&
+            knightOath.RecordMuster(34,true)=="muster_not_eligible");
+        Check("Knight overdue is one breach, not daily penalties",
+            knightOath.Observe(65,true,true,true,true)==
+                "new_muster_breach" &&
+            knightOath.MissedMusters==1 &&
+            knightOath.Observe(66,true,true,true,true)==
+                "muster_still_overdue" &&
+            knightOath.MissedMusters==1 &&
+            knightOath.RecordMuster(66,true)==
+                "native_meeting_muster_recorded" &&
+            knightOath.CompletedMusters==2 &&
+            knightOath.MissedMusters==1);
+        Check("Knight oath refuses unverifiable patron identity",
+            knightOath.Observe(99,false,false,false,false)==
+                "patron_not_verified" &&
+            knightOath.Status=="Active" &&
+            knightOath.Observe(99,true,true,true,true)==
+                "new_muster_breach" &&
+            knightOath.MissedMusters==2);
+        Check("Knight break is irreversible and one-shot",
+            knightOath.Break()=="oath_broken" &&
+            knightOath.Break()=="no_oath_to_break" &&
+            !knightOath.HasCurrentOath &&
+            SandboxKnightOathState.Parse(knightOath.Serialize())
+                .Status=="Broken");
+        var successorOath=new SandboxKnightOathState();
+        successorOath.Begin("player","old_lord","house","vlandia",20);
+        Check("Knight requires native death and explicit successor consent",
+            successorOath.Observe(24,true,false,true,true)==
+                "successor_consent_required" &&
+            successorOath.Status=="SuccessionPending" &&
+            successorOath.AcceptSuccessor("new_lord","house",
+                "vlandia",25,false)=="unverified_successor_or_no_consent" &&
+            successorOath.AcceptSuccessor("new_lord","other_house",
+                "vlandia",25,true)=="unverified_successor_or_no_consent" &&
+            successorOath.AcceptSuccessor("new_lord","house",
+                "vlandia",25,true)=="oath_renewed_to_native_successor" &&
+            successorOath.Successions==1 &&
+            successorOath.PatronId=="new_lord");
+        Check("Knight honorable release requires verified patron meeting",
+            successorOath.Release(false)=="personal_release_not_verified" &&
+            successorOath.Release(true)=="consensual_release" &&
+            successorOath.Break()=="no_oath_to_break");
+        var captiveOath=new SandboxKnightOathState();
+        captiveOath.Begin("player","lord","house","vlandia",100);
+        Check("Knight patron captivity pauses deadline and native penalties",
+            captiveOath.Observe(131,true,true,true,true,true)==
+                "patron_captivity_pause" &&
+            captiveOath.Status=="PatronCaptive" &&
+            captiveOath.MissedMusters==0 &&
+            !captiveOath.CanMuster(131,true) &&
+            captiveOath.Observe(161,true,true,true,true,true)==
+                "patron_still_captive" &&
+            captiveOath.MissedMusters==0 &&
+            SandboxKnightOathState.Parse(captiveOath.Serialize())
+                .Status=="PatronCaptive");
+        Check("Knight release from captivity renews duty without back penalties",
+            captiveOath.Observe(162,true,true,true,true,false)==
+                "patron_returned_muster_reset" &&
+            captiveOath.Status=="Active" &&
+            captiveOath.NextMusterDay==192 &&
+            captiveOath.MissedMusters==0 &&
+            captiveOath.Observe(163,true,true,true,true,false)==
+                "oath_active");
+        Check("Knight oath corruption cannot produce bound player service",
+            !SandboxKnightOathState.Parse("CU_KNIGHT_OATH_1\n"+
+                "player|lord|house|vlandia|Active|10|-1|4|0|0|0")
+                .IsConfigured &&
+            !SandboxKnightOathState.Parse("CU_KNIGHT_OATH_1\n"+
+                "player|lord|house|vlandia|Active|10|-1|40|0|0|0|x")
+                .IsConfigured);
+        Check("missing changed-option native type is safe only for default",
+            SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",false,false,0) &&
+            SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default",null,false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","mercenary",false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",true,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "default","",false,false,1) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "vassal","",false,false,0) &&
+            !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
+                "king","",false,false,0));
+        Check("native status validation accepts empty default only if landless",
+            SandboxStartContract.Validate("default","",
+                "vlandia","",false,0,false,false,0,0).Length==0 &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "HouseholdKnight","",false,false,0)=="" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "NobleCadet",null,false,false,0)=="" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Wanderer","",false,false,0)=="" &&
+            SandboxStartContract.Validate("default","",
+                "vlandia","vlandia",false,0,
+                false,false,0,0).Contains("native_start_type_mismatch") &&
+            SandboxStartContract.Validate("default","",
+                "vlandia","",false,1,
+                false,false,0,0).Contains("native_start_type_mismatch"));
+        Check("nondefault native starts still need exact source IDs",
+            SandboxStartContract.Validate("vassal","default",
+                "vlandia","vlandia",false,1,
+                false,false,0,0).Contains("native_start_type_mismatch") &&
+            SandboxStartContract.Validate("king","",
+                "vlandia","vlandia",true,1,
+                false,false,0,0).Contains("native_start_type_mismatch"));
+        Check("all six world scenario names are unique and parseable",
+            SandboxOriginProfile.Scenarios.Length==6 &&
+            SandboxOriginProfile.Scenarios.Distinct().Count()==6);
+        foreach(string scenario in SandboxOriginProfile.Scenarios)
+        {
+            var p=new SandboxOriginProfile();
+            Check("world scenario plan parses "+scenario,
+                p.TrySet("StartingScenario",scenario) &&
+                SandboxOriginProfile.Parse(p.Serialize())
+                    .StartingScenario==scenario);
+        }
+        Check("all nine noble birth positions are distinct",
+            SandboxNobleStartPolicy.BirthPositions.Length==9 &&
+            SandboxNobleStartPolicy.BirthPositions.Distinct().Count()==9);
+        Check("starting kingdoms present and unique",
+            SandboxOriginProfile.KingdomIds.Length==9 &&
+            SandboxOriginProfile.KingdomIds.Distinct().Count()==9);
+        Check("four explicit fief modes include native default",
+            SandboxFiefPolicy.Modes.Length==4 &&
+            SandboxFiefPolicy.Modes.Contains("Native") &&
+            SandboxFiefPolicy.Modes.Contains("Specific") &&
+            SandboxFiefPolicy.ValidateRequest(
+                "HouseholdKnight","Castle","",true)==
+                    "fief_role_ineligible" &&
+            SandboxFiefPolicy.ValidateRequest(
+                "Lord","Specific","",true)=="fief_id_required");
+        Check("retinue modes include compatibility alias",
+            SandboxNobleStartPolicy.RetinueModes.Length==4 &&
+            SandboxNobleStartPolicy.RetinueModes.Contains("Native") &&
+            SandboxNobleStartPolicy.RetinueModes.Contains("FamilyOnly"));
         Check("native gift proof confirms BOTH payer debit and recipient credit",
             SandboxNativeEffectProof.GiftResult(500,350,20,170,150)==
                 "confirmed" &&
@@ -38,6 +1233,15 @@ internal static class Program
             !SandboxNativeEffectProof.RelationConfirmed(20,21,2) &&
             SandboxNativeEffectProof.ObservedDelta(20,21)==1 &&
             SandboxNativeEffectProof.RelationConfirmed(20,20,0));
+        Check("native social modifiers can double a bounded petition favor",
+            SandboxNativeEffectProof.RelationDirectionObserved(20,22,1) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(20,20,0) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(99,100,1) &&
+            SandboxNativeEffectProof.RelationDirectionObserved(20,18,-1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,20,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,18,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,25,1) &&
+            !SandboxNativeEffectProof.RelationDirectionObserved(20,21,0));
         var failedFamily=new SandboxFamilyRecoveryState();
         failedFamily.RecordFailure("player","NobleCadet",
             "family_creation_incomplete",true,2,1,true,1,0);
@@ -60,26 +1264,537 @@ internal static class Program
             failedFamily.Observe("player",true,2,1)=="same" &&
             SandboxFamilyRecoveryState.Parse(failedFamily.Serialize())
                 .Status=="NativeCountsMatchReviewStillRequired");
-        Check("no optional grants follow failed native retinue",
+        var wandererDefault=new SandboxOriginProfile();
+        Check("legacy Wanderer retains House path unless explicitly migrated",
+            wandererDefault.Role=="Wanderer" &&
+            !wandererDefault.WandererNoHouseStart &&
+            !wandererDefault.WandererCompanionEnabled);
+        var soloWanderer=new SandboxOriginProfile();
+        Check("new Wanderer has no House and is independent",
+            soloWanderer.TrySet("WandererNoHouseStart","true") &&
+            soloWanderer.TrySet("RetinueMode","FamilyOnly") &&
+            soloWanderer.IsValid(30,out _) &&
+            !soloWanderer.SpouseEnabled &&
+            soloWanderer.ChildCount==0 &&
+            soloWanderer.SiblingCount==0);
+        Check("Wanderer companion choices round-trip exactly",
+            soloWanderer.TrySet("WandererCompanionEnabled","true") &&
+            soloWanderer.TrySet("WandererCompanionName","Elira") &&
+            soloWanderer.TrySet("WandererCompanionAge","29") &&
+            soloWanderer.TrySet("WandererCompanionGender","Female") &&
+            soloWanderer.TrySet("WandererCompanionSpecialty","Healer") &&
+            soloWanderer.TrySet("WandererCompanionSkill","185") &&
+            soloWanderer.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionEnabled &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionName=="Elira" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionAge==29 &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionGender=="Female" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionSpecialty=="Healer" &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionSkill==185);
+        Check("new Wanderer rejects House family, invalid skills and titles",
+            !soloWanderer.TrySet("WandererCompanionSkill","221") &&
+            !soloWanderer.TrySet("WandererCompanionSpecialty","RoyalAdvisor") &&
+            !soloWanderer.TrySet("WandererCompanionName","Companion 1") &&
+            soloWanderer.TrySet("SpouseEnabled","true") &&
+            !soloWanderer.IsValid(30,out _) &&
+            soloWanderer.TrySet("SpouseEnabled","false") &&
+            soloWanderer.TrySet("NobleBirthPosition","YoungerBrotherOfLord") &&
+            !soloWanderer.IsValid(30,out _) &&
+            soloWanderer.TrySet("NobleBirthPosition","Independent"));
+        Check("Wanderer full companion native stats survive profile save",
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Skill.Medicine","180") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Attribute.Intelligence","8") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Focus.Medicine","5") &&
+            soloWanderer.TrySet(
+                "WandererCompanionStat.Level.Character","25") &&
+            soloWanderer.IsValid(30,out _) &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionOverrides.Count==4 &&
+            SandboxOriginProfile.Parse(soloWanderer.Serialize())
+                .WandererCompanionOverrides["Skill.Medicine"]==180 &&
+            !soloWanderer.TrySet(
+                "WandererCompanionStat.Skill.Medicine","400"));
+        soloWanderer.ResetForNewCampaign();
+        Check("new-game reset clears single-companion and no-House flags",
+            !soloWanderer.WandererNoHouseStart &&
+            !soloWanderer.WandererCompanionEnabled &&
+            soloWanderer.WandererCompanionName=="Taran" &&
+            soloWanderer.WandererCompanionOverrides.Count==0 &&
+            soloWanderer.RetinueMode=="Native");
+        var guidedOutlaw=new SandboxOriginProfile();
+        Check("new Outlaw keeps native bandit start without old save migration",
+            guidedOutlaw.TrySet("Role","Outlaw") &&
+            guidedOutlaw.TrySet("OutlawGuidedStart","true") &&
+            guidedOutlaw.TrySet("RetinueMode","RoleBased") &&
+            guidedOutlaw.TrySet("FamilyHomeMode","None") &&
+            guidedOutlaw.IsValid(30,out _) &&
+            SandboxRoleConsistencyPolicy.NativeType("Outlaw")=="outlaw" &&
+            SandboxNobleStartPolicy.RetinueOffices("Outlaw",false)
+                .SequenceEqual(new[]{"SecondInCommand"}) &&
+            SandboxNobleStartPolicy.CultureTitle(
+                "vlandia","SecondInCommand")=="Band Lieutenant");
+        Check("guided Outlaw household and tenure preserve landlessness",
+            guidedOutlaw.TrySet("SpouseEnabled","true") &&
+            guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("FamilyHomeMode","OwnedFief") &&
+            !guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("FamilyHomeMode","None") &&
+            guidedOutlaw.TrySet("Troops","6") &&
+            !guidedOutlaw.IsValid(30,out _) &&
+            guidedOutlaw.TrySet("Troops","0") &&
+            guidedOutlaw.IsValid(30,out _));
+        Check("six native bandits and cultural bandit mapping",
+            SandboxOutlawBandPolicy.TargetBandits==6 &&
+            SandboxOutlawBandPolicy.MissingBandits(0)==6 &&
+            SandboxOutlawBandPolicy.MissingBandits(3)==3 &&
+            SandboxOutlawBandPolicy.MissingBandits(6)==0 &&
+            SandboxOutlawBandPolicy.MissingBandits(13)==-1 &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("vlandia")==
+                "mountain_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("battania")==
+                "forest_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("sturgia")==
+                "sea_raiders" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("khuzait")==
+                "steppe_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("aserai")==
+                "desert_bandits" &&
+            SandboxOutlawBandPolicy.PreferredBanditCulture("empire")==
+                "looters");
+        Check("bandit payroll is fourteen real native wage days",
+            SandboxOutlawBandPolicy.PayrollDays==14 &&
+            SandboxOutlawBandPolicy.StartingGrain==12 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(0)==750 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(50)==900 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(250)==3700 &&
+            SandboxOutlawBandPolicy.RequiredStartingGold(251)==-1);
+        Check("small band respects actual native roster and party limit",
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(6,6,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(7,6,25,40)=="" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(9,0,25,40)==
+                "oversized_native_party" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,7,40)==
+                "party_size_limit_too_small" &&
+            SandboxOutlawBandPolicy.ValidateBeforeGrant(0,0,25,251)==
+                "native_wage_outside_starter_band");
+        Check("new guided Outlaw profile roundtrips without old save leak",
+            SandboxOriginProfile.Parse(guidedOutlaw.Serialize())
+                .OutlawGuidedStart);
+        guidedOutlaw.ResetForNewCampaign();
+        Check("Outlaw starter grants do not bleed into next campaign",
+            !guidedOutlaw.OutlawGuidedStart);
+        var newSoldier=new SandboxOriginProfile();
+        Check("fourth guided start is real soldier, not mercenary",
+            SandboxOriginProfile.Roles[3]=="Soldier" &&
+            newSoldier.TrySet("Role","Soldier") &&
+            newSoldier.TrySet("SoldierGuidedStart","true") &&
+            newSoldier.TrySet("StartingKingdomId","vlandia") &&
+            newSoldier.TrySet("RetinueMode","FamilyOnly") &&
+            newSoldier.TrySet("FamilyHomeMode","None") &&
+            newSoldier.TrySet("SoldierEntryRank","Sergeant") &&
+            newSoldier.IsValid(32,out _) &&
+            !newSoldier.TrySet("SoldierEntryRank","General") &&
+            SandboxRoleConsistencyPolicy.NativeType("Soldier")==
+                "mercenary" &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Sergeant")=="sergeant");
+        Check("guided Soldier has exactly three starting grade choices",
+            SandboxSoldierEnlistmentPolicy.EntryChoices.SequenceEqual(
+                new[]{"Recruit","Sergeant","Captain"}) &&
+            SandboxSoldierEnlistmentPolicy.NativeRankIds.Length==7 &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Recruit")=="private" &&
+            SandboxSoldierEnlistmentPolicy
+                .RequestedNativeRank("Captain")=="captain" &&
+            SandboxSoldierEnlistmentPolicy.NativeRankNumber("private")==1 &&
+            SandboxSoldierEnlistmentPolicy
+                .NativeRankNumber("sergeant")==4 &&
+            SandboxSoldierEnlistmentPolicy
+                .NativeRankNumber("captain")==6 &&
+            SandboxSoldierEnlistmentPolicy.NativeRankNumber("fake")==0);
+        Check("native soldier ranks only progress through SaS observations",
+            SandboxSoldierEnlistmentPolicy.CareerStage("private")==
+                "Recruit" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("corporal")==
+                "Recruit" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("sergeant")==
+                "Sergeant" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("veteran")==
+                "Sergeant" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("captain")==
+                "Captain" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("champion")==
+                "Captain" &&
+            SandboxSoldierEnlistmentPolicy.CareerStage("fake")==
+                "Unverified");
+        Check("soldier must begin as independent non-mercenary commoner",
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "",false,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "mercenary",false,false,false)==
+                    "not_independent_native_start" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",true,false,false)==
+                    "native_clan_not_independent" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,true,false)==
+                    "native_clan_not_independent" &&
+            SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(
+                "default",false,false,true)==
+                    "native_clan_not_independent");
+        Check("real soldier needs live SaS service and an actual lord party",
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "private",true,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                false,true,"vlandia","","lord01","vlandia",
+                "private",true,false,false)==
+                    "service_provider_unavailable" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,false,"vlandia","","lord01","vlandia",
+                "private",true,false,false)==
+                    "native_enlistment_not_observed" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","","vlandia",
+                "private",true,false,false)==
+                    "native_commanding_lord_or_party_missing" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "private",false,false,false)==
+                    "native_commanding_lord_or_party_missing");
+        Check("soldier must match real lord, kingdom and grade",
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","lord01","lord01","vlandia",
+                "sergeant",true,false,false)=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","sturgia",
+                "sergeant",true,false,false)==
+                    "native_commander_kingdom_mismatch" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","lord02","lord01","vlandia",
+                "sergeant",true,false,false)==
+                    "different_native_commanding_lord" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "fictitious",true,false,false)==
+                    "native_rank_not_recognized" &&
+            SandboxSoldierEnlistmentPolicy.ValidateEnlisted(
+                true,true,"vlandia","","lord01","vlandia",
+                "captain",true,true,false)==
+                    "enlisted_person_misclassified_as_landed_company" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank(
+                "Sergeant","sergeant")=="" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank(
+                "Sergeant","private")==
+                    "actual_rank_differs_from_selected_entry");
+        Check("service promotions are observed, never granted by role",
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","sergeant")=="native_promotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "sergeant","captain")=="native_promotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "captain","sergeant")=="native_demotion_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","private")=="native_rank_unchanged" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "","private")=="initial_native_rank_observed" &&
+            SandboxSoldierEnlistmentPolicy.PromotionReceipt(
+                "private","fake")=="rank_not_verified");
+        Check("guided soldier cannot invent a fief stipend or rank",
+            newSoldier.TrySet("Troops","8") &&
+            !newSoldier.IsValid(30,out _) &&
+            newSoldier.TrySet("Troops","0") &&
+            newSoldier.TrySet("Gold","1000") &&
+            !newSoldier.IsValid(30,out _) &&
+            newSoldier.TrySet("Gold","-1") &&
+            newSoldier.IsValid(30,out _) &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("EnlistedSoldier")==
+                "ExternalEnlistedSoldierWage" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("EnlistedSoldier",
+                true,false,false,false,false)==
+                    "ExternalEnlistmentVerified");
+        Check("Soldier startup profile flags roundtrip and reset",
+            SandboxOriginProfile.Parse(newSoldier.Serialize())
+                .SoldierGuidedStart &&
+            SandboxOriginProfile.Parse(newSoldier.Serialize())
+                .SoldierEntryRank=="Sergeant");
+        newSoldier.ResetForNewCampaign();
+        Check("Soldier old save semantics remain opt-in only",
+            !newSoldier.SoldierGuidedStart &&
+            newSoldier.SoldierEntryRank=="Recruit");
+        var guidedMercenary=new SandboxOriginProfile();
+        Check("Mercenary is distinct from the legacy Soldier start",
+            guidedMercenary.TrySet("Role","Mercenary") &&
+            guidedMercenary.TrySet("MercenaryGuidedStart","true") &&
+            guidedMercenary.TrySet("StartingKingdomId","vlandia") &&
+            guidedMercenary.TrySet("RetinueMode","FamilyOnly") &&
+            guidedMercenary.TrySet("FamilyHomeMode","None") &&
+            guidedMercenary.IsValid(30,out _) &&
+            SandboxRoleConsistencyPolicy.NativeType("Mercenary")==
+                "mercenary" &&
+            SandboxRoleConsistencyPolicy.NativeType("Soldier")==
+                "mercenary" &&
+            !SandboxServicePolicy.NeedsPatron("Mercenary") &&
+            SandboxServicePolicy.DefaultRetinue("Mercenary")==
+                "FamilyOnly" &&
+            SandboxStartingLifePolicy.Station(
+                "Mercenary","Independent")=="MercenaryCompany");
+        Check("new mercenary role requires native paid-company standing",
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                false,0)=="" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",false,true,true,
+                false,0)=="native_mercenary_contract_missing" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","sturgia",true,true,true,
+                false,0)=="native_contract_kingdom_mismatch" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","",true,true,true,
+                false,0)=="native_kingdom_missing" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","","vlandia",true,true,true,
+                false,0)=="contract_kingdom_missing");
+        Check("native mercenary cannot claim lordship or foreign command",
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                false,1)=="mercenary_land_or_rulership_invalid" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,true,
+                true,0)=="mercenary_land_or_rulership_invalid" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,false,true,
+                false,0)=="player_does_not_lead_company_clan" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Mercenary","vlandia","vlandia",true,true,false,
+                false,0)=="player_not_leading_independent_party" &&
+            SandboxMercenaryStartPolicy.Validate(
+                "Soldier","vlandia","vlandia",true,true,true,
+                false,0)=="not_guided_mercenary");
+        Check("mercenary spouse remains optional without an owned home",
+            guidedMercenary.TrySet("SpouseEnabled","true") &&
+            guidedMercenary.IsValid(40,out _) &&
+            guidedMercenary.TrySet("FamilyHomeMode","OwnedFief") &&
+            !guidedMercenary.IsValid(40,out _) &&
+            guidedMercenary.TrySet("FamilyHomeMode","None") &&
+            guidedMercenary.TrySet("SpouseEnabled","false") &&
+            guidedMercenary.IsValid(40,out _));
+        Check("mercenary rejects free troops, personal stipend and fief",
+            guidedMercenary.TrySet("Troops","4") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Troops","0") &&
+            guidedMercenary.TrySet("Gold","2000") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Gold","-1") &&
+            guidedMercenary.TrySet("Influence","10") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("Influence","-1") &&
+            guidedMercenary.TrySet("StartingFiefMode","Castle") &&
+            !guidedMercenary.IsValid(30,out _) &&
+            guidedMercenary.TrySet("StartingFiefMode","Native") &&
+            guidedMercenary.IsValid(30,out _));
+        Check("mercenary profile flag persists without changing native role",
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .MercenaryGuidedStart &&
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .Role=="Mercenary" &&
+            SandboxOriginProfile.Parse(guidedMercenary.Serialize())
+                .StartingKingdomId=="vlandia");
+        guidedMercenary.ResetForNewCampaign();
+        Check("new-game reset clears mercenary grant flag",
+            !guidedMercenary.MercenaryGuidedStart &&
+            !guidedMercenary.OutlawGuidedStart &&
+            !guidedMercenary.WandererNoHouseStart);
+        Check("mercenary expenses include genuine wages plus provisions",
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                120,20,10)==150 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                0,0,0)==0 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                -1,20,10)==-1 &&
+            SandboxMercenarySolvencyPolicy.DailyOperatingCost(
+                Int32.MaxValue,1,0)==-1);
+        Check("mercenary offers cover real costs at selectable margins",
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,0)==150 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,25)==188 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,50)==225 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(0,25)==0 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(150,-1)==-1 &&
+            SandboxMercenarySolvencyPolicy
+                .RequiredGuaranteedDailyPay(Int32.MaxValue,100)==-1);
+        Check("mercenary starting cash covers thirty real operating days",
+            SandboxMercenarySolvencyPolicy.StartingRunwayDays==30 &&
+            SandboxMercenarySolvencyPolicy.InitialFoodDays==14 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTreasuryTarget(150)==4950 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTopUp(4000,150)==950 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTopUp(5000,150)==0 &&
+            SandboxMercenarySolvencyPolicy
+                .StartingTreasuryTarget(Int32.MaxValue)==-1);
+        Check("mercenary advance and exit bond are distinct real obligations",
+            SandboxMercenarySolvencyPolicy
+                .PayrollAdvanceDays==7 &&
+            SandboxMercenarySolvencyPolicy
+                .ExitBondDays==21 &&
+            SandboxMercenarySolvencyPolicy.PayrollAdvance(150)==1050 &&
+            SandboxMercenarySolvencyPolicy.ExitBond(150)==3150 &&
+            SandboxMercenarySolvencyPolicy.ExitBond(
+                Int32.MaxValue)==-1);
+        Check("mercenary contract refuses uncovered payroll and fake security",
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,130,1050,3150,25)=="loss_making" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,170,1050,3150,25)=="below_requested_margin" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1049,3150,25)=="payroll_advance_not_funded" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1050,3149,25)=="exit_bond_not_funded" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,188,1050,3150,25)=="contract_financially_eligible" &&
+            SandboxMercenarySolvencyPolicy.OfferStatus(
+                150,150,1050,3150,0)=="contract_financially_eligible");
+        Check("mercenary coverage ignores unverified victory or loot income",
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(150,188)==125 &&
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(150,130)==86 &&
+            SandboxMercenarySolvencyPolicy
+                .GuaranteedCoveragePercent(0,188)==-1);
+        Check("loss-making offers need a separate explicit confirmation",
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,false,false)=="declined" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,true,false)==
+                    "explicit_loss_confirmation_required" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3150,25,true,true)==
+                    "player_confirmed_loss_making_offer" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1049,3150,25,true,true)==
+                    "refused_unfunded_security" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,130,1050,3149,25,true,true)==
+                    "refused_unfunded_security");
+        Check("profitable contracts may still miss preferred margin",
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,170,1050,3150,25,true,false)==
+                    "accepted_below_preferred_margin" &&
+            SandboxMercenarySolvencyPolicy.AcceptanceDecision(
+                150,188,1050,3150,25,true,false)==
+                    "accepted_financially_eligible_offer" &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,130,30)==600 &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,188,30)==0 &&
+            SandboxMercenarySolvencyPolicy.ProjectedDeficit(
+                150,130,-1)==-1);
+        Check("headcount and native wage ceilings each trigger renegotiation",
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,10,150)=="within_agreed_coverage" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,11,150)=="renegotiate_headcount" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,10,151)=="renegotiate_wages" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,11,151)=="renegotiate_headcount_and_wages" &&
+            SandboxMercenarySolvencyPolicy.CoverageReview(
+                10,150,-1,151)=="invalid_coverage");
+        Check("renegotiation can never silently bind player or employer",
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                false,false,false,false)=="no_revision_required" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,false,true,true)==
+                    "renegotiation_pending_both_consents" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,false,true)==
+                    "renegotiation_pending_both_consents" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,true,false)=="revision_refused_unfunded" &&
+            SandboxMercenarySolvencyPolicy.RevisionDecision(
+                true,true,true,true)=="revision_ready_for_native_commit");
+        Check("verified exit escrow stays unspendable until rightful exit",
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,false,false,false,false)=="protected_not_spendable" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,false,false)=="eligible_once_on_native_exit" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,false,true,false,false)=="eligible_once_on_native_exit" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,true,false)=="forfeit_unearned_bond" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                false,true,false,false,false)=="no_verified_escrow" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,false,false,true)=="already_released_no_repeat" &&
+            SandboxMercenarySolvencyPolicy.ExitBondReleaseDecision(
+                true,true,true,false,false)=="invalid_termination_state");
+        Check("retinue receipt requires complete native success fields",
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "Native","native_companions_preserved") &&
             SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly",
                 "officers=0|native_companions_dismissed=0|family_only=true") &&
             SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=1|family_only=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
                 "RoleBased",
-                "officers=2|native_companions_dismissed=0") &&
+                "officers=2|native_companions_dismissed=0|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "ReplaceNative",
+                "officers=1|native_companions_dismissed=1|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased",
+                "officers=2|native_companions_dismissed=2|same_culture=true") &&
+            SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly",
+                "officers=0|native_companions_dismissed=2|family_only=true"));
+        Check("retinue grant blocks malformed and incomplete receipts",
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "FamilyOnly","partial:native_companions_dismissed=1") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "RoleBased","refused:no_retinue_for_role") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
-                "RoleBased","officers=0|no_valid_officer=true") &&
+                "RoleBased","officers=0|native_companions_dismissed=0|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=0") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=foo|native_companions_dismissed=0|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=-1|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "RoleBased","officers=2|native_companions_dismissed=17|same_culture=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=0|native_companions_dismissed=0|same_culture=false") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=1|native_companions_dismissed=0|family_only=true") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "FamilyOnly","officers=0|native_companions_dismissed=0|family_only=true|extra") &&
+            !SandboxStartContract.RetinueReadyForOtherGrants(
+                "Native","officers=2|native_companions_dismissed=0|same_culture=true") &&
             !SandboxStartContract.RetinueReadyForOtherGrants(
                 "UnsupportedMode","native_companions_preserved"));
         var nativeEconomyRoles=SandboxOriginProfile.Roles;
-        Check("all 12 medieval roles declare accurate income authority and duty",
-            nativeEconomyRoles.Length==12 &&
+        Check("all 13 compatible roles declare accurate income authority and duty",
+            nativeEconomyRoles.Length==13 &&
             nativeEconomyRoles.All(role=>
                 SandboxRoleEconomyPolicy.IncomeAuthority(role)!=
                     "UnrecognizedRole" &&
@@ -90,7 +1805,11 @@ internal static class Program
             SandboxRoleEconomyPolicy.IncomeAuthority("NobleCadet")==
                 "BirthKinNoAutomaticEstateIncome" &&
             SandboxRoleEconomyPolicy.IncomeAuthority("Soldier")==
-                "NativeMercenaryContract");
+                "NativeMercenaryContract" &&
+            SandboxRoleEconomyPolicy.IncomeAuthority("Mercenary")==
+                "NativeMercenaryContract" &&
+            SandboxRoleEconomyPolicy.CareerEvidence("Mercenary",
+                false,false,true,true,false)=="NativeMercenaryVerified");
         Check("career evidence distinguishes ruler, vassal and enlistment",
             SandboxRoleEconomyPolicy.CareerEvidence("King",
                 false,false,false,true,true)==
@@ -183,6 +1902,135 @@ internal static class Program
                 CUNativeHouseNavigationPolicy.BannerStage) &&
             !CUNativeHouseNavigationPolicy.CanReplayNativeNext(
                 CUNativeHouseNavigationPolicy.ReviewStage));
+        // In a 2026-11-21 real Vlandian session, the chosen native
+        // elder was absent. Early House refusal must not erase spouse,
+        // children and siblings if the player selects Independent instead.
+        Check("younger brother of a lord cannot bind a parentless elder",
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,true,false,
+                true,true,true,false,0) &&
+            !SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,false,true,
+                true,true,true,false,0) &&
+            SandboxNobleStartPolicy.CanBindElder(
+                "YoungerBrotherOfLord","Lord",false,true,true,
+                true,true,true,false,0));
+        var realSessionHouse=new SandboxOriginProfile();
+        Check("young lord's requested Vlandian household remains editable",
+            realSessionHouse.TrySet("Role","Lord") &&
+            realSessionHouse.TrySet("StartingKingdomId","vlandia") &&
+            realSessionHouse.TrySet(
+                "NobleBirthPosition","YoungerBrotherOfLord") &&
+            realSessionHouse.TrySet("SpouseEnabled","true") &&
+            realSessionHouse.TrySet("SpouseAge","38") &&
+            realSessionHouse.TrySet("ChildCount","2") &&
+            realSessionHouse.TrySet("Child.1.Age","9") &&
+            realSessionHouse.TrySet("Child.2.Age","7") &&
+            realSessionHouse.TrySet("SiblingCount","2"));
+        var recoverableHouse=SandboxOriginProfile.Parse(
+            realSessionHouse.Serialize());
+        Check("correcting unsupported noble birth retains whole family",
+            recoverableHouse.TrySet(
+                "NobleBirthPosition","Independent") &&
+            SandboxNobleStartPolicy.ValidForRole(
+                recoverableHouse.NobleBirthPosition,
+                recoverableHouse.Role) &&
+            recoverableHouse.SpouseEnabled &&
+            recoverableHouse.SpouseAge==38 &&
+            recoverableHouse.ChildCount==2 &&
+            recoverableHouse.Children[0].Age==9 &&
+            recoverableHouse.Children[1].Age==7 &&
+            recoverableHouse.SiblingCount==2 &&
+            recoverableHouse.StartingKingdomId=="vlandia" &&
+            SandboxOriginProfile.Parse(recoverableHouse.Serialize())
+                .Serialize()==recoverableHouse.Serialize());
+        // For an Independent Lord, the player is eldest brother.
+        // Native clan leadership remains a separate game-owned role.
+        var eldestBrotherPlan=new SandboxOriginProfile();
+        var suggestedLordHouse=new SandboxOriginProfile();
+        Check("automatic independent noble household has valid seniority",
+            suggestedLordHouse.TrySet("Role","Lord") &&
+            suggestedLordHouse.TrySet("NobleBirthPosition","Independent") &&
+            suggestedLordHouse.TrySet("SiblingCount","2"));
+        SandboxAutoHousePlan.Prepare(suggestedLordHouse,
+            "vlandia",40,false,"Founder");
+        Check("automatic older sibling is a sister, not an older brother",
+            suggestedLordHouse.Siblings[1].Age>40 &&
+            suggestedLordHouse.Siblings[1].Gender=="Female" &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                suggestedLordHouse,40)=="" &&
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    suggestedLordHouse,40)==0);
+        Check("independent lord preserves incompatible custom sibling sex",
+            suggestedLordHouse.TrySet("Sibling.2.Gender","Male") &&
+            suggestedLordHouse.Siblings[1].Gender=="Male" &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                suggestedLordHouse,40)=="independent_lord_older_brother");
+        // Other origins do not receive Independent Lord seniority edits.
+        var cadetHouse=new SandboxOriginProfile();
+        cadetHouse.TrySet("Role","Lord");
+        cadetHouse.TrySet("NobleBirthPosition","YoungerBrotherOfLord");
+        cadetHouse.TrySet("SiblingCount","2");
+        SandboxAutoHousePlan.Prepare(cadetHouse,
+            "vlandia",40,false,"Cadet");
+        cadetHouse.TrySet("Sibling.2.Gender","Male");
+        Check("automatic non-independent cadet can retain older brother",
+            cadetHouse.Siblings[1].Age>40 &&
+            cadetHouse.Siblings[1].Gender=="Male");
+        Check("independent lord eldest-brother fixture",
+            eldestBrotherPlan.TrySet("Role","Lord") &&
+            eldestBrotherPlan.TrySet("StartingKingdomId","vlandia") &&
+            eldestBrotherPlan.TrySet("NobleBirthPosition","Independent") &&
+            eldestBrotherPlan.TrySet("SiblingCount","1") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Male") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","42"));
+        string independentHouseError;
+        Check("independent lord refuses older brother at House validation",
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    eldestBrotherPlan,40)==1 &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="independent_lord_older_brother" &&
+            !eldestBrotherPlan.IsValid(40,out independentHouseError) &&
+            independentHouseError.Contains(
+                "independent_lord_older_brother"));
+        Check("old profile with older brother remains detectable",
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                SandboxOriginProfile.Parse(
+                    eldestBrotherPlan.Serialize()),40)==
+                    "independent_lord_older_brother");
+        Check("independent lord permits older sister",
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Female") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="" &&
+            SandboxHouseholdLineagePolicy
+                .FirstOlderBrotherInIndependentLordHouse(
+                    eldestBrotherPlan,40)==0);
+        Check("independent lord permits younger or same-age brother",
+            eldestBrotherPlan.TrySet("Sibling.1.Gender","Male") &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","39") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="" &&
+            eldestBrotherPlan.TrySet("Sibling.1.Age","40") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("disabled older brother is not considered",
+            eldestBrotherPlan.TrySet("Sibling.1.Age","42") &&
+            eldestBrotherPlan.TrySet("SiblingCount","0") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("other noble backgrounds retain separate older sibling rules",
+            eldestBrotherPlan.TrySet("SiblingCount","1") &&
+            eldestBrotherPlan.TrySet("NobleBirthPosition",
+                "YoungerBrotherOfLord") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
+        Check("non-lord independent house allows an older brother",
+            eldestBrotherPlan.TrySet("NobleBirthPosition","Independent") &&
+            eldestBrotherPlan.TrySet("Role","Knight") &&
+            SandboxHouseholdLineagePolicy.ValidateHousePlan(
+                eldestBrotherPlan,40)=="");
         Check("younger brother of a king requires real old king lineage",
             SandboxNobleStartPolicy.CanBindElder(
                 "YoungerBrotherOfKing","Lord",false,true,true,
@@ -222,7 +2070,7 @@ internal static class Program
             SandboxNobleStartPolicy.RetinueOffices("Lord",false)
                 .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Lord",true)
-                .SequenceEqual(new[]{"Knight","HouseholdSteward"}) &&
+                .SequenceEqual(new[]{"MasterOfArms","Knight"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Admiral",false)
                 .SequenceEqual(new[]{"FirstMate","Navigator"}) &&
             SandboxNobleStartPolicy.RetinueOffices("Wanderer",false)
@@ -255,25 +2103,26 @@ internal static class Program
                 false,0,true));
 
         // One game-backed social contract matrix covers every selectable role.
-        var auditRoles=new[]{"Wanderer","Recruit","Soldier",
-            "HouseholdKnight","Knight","NobleCadet","Lord","King",
-            "Admiral","Trader","Outlaw","Beggar"};
-        var auditStarts=new[]{"default","default","mercenary",
-            "default","vassal","default","vassal","king",
-            "fleetadmiral","trader","outlaw","beggar"};
-        Check("all 12 medieval roles map to one exact native start",
+        var auditRoles=new[]{"Wanderer","Outlaw","Mercenary",
+            "Soldier","Recruit","HouseholdKnight","Knight",
+            "NobleCadet","Lord","King","Admiral","Trader","Beggar"};
+        var auditStarts=new[]{"default","outlaw","mercenary",
+            "mercenary","default","default","vassal","default",
+            "vassal","king","fleetadmiral","trader","beggar"};
+        Check("all 13 compatible roles map to one exact native start",
             SandboxOriginProfile.Roles.Length==auditRoles.Length &&
             !auditRoles.Except(SandboxOriginProfile.Roles).Any() &&
             !SandboxOriginProfile.Roles.Except(auditRoles).Any() &&
-            auditRoles.Distinct().Count()==12 &&
+            auditRoles.Distinct().Count()==13 &&
             auditRoles.Select((role,index)=>
                 SandboxRoleConsistencyPolicy.NativeType(role)==
                     auditStarts[index]).All(x=>x) &&
             SandboxRoleConsistencyPolicy.NativeType("InventedTitle")=="");
-        Check("all 12 starting stations have factual native requirements",
+        Check("all 13 starting stations have factual native requirements",
             auditRoles.Select((role,index)=>{
                 bool kingdom=role=="King" || role=="Lord" ||
-                    role=="Knight" || role=="Soldier" || role=="Admiral";
+                    role=="Knight" || role=="Soldier" ||
+                    role=="Mercenary" || role=="Admiral";
                 bool royal=role=="King";
                 int actualFiefs=royal || role=="Lord" ||
                     role=="Knight"?1:0;
@@ -305,6 +2154,14 @@ internal static class Program
             SandboxRoleConsistencyPolicy.CheckNativeStation(
                 "Soldier","mercenary",false,false,0)==
                     "native_military_kingdom_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",false,false,0)==
+                    "mercenary_company_station_or_land_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",true,false,1)==
+                    "mercenary_company_station_or_land_missing" &&
+            SandboxRoleConsistencyPolicy.CheckNativeStation(
+                "Mercenary","mercenary",true,false,0)=="" &&
             SandboxRoleConsistencyPolicy.CheckNativeStation(
                 "Trader","trader",false,false,2)==
                     "independent_start_has_kingdom_or_fief");
@@ -346,6 +2203,58 @@ internal static class Program
                 .ServicePatronHeroId=="lord_1_1" &&
             SandboxOriginProfile.Parse(nobleProfile.Serialize())
                 .Siblings[1].Gender=="Female");
+        // The real guided creator edits a Serialize/Parse copy on
+        // every field change, then reopens House after a native Back.
+        // Inactive conditional fields must preserve genuine user input.
+        var editedHouse=new SandboxOriginProfile();
+        Check("guided House retains named kin across hidden fields",
+            editedHouse.TrySet("Role","Lord") &&
+            editedHouse.TrySet("SpouseEnabled","true") &&
+            editedHouse.TrySet("SpouseName","Evelyn") &&
+            editedHouse.TrySet("SpouseAge","34") &&
+            editedHouse.TrySet("ChildCount","2") &&
+            editedHouse.TrySet("Child.1.Name","Mira") &&
+            editedHouse.TrySet("Child.1.Age","9") &&
+            editedHouse.TrySet("Child.2.Name","Rowan") &&
+            editedHouse.TrySet("Child.2.Age","11") &&
+            editedHouse.TrySet("SiblingCount","1") &&
+            editedHouse.TrySet("Sibling.1.Name","Elian") &&
+            editedHouse.TrySet("RetinueMode","RoleBased") &&
+            editedHouse.TrySet("Gold","1250"));
+        var hiddenHouse=SandboxOriginProfile.Parse(
+            editedHouse.Serialize());
+        Check("conditional child count hides but never destroys entries",
+            hiddenHouse.TrySet("ChildCount","0") &&
+            hiddenHouse.TrySet("SpouseEnabled","false") &&
+            hiddenHouse.TrySet("SiblingCount","0") &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .Children[0].Name=="Mira" &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .Children[1].Age==11 &&
+            SandboxOriginProfile.Parse(hiddenHouse.Serialize())
+                .SpouseName=="Evelyn");
+        var revisitedHouse=SandboxOriginProfile.Parse(
+            hiddenHouse.Serialize());
+        Check("native Review Back reopens preserved House draft",
+            revisitedHouse.TrySet("SpouseEnabled","true") &&
+            revisitedHouse.TrySet("ChildCount","2") &&
+            revisitedHouse.TrySet("SiblingCount","1") &&
+            revisitedHouse.SpouseName=="Evelyn" &&
+            revisitedHouse.SpouseAge==34 &&
+            revisitedHouse.Children[0].Name=="Mira" &&
+            revisitedHouse.Children[0].Age==9 &&
+            revisitedHouse.Children[1].Name=="Rowan" &&
+            revisitedHouse.Children[1].Age==11 &&
+            revisitedHouse.Siblings[0].Name=="Elian" &&
+            revisitedHouse.Gold==1250 &&
+            revisitedHouse.RetinueMode=="RoleBased" &&
+            SandboxOriginProfile.Parse(revisitedHouse.Serialize())
+                .Serialize()==revisitedHouse.Serialize());
+        Check("invalid House input never changes saved selection",
+            !revisitedHouse.TrySet("Child.1.Age","999") &&
+            revisitedHouse.Children[0].Age==9 &&
+            !revisitedHouse.TrySet("SpouseName","Invalid123") &&
+            revisitedHouse.SpouseName=="Evelyn");
         Check("unsafe invented royal identity rejected in profile",
             !nobleProfile.TrySet("NobleBirthPosition","FakeRoyal") &&
             !nobleProfile.TrySet("RetinueMode","RandomWanderers") &&
@@ -746,6 +2655,37 @@ internal static class Program
                 "HouseholdAid",true,100,true) &&
             SandboxAgencyDecisionPolicy.RelationDelta(
                 "HouseholdAid",false)==-1);
+        Check("saved NPC invitation requires the matching quota record",
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|phantom|HouseholdAid|15")
+                .HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|sister|15|1").HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|14|1").HasPending &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|15|0").HasPending);
+        Check("invalid saved request timestamps cannot bypass quotas",
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|-2147483648|1").HasPending &&
+            SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n15|brother|HouseholdAid|15"+
+                "\nR|brother|-2147483648|1").Records.Count==0 &&
+            !SandboxAgencyDecisionState.Parse(
+                "CU_AGENCY_1\n50|brother|HouseholdAid|15"+
+                "\nR|brother|15|1").HasPending);
+        var nearMaxNpcDay=new SandboxAgencyDecisionState{
+            Day=Int32.MaxValue};
+        Check("large campaign day cannot overflow first NPC cooldown",
+            nearMaxNpcDay.Propose("late_hero","Recognition") &&
+            nearMaxNpcDay.HasPending &&
+            nearMaxNpcDay.For("late_hero").RequestsMade==1 &&
+            SandboxAgencyDecisionState.Parse(
+                nearMaxNpcDay.Serialize()).HasPending);
         string originalRequest=npcRequests.Serialize();
         var reloadedRequest=SandboxAgencyDecisionState.Parse(
             originalRequest);
@@ -2908,3 +4848,9 @@ internal static class Program
         Console.WriteLine("PASS: " + passed + " gameplay policy checks");
     }
 }
+
+internal static class SaSV1Fixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; public static object GetSnapshot()=>new object(); }
+internal static class SaSV2Fixture { public const int ApiVersion=2; public static bool IsPlayerEnlisted=>false; public static object GetSnapshot()=>new object(); }
+internal static class SaSMissingSnapshotFixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; }
+internal static class SaSVoidSnapshotFixture { public const int ApiVersion=1; public static bool IsPlayerEnlisted=>false; public static void GetSnapshot(){} }
+internal static class SaSBadEnlistedFixture { public const int ApiVersion=1; public static string IsPlayerEnlisted=>""; public static object GetSnapshot()=>new object(); }

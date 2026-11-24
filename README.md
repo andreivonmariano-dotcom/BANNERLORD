@@ -1,3 +1,23 @@
+# Calradia Unified: latest compiled developer candidate (v0.69g)
+
+**v0.69g** addresses the user's first actual gameplay failure: **Younger Brother of a Lord** had no eligible real native elder. That stopped the spouse, two children and two siblings from being created. The new House safeguard blocks an unsupported noble lineage **before native finalization**, returns to the noble-birth selector and preserves all household choices. It does not fabricate a native lord.
+
+[Successful Windows build 44867186334](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334) passed **910 C# policy checks**, 0 compilation warnings/errors and the existing simulations. [Download the exact compiled, still game-untested artifact](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44867186334/artifacts/14691813274). The game's historical `SubModule.xml` continues to say **v0.38.0**.
+
+**PowerShell 5.1, show the exact v0.69g candidate and its SHA-256:**
+
+```powershell
+$Installer = Join-Path $env:TEMP 'Install-CU-From-Artifact.ps1'
+Invoke-WebRequest -UseBasicParsing -Uri 'https://raw.githubusercontent.com/andreivonmariano-dotcom/BANNERLORD/5602fbd745a4c3249750dc9882d58b9be5ec4c01/scripts/Install-CU-From-Artifact.ps1' -OutFile $Installer
+& $Installer -ShowLatest
+```
+
+Download that exact Actions ZIP, then install with `-LatestVerified -GameRoot "YOUR_GAME" -ArtifactZip "YOUR_DOWNLOADED_ZIP" -ReplaceExisting`. Pinned DLL SHA-256: **`d6d9ad9a1ec217d5482a46442597461944c1cf2fa52f185c87309b654dba6f10`**. The script backs up the existing module before replacement and leaves saves untouched. [Full current installer instructions](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). [Evidence-based defect report](docs/V069G_REAL_GAME_NO_NOBLE_ELDER_HOUSEHOLD_GATE.md).
+
+**Acceptance:** This repair is compiled and simulation-tested, not yet verified in a new actual Bannerlord session. The old session confirms a gameplay failure, not a passing new-game test. The correction is on [draft PR #93](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/93), not merged as a release.
+
+---
+
 # Calradia Unified v0.47 development: native artwork and original creator screens
 
 **Native-first:** Original culture, appearance/3D, life story, banner, clan, review and difficulty screens retain Bannerlord's graphics and callbacks. The extra CU chapter rail, replacement culture chooser and native 3D dock are suppressed on accepted Sandbox starts.

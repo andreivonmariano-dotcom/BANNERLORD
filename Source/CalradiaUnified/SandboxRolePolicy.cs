@@ -7,7 +7,8 @@ namespace CalradiaUnified
             bool rulingClan)
         {
             if (role == "King") return inKingdom && rulingClan;
-            if (role == "Lord" || role == "Knight" || role == "Soldier")
+            if (role == "Lord" || role == "Knight" || role == "Soldier" ||
+                role == "Mercenary")
                 return inKingdom && !rulingClan;
             return role == "Wanderer" && !inKingdom;
         }
@@ -37,7 +38,8 @@ namespace CalradiaUnified
         public static bool ConfirmedNativeStanding(string role, string result)
         {
             if (role == "King") return result == "native_king_confirmed";
-            if (role == "Soldier") return result == "native_mercenary_contract";
+            if (role == "Soldier" || role == "Mercenary")
+                return result == "native_mercenary_contract";
             if (role == "Knight" || role == "Lord")
                 return result == "native_vassal_contract";
             return role == "Wanderer" &&

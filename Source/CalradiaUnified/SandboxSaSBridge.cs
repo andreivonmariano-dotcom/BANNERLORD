@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reflection;
 using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.Party;
 
 namespace CalradiaUnified
 {
@@ -15,24 +16,22 @@ namespace CalradiaUnified
         internal sealed class Snapshot
         {
             public bool Available,Enlisted,InsideHostParty;
-            public string LordId="",RankId="",DutyId="";
-            public int Wage,Days,TermDaysLeft;
+            public bool NativeHostPartyLedByLord,LordIsNativeLord;
+            public string LordId="",LordKingdomId="",RankId="",DutyId="";
+            public int RankNumber,Wage,Days,TermDaysLeft;
         }
         private static Type ApiType()
         {
             try
             {
-                var type=AppDomain.CurrentDomain.GetAssemblies()
+                var types=AppDomain.CurrentDomain.GetAssemblies()
                     .Select(a=>a.GetType(
                         "ServeAsSoldier.Compat.SaSPublicApi",false))
-                    .FirstOrDefault(t=>t!=null);
-                if(type==null)return null;
-                var version=type.GetField("ApiVersion",
-                    BindingFlags.Static|BindingFlags.Public);
-                if(version==null ||
-                    Convert.ToInt32(version.GetRawConstantValue())<1)
+                    .Where(t=>t!=null).Distinct().ToArray();
+                if(types.Length!=1 ||
+                    !SandboxSaSApiContract.IsSupported(types[0]))
                     return null;
-                return type;
+                return types[0];
             }
             catch{return null;}
         }
@@ -76,25 +75,38 @@ namespace CalradiaUnified
                 result.Enlisted=(bool)enlistedValue;
                 if(!result.Enlisted)return result;
                 var method=api.GetMethod("GetSnapshot",
-                    BindingFlags.Static|BindingFlags.Public);
+                    BindingFlags.Static|BindingFlags.Public,null,
+                    Type.EmptyTypes,null);
                 if(method==null)
                 {
-                    result.Available=false;
-                    return result;
+                    return new Snapshot();
                 }
                 var snap=method.Invoke(null,null);
-                if(snap==null)
-                {
-                    result.Available=false;
-                    return result;
-                }
+                if(snap==null)return new Snapshot();
                 var lord=Field(snap,"Lord") as Hero;
-                var host=Field(snap,"HostParty");
+                var host=Field(snap,"HostParty") as MobileParty;
+                result.LordIsNativeLord=lord!=null &&
+                    lord.IsAlive && lord.IsActive && lord.IsLord &&
+                    lord.Clan!=null;
+                result.LordKingdomId=lord!=null &&
+                    lord.Clan!=null && lord.Clan.Kingdom!=null ?
+                    lord.Clan.Kingdom.StringId:"";
+                result.NativeHostPartyLedByLord=
+                    host!=null && lord!=null &&
+                    host.LeaderHero==lord;
+                result.RankNumber=Num(Field(snap,"Rank"));
                 result.InsideHostParty=host!=null &&
                     Field(snap,"IsPlayerInsideHostParty") is bool &&
                     (bool)Field(snap,"IsPlayerInsideHostParty");
                 result.LordId=lord==null?"":lord.StringId;
                 result.RankId=Field(snap,"RankId") as string ?? "";
+                // Incomplete enlisted snapshots are unknown, not a
+                // discharge. The campaign observer suspends verification.
+                if(!result.LordIsNativeLord ||
+                    !result.NativeHostPartyLedByLord ||
+                    result.LordId.Length==0 ||
+                    SandboxSoldierEnlistmentPolicy.NativeRankNumber(
+                        result.RankId)==0)return new Snapshot();
                 result.DutyId=Field(snap,"DutyId") as string ?? "";
                 result.Wage=Math.Max(0,Num(Field(snap,"DailyWage")));
                 result.Days=Math.Max(0,Num(Field(snap,"DaysServed")));
@@ -105,8 +117,7 @@ namespace CalradiaUnified
             {
                 DiagnosticJournal.Exception(
                     "cu_sas_public_api_read_failed",e);
-                result.Enlisted=false;
-                result.Available=false;
+                return new Snapshot();
             }
             return result;
         }

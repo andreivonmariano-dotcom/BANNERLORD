@@ -3,15 +3,20 @@ using System.Reflection;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.MountAndBlade;
+using Bannerlord.UIExtenderEx;
 
 namespace CalradiaUnified
 {
     /// <summary>
-    /// Original single-player Bannerlord module. Intentionally no Harmony patches,
-    /// replacement actions, copied third-party code, or third-party DLL references.
+    /// Native single-player module. The four BUTR framework modules are
+    /// launcher-required; UIExtenderEx patches only game UI ViewModels.
+    /// No third-party runtime binaries are distributed with this mod.
     /// </summary>
     public sealed class SubModule : MBSubModuleBase
     {
+        private static readonly UIExtender Extender =
+            UIExtender.Create("CalradiaUnified");
+        private static bool nativeExtensionsRegistered;
         protected override void OnBeforeInitialModuleScreenSetAsRoot()
         {
             base.OnBeforeInitialModuleScreenSetAsRoot();
@@ -77,6 +82,10 @@ namespace CalradiaUnified
         protected override void OnSubModuleLoad()
         {
             base.OnSubModuleLoad();
+            // Failure is fatal: never run as a stripped-down optional UI.
+            Extender.Register(typeof(SubModule).Assembly);
+            Extender.Enable();
+            nativeExtensionsRegistered=true;
             try
             {
                 var settings=Settings.Load();
@@ -92,7 +101,8 @@ namespace CalradiaUnified
                 }
             }
             catch (Exception ex) { Log.Write("Diagnostic initialization failed: " + ex); }
-            Log.Write("Calradia Unified 0.38.0 initialized; diagnostics configured; no Harmony patches applied.");
+            Log.Write("Calradia Unified requires the four BUTR framework modules; "+
+                "UIExtenderEx patches enabled="+nativeExtensionsRegistered);
         }
 
         protected override void OnSubModuleUnloaded()
@@ -121,7 +131,8 @@ namespace CalradiaUnified
                     campaignStarter.AddBehavior(new CivicBehavior(config));
                     campaignStarter.AddBehavior(new KingdomAutonomyBehavior(config));
                     campaignStarter.AddBehavior(new DiagnosticBehavior(config));
-                    campaignStarter.AddBehavior(new NativeSettingsBehavior(config));
+                    // Settings are now in required BUTR MCM Mod Options,
+                    // not registered as a tab in every town/castle.
                     campaignStarter.AddBehavior(new SandboxOriginBehavior());
                     Log.Write("Campaign supply, civic depots, recruitment, economy and diplomacy behaviors registered; player-only foraging="
                         + config.EnablePlayerForaging);

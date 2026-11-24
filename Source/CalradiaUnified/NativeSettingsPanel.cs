@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
 
@@ -22,7 +23,7 @@ namespace CalradiaUnified
         {
             base.OnInitialize();
             dataSource = new NativeSettingsPanelVM(settings,
-                () => ScreenManager.PopScreen());
+                () => CloseSafely());
             layer = new GauntletLayer("CalradiaUnifiedSettings", 100, false) { IsFocusLayer = true };
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
@@ -35,6 +36,18 @@ namespace CalradiaUnified
             if (layer != null) ScreenManager.TrySetFocus(layer);
         }
 
+        protected override void OnFrameTick(float dt)
+        {
+            base.OnFrameTick(dt);
+            if(ScreenManager.TopScreen==this &&
+                Input.IsKeyReleased(InputKey.Escape))
+                CloseSafely();
+        }
+        private void CloseSafely()
+        {
+            if(ScreenManager.TopScreen==this)
+                ScreenManager.PopScreen();
+        }
         protected override void OnDeactivate()
         {
             base.OnDeactivate();

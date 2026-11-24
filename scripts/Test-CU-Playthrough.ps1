@@ -95,7 +95,13 @@ $events = @()
 if (Test-Path -LiteralPath $EventsCsv -PathType Leaf) {
     $events = @(Import-Csv -LiteralPath $EventsCsv)
 }
-$accepted = Event-Last $events 'sandbox_overhaul_accepted'
+# The five-chapter guided creator emits a different acceptance event than
+# the earlier standalone editor. Select the latest of BOTH paths before
+# filtering any phase-9 evidence, or current campaigns appear incomplete.
+$accepted = @($events | Where-Object {
+    $_.context -eq 'sandbox_overhaul_accepted' -or
+    $_.context -eq 'cu_guided_world_start_committed'
+} | Select-Object -Last 1) | Select-Object -Last 1
 $session = @()
 $sessionUtc = ''
 if ($null -ne $accepted -and $accepted.utc) {
@@ -109,6 +115,7 @@ if ($null -ne $accepted -and $accepted.utc) {
 }
 
 $plan = Event-Last $session 'sandbox_creator_family_plan'
+$guidedHouse = Event-Last $session 'cu_guided_house_fortune_committed'
 $loaded = Event-Last $session 'cu_family_loaded_plan'
 $verification = Event-Last $session 'cu_family_verification'
 $contract = Event-Last $session 'sandbox_start_contract'
@@ -140,6 +147,7 @@ if ($expected -lt 0) {
     foreach ($value in @(
         (Detail-Value $loaded.detail 'requested_children'),
         (Detail-Value $plan.detail 'child_count'),
+        (Detail-Value $guidedHouse.detail 'children'),
         (Detail-Value $accepted.detail 'child_count')
     )) {
         $parsed = 0
@@ -162,6 +170,9 @@ if ($expected -ge 0 -and $null -ne $contract) {
     Check-Number 'accepted child_count' (Detail-Value $accepted.detail 'child_count') $expected $issues
     if ($null -ne $plan) {
         Check-Number 'creator child_count' (Detail-Value $plan.detail 'child_count') $expected $issues
+    }
+    if ($null -ne $guidedHouse) {
+        Check-Number 'guided House children' (Detail-Value $guidedHouse.detail 'children') $expected $issues
     }
     if ($null -ne $loaded) {
         Check-Number 'loaded requested_children' (Detail-Value $loaded.detail 'requested_children') $expected $issues
@@ -259,7 +270,7 @@ Write-Host '========== LATEST ACCEPTED SANDBOX START =========='
 if ($sessionUtc) {
     Write-Host "Start UTC: $sessionUtc"
     Write-Host "Accepted: $($accepted.detail)"
-    Write-Host "Creator plan: $(if ($null -eq $plan) { 'not logged' } else { $plan.detail })"
+    Write-Host "Creator plan: $(if ($null -ne $guidedHouse) { $guidedHouse.detail } elseif ($null -ne $plan) { $plan.detail } else { 'not logged' })"
     Write-Host "Native-loaded plan: $(if ($null -eq $loaded) { 'not logged' } else { $loaded.detail })"
     Write-Host "Child count expected: $(if ($expected -lt 0) { 'unknown' } else { $expected })"
     Write-Host "Child created events this start: $($childEvents.Count)"
@@ -299,8 +310,10 @@ $report = [ordered]@{
     ci_hash_pinned = [bool]$trusted
     start_utc = $sessionUtc
     expected_children = $expected
+    guided_house_committed = ($null -ne $guidedHouse)
     child_created_events = $childEvents.Count
     spouse_event_recorded = ($null -ne $spouse)
+    creator_source = $(if ($accepted.context -eq 'cu_guided_world_start_committed') { 'guided_world' } elseif ($accepted.context -eq 'sandbox_overhaul_accepted') { 'legacy_editor' } else { 'none' })
     contract_result = $contractOutcome
     family_verification = $familyOutcome
     family_home_result = $(if ($null -ne $homeEvent) { $homeEvent.detail } else { '' })

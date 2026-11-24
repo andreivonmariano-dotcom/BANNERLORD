@@ -95,6 +95,18 @@ namespace CalradiaUnified
                 FindElder(profile,player,true)!=null;
         }
 
+        /// <summary>
+        /// Read-only House-stage eligibility check before the native vassal
+        /// start is applied at phase 8. Never claim the elder is bound yet:
+        /// the post-start strict affiliation and genealogy gates still run.
+        /// </summary>
+        public static bool HasProjectedNativeElder(
+            SandboxOriginProfile profile,Hero player)
+        {
+            return profile!=null && player!=null &&
+                FindElder(profile,player,false)!=null;
+        }
+
         public static string PreviewElderName(SandboxOriginProfile profile,
             Hero player)
         {

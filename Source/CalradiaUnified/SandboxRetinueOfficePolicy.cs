@@ -15,6 +15,8 @@ namespace CalradiaUnified
                 case "Marshal":return new[]{"Leadership","Tactics","Riding"};
                 case "HouseholdSteward":return new[]{"Steward","Trade","Charm"};
                 case "Chamberlain":return new[]{"Steward","Charm","Trade"};
+                case "RoyalMinister":return new[]{"Steward","Charm","Trade"};
+                case "Kingsguard":return new[]{"OneHanded","Athletics","Riding"};
                 case "Squire":return new[]{"Riding","Athletics","OneHanded"};
                 case "FirstMate":return new[]{"Leadership","Tactics","Steward"};
                 case "Navigator":return new[]{"Scouting","Tactics","Riding"};
@@ -27,7 +29,8 @@ namespace CalradiaUnified
         public static bool IsFieldOfficer(string office)
         {
             return office=="Knight" || office=="MasterOfArms" ||
-                office=="Marshal" || office=="Squire" ||
+                office=="Marshal" || office=="Kingsguard" ||
+                office=="Squire" ||
                 office=="FirstMate" || office=="Sergeant" ||
                 office=="SecondInCommand";
         }

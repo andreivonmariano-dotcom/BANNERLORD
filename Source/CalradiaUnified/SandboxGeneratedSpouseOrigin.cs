@@ -14,6 +14,27 @@ namespace CalradiaUnified
     /// </summary>
     internal static class SandboxGeneratedSpouseOrigin
     {
+        internal static string PreflightGuidedLord(
+            SandboxOriginProfile profile,Hero player)
+        {
+            if(profile==null || !profile.LordGuidedStart)return "";
+            var request=SandboxLordStartPolicy.ValidateNobleSpouseRequest(
+                profile.SpouseBackground,profile.SpouseBirthClanId);
+            if(request.Length>0)return request;
+            Clan birthClan;
+            Hero father,mother;
+            string refused;
+            // Only scans the already existing kingdom/clans. The
+            // temporary random choice does not create or edit a native
+            // Hero, marriage, clan or estate.
+            if(!TryResolve(profile,player,out birthClan,
+                out father,out mother,out refused))
+                return refused.Length==0?
+                    "native_noble_parents_unavailable":refused;
+            // Native noble birth is grounded in the real birth clan.
+            // Absent parents stay absent, never invented for the spouse.
+            return birthClan!=null?"":"native_noble_birth_clan_unavailable";
+        }
         internal static bool TryResolve(SandboxOriginProfile profile, Hero player,
             out Clan birthClan, out Hero father, out Hero mother,
             out string refusal)
@@ -47,7 +68,7 @@ namespace CalradiaUnified
                 clan != null && clan != Clan.PlayerClan &&
                 !closeFamilyClans.Contains(clan) &&
                 !clan.IsEliminated && !clan.IsBanditFaction &&
-                !clan.IsRebelClan && !clan.IsMinorFaction)
+                !clan.IsRebelClan)
                 .OrderBy(clan => clan.StringId, StringComparer.Ordinal)
                 .ToArray();
 
@@ -76,7 +97,7 @@ namespace CalradiaUnified
                     h.Spouse != null && h.Spouse!=player.Father &&
                     h.Spouse!=player.Mother &&
                     h.Spouse.IsAlive && h.Spouse.IsFemale &&
-                    h.Spouse.Clan == clan &&
+                    h.Spouse.IsLord && h.Spouse.Clan == clan &&
                     SandboxFamilyOriginPolicy.CanBeNobleParents(
                         (int)h.Age,(int)h.Spouse.Age,profile.SpouseAge,
                         h.Spouse.Spouse == h,true))
@@ -86,9 +107,10 @@ namespace CalradiaUnified
                 .ToArray();
             if (families.Length == 0)
             {
-                // No invented parents. NobleRandom still permits an actual
-                // native noble birth clan when no married couple is old
-                // enough to parent the requested adult spouse (e.g. age 48).
+                // Native noble birth does not require invented parents.
+                // Prefer verified paired parents when they exist. If none
+                // qualify, keep the generated spouse's real foreign clan
+                // origin and leave parent links absent.
                 // A missing ancestor must not cancel a genuine family.
                 if (candidates.Length == 0)
                 {

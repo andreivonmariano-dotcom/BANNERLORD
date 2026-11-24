@@ -213,6 +213,21 @@ namespace CalradiaUnified
                     // personality and establish actual starting relations.
                     SandboxFamilyDevelopment.Spouse(
                         profile,player,spouseHero);
+                    if((profile.MercenaryGuidedStart ||
+                        profile.SoldierGuidedStart) &&
+                        profile.SpouseBackground=="Commoner")
+                    {
+                        // Native marriage action has already verified the
+                        // household. A commoner spouse is not granted
+                        // aristocratic office by a mercenary contract.
+                        spouseHero.SetNewOccupation(Occupation.Wanderer);
+                        DiagnosticJournal.Event(
+                            "cu_mercenary_commoner_spouse_status",
+                            "hero="+spouseHero.StringId+
+                            "|native_marriage_verified=true"+
+                            "|occupation="+spouseHero.Occupation+
+                            "|no_hereditary_lord_title=true");
+                    }
                     DiagnosticJournal.Event("cu_family_spouse_created",
                         "id=" + spouseHero.StringId +
                         "|birth_background=" + profile.SpouseBackground +
@@ -291,7 +306,11 @@ namespace CalradiaUnified
                     // Never activate an underage native Hero.
                     if (!child.IsChild)
                     {
-                        child.SetNewOccupation(Occupation.Lord);
+                        if(profile.MercenaryGuidedStart ||
+                            profile.SoldierGuidedStart)
+                            child.SetNewOccupation(Occupation.Wanderer);
+                        else
+                            child.SetNewOccupation(Occupation.Lord);
                         if (child.IsNotSpawned)
                             child.ChangeState(Hero.CharacterStates.Active);
                         if (!child.IsActive)
@@ -549,6 +568,15 @@ namespace CalradiaUnified
                 .ToList();
             if(father!=null)reservedNames.Add(father.Name.ToString());
             if(mother!=null)reservedNames.Add(mother.Name.ToString());
+            // The independent founding Lord needs real shared parent
+            // references only if the player has requested siblings.
+            // Do not create two active, living court members who could
+            // be mistaken for owners, council officers or senior heirs.
+            bool historicalOnly=(profile.Role=="Lord" ||
+                profile.Role=="Outlaw" ||
+                profile.MercenaryGuidedStart ||
+                profile.SoldierGuidedStart) &&
+                profile.NobleBirthPosition=="Independent";
             Hero newFather=null;
             Hero newMother=null;
             try
@@ -557,7 +585,7 @@ namespace CalradiaUnified
                 {
                     father=Create(fatherTemplate,SandboxCulturalNames.Suggest(
                         player.Culture.StringId,false,7,
-                        reservedNames),fatherAge);
+                        reservedNames),fatherAge,null,!historicalOnly);
                     newFather=father;
                     father.Culture=player.Culture;
                     reservedNames.Add(father.Name.ToString());
@@ -566,7 +594,7 @@ namespace CalradiaUnified
                 {
                     mother=Create(motherTemplate,SandboxCulturalNames.Suggest(
                         player.Culture.StringId,true,7,reservedNames),
-                        motherAge);
+                        motherAge,null,!historicalOnly);
                     newMother=mother;
                     mother.Culture=player.Culture;
                 }
@@ -584,6 +612,27 @@ namespace CalradiaUnified
                    !mother.Children.Contains(player))
                     throw new InvalidOperationException(
                         "Native player parent links are incomplete");
+                if(historicalOnly &&
+                    ((newFather!=null && newFather.IsActive) ||
+                     (newMother!=null && newMother.IsActive)))
+                    throw new InvalidOperationException(
+                        "Independent founder parents unexpectedly active");
+                if(historicalOnly)
+                    DiagnosticJournal.Event(
+                        profile.SoldierGuidedStart ?
+                            "cu_independent_soldier_ancestry_recorded" :
+                            profile.MercenaryGuidedStart ?
+                            "cu_independent_mercenary_ancestry_recorded" :
+                            profile.Role=="Outlaw" ?
+                            "cu_independent_outlaw_ancestry_recorded" :
+                            "cu_independent_lord_ancestry_recorded",
+                        "native_sibling_genealogy=true"+
+                        "|generated_parents_inactive="+
+                            ((newFather==null || !newFather.IsActive) &&
+                             (newMother==null || !newMother.IsActive))+
+                        "|parents_not_party_officers=true"+
+                        "|parents_not_removed_from_family_tree=true"+
+                        "|no_inheritance_transfer=true");
                 DiagnosticJournal.Event("cu_sibling_parents_created",
                     "father="+father.StringId+
                     "|mother="+mother.StringId+
@@ -614,7 +663,7 @@ namespace CalradiaUnified
         }
 
         private static Hero Create(CharacterObject source,string name,int age,
-            Clan originClan=null)
+            Clan originClan=null,bool activate=true)
         {
             Hero result=null;
             try
@@ -641,7 +690,10 @@ namespace CalradiaUnified
             // CreateSpecialHero constructs a NotSpawned Hero by default.
             // Native IsSuitableForMarriage explicitly requires IsActive.
             // Activating must precede MarriageAction, not follow it.
-            if (age >= 18)
+            if (!activate && result.IsActive)
+                throw new InvalidOperationException(
+                    "Historical parent must not enter the active clan");
+            if (age >= 18 && activate)
             {
                 result.SetNewOccupation(Occupation.Lord);
                 var originalState = result.HeroState;
@@ -656,6 +708,13 @@ namespace CalradiaUnified
                     "|clan=" + (result.Clan == null ?
                         "none" : result.Clan.StringId));
             }
+            if(!activate)
+                DiagnosticJournal.Event(
+                    "cu_family_parent_historical_only",
+                    "hero="+result.StringId+
+                    "|active="+result.IsActive+
+                    "|state="+result.HeroState+
+                    "|native_parent_links_still_required=true");
                 return result;
             }
             catch(Exception error)

@@ -24,8 +24,8 @@ assert '"cu_people_household"' in menu
 assert '"cu_people_requests"' in menu
 assert '"cu_people_claim"' in menu
 assert 'new[]{"town","castle"}' in menu
-assert '"CU: People & Lineage"' in menu
-assert '"Return to vanilla settlement menu"' in menu
+assert '"Hold household court"' in menu
+assert '"Return to settlement"' in menu
 assert '"cu_household_view"' in menu
 assert '"cu_household_next"' in menu
 assert '"cu_people_request"' in menu
@@ -48,7 +48,9 @@ assert 'GameMenu.SwitchToMenu(affairsReturnMenu)' in menu
 assert 'InformationManager.ShowInquiry(new InquiryData(' in menu
 assert 'ConfirmCharacterSupport()' in menu
 assert 'ConfirmEstateInNativeDialog()' in menu
-assert 'args=>ConfirmCharacterSupport(),false' in menu
+assert '"cu_people_accept","Provide the requested support",\n                args=>false' in menu
+assert '"cu_birth_family_council_entry_"' in menu
+assert 'Settlement.CurrentSettlement.OwnerClan==' in menu
 assert 'args=>ConfirmEstateInNativeDialog(),false' in menu
 assert '"Confirm grant","Cancel"' in menu
 assert '"Confirm","Cancel"' in menu

@@ -38,20 +38,30 @@ namespace CalradiaUnified
         {
             if(!NeedsReview || playerId!=PlayerId)
                 return "no_matching_partial_start";
+            // A negative count is never a valid observation from native
+            // Hero.Children or parentage. Reject corrupt telemetry without
+            // changing the saved dossier or claiming a family transition.
+            if(children<0 || siblings<0)
+                return "invalid_native_counts";
+            int observedChildren=Math.Min(99,children);
+            int observedSiblings=Math.Min(99,siblings);
             bool changed=SpouseObserved!=spousePresent ||
-                ChildrenObserved!=children || SiblingsObserved!=siblings;
+                ChildrenObserved!=observedChildren ||
+                SiblingsObserved!=observedSiblings;
+            string previousStatus=Status;
             SpouseObserved=spousePresent;
-            ChildrenObserved=Math.Max(0,Math.Min(99,children));
-            SiblingsObserved=Math.Max(0,Math.Min(99,siblings));
+            ChildrenObserved=observedChildren;
+            SiblingsObserved=observedSiblings;
             if(NativeChecks<Int32.MaxValue)NativeChecks++;
             bool countsMatch=(!SpouseRequested || spousePresent) &&
-                children>=ChildrenRequested &&
-                siblings>=SiblingsRequested;
+                observedChildren>=ChildrenRequested &&
+                observedSiblings>=SiblingsRequested;
             Status=countsMatch?"NativeCountsMatchReviewStillRequired":
                 "PartialStartNeedsReview";
             // No restored grants, automatic retry, or claim of matching
             // specific player-requested names, parentage, and ages.
-            return changed?"native_family_counts_changed":"same";
+            return changed || Status!=previousStatus?
+                "native_family_counts_changed":"same";
         }
         public string Describe()
         {
@@ -115,6 +125,12 @@ namespace CalradiaUnified
                 status!="NativeCountsMatchReviewStillRequired")return r;
             r.PlayerId=D(f[0]);r.Role=D(f[1]);r.Failure=D(f[2]);
             if(r.PlayerId.Length==0)return new SandboxFamilyRecoveryState();
+            // A corrupt or stale success-like recount must not erase
+            // the original failure dossier or overstate its evidence.
+            if(status=="NativeCountsMatchReviewStillRequired" &&
+                (checks==0 || (f[4]=="1" && f[5]!="1") ||
+                 observedChildren<children || observedSiblings<siblings))
+                status="PartialStartNeedsReview";
             r.Status=status;
             r.SpouseRequested=f[4]=="1";
             r.SpouseObserved=f[5]=="1";
