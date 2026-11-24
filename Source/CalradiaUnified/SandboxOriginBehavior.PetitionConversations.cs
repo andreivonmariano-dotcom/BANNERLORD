@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace CalradiaUnified
 {
@@ -101,8 +103,8 @@ namespace CalradiaUnified
         private string petitionDecisionReply="";
         private bool PreparePetitionDecisionReply()
         {
-            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_PETITION_DECISION_REPLY",
-                new TaleWorlds.Localization.TextObject(petitionDecisionReply));
+            MBTextManager.SetTextVariable("CU_PETITION_DECISION_REPLY",
+                new TextObject(petitionDecisionReply));
             return true;
         }
         private void RegisterPrivatePetitionConversations(
