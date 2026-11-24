@@ -1,3 +1,15 @@
+# Calradia Unified | Current development and verified build identity
+
+**24 November 2026 — feature freeze.** The active consolidated development source is [draft PR #99](https://github.com/andreivonmariano-dotcom/BANNERLORD/pull/99), branch `integration/cu-living-society-acceptance`, based on the active v0.69e acceptance branch. Always resolve its current head SHA, rather than assuming the README or manifest version identifies the current DLL.
+
+**Last successful build located at this audit:** [run 45355054393](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45355054393), source [1f71b00a72d71717135d3c55e4e6da50a8bfae3f](https://github.com/andreivonmariano-dotcom/BANNERLORD/commit/1f71b00a72d71717135d3c55e4e6da50a8bfae3f), [compiled-untested artifact 14901409008](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45355054393/artifacts/14901409008), DLL SHA-256 `becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615`. This is an earlier seven-career foundation build, NOT the consolidated cleanup. No current installed DLL or runtime acceptance established. The manifest remains v0.38.0; target Bannerlord is 1.5.7.125802.
+
+The v0.72 and v0.73 battle-history branches are separate, diverged feature candidates, not the consolidated source. Do not overwrite either branch or merge unfinished battle features during the freeze. The current default main branch is not the advanced development baseline. See [acceptance ownership audit](docs/CU_ACCEPTANCE_FREEZE_OWNERSHIP_AUDIT.md).
+
+**Historical README follows.** Its old download/installer references are historical, not current delivery instructions.
+
+---
+
 # Calradia Unified: latest compiled developer candidate (v0.69g)
 
 **v0.69g** addresses the user's first actual gameplay failure: **Younger Brother of a Lord** had no eligible real native elder. That stopped the spouse, two children and two siblings from being created. The new House safeguard blocks an unsupported noble lineage **before native finalization**, returns to the noble-birth selector and preserves all household choices. It does not fabricate a native lord.
