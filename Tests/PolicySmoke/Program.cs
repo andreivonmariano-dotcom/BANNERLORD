@@ -496,6 +496,18 @@ internal static class Program
                 lateOrder.Serialize()+"|forged").Status=="Available");
 
         // v0.71c: pure-state tests, independent of a running campaign.
+        var repeatHousehold=new SandboxHouseholdDutyState();
+        Check("family conversation cooldown tracks benefit only",
+            repeatHousehold.RecordAudience("spouse_repeat",10) &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",10)==30 &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",39)==1 &&
+            repeatHousehold.AudienceDaysRemaining("spouse_repeat",40)==0 &&
+            !repeatHousehold.RecordAudience("spouse_repeat",10));
+        Check("gift cooldown independent of family audience",
+            repeatHousehold.GiftDaysRemaining("spouse_repeat",10)==0 &&
+            repeatHousehold.RecordGiftAttempt("spouse_repeat",10) &&
+            SandboxHouseholdDutyState.Parse(repeatHousehold.Serialize())
+                .GiftDaysRemaining("spouse_repeat",11)==29);
         var offices=new SandboxHouseholdDutyState();
         Check("household offices require a real bounded Hero ID",
             offices.Assign("Steward","")==
