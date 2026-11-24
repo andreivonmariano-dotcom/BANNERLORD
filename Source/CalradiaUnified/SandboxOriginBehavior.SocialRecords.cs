@@ -137,6 +137,26 @@ namespace CalradiaUnified
                     " | "+e.Detail));
         }
 
+        private string SocietyDigestText()
+        {
+            var player=Hero.MainHero;
+            if(player==null)return "No native character available.";
+            var pending=agencyDecisions.HasPending?
+                ResolveCampaignHero(agencyDecisions.PendingHeroId):null;
+            string reply=pending==null?"none currently resolved":NativePersonName(pending);
+            var peers=peerInitiatives.Entries.Reverse().Take(3).ToArray();
+            return "Household affairs | Current overview"+
+                "\nSelected career: "+SelectedReviewRole()+
+                "\n"+RecurringCareerReviewText()+
+                "\nPending personal petitioner: "+reply+
+                "\n"+CulturalSocietyText(player)+
+                "\nRecent modeled NPC interests (not actual consent): "+
+                (peers.Length==0?"none recorded":
+                    "\n"+String.Join("\n",peers.Select(e=>
+                        NativeHeroDisplayName(e.Actor)+" -> "+NativeHeroDisplayName(e.Target)+
+                        " | "+e.Kind+" | "+e.Outcome+" | day "+e.Day)));
+        }
+
         private string CampChronicleText()
         {
             string result="Witnessed career chapters: "+
@@ -173,6 +193,7 @@ namespace CalradiaUnified
                     " ("+deed.Outcome+")";
             }
             return result+
+                "\n\n"+SocietyDigestText()+
                 "\n\n"+LifetimeCareerText(player)+
                 "\n\n"+HouseholdAccountText(player)+
                 "\n\n"+PersonalHistoryText(player)+
