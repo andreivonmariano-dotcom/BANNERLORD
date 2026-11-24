@@ -96,6 +96,8 @@ namespace CalradiaUnified
                 this, ObserveKnightServiceOrderDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveNativeMilitaryAppointmentsDaily);
+            CampaignEvents.MapEventEnded.AddNonSerializedListener(
+                this, ObserveCompletedBattle);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
@@ -449,6 +451,12 @@ namespace CalradiaUnified
                 ref military);
             militaryWitness=SandboxNativeMilitaryWitnessState.Parse(
                 military);
+            string witnessedBattles=battleHistory.Serialize();
+            store.SyncData("CU_v072_battle_history",ref witnessedBattles);
+            battleHistory=SandboxBattleHistoryState.Parse(witnessedBattles);
+            string battlefieldHonors=knightBattleRecognition.Serialize();
+            store.SyncData("CU_v073_knight_battle_acknowledgements",ref battlefieldHonors);
+            knightBattleRecognition=SandboxKnightBattleRecognitionState.Parse(battlefieldHonors);
         }
 
         private static void Notify(string text)
