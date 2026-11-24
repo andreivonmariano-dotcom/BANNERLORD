@@ -248,6 +248,11 @@ namespace CalradiaUnified
                         " (day "+record.LastDay+").";
                     lines.Add(a.Name+" and "+b.Name+": "+standing);
                 }
+            foreach(var person in groupParticipants)
+            {
+                string reputation=peerSocial.Reputation(person.StringId,CurrentHouseholdDay());
+                if(reputation.Length>0)lines.Add(person.Name+": "+reputation+". Based on recent recorded peer standings only.");
+            }
             ShowNativeDetail("Those gathered",String.Join("\n\n",lines));
         }
 
