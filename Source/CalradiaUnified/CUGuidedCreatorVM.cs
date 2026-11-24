@@ -393,6 +393,7 @@ namespace CalradiaUnified
         {
             if(field.Advanced && !advanced) return false;
             string key=field.Key;
+            if(!preCampaign && profile.IsFixedGuidedKnightField(key))return false;
             if(key=="EarlyHousehold" && preCampaign &&
                 profile.Role=="Wanderer")return false;
             if(!preCampaign && profile.LordGuidedStart &&
@@ -645,6 +646,7 @@ namespace CalradiaUnified
 
         private bool TryWrite(string key,string value)
         {
+            if(!preCampaign && profile.IsFixedGuidedKnightField(key))return false;
             if(key=="KnightOrigin" || key=="SoldierEntryRank" ||
                 key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;
             if(key=="Role" && Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,value)<0)return false;
@@ -1523,7 +1525,7 @@ namespace CalradiaUnified
                         "Sworn service: independent landless house, "+
                         "real personal lord and 30-day muster in person.\n"+
                         "Missed muster: native relation -3, oath break: -20.\n"+
-                        "No automatic castle, wage or vassalage.\n"+
+                        "One culturally trained Squire. No automatic castle, wage or vassalage.\n"+
                         "Spouse and children remain optional.";
                 if(preCampaign && profile.Role=="Soldier")
                     return "Soldier | sworn service under a real lord\n"+
