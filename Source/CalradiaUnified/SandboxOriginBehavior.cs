@@ -1943,6 +1943,26 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Settlements.Count))
                     failures=failures.Concat(new[]{
                         "landless_start_has_native_fief_or_kingdom"}).ToArray();
+                // Do not publish a successful noble start before its
+                // actual council and child-claim records are commissioned.
+                if(failures.Length==0 && profile.KingGuidedStart)
+                {
+                    string council=BeginNativeRoyalCouncil(hero);
+                    if(council!="native_royal_hero_council_commissioned")
+                        failures=failures.Concat(new[]{"royal_council:"+council}).ToArray();
+                    else
+                    {
+                        string royalRecorded=BeginGuidedKingSuccession(profile,hero);
+                        if(royalRecorded!="native_royal_household_recorded")
+                            failures=failures.Concat(new[]{"royal_claim_record:"+royalRecorded}).ToArray();
+                    }
+                }
+                if(failures.Length==0 && profile.LordGuidedStart)
+                {
+                    string heirRecorded=BeginGuidedLordInheritance(profile,hero);
+                    if(heirRecorded!="native_household_heirs_recorded")
+                        failures=failures.Concat(new[]{"lord_heir_record:"+heirRecorded}).ToArray();
+                }
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
                     "|role=" + profile.Role +
@@ -1982,41 +2002,6 @@ namespace CalradiaUnified
                             soldierReceipt.Length==0);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
-                        if(profile.KingGuidedStart)
-                        {
-                            string council=BeginNativeRoyalCouncil(hero);
-                            if(council!="native_royal_hero_council_commissioned")
-                            {
-                                DiagnosticJournal.Event(
-                                    "sandbox_start_contract",
-                                    "result=FAIL"+
-                                    "|reason=royal_council:"+council+
-                                    "|native_capital_unchanged=true"+
-                                    "|no_false_royal_council=true");
-                                Notify("Native royal court could not be "+
-                                    "commissioned: "+council);
-                                return;
-                            }
-                            string royalRecorded=BeginGuidedKingSuccession(
-                                profile,hero);
-                            if(royalRecorded!="native_royal_household_recorded")
-                                DiagnosticJournal.Event(
-                                    "cu_royal_claim_record_refused",
-                                    "result="+royalRecorded+
-                                    "|native_kingdom_unchanged=true"+
-                                    "|native_ownership_unchanged=true");
-                        }
-                        if(profile.LordGuidedStart)
-                        {
-                            string heirRecorded=BeginGuidedLordInheritance(
-                                profile,hero);
-                            if(heirRecorded!="native_household_heirs_recorded")
-                                DiagnosticJournal.Event(
-                                    "cu_lord_heir_record_refused",
-                                    "result="+heirRecorded+
-                                    "|native_owner_unchanged=true"+
-                                    "|no_false_succession_result=true");
-                        }
                         roleEconomy.Start(
                             profile.KnightGuidedStart?
                                 "HouseholdKnight":profile.SoldierGuidedStart?
