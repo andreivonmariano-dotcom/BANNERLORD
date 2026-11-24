@@ -98,17 +98,24 @@ namespace CalradiaUnified
             return cost>0 && Hero.MainHero.Gold<cost;
         }
 
+        private string petitionDecisionReply="";
+        private bool PreparePetitionDecisionReply()
+        {
+            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_PETITION_DECISION_REPLY",
+                new TaleWorlds.Localization.TextObject(petitionDecisionReply));
+            return true;
+        }
         private void RegisterPrivatePetitionConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
             starter.AddPlayerLine(
-                "cu_petition_hear_pending","hero_main_options",
+                "cu_petition_hear_pending","cu_personal_matters_topics",
                 "cu_petition_open",
                 "You wished to speak privately with me?",
                 ()=>SpeakingWithPendingPetitioner(),null,115);
             starter.AddPlayerLine(
-                "cu_petition_invite","hero_main_options",
+                "cu_petition_invite","cu_personal_matters_topics",
                 "cu_petition_open",
                 "Is there a particular matter you wish to put before me?",
                 ()=>AvailablePetitionForSpeaker().Length>0,
@@ -193,10 +200,9 @@ namespace CalradiaUnified
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
                 "cu_petition_accept_reply","cu_petition_accept_reply",
-                "hero_main_options",
-                "I have heard your answer. Thank you for "+
-                "taking my affairs seriously.",
-                null,null,120);
+                "cu_personal_matters_topics",
+                "{CU_PETITION_DECISION_REPLY}",
+                ()=>PreparePetitionDecisionReply(),null,120);
             starter.AddPlayerLine(
                 "cu_petition_refuse","cu_petition_answers",
                 "cu_petition_refuse_reply",
@@ -205,18 +211,18 @@ namespace CalradiaUnified
                 ()=>AnswerCharacterRequest(false),110);
             starter.AddDialogLine(
                 "cu_petition_refuse_reply","cu_petition_refuse_reply",
-                "hero_main_options",
-                "I understand. I shall make other plans.",
-                null,null,110);
+                "cu_personal_matters_topics",
+                "{CU_PETITION_DECISION_REPLY}",
+                ()=>PreparePetitionDecisionReply(),null,110);
             starter.AddPlayerLine(
                 "cu_petition_no_coin","cu_petition_answers",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "I have not the silver to offer you.",
                 ()=>CannotAffordPetitionInConversation(),
                 null,80);
             starter.AddPlayerLine(
                 "cu_petition_defer","cu_petition_answers",
-                "hero_main_options",
+                "cu_personal_matters_topics",
                 "Let us speak of this another time.",
                 ()=>SpeakingWithPendingPetitioner(),null,70);
         }
