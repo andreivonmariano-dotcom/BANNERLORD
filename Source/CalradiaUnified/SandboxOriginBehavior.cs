@@ -424,6 +424,9 @@ namespace CalradiaUnified
             string recurringReviews=recurringCareerReviews.Serialize();
             store.SyncData("CU_recurring_career_reviews_1",ref recurringReviews);
             recurringCareerReviews=SandboxCareerReviewState.Parse(recurringReviews);
+            string charge=careerCharge.Serialize();
+            store.SyncData("CU_career_charge_1",ref charge);
+            careerCharge=SandboxCareerChargeState.Parse(charge);
             string lifetime=lifetimeCareers.Serialize();
             store.SyncData("CU_lifetime_career_1",ref lifetime);
             lifetimeCareers=SandboxLifetimeCareerState.Parse(lifetime);
@@ -473,6 +476,7 @@ namespace CalradiaUnified
             RegisterKnightPatronConversations(starter);
             RegisterNobleOfficerConversations(starter);
             RegisterHouseholdConversations(starter);
+            RegisterLivingDialogueDepth(starter);
             RegisterPrivatePetitionConversations(starter);
             RegisterPetitionStoryConversations(starter);
             RegisterCareerChronicleMenus(starter);
