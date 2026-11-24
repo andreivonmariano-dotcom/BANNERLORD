@@ -153,9 +153,22 @@ namespace CalradiaUnified
                 (person.Spouse!=null && person.Spouse.Spouse==person?
                     NativePersonName(person.Spouse):"not verified")+
                 (person==player?"":"\n"+SocialBondDescription(person))+
+                "\n\n"+CulturalSocietyText(person)+
                 "\n\n"+HouseholdAccountText(person)+
                 "\n\n"+LifetimeCareerText(person)+
                 "\n\n"+PersonalHistoryText(person));
+        }
+
+        private string CulturalSocietyText(Hero person)
+        {
+            string culture=person==null || person.Culture==null?"":person.Culture.StringId;
+            string guidance=SandboxCulturalInheritancePolicy.CustomGuidance(culture);
+            string education=SandboxCulturalInheritancePolicy.EducationConvention(culture);
+            return "Native culture: "+(culture.Length==0?"unverified":culture)+
+                "\nCU custom guidance: "+(guidance.Length==0?"unestablished":guidance)+
+                "\nSuggested upbringing: "+(education.Length==0?"none":education)+
+                "\nModeled inheritance: "+SandboxCulturalInheritancePolicy.Model(culture)+
+                "\nActual rights and property remain native; no automatic skill or title.";
         }
 
         private void OpenDossierFamilyPortraits()
