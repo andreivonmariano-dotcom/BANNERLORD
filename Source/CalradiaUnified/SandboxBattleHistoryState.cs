@@ -203,7 +203,7 @@ namespace CalradiaUnified
         public static SandboxBattleHistoryState Parse(string packed)
         {
             var empty = new SandboxBattleHistoryState();
-            if (String.IsNullOrEmpty(packed) || packed.Length > 16000)
+            if (String.IsNullOrEmpty(packed) || packed.Length > 32768)
                 return empty;
             var rows = packed.Replace("\r", "").Split('\n');
             if (rows.Length < 1 || rows.Length > MaxEntries + 1 ||
