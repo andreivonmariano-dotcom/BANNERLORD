@@ -12,7 +12,7 @@ namespace CalradiaUnified
         public const string Version="CU_STORY_DIRECTOR_1";
         public const int MaxReceipts=24;
         public int Detail=1,Created=-1,Due=-1,Closed=-1;
-        public string Owner="",Actor="",Kind="",Evidence="",Stage="",Response="";
+        public string Owner="",Actor="",Kind="",Evidence="",Stage="",Response="",Peer="";
         public readonly List<string> Receipts=new List<string>();
         public static int PeerInterval(int detail){return detail==0?0:detail==1?3:1;}
         public static int StoryCooldown(int detail){return detail==2?7:14;}
@@ -29,7 +29,7 @@ namespace CalradiaUnified
         public static bool ValidKind(string kind)
         {
             return kind=="ChangedAmbition" || kind=="ImprovedStanding" ||
-                kind=="StrainedStanding" || kind=="ChangedClan";
+                kind=="StrainedStanding" || kind=="ChangedClan" || kind=="PeerTension" || kind=="PeerRapport";
         }
         private static bool ValidResponse(string response)
         {return response=="Listen" || response=="Caution" || response=="Defer";}
@@ -69,11 +69,15 @@ namespace CalradiaUnified
             return Detail!=0 && !Active && day>=0 && day<=1999940 &&
                 (Closed<0 || (long)day-Closed>=StoryCooldown(Detail));
         }
-        public bool Open(string owner,string actor,string kind,string evidence,int day)
+        private static bool ValidPeer(string owner,string actor,string kind,string peer)
+        {
+            return kind=="PeerTension" || kind=="PeerRapport"?Id(peer) && peer!=actor && peer!=owner:peer=="";
+        }
+        public bool Open(string owner,string actor,string kind,string evidence,int day,string peer="")
         {
             if(!CanOpen(day) || !Id(owner) || !Id(actor) || owner==actor ||
-                !ValidKind(kind) || !Id(evidence) || Receipts.Contains(evidence))return false;
-            Owner=owner;Actor=actor;Kind=kind;Evidence=evidence;
+                !ValidKind(kind) || !ValidPeer(owner,actor,kind,peer) || !Id(evidence) || Receipts.Contains(evidence))return false;
+            Owner=owner;Actor=actor;Kind=kind;Evidence=evidence;Peer=peer;
             Stage="Open";Response="";Created=day;Due=-1;Closed=-1;
             if(Receipts.Count>=MaxReceipts)Receipts.RemoveAt(0);
             Receipts.Add(evidence);return true;
@@ -106,25 +110,26 @@ namespace CalradiaUnified
             return String.Join("|",new[]{Version,Detail.ToString(CultureInfo.InvariantCulture),
                 Owner,Actor,Kind,Evidence,Stage,Response,Created.ToString(CultureInfo.InvariantCulture),
                 Due.ToString(CultureInfo.InvariantCulture),Closed.ToString(CultureInfo.InvariantCulture),
-                String.Join(",",Receipts)});
+                String.Join(",",Receipts),Peer});
         }
         public static SandboxStoryDirectorState Parse(string packed)
         {
             var s=new SandboxStoryDirectorState();
             if(String.IsNullOrEmpty(packed) || packed.Length>3000)return s;
             var f=packed.Split('|');int detail,created,due,closed;
-            if(f.Length!=12 || f[0]!=Version || !Int32.TryParse(f[1],out detail) ||
+            if((f.Length!=12 && f.Length!=13) || f[0]!=Version || !Int32.TryParse(f[1],out detail) ||
                 !s.SetDetail(detail) || !Int32.TryParse(f[8],out created) ||
                 !Int32.TryParse(f[9],out due) || !Int32.TryParse(f[10],out closed))
                 return new SandboxStoryDirectorState();
+            string peer=f.Length==13?f[12]:"";
             var receipts=f[11].Length==0?new string[0]:f[11].Split(',');
             if(receipts.Length>MaxReceipts || receipts.Any(x=>!Id(x)) ||
                 receipts.Distinct().Count()!=receipts.Length)return new SandboxStoryDirectorState();
             if(f[6]=="")
                 return f.Skip(2).Take(6).All(x=>x=="") && created==-1 && due==-1 && closed==-1 &&
-                    receipts.Length==0?s:new SandboxStoryDirectorState();
+                    receipts.Length==0 && peer==""?s:new SandboxStoryDirectorState();
             if(!Id(f[2]) || !Id(f[3]) || f[2]==f[3] || !ValidKind(f[4]) ||
-                !Id(f[5]) || !receipts.Contains(f[5]) || created<0 || created>1999940 ||
+                !ValidPeer(f[2],f[3],f[4],peer) || !Id(f[5]) || !receipts.Contains(f[5]) || created<0 || created>1999940 ||
                 (f[6]!="Open" && f[6]!="FollowUp" && f[6]!="Closed" && f[6]!="Expired"))
                 return new SandboxStoryDirectorState();
             bool follow=f[7]=="Listen" || f[7]=="Caution";
@@ -138,7 +143,7 @@ namespace CalradiaUnified
                     (follow?closed<=due+21:f[7]!="" || closed<=created+30)))
                 return new SandboxStoryDirectorState();
             s.Owner=f[2];s.Actor=f[3];s.Kind=f[4];s.Evidence=f[5];s.Stage=f[6];s.Response=f[7];
-            s.Created=created;s.Due=due;s.Closed=closed;s.Receipts.AddRange(receipts);return s;
+            s.Created=created;s.Due=due;s.Closed=closed;s.Peer=peer;s.Receipts.AddRange(receipts);return s;
         }
     }
 }
