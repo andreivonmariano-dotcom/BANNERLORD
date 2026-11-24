@@ -112,12 +112,22 @@ namespace CalradiaUnified
         private void OfferLocalCharacterRequest(Hero player)
         {
             if(player==null || agencyDecisions.HasPending)return;
-            foreach(string id in agencyDecisions.Prioritize(
-                characterAgendas.Entries.Select(a=>a.Id)))
+            var ids=agencyDecisions.Prioritize(
+                characterAgendas.Entries.Select(a=>a.Id));
+            if(ids.Length==0)return;
+            // A fresh bounded index per offer avoids one world scan per agenda.
+            var wanted=new System.Collections.Generic.HashSet<string>(
+                ids,StringComparer.Ordinal);
+            var local=Hero.AllAliveHeroes.Where(h=>h!=null && h.IsAlive &&
+                wanted.Contains(h.StringId) && h!=player && SamePlace(player,h))
+                .GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
+            foreach(string id in ids)
             {
                 var record=characterAgendas.Get(id);
                 if(record==null)continue;
-                var hero=FindLivingPerson(record.Id);
+                Hero hero;
+                if(!local.TryGetValue(id,out hero))continue;
                 if(hero==null || hero==player ||
                     !SamePlace(player,hero) || hero.Age<18f ||
                     !hero.IsActive || hero.IsPrisoner)
