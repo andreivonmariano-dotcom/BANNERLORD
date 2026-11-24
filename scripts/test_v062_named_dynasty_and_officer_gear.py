@@ -16,7 +16,8 @@ assert "cu_dynastic_named_elder_confirmed" in ob
 assert "dynasticElderName=elder.Name.ToString()" in ob
 assert "CU_v062_dynastic_elder_name" in ob
 assert "SandboxDynasticStart.PreviewElderName(" in vm
-assert "Older relative: " in vm
+assert "Older relative: " not in vm
+assert "candidate.NormalizeGuidedCareerDraft()" in vm
 assert "native parentage" not in vm.lower() or "native" in vm
 assert "SandboxRetinueCulturePolicy.GearStyle(" in ret
 assert "SandboxRetinueCulturePolicy.Training(" in ret
