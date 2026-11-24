@@ -55,9 +55,11 @@ namespace CalradiaUnified
             if(previous!=null && (long)day-previous.Day<
                 SandboxPeerInitiativeState.IntervalDays)return;
             var ids=characterAgendas.Entries.Select(a=>a.Id).ToArray();
-            var peers=Hero.AllAliveHeroes.Where(h=>EligiblePeer(h) && h!=player &&
-                ids.Contains(h.StringId)).OrderBy(h=>h.StringId,StringComparer.Ordinal)
-                .Take(16).ToArray();
+            var eligible=Hero.AllAliveHeroes.Where(h=>EligiblePeer(h) && h!=player &&
+                ids.Contains(h.StringId)).GroupBy(h=>h.StringId,StringComparer.Ordinal)
+                .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
+            var peers=peerInitiatives.PrioritizePeers(eligible.Keys,16)
+                .Select(id=>eligible[id]).ToArray();
             foreach(var actor in peers)
             {
                 var agenda=characterAgendas.Get(actor.StringId);
@@ -74,6 +76,9 @@ namespace CalradiaUnified
                     livingPersons.Remember("ModeledPeerInitiative",entry.Actor,entry.Target,
                         "kind="+entry.Kind+"|response="+entry.Outcome+"|day="+day+
                         "|not_native_consent_or_action=true");
+                    DiagnosticJournal.Event("cu_modeled_peer_initiative",
+                        "actor="+entry.Actor+"|target="+entry.Target+
+                        "|day="+day+"|outcome="+entry.Outcome+"|native_effect=false");
                     return;
                 }
             }
