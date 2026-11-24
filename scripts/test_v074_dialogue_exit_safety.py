@@ -226,3 +226,25 @@ assert 'AvailableGroupParticipants(groupParent,true)' in group
 assert 'AvailableGroupParticipants(parent,true).Where(h=>gatheringPlan.Accepted.Contains(h.StringId))' in group
 assert 'if(!includeAll && result.Count>=4)break;' in group
 print("PASS campaign-specific variation, action-only exposure, observed relation shifts and stable planned attendance. SOURCE ONLY.")
+
+# Adaptive narrative threads consume only the existing daily observation tail.
+director=(src/"SandboxOriginBehavior.StoryDirector.cs").read_text()
+directorstate=(src/"SandboxStoryDirectorState.cs").read_text()
+assert 'store.SyncData("CU_story_director_1",ref story);' in origin
+assert 'var lastStoryObservation=livingPersons.Events.LastOrDefault();' in origin
+assert 'ObserveStoryDirector(player,lastStoryObservation);' in origin
+assert 'livingPersons.Events.Skip(index+1).Take(8)' in director
+assert 'if(previous!=null && index<0)return;' in director
+assert 'observed.Target==player.StringId' in director and 'observed.Actor==player.StringId' in director
+assert 'characterAgendas.Get(actor)==null' in director
+assert 'storyDirector.CanDiscuss(player.StringId,actor.StringId,CurrentHouseholdDay())' in director
+assert 'CanFollowPersonalTopic() && CanDiscussStory(personalTopicName)' in director
+assert '()=>AnswerStory(response),110' in depth
+assert 'MotiveWords(goal,tone,relation' in depth
+assert 'PeerInterval(storyDirector.Detail)' in peer and 'day%interval!=0' in peer
+assert 'MaxReceipts=24' in directorstate
+assert 'RegisterStoryDetailMenus(starter);' in origin
+assert 'Hero.AllAliveHeroes' not in director
+for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
+    assert forbidden not in director,forbidden
+print("PASS adaptive narrative observation, exact speaker response, bounded history and configurable peer cadence. SOURCE ONLY.")
