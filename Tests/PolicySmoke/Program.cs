@@ -37,6 +37,10 @@ internal static class Program
             !SandboxCulturalInheritancePolicy.CanTransferEstateWithoutNativeAction());
         Check("inheritance seniority cannot overflow on corrupted elder count",
             SandboxCulturalInheritancePolicy.ClaimPriority("vlandia",Int32.MaxValue,true,false,0,0)==25);
+        Check("nord naming suggestions remain deterministic and respect exclusions",
+            SandboxCulturalNames.Suggest("nord",false,0,null)=="Harald" &&
+            SandboxCulturalNames.Suggest("nord",false,0,new[]{"Harald"})=="Eirik" &&
+            SandboxCulturalNames.Suggest("nord",true,0,null)=="Astrid");
         var lifetimeTest=new SandboxLifetimeCareerState();
         Check("career episodes require evidence and voluntary selection",
             !lifetimeTest.Record("hero_a","Knight",0,false,true) &&
