@@ -1358,6 +1358,14 @@ internal static class Program
             replacementOffices.HasIdentity("old") && replacementOffices.OfficeFor("old")=="" &&
             SandboxRetinueOfficeState.Parse(replacementOffices.Serialize()).OfficeFor("new")=="Marshal" &&
             !replacementOffices.Replace("new","old","Marshal"));
+        var revokedCommission=new SandboxRetinueOfficeState();
+        Check("a revoked royal commission can be filled only when the office is vacant",
+            revokedCommission.Register("departed","Marshal") &&
+            revokedCommission.Revoke("departed") &&
+            revokedCommission.FillRevokedVacancy("departed","replacement","Marshal") &&
+            !revokedCommission.FillRevokedVacancy("departed","duplicate","Marshal") &&
+            !revokedCommission.FillRevokedVacancy("unknown","other","Kingsguard") &&
+            revokedCommission.OfficeFor("replacement")=="Marshal");
         var branchCandidates=new Dictionary<string,SandboxLordSuccessionPolicy.Candidate[]>
         {
             {"deadchild",new[]{new SandboxLordSuccessionPolicy.Candidate("grandchild",22,false,0,true,true,true)}},
