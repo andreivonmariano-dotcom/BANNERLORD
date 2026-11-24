@@ -164,6 +164,23 @@ namespace CalradiaUnified
             return Events.LastOrDefault(e=>e.Kind=="GroupCouncilChoice" &&
                 e.Actor==player && e.Target==speaker);
         }
+        public bool RecordRelationshipIntention(string player,string speaker,string intention,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(speaker) ||
+                player==speaker || player.Length>80 || speaker.Length>80 || day<0 || day>2000000 ||
+                (intention!="Repair" && intention!="Care"))return false;
+            string marker="day="+day.ToString(System.Globalization.CultureInfo.InvariantCulture)+"|";
+            if(Events.Any(e=>e.Kind=="RelationshipIntention" && e.Actor==player &&
+                e.Target==speaker && e.Detail.StartsWith(marker,StringComparison.Ordinal)))return false;
+            return Remember("RelationshipIntention",player,speaker,marker+"intention="+intention);
+        }
+        public Event LatestRelationshipIntention(string player,string speaker)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(speaker) ||
+                player==speaker)return null;
+            return Events.LastOrDefault(e=>e.Kind=="RelationshipIntention" &&
+                e.Actor==player && e.Target==speaker);
+        }
         public bool Remember(string kind,string actor,string target,
             string detail)
         {
