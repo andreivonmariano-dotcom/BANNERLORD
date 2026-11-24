@@ -184,6 +184,18 @@ internal static class Program
             savedCourtTalk.LatestGroupDiscussion("player","absent")==null &&
             !savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",1) &&
             savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",2));
+        var repairTalk=new SandboxLifeHistoryState();
+        Check("relationship intention records valid actual pair and bounded daily choice",
+            !repairTalk.RecordRelationshipIntention("player","player","Care",1) &&
+            !repairTalk.RecordRelationshipIntention("player","spouse","Betrayal",1) &&
+            repairTalk.RecordRelationshipIntention("player","spouse","Repair",1) &&
+            !repairTalk.RecordRelationshipIntention("player","spouse","Care",1) &&
+            repairTalk.RecordRelationshipIntention("player","spouse","Care",2));
+        var savedRepair=SandboxLifeHistoryState.Parse(repairTalk.Serialize());
+        Check("relationship intentions persist but do not belong to a successor or stranger",
+            savedRepair.LatestRelationshipIntention("player","spouse").Detail=="day=2|intention=Care" &&
+            savedRepair.LatestRelationshipIntention("successor","spouse")==null &&
+            savedRepair.LatestRelationshipIntention("player","other")==null);
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
