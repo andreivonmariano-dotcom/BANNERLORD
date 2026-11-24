@@ -1205,6 +1205,36 @@ internal static class Program
             SandboxOriginProfile.Roles.Where(p=>
                 !SandboxStartingLifePolicy.SevenPaths.Contains(p)).All(p=>
                     SandboxStartingLifePolicy.CareerContract(p)==""));
+        foreach(string guidedPath in SandboxStartingLifePolicy.SevenPaths)
+        {
+            var singlePathDraft=new SandboxOriginProfile{
+                Role=guidedPath,KnightOrigin="YoungerSibling",SoldierEntryRank="Captain",
+                NobleBirthPosition="YoungerBrotherOfLord",NobleElderHeroId="elder",
+                SpouseEnabled=true,ChildCount=1,SiblingCount=1,StartingKingdomId="vlandia"};
+            Check("single guided career clears retired subtype "+guidedPath,
+                singlePathDraft.NormalizeGuidedCareerDraft() &&
+                singlePathDraft.Role==guidedPath &&
+                singlePathDraft.KnightOrigin=="SwornHouse" &&
+                singlePathDraft.SoldierEntryRank=="Recruit" &&
+                singlePathDraft.NobleBirthPosition=="Independent" &&
+                singlePathDraft.NobleElderHeroId=="" &&
+                singlePathDraft.SpouseEnabled && singlePathDraft.ChildCount==1 &&
+                singlePathDraft.SiblingCount==1 &&
+                singlePathDraft.StartingKingdomId=="vlandia" &&
+                SandboxOriginProfile.Parse(singlePathDraft.Serialize()).KnightOrigin=="SwornHouse");
+        }
+        var retiredCareerDraft=new SandboxOriginProfile{
+            Role="NobleCadet",NobleBirthPosition="YoungerBrotherOfLord",
+            NobleElderHeroId="elder",KnightOrigin="YoungerSibling",SoldierEntryRank="Captain"};
+        Check("legacy role parser survives but is rejected by new guided career normalization",
+            !retiredCareerDraft.NormalizeGuidedCareerDraft() &&
+            retiredCareerDraft.Role=="NobleCadet" &&
+            retiredCareerDraft.NobleBirthPosition=="YoungerBrotherOfLord" &&
+            retiredCareerDraft.KnightOrigin=="YoungerSibling" &&
+            SandboxOriginProfile.Parse(retiredCareerDraft.Serialize()).Role=="NobleCadet");
+        Check("legacy knight and soldier profile values still parse unchanged",
+            SandboxOriginProfile.Parse("Role=Knight\nKnightOrigin=YoungerSibling\n").KnightOrigin=="YoungerSibling" &&
+            SandboxOriginProfile.Parse("Role=Soldier\nSoldierEntryRank=Captain\n").SoldierEntryRank=="Captain");
         Check("political office independent of recorded career",
             SandboxStartingLifePolicy.PoliticalStanding(true,true,true,false)=="Native ruler" &&
             SandboxStartingLifePolicy.PoliticalStanding(false,true,true,false)=="Ruling-clan member" &&
