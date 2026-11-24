@@ -41,7 +41,9 @@ assert '"cu_knight_oath_confirm_break"' in native
 assert 'your personal oath' in origin
 assert 'Native relationship:' in native
 assert 'patron.Clan.Name.ToString()' in native
-assert 'KnightOrigin","Your knightly origin"' in vm
+assert 'KnightOrigin","Your knightly origin"' not in vm
+assert 'candidate.NormalizeGuidedCareerDraft()' in vm
+assert 'KnightOrigin="SwornHouse";' in profile
 assert '30-day muster' in vm
 assert 'public const string Version="CU_KNIGHT_OATH_1";' in state
 for token in ('MusterDays=30','MusterWindowDays=7','Status="SuccessionPending"',
