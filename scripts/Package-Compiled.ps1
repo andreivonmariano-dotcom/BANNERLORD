@@ -37,7 +37,46 @@ $bins = Join-Path $stage 'bin\Win64_Shipping_Client'
 New-Item -ItemType Directory -Path $bins -Force | Out-Null
 Copy-Item $source (Join-Path $bins 'CalradiaUnified.dll')
 $version = [string]$x.Module.Version.value
-if ($version -notmatch '^v[0-9]+[.][0-9]+[.][0-9]+$') { throw 'Unexpected manifest version.' }
+if ($version -notmatch '^v[0-9]+[.][0-9]+[.][0-9]+
+$package = Join-Path $root ("CalradiaUnified_" + $version + "_COMPILED_UNTESTED.zip")
+if (Test-Path $package) { Remove-Item $package -Force }
+Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
+if (-not (Test-Path $package)) { throw 'Archive creation failed' }
+Write-Host "Compiled, untested module artifact: $package"
+Write-Host 'Not certified in-game. Do not call this a final release until runtime/save tests pass.'
+) { throw 'Unexpected manifest version.' }
+if ($assembly.Version.ToString() -ne ($version.Substring(1)+'.0')) {
+    throw 'Assembly and manifest version mismatch.'
+}
+# The CI compiler embeds its checkout SHA via SourceRevisionId.
+# Refuse CI packaging if the compiled binary does not identify that checkout.
+$info = [Diagnostics.FileVersionInfo]::GetVersionInfo($source).ProductVersion
+$revision = [string]$env:GITHUB_SHA
+if ($env:GITHUB_ACTIONS -eq 'true') {
+    if ($revision -notmatch '^[a-f0-9]{40}
+$package = Join-Path $root ("CalradiaUnified_" + $version + "_COMPILED_UNTESTED.zip")
+if (Test-Path $package) { Remove-Item $package -Force }
+Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
+if (-not (Test-Path $package)) { throw 'Archive creation failed' }
+Write-Host "Compiled, untested module artifact: $package"
+Write-Host 'Not certified in-game. Do not call this a final release until runtime/save tests pass.'
+ -or
+        -not $info.Contains($revision)) { throw 'CI DLL source revision mismatch.' }
+} else {
+    $revision = 'unverified-local'
+}
+$identity = [ordered]@{
+    module_id = 'CalradiaUnified'
+    manifest_version = $version
+    assembly_version = $assembly.Version.ToString()
+    informational_version = $info
+    source_commit = $revision
+    ci_run_id = [string]$env:GITHUB_RUN_ID
+    dll_sha256 = (Get-FileHash -LiteralPath $source -Algorithm SHA256).Hash.ToLowerInvariant()
+    acceptance = 'COMPILED_UNTESTED'
+    target_game = '1.5.7.125802'
+}
+$identity | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $stage 'ModuleData\CU-BuildIdentity.json') -Encoding UTF8
 $package = Join-Path $root ("CalradiaUnified_" + $version + "_COMPILED_UNTESTED.zip")
 if (Test-Path $package) { Remove-Item $package -Force }
 Compress-Archive -Path (Join-Path $root 'Modules') -DestinationPath $package -CompressionLevel Optimal
