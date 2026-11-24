@@ -193,6 +193,15 @@ namespace CalradiaUnified
                 return "ModeledInterest";
             return "ModeledDefer";
         }
+        public string[] PrioritizePeers(IEnumerable<string> ids,int limit)
+        {
+            if(ids==null || limit<=0)return new string[0];
+            return ids.Where(Id).Distinct(StringComparer.Ordinal)
+                .OrderBy(id=>entries.Count(e=>e.Actor==id || e.Target==id))
+                .ThenBy(id=>entries.Where(e=>e.Actor==id || e.Target==id)
+                    .Select(e=>e.Day).DefaultIfEmpty(-1).Max())
+                .ThenBy(id=>id,StringComparer.Ordinal).Take(Math.Min(limit,64)).ToArray();
+        }
         private bool CanRecord(string actor,string target,int day)
         {
             return Id(actor) && Id(target) && actor!=target && day>=0 &&
