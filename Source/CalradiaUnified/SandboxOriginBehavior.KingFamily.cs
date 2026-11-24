@@ -60,7 +60,8 @@ namespace CalradiaUnified
             {
                 var born=spouse.OriginClan;
                 var fatherOfSpouse=spouse.Father;var motherOfSpouse=spouse.Mother;
-                bool foreign=born!=null && born!=clan && !born.IsEliminated &&
+                bool foreign=SandboxGeneratedSpouseOrigin.EligibleForeignNobleClan(born,clan==null?null:clan.Kingdom) &&
+                    born!=null && born!=clan && !born.IsEliminated &&
                     !born.IsBanditFaction && !born.IsRebelClan && born.Kingdom!=null &&
                     born.Kingdom.StringId==profile.StartingKingdomId;
                 bool both=fatherOfSpouse!=null && motherOfSpouse!=null;
