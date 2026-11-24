@@ -39,7 +39,16 @@ namespace CalradiaUnified
         public bool Begin(string id,string kind,int day)
         {
             if(!ValidId(id)||!ValidKind(kind)||day<0 ||
-                Stories.Count>=16 || For(id)!=null)return false;
+                day>2000000)return false;
+            var previous=For(id);
+            // A later eligible invitation can start a new personal story.
+            if(previous!=null)
+            {
+                if((long)day-previous.StartedDay<70 ||
+                    day<=previous.ResolvedDay || day<=previous.FollowUpDay)return false;
+                Stories.Remove(previous);
+            }
+            else if(Stories.Count>=16)return false;
             Stories.Add(new Story{
                 HeroId=id,Kind=kind,StartedDay=day});
             return true;
@@ -50,7 +59,7 @@ namespace CalradiaUnified
             var story=For(id);
             if(story==null || story.Outcome!="Pending" ||
                 day<story.StartedDay || day<0 ||
-                Math.Abs(nativeRelationDelta)>100)return false;
+                nativeRelationDelta< -100 || nativeRelationDelta>100)return false;
             if(accepted && story.Kind!="Recognition" &&
                 !nativePaymentVerified)return false;
             story.Outcome=accepted?"Supported":"Declined";
@@ -122,7 +131,7 @@ namespace CalradiaUnified
                         CultureInfo.InvariantCulture,out relation) ||
                     (f[7]!="0"&&f[7]!="1") ||
                     start<0||resolved< -1||follow< -1 ||
-                    Math.Abs(relation)>100 || result.For(f[0])!=null ||
+                    relation< -100 || relation>100 || result.For(f[0])!=null ||
                     (f[2]=="Pending" && resolved!=-1) ||
                     (f[2]!="Pending" && resolved<start) ||
                     (follow>=0 && (resolved<0 ||
