@@ -19,7 +19,39 @@ namespace CalradiaUnified
         public string PendingHeroId="",PendingKind="";
         public int PendingOpenedDay;
         public readonly List<Record> Records=new List<Record>();
+        public const int MaxPending=8;
+        public sealed class PendingRequest
+        {
+            public string HeroId="",Kind="";
+            public int OpenedDay;
+        }
+        private readonly List<PendingRequest> waiting=new List<PendingRequest>();
         public bool HasPending{get{return PendingHeroId.Length>0;}}
+        public PendingRequest[] PendingRequests
+        {
+            get{return (HasPending?new[]{new PendingRequest{HeroId=PendingHeroId,Kind=PendingKind,OpenedDay=PendingOpenedDay}}:
+                new PendingRequest[0]).Concat(waiting.Select(x=>new PendingRequest{HeroId=x.HeroId,Kind=x.Kind,OpenedDay=x.OpenedDay})).ToArray();}
+        }
+        public int PendingCount{get{return (HasPending?1:0)+waiting.Count;}}
+        public PendingRequest PendingFor(string id){return PendingRequests.FirstOrDefault(x=>x.HeroId==id);}
+        public bool HasRoom{get{return PendingCount<MaxPending;}}
+        public bool SelectPending(string id)
+        {
+            if(!HasPending)return false;
+            if(PendingHeroId==id)return true;
+            var next=waiting.FirstOrDefault(x=>x.HeroId==id);
+            if(next==null)return false;
+            waiting.Remove(next);
+            waiting.Insert(0,new PendingRequest{HeroId=PendingHeroId,Kind=PendingKind,OpenedDay=PendingOpenedDay});
+            PendingHeroId=next.HeroId;PendingKind=next.Kind;PendingOpenedDay=next.OpenedDay;
+            return true;
+        }
+        public bool RemovePending(string id,string reason)
+        {
+            if(PendingFor(id)==null)return false;
+            if(PendingHeroId==id){Dismiss(reason);return true;}
+            return waiting.RemoveAll(x=>x.HeroId==id)==1;
+        }
         public Record For(string id)
         {
             return Records.FirstOrDefault(x=>x.HeroId==id);
@@ -38,14 +70,17 @@ namespace CalradiaUnified
         public void Tick()
         {
             if(Day<Int32.MaxValue)Day++;
-            if(HasPending && Day-PendingOpenedDay>=
-                SandboxAgencyDecisionPolicy.ExpiryDays)
-                Dismiss("Expired");
+            foreach(var request in PendingRequests.Where(x=>(long)Day-x.OpenedDay>=SandboxAgencyDecisionPolicy.ExpiryDays))
+                RemovePending(request.HeroId,"Expired");
         }
         public bool Propose(string heroId,string kind)
         {
-            if(HasPending || String.IsNullOrWhiteSpace(heroId) ||
-                SandboxAgencyDecisionPolicy.Amount(kind)<0)return false;
+            return !HasPending && Enqueue(heroId,kind);
+        }
+        public bool Enqueue(string heroId,string kind)
+        {
+            if(!HasRoom || PendingFor(heroId)!=null || String.IsNullOrWhiteSpace(heroId) ||
+                heroId.Length>160 || SandboxAgencyDecisionPolicy.Amount(kind)<0)return false;
             var r=For(heroId);
             if(r==null)
             {
@@ -60,9 +95,8 @@ namespace CalradiaUnified
                 return false;
             r.RequestsMade++;
             r.LastDay=Day;
-            PendingHeroId=heroId;
-            PendingKind=kind;
-            PendingOpenedDay=Day;
+            if(!HasPending){PendingHeroId=heroId;PendingKind=kind;PendingOpenedDay=Day;}
+            else waiting.Add(new PendingRequest{HeroId=heroId,Kind=kind,OpenedDay=Day});
             return true;
         }
         public string Dismiss(string reason)
@@ -70,6 +104,11 @@ namespace CalradiaUnified
             if(!HasPending)return "none";
             PendingHeroId="";PendingKind="";
             PendingOpenedDay=0;
+            if(waiting.Count>0)
+            {
+                var next=waiting[0];waiting.RemoveAt(0);
+                PendingHeroId=next.HeroId;PendingKind=next.Kind;PendingOpenedDay=next.OpenedDay;
+            }
             return reason;
         }
         private static string E(string s)
@@ -90,13 +129,14 @@ namespace CalradiaUnified
         public string Serialize()
         {
             var rows=new List<string>{
-                "CU_AGENCY_1",
+                waiting.Count==0?"CU_AGENCY_1":"CU_AGENCY_2",
                 Day+"|"+E(PendingHeroId)+"|"+E(PendingKind)+
                     "|"+PendingOpenedDay};
             foreach(var r in Records.OrderBy(x=>x.HeroId,
                 StringComparer.Ordinal))
                 rows.Add("R|"+E(r.HeroId)+"|"+r.LastDay+"|"+
                     r.RequestsMade);
+            foreach(var p in waiting)rows.Add("Q|"+E(p.HeroId)+"|"+E(p.Kind)+"|"+p.OpenedDay);
             return String.Join("\n",rows);
         }
         public static SandboxAgencyDecisionState Parse(string packed)
@@ -105,7 +145,8 @@ namespace CalradiaUnified
             if(String.IsNullOrEmpty(packed) || packed.Length>131072)
                 return result;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length<2 || rows.Length>66 || rows[0]!="CU_AGENCY_1")
+            bool queued=rows[0]=="CU_AGENCY_2";
+            if(rows.Length<2 || rows.Length>(queued?73:66) || (!queued && rows[0]!="CU_AGENCY_1"))
                 return result;
             var head=rows[1].Split('|');
             int day,opened;
@@ -123,7 +164,7 @@ namespace CalradiaUnified
                 result.PendingKind=kind;
                 result.PendingOpenedDay=opened;
             }
-            foreach(var row in rows.Skip(2).Take(64))
+            foreach(var row in rows.Skip(2).Where(x=>x.StartsWith("R|",StringComparison.Ordinal)).Take(64))
             {
                 var f=row.Split('|');
                 int last,count;
@@ -151,6 +192,18 @@ namespace CalradiaUnified
                     pendingRecord.LastDay!=result.PendingOpenedDay)
                     result.Dismiss("UnverifiedRestoredRequest");
             }
+            if(queued)
+                foreach(var row in rows.Skip(2).Where(x=>x.StartsWith("Q|",StringComparison.Ordinal)).Take(MaxPending-1))
+                {
+                    var q=row.Split('|');int openedDay;
+                    if(q.Length!=4 || !Int32.TryParse(q[3],out openedDay) || openedDay<0 || openedDay>day ||
+                        (long)day-openedDay>=SandboxAgencyDecisionPolicy.ExpiryDays)continue;
+                    string id=D(q[1]),k=D(q[2]);var quota=result.For(id);
+                    if(id.Length==0 || quota==null || quota.LastDay!=openedDay ||
+                        SandboxAgencyDecisionPolicy.Amount(k)<0 || result.PendingFor(id)!=null || !result.HasRoom)continue;
+                    if(!result.HasPending){result.PendingHeroId=id;result.PendingKind=k;result.PendingOpenedDay=openedDay;}
+                    else result.waiting.Add(new PendingRequest{HeroId=id,Kind=k,OpenedDay=openedDay});
+                }
             return result;
         }
     }

@@ -69,7 +69,7 @@ namespace CalradiaUnified
         {
             int day=CurrentHouseholdDay();
             var player=Hero.MainHero;
-            int count=agencyDecisions.HasPending?1:0;
+            int count=agencyDecisions.PendingCount;
             count+=petitionStories.Stories.Count(s=>petitionStories.CanFollowUp(s.HeroId,day) &&
                 LivingFollowUp(s.HeroId,day));
             if(IsPersonalChargeActive())count++;
@@ -182,7 +182,7 @@ namespace CalradiaUnified
             var ids=new HashSet<string>(petitionStories.Stories.Select(s=>s.HeroId),StringComparer.Ordinal);
             foreach(var news in characterAgendas.Entries.Where(e=>e.NewsRecipient==player.StringId && e.NewsDay>=0))
                 ids.Add(news.Id);
-            if(agencyDecisions.HasPending)ids.Add(agencyDecisions.PendingHeroId);
+            foreach(var request in agencyDecisions.PendingRequests)ids.Add(request.HeroId);
             if(knightOath.HasCurrentOath)ids.Add(knightOath.PatronId);
             foreach(var office in new[]{"Steward","Captain","Envoy"})
                 ids.Add(householdDuties.AssignedId(office));
@@ -192,23 +192,22 @@ namespace CalradiaUnified
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
             Func<string,Hero> find=id=>!String.IsNullOrEmpty(id) && known.ContainsKey(id)?known[id]:null;
-            if(agencyDecisions.HasPending)
+            foreach(var request in agencyDecisions.PendingRequests)
             {
-                var p=find(agencyDecisions.PendingHeroId);
-                var pendingStory=petitionStories.For(agencyDecisions.PendingHeroId);
-                rows.Add(new SandboxAffair{Id="request:"+agencyDecisions.PendingHeroId,
-                    Category="Letters",HeroId=agencyDecisions.PendingHeroId,Title=AffairPerson(p)+" | Petition",
+                var p=find(request.HeroId);
+                var pendingStory=petitionStories.For(request.HeroId);
+                rows.Add(new SandboxAffair{Id="request:"+request.HeroId,
+                    Category="Letters",HeroId=request.HeroId,Title=AffairPerson(p)+" | Petition",
                     Status=p==null?"Person unavailable":"Awaiting your answer",Pending=true,
-                    Day=pendingStory!=null && pendingStory.Kind==agencyDecisions.PendingKind?
-                        pendingStory.StartedDay:Math.Max(0,day-(agencyDecisions.Day-agencyDecisions.PendingOpenedDay)),
+                    Day=pendingStory!=null && pendingStory.Kind==request.Kind?
+                        pendingStory.StartedDay:Math.Max(0,day-(agencyDecisions.Day-request.OpenedDay)),
                     Detail=(pendingStory!=null && pendingStory.Letter.Length>0?pendingStory.Letter:
-                        PetitionConcern(agencyDecisions.PendingKind))+"\n\n"+
+                        PetitionConcern(request.Kind))+"\n\n"+
                         AffairLocation(p)+"\nSpeak with this person about their affairs. The journal cannot answer for you."});
             }
             foreach(var story in petitionStories.Stories)
             {
-                if(story.Outcome=="Pending" && agencyDecisions.HasPending &&
-                    agencyDecisions.PendingHeroId==story.HeroId)continue;
+                if(story.Outcome=="Pending" && agencyDecisions.PendingFor(story.HeroId)!=null)continue;
                 var p=find(story.HeroId);
                 bool due=p!=null && p.IsAlive &&
                     petitionStories.CanFollowUp(story.HeroId,day);

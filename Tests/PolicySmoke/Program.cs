@@ -3642,6 +3642,28 @@ internal static class Program
             !SandboxAgencyDecisionState.Parse(
                 "CU_AGENCY_1\n50|brother|HouseholdAid|15"+
                 "\nR|brother|15|1").HasPending);
+        var pendingQueue=new SandboxAgencyDecisionState{Day=15};
+        pendingQueue.Enqueue("first","HouseholdAid");
+        pendingQueue.Day=20;
+        pendingQueue.Enqueue("second","Recognition");
+        pendingQueue.Enqueue("third","Audience");
+        var restoredQueue=SandboxAgencyDecisionState.Parse(pendingQueue.Serialize());
+        Check("multiple petitions persist, exact speaker selection and removal do not consume another request",
+            restoredQueue.PendingCount==3 && !restoredQueue.Enqueue("second","Audience") &&
+            restoredQueue.SelectPending("second") && restoredQueue.PendingKind=="Recognition" &&
+            restoredQueue.Dismiss("Declined")=="Declined" && restoredQueue.PendingCount==2 &&
+            restoredQueue.PendingFor("first").Kind=="HouseholdAid" && restoredQueue.PendingFor("third").Kind=="Audience");
+        restoredQueue.Day=49;restoredQueue.Tick();
+        Check("queued petitions expire independently and legacy single petition remains readable",
+            restoredQueue.PendingCount==1 && restoredQueue.PendingFor("first")==null &&
+            restoredQueue.PendingFor("third")!=null &&
+            SandboxAgencyDecisionState.Parse("CU_AGENCY_1\n15|legacy|HouseholdAid|15\nR|legacy|15|1").PendingCount==1);
+        var cappedRequests=new SandboxAgencyDecisionState{Day=15};
+        for(int q=0;q<SandboxAgencyDecisionState.MaxPending;q++)cappedRequests.Enqueue("queue_"+q,"Audience");
+        Check("bounded request queue refuses overflow without consuming quota",
+            !cappedRequests.HasRoom && !cappedRequests.Enqueue("overflow","Audience") &&
+            cappedRequests.For("overflow")==null &&
+            SandboxAgencyDecisionState.Parse(cappedRequests.Serialize()).PendingCount==SandboxAgencyDecisionState.MaxPending);
         var nearMaxNpcDay=new SandboxAgencyDecisionState{
             Day=Int32.MaxValue};
         Check("large campaign day cannot overflow first NPC cooldown",

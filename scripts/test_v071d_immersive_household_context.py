@@ -58,12 +58,13 @@ assert 'Text="Correspondence"' in (
 
 # Every change is made during a real Hero conversation, not by a menu.
 assert 'Hero.OneToOneConversationHero' in petition
-assert 'actor.StringId==agencyDecisions.PendingHeroId' in petition
+assert 'agencyDecisions.PendingFor(actor.StringId)!=null' in petition
+assert 'RequestedCharacter(actor.StringId)==actor' in petition
 assert 'RequestedCharacter()==actor' in petition
 assert 'SamePlace(player,actor)' in petition
 assert 'actor.Age<18f' in petition
 assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in petition
-assert 'agencyDecisions.Propose(actor.StringId,kind)' in petition
+assert 'agencyDecisions.Enqueue(actor.StringId,kind)' in petition
 for text in ("cu_petition_hear_pending","cu_petition_invite",
              "cu_petition_recognition","cu_petition_household",
              "cu_petition_livelihood","cu_petition_accept",

@@ -17,17 +17,22 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             return applied && actor!=null && actor.IsAlive &&
                 actor.IsActive && !actor.IsPrisoner &&
-                agencyDecisions.HasPending &&
-                actor.StringId==agencyDecisions.PendingHeroId &&
-                RequestedCharacter()==actor;
+                agencyDecisions.PendingFor(actor.StringId)!=null &&
+                RequestedCharacter(actor.StringId)==actor;
         }
 
+        private string SpeakingPetitionKind()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var pending=actor==null?null:agencyDecisions.PendingFor(actor.StringId);
+            return pending==null?"":pending.Kind;
+        }
         private string AvailablePetitionForSpeaker()
         {
             var player=Hero.MainHero;
             var actor=Hero.OneToOneConversationHero;
             if(!applied || player==null || actor==null ||
-                agencyDecisions.HasPending || !actor.IsAlive ||
+                (!agencyDecisions.HasRoom || agencyDecisions.PendingFor(actor.StringId)!=null) || !actor.IsAlive ||
                 !actor.IsActive || actor.IsPrisoner ||
                 actor.Age<18f || !SamePlace(player,actor) ||
                 !livingPersons.People.Any(p=>p.Id==actor.StringId))
@@ -68,7 +73,7 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             string kind=AvailablePetitionForSpeaker();
             if(actor==null || kind.Length==0)return;
-            if(agencyDecisions.Propose(actor.StringId,kind))
+            if(agencyDecisions.Enqueue(actor.StringId,kind))
             {
                 RememberPetitionStory(actor,kind);
                 livingPersons.Remember("IndependentCharacterRequest",
@@ -89,7 +94,7 @@ namespace CalradiaUnified
         {
             if(!SpeakingWithPendingPetitioner())return false;
             int cost=SandboxAgencyDecisionPolicy.Amount(
-                agencyDecisions.PendingKind);
+                SpeakingPetitionKind());
             return cost>=0 && Hero.MainHero.Gold>=cost;
         }
 
@@ -97,7 +102,7 @@ namespace CalradiaUnified
         {
             if(!SpeakingWithPendingPetitioner())return false;
             int cost=SandboxAgencyDecisionPolicy.Amount(
-                agencyDecisions.PendingKind);
+                SpeakingPetitionKind());
             return cost>0 && Hero.MainHero.Gold<cost;
         }
 
@@ -132,13 +137,13 @@ namespace CalradiaUnified
                 "cu_petition_answers",
                 "I wished to speak with you about our houses. Let us part with a clear understanding.",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="Audience",null,125);
+                    SpeakingPetitionKind()=="Audience",null,125);
             starter.AddDialogLine(
                 "cu_petition_recognition","cu_petition_open",
                 "cu_petition_answers",
                 "I ask no silver of you. I would like you to acknowledge the work I have done, and hear what I hope to do next.",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="Recognition",
+                    SpeakingPetitionKind()=="Recognition",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_household","cu_petition_open",
@@ -146,7 +151,7 @@ namespace CalradiaUnified
                 "I would rather not burden you with my affairs, but I need help for my household. Could you spare "+
                 SandboxAgencyDecisionPolicy.Amount("HouseholdAid")+" denars?",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="HouseholdAid",
+                    SpeakingPetitionKind()=="HouseholdAid",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_livelihood","cu_petition_open",
@@ -154,7 +159,7 @@ namespace CalradiaUnified
                 "I want to make my own living, not spend my days asking favors. I ask for "+
                 SandboxAgencyDecisionPolicy.Amount("LivelihoodAid")+" denars to make a beginning.",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="LivelihoodAid",
+                    SpeakingPetitionKind()=="LivelihoodAid",
                 null,120);
             starter.AddDialogLine("cu_petition_open_cu_safe_exit","cu_petition_open",
                 "close_window","We can speak again another time.",null,null,1);
@@ -165,7 +170,7 @@ namespace CalradiaUnified
                 "cu_petition_personal_reason","cu_petition_answers",
                 "cu_petition_personal_reason_reply",
                 "What is most important to you in this matter?",
-                ()=>SpeakingWithPendingPetitioner() && agencyDecisions.PendingKind!="Audience",null,90);
+                ()=>SpeakingWithPendingPetitioner() && SpeakingPetitionKind()!="Audience",null,90);
             starter.AddDialogLine(
                 "cu_petition_reason_guarded",
                 "cu_petition_personal_reason_reply",
@@ -212,13 +217,13 @@ namespace CalradiaUnified
                 "cu_petition_accept_audience","cu_petition_answers",
                 "cu_petition_accept_reply",
                 "You have my ear. Let us remain on good terms.",
-                ()=>SpeakingWithPendingPetitioner() && agencyDecisions.PendingKind=="Audience",
+                ()=>SpeakingWithPendingPetitioner() && SpeakingPetitionKind()=="Audience",
                 ()=>AnswerCharacterRequest(true),125);
             starter.AddPlayerLine(
                 "cu_petition_accept","cu_petition_answers",
                 "cu_petition_accept_reply",
                 "I agree to your request.",
-                ()=>CanAcceptPetitionInConversation() && agencyDecisions.PendingKind!="Audience",
+                ()=>CanAcceptPetitionInConversation() && SpeakingPetitionKind()!="Audience",
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
                 "cu_petition_accept_reply","cu_petition_accept_reply",

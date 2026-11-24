@@ -82,9 +82,9 @@ namespace CalradiaUnified
             return settlement!=null &&
                 other.StayingInSettlement==settlement;
         }
-        private Hero RequestedCharacter()
+        private Hero RequestedCharacter(string id=null)
         {
-            var target=FindLivingPerson(agencyDecisions.PendingHeroId);
+            var target=FindLivingPerson(id??agencyDecisions.PendingHeroId);
             return target!=null && target.IsActive && !target.IsPrisoner &&
                 target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
         }
@@ -95,29 +95,26 @@ namespace CalradiaUnified
         }
         private void ObserveAgencyDaily(Hero player)
         {
-            // Repair orphaned pending histories (older save or failed native receipt).
+            // Reconcile every request independently; a distant first petitioner does not block others.
             foreach(var story in petitionStories.Stories.Where(s=>s.Outcome=="Pending" &&
-                (!agencyDecisions.HasPending || agencyDecisions.PendingHeroId!=s.HeroId ||
-                    agencyDecisions.PendingKind!=s.Kind)).ToArray())
+                (agencyDecisions.PendingFor(s.HeroId)==null ||
+                    agencyDecisions.PendingFor(s.HeroId).Kind!=s.Kind)).ToArray())
                 petitionStories.CloseUnanswered(story.HeroId,CurrentHouseholdDay(),"Unconfirmed");
-            string before=agencyDecisions.PendingHeroId;
+            var before=agencyDecisions.PendingRequests;
             agencyDecisions.Tick();
-            if(before.Length>0 && !agencyDecisions.HasPending)
-                petitionStories.CloseUnanswered(before,CurrentHouseholdDay(),"Expired");
-            if(agencyDecisions.HasPending &&
-                FindLivingPerson(agencyDecisions.PendingHeroId)==null)
+            foreach(var request in before)
             {
-                livingPersons.Remember("CharacterRequestExpired",
-                    agencyDecisions.PendingHeroId,"",
-                    "actor_no_longer_alive_or_loaded");
-                petitionStories.CloseUnanswered(agencyDecisions.PendingHeroId,
-                    CurrentHouseholdDay(),"Unavailable");
-                agencyDecisions.Dismiss("Unavailable");
+                if(agencyDecisions.PendingFor(request.HeroId)==null)
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Expired");
+                else if(FindLivingPerson(request.HeroId)==null)
+                {
+                    livingPersons.Remember("CharacterRequestExpired",request.HeroId,"","actor_no_longer_alive_or_loaded");
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Unavailable");
+                    agencyDecisions.RemovePending(request.HeroId,"Unavailable");
+                }
             }
-            if(agencyDecisions.Day>=15 && agencyDecisions.Day%5==0 && !agencyDecisions.HasPending)
+            if(agencyDecisions.Day>=15 && agencyDecisions.Day%5==0 && agencyDecisions.HasRoom)
                 OfferLocalCharacterRequest(player);
-            // Separate read-only ordinary news never occupies the one
-            // pending petition slot or adds a notification requiring action.
             ObserveOrdinaryCorrespondence(player);
         }
         private bool CanWriteDistantPetition(Hero player,Hero actor)
@@ -148,7 +145,7 @@ namespace CalradiaUnified
                 livingPersons.People.Select(p=>p.Id),StringComparer.Ordinal);
             var candidates=Hero.AllAliveHeroes.Where(h=>h!=null && h!=player &&
                 eligible.Contains(h.StringId) && known.Contains(h.StringId) &&
-                !SamePlace(player,h) && h.StringId!=agencyDecisions.PendingHeroId &&
+                !SamePlace(player,h) && agencyDecisions.PendingFor(h.StringId)==null &&
                 CanWriteDistantPetition(player,h))
                 .OrderBy(h=>characterAgendas.Get(h.StringId).NewsDay)
                 .ThenBy(h=>h.StringId,StringComparer.Ordinal);
@@ -168,7 +165,7 @@ namespace CalradiaUnified
         }
         private void OfferLocalCharacterRequest(Hero player)
         {
-            if(player==null || agencyDecisions.HasPending)return;
+            if(player==null || !agencyDecisions.HasRoom)return;
             var ids=agencyDecisions.Prioritize(
                 characterAgendas.Entries.Select(a=>a.Id));
             if(ids.Length==0)return;
@@ -205,7 +202,7 @@ namespace CalradiaUnified
                     hero.GetTraitLevel(DefaultTraits.Calculating),
                     hero.Gold);
                 if(kind.Length==0 || !petitionStories.CanBegin(hero.StringId,kind,CurrentHouseholdDay()))continue;
-                if(agencyDecisions.Propose(hero.StringId,kind))
+                if(agencyDecisions.Enqueue(hero.StringId,kind))
                 {
                     RememberPetitionStory(hero,kind);
                     livingPersons.Remember("IndependentCharacterRequest",
@@ -266,9 +263,11 @@ namespace CalradiaUnified
         {
             petitionDecisionReply="Let us leave that matter unsettled for now.";
             var player=Hero.MainHero;
-            var actor=RequestedCharacter();
+            var speaker=Hero.OneToOneConversationHero;
+            var actor=speaker==null?null:RequestedCharacter(speaker.StringId);
             if(player==null || actor==null ||
-                Hero.OneToOneConversationHero!=actor || !SpeakingWithPendingPetitioner())
+                Hero.OneToOneConversationHero!=actor || !SpeakingWithPendingPetitioner() ||
+                !agencyDecisions.SelectPending(actor.StringId))
             {
                 Notify("Speak with the person directly to answer "+
                     "their petition. No remote decision was made.");
