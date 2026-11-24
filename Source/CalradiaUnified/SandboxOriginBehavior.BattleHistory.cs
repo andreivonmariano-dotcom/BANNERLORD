@@ -153,10 +153,17 @@ namespace CalradiaUnified
                     "|" + kind + "|" + settlement + "|" +
                     participants + "|" + source + "|" + lordId;
                 string key = SandboxBattleHistoryState.EventKey(canonical);
+                // Evidence at the native completed-battle callback, not
+                // the player's employer at the later conversation.
+                var clan=Clan.PlayerClan;
+                bool mercenary=source=="PlayerParty" && clan!=null &&
+                    clan.IsUnderMercenaryService && clan.Kingdom!=null;
+                string mercenaryHeroId=mercenary?Hero.MainHero.StringId:"";
+                string mercenaryKingdomId=mercenary?clan.Kingdom.StringId:"";
                 if (!battleHistory.RecordObserved(key, day, kind,
                     outcome, source, settlement, lordId,
                     patronWitnessId, fallen, wounded,
-                    woundedHeroes, fallenHeroes))
+                    woundedHeroes, fallenHeroes,mercenaryHeroId,mercenaryKingdomId))
                     return;
                 DiagnosticJournal.Event("cu_native_battle_witness",
                     "day=" + day + "|kind=" + kind +
@@ -167,6 +174,7 @@ namespace CalradiaUnified
                     "|clan_wounded_heroes=" + woundedHeroes +
                     "|clan_fallen_heroes=" + fallenHeroes +
                     "|same_side_patron=" + patronWitnessId +
+                    "|mercenary_kingdom=" + mercenaryKingdomId +
                     "|personal_kills_not_claimed=true");
             }
             catch (Exception error)

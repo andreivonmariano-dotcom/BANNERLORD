@@ -13,7 +13,7 @@ namespace CalradiaUnified
     public sealed class SandboxPetitionStoryState
     {
         public const string Version="CU_PETITION_STORIES_1";
-        public const int FollowUpDays=7;
+        public const int FollowUpDays=7, MaxStories=64;
         public sealed class Story
         {
             public string HeroId="",Kind="",Outcome="Pending";
@@ -48,7 +48,7 @@ namespace CalradiaUnified
                     day<=previous.ResolvedDay || day<=previous.FollowUpDay)return false;
                 Stories.Remove(previous);
             }
-            else if(Stories.Count>=16)return false;
+            else if(Stories.Count>=MaxStories)return false;
             Stories.Add(new Story{
                 HeroId=id,Kind=kind,StartedDay=day});
             return true;
@@ -118,9 +118,9 @@ namespace CalradiaUnified
         public static SandboxPetitionStoryState Parse(string input)
         {
             var empty=new SandboxPetitionStoryState();
-            if(String.IsNullOrEmpty(input)||input.Length>4500)return empty;
+            if(String.IsNullOrEmpty(input)||input.Length>16384)return empty;
             var lines=input.Replace("\r","").Split('\n');
-            if(lines[0]!=Version||lines.Length>17)return empty;
+            if(lines[0]!=Version||lines.Length>MaxStories+1)return empty;
             var result=new SandboxPetitionStoryState();
             foreach(var line in lines.Skip(1))
             {

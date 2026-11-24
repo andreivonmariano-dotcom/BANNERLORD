@@ -69,6 +69,24 @@ internal static class Program
                 "PlayerParty","","","patron",1,1,"hero_a","hero_b") &&
             !reconciledBattles.Record(reconciledKey,1,"Field","Victory","PlayerParty","","") &&
             SandboxBattleHistoryState.Parse(reconciledBattles.Serialize()).Entries[0].PartyDead==1);
+        var mercenaryWitness=new SandboxBattleHistoryState();
+        Check("mercenary battle witness requires native player and employer together",
+            !mercenaryWitness.RecordObserved(SandboxBattleHistoryState.EventKey("incomplete"),5,
+                "Field","Victory","PlayerParty","","","",-1,-1,"","","hero_a","") &&
+            mercenaryWitness.RecordObserved(SandboxBattleHistoryState.EventKey("mercenary"),6,
+                "Field","Victory","PlayerParty","","","",-1,-1,"","","hero_a","kingdom_a") &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_a",5)==6 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_b","kingdom_a",5)==-1 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_b",5)==-1 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_a",6)==-1 &&
+            SandboxBattleHistoryState.Parse(mercenaryWitness.Serialize())
+                .LatestMercenaryVictory("hero_a","kingdom_a",5)==6);
+        Check("legacy version two battle never proves mercenary employer",
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_2\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||||-1|-1||").Entries.Count==1 &&
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_2\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||||-1|-1||")
+                .LatestMercenaryVictory("hero_a","kingdom_a",0)==-1);
         Check("legacy battle schema preserves unknown casualty counts",
             SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_1\n"+reconciledKey+
                 "|1|Field|Victory|PlayerParty||").Entries[0].PartyDead==-1);
@@ -456,6 +474,14 @@ internal static class Program
             !petitionStory.CanRecall("actor_1",2) &&
             petitionStory.CanRecall("actor_1",10) &&
             SandboxPetitionStoryState.Parse(petitionStory.Serialize()).CanRecall("actor_1",30));
+        var fullStoryLedger=new SandboxPetitionStoryState();
+        bool storiesRecorded=true;
+        for(int i=0;i<SandboxPetitionStoryState.MaxStories;i++)
+            storiesRecorded &= fullStoryLedger.Begin("person_"+i,"Recognition",1);
+        Check("petition history accommodates all 64 tracked people and survives reload",
+            storiesRecorded && !fullStoryLedger.Begin("overflow","Recognition",1) &&
+            SandboxPetitionStoryState.Parse(fullStoryLedger.Serialize()).Stories.Count==
+                SandboxPetitionStoryState.MaxStories);
         var dueStory=new SandboxPetitionStoryState();
         Check("due follow-up takes precedence over ordinary recollection",
             dueStory.Begin("actor_due","Recognition",1) &&

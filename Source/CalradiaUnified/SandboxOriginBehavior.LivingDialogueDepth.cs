@@ -234,9 +234,8 @@ namespace CalradiaUnified
                 case "CompanyBattle":
                     if(clan.Kingdom==null)return false;
                     target=clan.Kingdom.StringId;
-                    value=battleHistory.Entries.Where(e=>e.Source=="PlayerParty" &&
-                        e.Outcome=="Victory" && e.Day>careerCharge.StartedDay)
-                        .Select(e=>e.Day).DefaultIfEmpty(-1).Max();
+                    value=battleHistory.LatestMercenaryVictory(player.StringId,
+                        careerCharge.TargetId,careerCharge.StartedDay);
                     break;
                 case "ServeWeek":
                     var service=SandboxSaSBridge.Read();
@@ -267,6 +266,10 @@ namespace CalradiaUnified
             if(!IsPersonalChargeActive())return ChargeDescription();
             if(SelectedReviewRole()!=careerCharge.Role)
                 return "Our calling has changed. Let us set the former charge aside.";
+            if(careerCharge.Kind=="CompanyBattle" && (Clan.PlayerClan==null ||
+                !Clan.PlayerClan.IsUnderMercenaryService || Clan.PlayerClan.Kingdom==null ||
+                Clan.PlayerClan.Kingdom.StringId!=careerCharge.TargetId))
+                return "That promise was made to another employer. We can set it aside.";
             if(!ObserveChargeCompletion())return "The charge is not yet fulfilled. "+ChargeDescription();
             var player=Hero.MainHero;
             int day=CurrentHouseholdDay();

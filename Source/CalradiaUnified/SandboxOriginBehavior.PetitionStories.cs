@@ -23,13 +23,18 @@ namespace CalradiaUnified
             string kind,bool paymentVerified,
             int relationDelta,bool relationVerified)
         {
-            if(person==null || !relationVerified)return;
+            if(person==null)return;
+            // A verified gift or an explicit refusal remains a real
+            // decision even if the native relation effect is unconfirmed.
+            // Recognition still needs its actual native effect.
+            if(accepted && !relationVerified && !paymentVerified)return;
             int decisionDay=(int)Math.Floor(CampaignTime.Now.ToDays);
-            bool socialRecorded=socialBonds.RecordPetition(
+            bool socialRecorded=relationVerified && socialBonds.RecordPetition(
                 person.StringId,accepted,relationDelta,decisionDay);
             DiagnosticJournal.Event("cu_social_native_decision",
                 "hero="+person.StringId+
-                "|verified_relation_delta="+relationDelta+
+                "|observed_relation_delta="+relationDelta+
+                "|relation_effect_verified="+relationVerified+
                 "|accepted="+accepted+
                 "|social_receipt="+socialRecorded+
                 "|native_relation_not_overridden=true");
