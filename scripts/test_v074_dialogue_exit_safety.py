@@ -73,3 +73,27 @@ assert '"cu_export_diagnostics"' not in diag
 assert "CaptureDay()" in diag and "campaign_session_launched" in diag
 assert (root/"scripts"/"Export-CU-Diagnostics.ps1").is_file()
 print(f"PASS v0.74 conversation safety: {len(ids)} CU registrations, {len(states)-1} custom input states; all player states have unconditional native close, NPC states unconditional reply, resolved alternating edges. SOURCE ONLY.")
+
+# Private topic follow-up is read-only and must never leak another speaker's context.
+depth=(src/"SandboxOriginBehavior.LivingDialogueDepth.cs").read_text()
+follow=depth[depth.index("private string PersonalFollowUpText"):depth.index("private bool PreparePersonalFollowUp")]
+assert 'personalTopicActorId==actor.StringId' in depth
+assert 'CanDiscussPersonalTopic(personalTopicName)' in depth
+assert 'actor==player.Spouse && actor.Spouse==player' in depth
+assert 'h.Father==actor || h.Mother==actor' in depth
+assert '()=>SelectPersonalTopic(topic)' in depth
+assert '"cu_personal_followup_choices","{CU_PERSONAL_TOPIC_REPLY}"' in depth
+assert 'PersonalFollowUpText(false)' in depth and 'PersonalFollowUpText(true)' in depth
+for forbidden in ('GiveGoldAction','ChangeRelationAction','AddToCounts','Remember(','RecordGift','careerCharge.Start','careerCharge.Close','familyGrowth.Revise'):
+    assert forbidden not in follow,("social follow-up mutation",forbidden)
+request=living[living.index("private void AnswerCharacterRequestCore"):living.index("private Clan RecordedBirthClan")]
+assert '!SpeakingWithPendingPetitioner()' in request
+assert request.index('agencyDecisions.Dismiss(relationProof?')<request.index('livingPersons.Remember(\n                relationProof?')
+civic=(src/"CivicBehavior.cs").read_text()
+for key in ("cu_civic_to_stores","cu_civic_to_garrison","cu_civic_to_correspondence","cu_civic_admin_entry_local"):
+    block=civic[civic.index('"'+key+'"'):][:400]
+    assert 'GameMenuOption.LeaveType.Submenu' in block,key
+officer=(src/"SandboxOriginBehavior.NobleOfficerDialogues.cs").read_text()
+assert officer.count('"{CU_OFFICER_TRANSFER_REPLY}"')==2
+assert 'confirmed?"Five of your recruits' in officer
+print("PASS read-only follow-up, speaker binding, petition consumption ordering, civic icon source and officer result reply contracts. SOURCE ONLY.")
