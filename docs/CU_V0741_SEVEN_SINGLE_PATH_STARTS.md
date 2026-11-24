@@ -1,0 +1,29 @@
+# CU seven single-path starts audit — 24 November 2026
+
+Target: Bannerlord 1.5.7.125802 / War Sails 1.3.7.125802. Draft PR #100. Source/test checkpoint f81aad237493cc72d0671a9fc350a6f1634d51f8.
+
+## Live report and root cause
+Player selected Knight -> Younger Sibling, and the start did not work. Source confirmed the guided creator exposed both SwornHouse and YoungerSibling, but SandboxKnightStartPolicy.ValidateRequest explicitly returns native_same_clan_kinship_not_implemented for YoungerSibling. The selector advertised an unsupported native same-clan relationship. No live diagnostic log was supplied, so the exact failing phase of that session is not verified.
+
+## Corrected creator
+The new-game role selector has exactly Wanderer, Outlaw, Mercenary, Soldier, Knight, Lord and King. No career subtype selectors in World or House (KnightOrigin, SoldierEntryRank, NobleBirthPosition, NobleElderHeroId removed). The guided editor rejects writes to retired keys and invalid role values. NormalizeGuidedCareerDraft fixes SwornHouse, Recruit, Independent and blank noble elder at World and House commit, and at the new-game House editor entry. No normalization of loaded campaign/pending Soldier profiles or legacy profile parsing. Historical keys, rank mapping, genealogy and validation remain for compatibility, not selectable starts.
+
+Knight's single contract uses the existing independent native start, real named/picked patron, personal oath, 30-day muster, and default RoleBased Squire. Fixed Knight retinue, fief transfer, holdings, gold, influence, extra troops, owned residence fields are hidden and reject edits. Draft normalization restores those fixed values without deleting chosen spouse, children, ordinary siblings or patron. Actual oath and Squire require native creation and runtime verification. Older-brother restrictions for Knight, Lord and King remain. Removed retired noble-origin/elder text from visible review summary. Normal character identity, attributes, skills, traits, world scenario, applicable kingdom and patron, family configuration and inheritance customs are not alternative career paths; retain them. Wanderer companion customization remains.
+
+Soldier starts with requested Recruit/private as the single default. No CU rank selector; SaS still owns native enlistment, troop/lord, pay and actual rank. Choose the compatible recruit/native private in the provider's own start-enlisted UI if it presents a rank selection. Native provider availability, identity, kingdom, host party, rank validation remain unchanged. Existing saved pending requests retain their original requested ranks.
+
+## Role audit (source contracts, not game-tested)
+- Wanderer: native default; independent clan; no House stage; optional single companion on native wages; test no companion, chosen companion and no stale prior family.
+- Outlaw: native outlaw; independent landless band; six native low-tier bandits, one native lieutenant, 14-day wage reserve and food; optional family. Fourberie owns any crime actions not native. Test actual roster and reserve, no false criminal status or duplicate grants.
+- Mercenary: native mercenary contract in selected kingdom; verified clan and party command, no fief; native pay; optional family. Test employer and contract termination, no SaS misclassification.
+- Soldier: native default applicant; compatible SaS required; actual enlisted recruit/private under real lord, no invented clan contract, rank or wages. Verify provider absent/present, wrong kingdom or rank, pending save/reload.
+- Knight: native default independent landless house; real lord patron, personal oath, Squire; optional family; no native vassalage/fief. Verify in-person oath, muster, escort, release, save/reload, patron unavailable. No younger-sibling start. Native/legacy clan-kin binding is not implemented for the new Knight.
+- Lord: native vassal house and actual owned fief; real noble spouse and at least one child; Master of Arms and Knight, optional siblings. Test real spouse ancestry, ownership, officer membership, no fabricated fief, invalid donor.
+- King: native ruling clan and actual royal fief; real spouse and at least one child; Marshal, Minister and one Kingsguard; verified native governor seat. Test crown, court, family, real seat and loss of crown; succession claims not native appointment.
+
+## Verification
+19 independent source contracts passed. Eleven new policy checks authored (seven path normalization, legacy role rejection/parser, fixed Knight draft and editable family controls). Historical tests that required retired selectors were updated; native lineage and officer validation remain. Earlier runs 45411763224 and 45412055287 failed at obsolete source assertions, corrected in subsequent commits; neither yielded a verified candidate. Final source/test run 45412460431 in progress when recorded.
+Prior green build 45410555221 (source 99390af063ac5695076c6728c3d5547e7144db78) 1272 policy checks, 0 warnings/errors, artifact 14928470803, 434732 bytes, DLL SHA256 3a2283eb5179b6847acbad0c7fb614461df60fd33ee1f5ce12ccea893b3c0631. This older binary does NOT include the simplified starts.
+
+## Acceptance
+New game only: select each of the seven roles, cycle through all basic and Advanced choices, navigate Back/Continue and native identity/House/Review, ensure there is no career branch question, confirm actual native game state and start-contract receipt. Test Knight first: select Knight directly, choose a patron kingdom, choose optional family, confirm independent landless start and actual patron/Squire/oath; repeat without family; no inaccessible fixed grant controls. Test all seven on a separate new save and reload each. Run on baseline and the actual 41-module stack. Preserve existing campaigns; no forced conversion of old Knight/Soldier saves. Do not mark native gameplay proven by source checks or CI.
