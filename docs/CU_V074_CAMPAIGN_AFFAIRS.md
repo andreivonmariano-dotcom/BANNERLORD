@@ -16,3 +16,5 @@
 5. No new persistence schema. Three policy checks written and static UI/source guards extended. The final dialogue audit and actual native acceptance remain open. No merge/release in this pass.
 
 Initial CI 45382693939 stopped before compile at the source reachability guard for a permanently disabled legacy option. The option was removed rather than weakening the guard; historical UI assertions updated for the new label and routing. The next build must verify all checks.
+
+Second CI 45382919497 passed the initial reachability and ownership checks, then failed the historical v0.65 label assertion. That assertion now requires the new local-affairs label and shared administration routing. No native behavior guard removed.

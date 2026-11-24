@@ -25,7 +25,7 @@ namespace CalradiaUnified
         public CUMapNotificationAffairsMixin(MapNotificationVM vm):base(vm)
         {current=new WeakReference<CUMapNotificationAffairsMixin>(this);}
         [DataSourceProperty] public bool CUHasPendingAffairs{get{return count>0;}}
-        [DataSourceProperty] public string CUAffairsNotice{get{return count+" matters await your attention";}}
+        [DataSourceProperty] public string CUAffairsNotice{get{return count==1?"1 matter awaits your attention":count+" matters await your attention";}}
         [DataSourceMethod] public void ExecuteCUAffairsNotice()
         {SandboxOriginBehavior.OpenCampaignAffairs();}
         private void UpdateNotice(int pending)
