@@ -141,6 +141,29 @@ namespace CalradiaUnified
             }
             return false;
         }
+        // Group advice is an explicit player declaration, not a fulfilled
+        // promise, political decision or native relation effect.
+        public bool RecordGroupDiscussion(string player,string speaker,string topic,
+            string priority,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(speaker) ||
+                player==speaker || player.Length>80 || speaker.Length>80 ||
+                !SandboxPetitionVoicePolicy.GroupTopic(topic) ||
+                !SandboxPetitionVoicePolicy.GroupPriority(priority) ||
+                day<0 || day>2000000)return false;
+            string marker="day="+day.ToString(System.Globalization.CultureInfo.InvariantCulture)+"|";
+            if(Events.Any(e=>e.Kind=="GroupCouncilChoice" && e.Actor==player &&
+                e.Target==speaker && e.Detail.StartsWith(marker,StringComparison.Ordinal)))return false;
+            return Remember("GroupCouncilChoice",player,speaker,
+                marker+"topic="+topic+"|priority="+priority);
+        }
+        public Event LatestGroupDiscussion(string player,string speaker)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(speaker) ||
+                player==speaker)return null;
+            return Events.LastOrDefault(e=>e.Kind=="GroupCouncilChoice" &&
+                e.Actor==player && e.Target==speaker);
+        }
         public bool Remember(string kind,string actor,string target,
             string detail)
         {
