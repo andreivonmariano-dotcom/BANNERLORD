@@ -15,7 +15,7 @@ namespace CalradiaUnified
             var c=Campaign.Current;
             if(c==null)return null;
             var b=c.GetCampaignBehavior<SandboxOriginBehavior>();
-            return b!=null && b.applied && b.IsStandaloneSandbox() &&
+            return b!=null && b.applied && IsStandaloneSandbox() &&
                 Hero.MainHero!=null && Hero.MainHero.IsAlive &&
                 Clan.PlayerClan!=null?b:null;
         }

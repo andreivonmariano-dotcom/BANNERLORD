@@ -61,7 +61,7 @@ def verify(filename, version):
             assert any(b.get("Brush")=="Popup.Done.Button.NineGrid" and
                        b.get("Command.Click")=="ExecuteContinue" for b in buttons)
         # The opt-in stage has a UNIQUE type; native FaceGen remains intact.
-        for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml","CUNativeCultureChooser.xml"):
+        for name in ("CUNativeOriginReview.xml","CUFamilyPortraits.xml","CUFaceWorkshop.xml","CUNativeStateShell.xml","CUNativeCultureChooser.xml","CUAffairs.xml"):
             path = prefix + "GUI/Prefabs/" + name
             assert path in names, "Required new native or family movie missing: " + name
             assert ET.fromstring(archive.read(path)).tag == "Prefab", "Invalid native/family XML"

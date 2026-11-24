@@ -58,6 +58,31 @@ def main():
                  "charactercreationgenericstage" in n.lower() or
                  "charactercreationculturestage" in n.lower() or
                  "charactercreationfamily" in n.lower())]
+            map_candidates=[n for n in names if n.lower().endswith(".json") and
+                ("mapbar" in n.lower() or "mapnotification" in n.lower())]
+            report["map_hud_candidate_paths"]=map_candidates
+            map_details={}
+            for name in map_candidates[:24]:
+                data=json.loads(z.read(name).decode("utf-8"))
+                nodes=([data["root"]] if isinstance(data,dict) and
+                       isinstance(data.get("root"),dict) else
+                       (data if isinstance(data,list) else [data]))
+                def roots(node,depth=0):
+                    if not isinstance(node,dict) or depth>3:return []
+                    tag=node.get("n") or node.get("name") or ""
+                    attrs=node.get("a") or node.get("attributes") or {}
+                    kids=node.get("c") or node.get("children") or []
+                    return [{"depth":depth,"tag":tag,"id":attrs.get("Id",""),
+                             "datasource":attrs.get("DataSource",""),
+                             "width":attrs.get("WidthSizePolicy",""),
+                             "height":attrs.get("HeightSizePolicy",""),
+                             "child_tags":[k.get("n") or k.get("name") or "" for k in kids if isinstance(k,dict)]}]+[
+                                 row for k in kids for row in roots(k,depth+1)]
+                map_details[name]=[row for node in nodes for row in roots(node)][:80]
+            report["map_hud_root_metadata"]=map_details
+            print("NATIVE MAP HUD CANDIDATES",map_candidates)
+            for name,rows in map_details.items():
+                print("NATIVE MAP HUD ROOT",name,json.dumps(rows,ensure_ascii=False))
             report["package_sha256"]=hashlib.sha256(blob).hexdigest()
             report["candidate_paths"]=candidates
             report["status"]="FOUND" if candidates else "PACKAGE_NO_REVIEW"

@@ -18,3 +18,5 @@
 Initial CI 45382693939 stopped before compile at the source reachability guard for a permanently disabled legacy option. The option was removed rather than weakening the guard; historical UI assertions updated for the new label and routing. The next build must verify all checks.
 
 Second CI 45382919497 passed the initial reachability and ownership checks, then failed the historical v0.65 label assertion. That assertion now requires the new local-affairs label and shared administration routing. No native behavior guard removed.
+
+Third source revision includes a pinned GUI metadata probe for native MapBar/MapNotification candidates and root/data-source evidence. This is diagnostic, not a substitute for the game's actual loaded XML. Packaging verification now requires CUAffairs.xml. Corrected a static IsStandaloneSandbox call in the journal adapter before final compilation.
