@@ -72,21 +72,23 @@ namespace CalradiaUnified
             return result;
         }
 
-        private void ObserveLordInheritanceDaily()
+        private void ObserveLordInheritanceDaily(){RefreshLordInheritanceObservation();}
+
+        private bool RefreshLordInheritanceObservation()
         {
             if(!applied || !IsStandaloneSandbox() ||
                 !lordInheritance.IsRecorded ||
                 MBObjectManager.Instance==null)
-                return;
+                return false;
             int day=CurrentLordInheritanceDay();
-            if(day<0)return;
+            if(day<0)return false;
             var founder=MBObjectManager.Instance.GetObject<Hero>(
                 lordInheritance.FounderId);
             var clan=Clan.All.FirstOrDefault(c=>c!=null &&
                 c.StringId==lordInheritance.ClanId);
             if(founder==null || clan==null || clan.IsEliminated ||
                 clan.Leader==null)
-                return;
+                return false;
             string result=lordInheritance.Observe(day,
                 founder.IsAlive,clan.Leader.StringId,
                 VerifiedLordChildCandidates(founder,clan));
@@ -101,6 +103,7 @@ namespace CalradiaUnified
                     "|rule="+lordInheritance.Rule+
                     "|fiefs_unchanged_by_CU=true"+
                     "|no_native_clan_leadership_action=true");
+            return true;
         }
 
         private void RegisterLordInheritanceMenus(
@@ -127,17 +130,18 @@ namespace CalradiaUnified
                 args=>lordInheritance.IsRecorded,
                 args=>
                 {
-                    ObserveLordInheritanceDaily();
+                    bool current=RefreshLordInheritanceObservation();
                     ShowNativeDetail("Lord household | Inheritance",
                         "Lord household custom: "+
                         lordInheritance.Rule+
                         ". First living verified child: "+
                         NativeHeroDisplayName(
                             lordInheritance.PrimaryHeirId)+
-                        ". Current clan leader: "+
+                        (current?". Current clan leader: ":". Last verified clan leader: ")+
                         NativeHeroDisplayName(
                             lordInheritance.NativeLeaderId)+
-                        ". Native status: "+lordInheritance.Status+
+                        ". "+(current?"Native status: ":"Last recorded status: ")+lordInheritance.Status+
+                        (current?"":". Current clan state unavailable; last observation day "+lordInheritance.LastObservedDay)+
                         ". Ranked living children: "+
                         NativeHeroDisplayNames(
                             lordInheritance.RankedHeirIds)+
