@@ -125,7 +125,7 @@ origin=(src/"SandboxOriginBehavior.cs").read_text()
 assert "RegisterGroupDiscussionMenus(starter);" in origin
 for parent in ("cu_people_lineage","cu_household_camp","cu_native_royal_council"):
     assert '"'+parent+'"' in group,parent
-for menu in ("cu_group_topics","cu_group_exchange","cu_group_reply"):
+for menu in ("cu_group_topics","cu_group_exchange","cu_group_reconsider","cu_group_reply"):
     assert 'starter.AddGameMenu("'+menu+'"' in group,menu
 assert 'groupParticipants.Count<2 || groupParticipants.Count>4' in group
 assert 'groupParticipants.All(person=>available.Contains(person))' in group
@@ -138,7 +138,7 @@ assert 'seat.OwnerClan!=clan' in group and 'seat.IsUnderSiege' in group
 assert 'speaker.GetRelation(previous)' in group
 assert 'livingPersons.RecordGroupDiscussion(groupPlayerId,speaker.StringId' in group
 assert 'LatestGroupDiscussion(player.StringId,actor.StringId)' in depth
-assert 'foreach(var source in new[]{"cu_group_topics","cu_group_exchange","cu_group_reply"})' in group
+assert 'foreach(var source in new[]{"cu_group_topics","cu_group_exchange","cu_group_reconsider","cu_group_reply"})' in group
 assert 'args=>true,args=>LeaveGroupDiscussion(),false' in group
 assert 'if(valid)GameMenu.SwitchToMenu(parent);' in group and 'else GameMenu.ExitToLast();' in group
 for forbidden in ("GiveGoldAction","ChangeRelationAction","AddToCounts","OpenConversation","StartConversation","AddPlayerLine","AddDialogLine","SyncData(","ChangeOwnerOfSettlementAction","SetParty"):
@@ -174,8 +174,33 @@ assert 'Pairs.Any(p=>p.LastDay>=day)' in peerstate
 assert 'player.Spouse.Spouse==player' in group and 'groupParticipants.Contains(player.Spouse)' in group
 assert 'RememberedFamilyMember()!=null' in group
 assert 'occasion=="CourtAssembly")return groupParent=="cu_native_royal_council"' in group
-assert 'GroupOccasionArgument(preference)' in group
+assert 'GroupOccasionArgument(preference,speaker)' in group
 assert 'ShowGroupPeerStanding()' in group
 for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
     assert forbidden not in peer and forbidden not in group,forbidden
 print("PASS bounded independent peer observations, real gathering eligibility and non-invoked native scene probe. SOURCE ONLY.")
+
+# Deeper deliberation, scheduled local gatherings, and observed peer trends.
+plan=(src/"SandboxGatheringPlan.cs").read_text()
+voice=(src/"SandboxPetitionVoicePolicy.cs").read_text()
+assert 'GroupTopicPreference(groupTopic' in group and 'GroupNuance(groupTopic,priority' in group
+assert 'if(!GroupCanContinue() || groupSecondRound)return;' in group
+assert 'GameMenu.SwitchToMenu("cu_group_reconsider");' in group
+assert 'GroupChallenge(groupTopic,groupPreferences[i]' in group
+assert 'DialogueVariant(speaker.StringId,groupTopic' in group
+assert 'store.SyncData("CU_gathering_plan_1",ref plannedGathering);' in origin
+assert 'gatheringPlan.Expire(CurrentHouseholdDay());' in origin
+assert 'gatheringPlan.Accepted.Contains(h.StringId)' in group
+assert 'gatheringPlan.IsDue(groupPlayerId,groupParent,groupSeatId,CurrentHouseholdDay())' in group
+assert 'groupParticipants.Select(h=>h.StringId).ToArray())))return;' in group
+assert 'groupPlanned=false;' in group
+assert 'Invited=invited.ToArray();Accepted=accepted.ToArray();Attended=new string[0]' in plan
+assert 'present.Any(x=>!Accepted.Contains(x))' in plan
+assert 'Status="Held";Closed=day;Attended=present.ToArray()' in plan
+assert 'Status="Expired";Closed=day;' in plan
+assert 'f.Length!=7 && f.Length!=11' in peerstate
+assert 'KnownSamples<2' in peerstate
+assert 'people.Skip(offset).Concat(people.Take(offset)).Take(12)' in peer
+assert 'SandboxPeerSocialState.Trend(record)' in group
+assert 'uint hash=2166136261u;' in voice
+print("PASS deeper deliberation, local scheduled attendance, backward-compatible peer trends. SOURCE ONLY.")
