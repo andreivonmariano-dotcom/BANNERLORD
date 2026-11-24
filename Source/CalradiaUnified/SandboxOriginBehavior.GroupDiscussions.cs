@@ -251,23 +251,33 @@ namespace CalradiaUnified
             ShowNativeDetail("Those gathered",String.Join("\n\n",lines));
         }
 
-        private string GroupOccasionArgument(string priority,Hero speaker)
+        private string GroupOccasionArgument(string priority,Hero speaker,int variant)
         {
+            if(groupOccasion=="Remembrance" && variant==1)
+                return priority=="Security"?"What they leave behind is a duty to those still living.":priority=="Welfare"?"Grief is not something we can settle for another person. Let each speak as they wish.":"Silence can honor the departed as well as words.";
+            if(groupOccasion=="Remembrance" && variant==2)
+                return priority=="Security"?"Let us carry forward the care we owe those who remain.":priority=="Welfare"?"Some will wish to speak and others will not. Both deserve our respect.":"We need no grand ceremony to hold a place for them in our thoughts.";
             if(groupOccasion=="Remembrance")
                 return priority=="Security"?"Let their memory remind us to protect those still with us.":
                     priority=="Welfare"?"Let us make time for those who grieve, rather than pass over their loss.":
                     "We need not make grand promises in a moment of grief. Quiet remembrance is enough.";
+            if(groupOccasion=="MarriageCelebration" && variant==1)
+                return priority=="Security"?"May you stand beside each other in hardship, not only in prosperity.":priority=="Welfare"?"Do not let the affairs of the house take every moment you have together.":"Trust grows through small promises kept over many years.";
+            if(groupOccasion=="MarriageCelebration" && variant==2)
+                return priority=="Security"?"The two of you must be able to rely on one another.":"Let the marriage be shaped by the wishes of those who share it.";
             if(groupOccasion=="MarriageCelebration")
                 return priority=="Security"?"A household stands stronger when its members can depend on one another.":
                     priority=="Welfare"?"May the two of you find time for each other amid the duties of this house.":
                     "A life shared is built through patient judgment, not splendid promises.";
+            if(groupOccasion=="Fellowship" && variant==1)
+                return priority=="Security"?"It is good to know the people who share the road with us.":priority=="Welfare"?"Not every conversation need end in a charge or a request.":"For once, let our talk be worth more than what we spend on it.";
+            if(groupOccasion=="Fellowship" && variant==2)
+                return priority=="Security"?"A company is more than names upon a muster roll.":priority=="Welfare"?"Let us listen to each other without speaking of rank.":"A quiet evening has its own worth.";
             if(groupOccasion=="Fellowship")
                 return priority=="Security"?"Let us keep faith with the people who stand beside us on the road.":
                     priority=="Welfare"?"There is value in sharing a little time without asking anything of one another.":
                     "Let us enjoy the peace we have without forgetting the needs of tomorrow.";
-            return SandboxPetitionVoicePolicy.GroupNuance(groupTopic,priority,PersonalVoice(speaker),
-                SandboxPetitionVoicePolicy.DialogueVariant(speaker.StringId,groupTopic,
-                    CurrentHouseholdDay()+groupRoundSerial,3));
+            return SandboxPetitionVoicePolicy.GroupNuance(groupTopic,priority,PersonalVoice(speaker),variant);
         }
 
         private string GroupContext(string topic)
@@ -334,7 +344,8 @@ namespace CalradiaUnified
                     if(peer!=null && peer.Meetings>=2 && peer.Interest=="DifferentPriorities" &&
                         preference!=groupPreferences[i-1])reply+="We have different priorities in this matter. ";
                 }
-                reply+=GroupOccasionArgument(preference,speaker);
+                int variant=NextDialogueVariant(speaker,"Group:"+(groupOccasion.Length>0?groupOccasion:topic),3);
+                reply+=GroupOccasionArgument(preference,speaker,variant);
                 var memory=livingPersons.LatestGroupDiscussion(groupPlayerId,speaker.StringId);
                 if(memory!=null)
                 {
