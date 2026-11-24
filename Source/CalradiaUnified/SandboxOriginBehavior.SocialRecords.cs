@@ -66,7 +66,10 @@ namespace CalradiaUnified
             var previous=peerInitiatives.Entries.LastOrDefault();
             if(previous!=null && (long)day-previous.Day<
                 SandboxPeerInitiativeState.IntervalDays)return;
-            var ids=characterAgendas.Entries.Select(a=>a.Id).ToArray();
+            if(peerInitiatives.Entries.Length>=SandboxPeerInitiativeState.MaxRecords)return;
+            var ids=new System.Collections.Generic.HashSet<string>(
+                characterAgendas.Entries.Select(a=>a.Id),StringComparer.Ordinal);
+            if(ids.Count<2)return;
             var eligible=Hero.AllAliveHeroes.Where(h=>EligiblePeer(h) && h!=player &&
                 ids.Contains(h.StringId)).GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
