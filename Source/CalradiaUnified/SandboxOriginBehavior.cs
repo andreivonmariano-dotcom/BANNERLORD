@@ -2178,7 +2178,9 @@ namespace CalradiaUnified
                     try
                     {
                         SandboxLivingPersons.Capture(
-                            profile,hero,patron,livingPersons);
+                            profile,hero,patron,livingPersons,
+                            profile.SoldierGuidedStart &&
+                            soldierReceipt.Length==0);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
                         if(profile.KingGuidedStart)

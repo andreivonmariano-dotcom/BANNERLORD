@@ -100,6 +100,13 @@ namespace CalradiaUnified
                     (bool)Field(snap,"IsPlayerInsideHostParty");
                 result.LordId=lord==null?"":lord.StringId;
                 result.RankId=Field(snap,"RankId") as string ?? "";
+                // Incomplete enlisted snapshots are unknown, not a
+                // discharge. The campaign observer suspends verification.
+                if(!result.LordIsNativeLord ||
+                    !result.NativeHostPartyLedByLord ||
+                    result.LordId.Length==0 ||
+                    SandboxSoldierEnlistmentPolicy.NativeRankNumber(
+                        result.RankId)==0)return new Snapshot();
                 result.DutyId=Field(snap,"DutyId") as string ?? "";
                 result.Wage=Math.Max(0,Num(Field(snap,"DailyWage")));
                 result.Days=Math.Max(0,Num(Field(snap,"DaysServed")));

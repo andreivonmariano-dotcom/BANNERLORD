@@ -31,6 +31,8 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Audit stabilization pass 2 existing role and creator wiring
+        run: python scripts/test_cu_stabilization_pass_2.py
       - name: Audit current creator Back state and NPC save provenance
         shell: pwsh
         run: python scripts/test_v069f_creator_back_state_and_agency_save.py

@@ -1637,10 +1637,7 @@ namespace CalradiaUnified
                     "Social station: "+SandboxStartingLifePolicy.StationLabel(
                         SandboxStartingLifePolicy.Station(profile))+"\n"+
                     "Obligations: "+SandboxStartingLifePolicy.ObligationLabel(
-                        profile.KnightGuidedStart?
-                            "RecordedPersonalPatronNoFormalVassalage":
-                        SandboxStartingLifePolicy.Obligation(
-                            profile.Role,profile.NobleBirthPosition))+"\n"+
+                        SandboxStartingLifePolicy.Obligation(profile))+"\n"+
                     "Early household: "+SandboxStartingLifePolicy.Household(
                         profile.Role,profile.EarlyHousehold)+"\n"+
                     "Personal ambition: "+SandboxStartingLifePolicy.Ambition(

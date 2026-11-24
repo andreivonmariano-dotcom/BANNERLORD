@@ -71,11 +71,35 @@ namespace CalradiaUnified
             return requested=="Auto" || !ValidAmbition(requested)?
                 DefaultAmbition(role,birth):requested;
         }
-        public static string Station(SandboxOriginProfile p)
+        public static string Station(SandboxOriginProfile p,
+            bool verifiedSoldierStart=false)
         {
-            return p!=null && p.KnightGuidedStart?
-                "UnlandedKnightRetainer":Station(p==null?"":p.Role,
-                    p==null?"Independent":p.NobleBirthPosition);
+            if(p!=null && p.Role=="Knight" && p.KnightGuidedStart)
+                return "UnlandedKnightRetainer";
+            if(p!=null && p.Role=="Soldier" && p.SoldierGuidedStart)
+                return verifiedSoldierStart?"VerifiedEnlistedSoldier":
+                    "ProspectiveEnlistedRecruit";
+            return Station(p==null?"":p.Role,
+                p==null?"Independent":p.NobleBirthPosition);
+        }
+        public static string Occupation(SandboxOriginProfile p,
+            bool verifiedSoldierStart=false)
+        {
+            if(p!=null && p.Role=="Knight" && p.KnightGuidedStart)
+                return "HouseholdKnightRetainer";
+            if(p!=null && p.Role=="Soldier" && p.SoldierGuidedStart)
+                return verifiedSoldierStart?"VerifiedEnlistedSoldier":
+                    "EnlistmentApplicant";
+            return Occupation(p==null?"":p.Role);
+        }
+        public static string Obligation(SandboxOriginProfile p)
+        {
+            if(p!=null && p.Role=="Knight" && p.KnightGuidedStart)
+                return "RecordedPersonalPatronNoFormalVassalage";
+            if(p!=null && p.Role=="Soldier" && p.SoldierGuidedStart)
+                return "PendingVerifiedEnlistment";
+            return Obligation(p==null?"":p.Role,
+                p==null?"Independent":p.NobleBirthPosition);
         }
         public static string Station(string role,string birth)
         {
@@ -161,7 +185,9 @@ namespace CalradiaUnified
                 case "UnlandedKnightRetainer":
                     return "Landless knight with named household patron";
                 case "ProspectiveEnlistedRecruit":
-                    return "Recruit seeking enlistment, not yet in an NPC party";
+                    return "Recruit seeking verified enlistment";
+                case "VerifiedEnlistedSoldier":
+                    return "Native enlisted soldier at verified start";
                 case "LandedKnightVassal":return "Knight holding a native vassal fief";
                 case "MercenaryCompany":
                     return "Independent mercenary captain, not an enlisted soldier";
@@ -183,6 +209,7 @@ namespace CalradiaUnified
                 case "UnlandedNobleRelative":return "Unlanded noble relative";
                 case "HouseholdKnightRetainer":return "Household knight applicant";
                 case "EnlistmentApplicant":return "Military recruit";
+                case "VerifiedEnlistedSoldier":return "Enlisted soldier at verified start";
                 case "MercenaryCaptain":return "Mercenary captain";
                 case "FleetCommander":return "Fleet commander";
                 case "Merchant":return "Merchant";

@@ -23,6 +23,34 @@ internal static class Program
     }
     private static void Main()
     {
+        // Stabilization pass 2: guided identities and honest recovery.
+        var guidedSoldierLabel=new SandboxOriginProfile{
+            Role="Soldier",SoldierGuidedStart=true};
+        Check("guided soldier preview does not claim a mercenary company",
+            SandboxStartingLifePolicy.Station(guidedSoldierLabel)=="ProspectiveEnlistedRecruit" &&
+            SandboxStartingLifePolicy.Occupation(guidedSoldierLabel)=="EnlistmentApplicant" &&
+            SandboxStartingLifePolicy.Obligation(guidedSoldierLabel)=="PendingVerifiedEnlistment");
+        Check("soldier biography needs verified start receipt",
+            SandboxStartingLifePolicy.Station(guidedSoldierLabel,true)=="VerifiedEnlistedSoldier" &&
+            SandboxStartingLifePolicy.Occupation(guidedSoldierLabel,true)=="VerifiedEnlistedSoldier");
+        var guidedKnightLabel=new SandboxOriginProfile{
+            Role="Knight",KnightGuidedStart=true};
+        Check("guided knight biography does not invent landed status",
+            SandboxStartingLifePolicy.Station(guidedKnightLabel)=="UnlandedKnightRetainer" &&
+            SandboxStartingLifePolicy.Occupation(guidedKnightLabel)=="HouseholdKnightRetainer" &&
+            SandboxStartingLifePolicy.Obligation(guidedKnightLabel)=="RecordedPersonalPatronNoFormalVassalage");
+        Check("legacy soldier and knight roles preserve prior definitions",
+            SandboxStartingLifePolicy.Station(new SandboxOriginProfile{Role="Soldier"})=="MercenaryCompany" &&
+            SandboxStartingLifePolicy.Station(new SandboxOriginProfile{Role="Knight"})=="LandedKnightVassal");
+        var inconsistentRecovery=SandboxFamilyRecoveryState.Parse(
+            "CU_FAMILY_RECOVERY_1\nplayer|Lord|partial|NativeCountsMatchReviewStillRequired|1|0|2|1|0|0|1");
+        Check("inconsistent family recount preserves failure without claiming match",
+            inconsistentRecovery.NeedsReview &&
+            inconsistentRecovery.Status=="PartialStartNeedsReview" &&
+            inconsistentRecovery.PlayerId=="player" &&
+            inconsistentRecovery.Failure=="partial" &&
+            inconsistentRecovery.ChildrenRequested==2);
+
         // Compatibility stabilization: reject impossible history and unknown SaS contracts.
         Check("social save requires an actual recorded petition",
             SandboxSocialBondState.Parse("CU_SOCIAL_BONDS_1\nhero_a|0|0|5|0|1|10").People.Count==0);

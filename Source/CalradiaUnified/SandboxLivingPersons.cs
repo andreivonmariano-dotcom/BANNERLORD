@@ -37,7 +37,8 @@ namespace CalradiaUnified
                 office:"";
         }
         internal static string Capture(SandboxOriginProfile profile,
-            Hero player,Hero patron,SandboxLifeHistoryState state)
+            Hero player,Hero patron,SandboxLifeHistoryState state,
+            bool verifiedSoldierStart=false)
         {
             if(profile==null || player==null || state==null)
                 return "refused:missing_origin";
@@ -73,8 +74,7 @@ namespace CalradiaUnified
                     person.Mother==player.Mother && !isParent;
                 var office=Office(person);
                 string station=isPlayer?
-                    SandboxStartingLifePolicy.Station(profile.Role,
-                        profile.NobleBirthPosition):
+                    SandboxStartingLifePolicy.Station(profile,verifiedSoldierStart):
                     person==patron?"KingdomClanLeader":
                     isParent?"RecordedParent":
                     isSpouse?"SpouseInPlayerClan":
@@ -83,7 +83,7 @@ namespace CalradiaUnified
                     office.Length>0?"HouseholdOfficer":
                     person.IsLord?"NativeClanNoble":"ClanCompanion";
                 string occupation=isPlayer?
-                    SandboxStartingLifePolicy.Occupation(profile.Role):
+                    SandboxStartingLifePolicy.Occupation(profile,verifiedSoldierStart):
                     person==patron?"NativeLord":
                     office.Length>0?office:
                     isChild?"FamilyChild":

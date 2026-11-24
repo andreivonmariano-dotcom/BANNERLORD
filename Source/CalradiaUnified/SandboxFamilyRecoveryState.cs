@@ -125,6 +125,12 @@ namespace CalradiaUnified
                 status!="NativeCountsMatchReviewStillRequired")return r;
             r.PlayerId=D(f[0]);r.Role=D(f[1]);r.Failure=D(f[2]);
             if(r.PlayerId.Length==0)return new SandboxFamilyRecoveryState();
+            // A corrupt or stale success-like recount must not erase
+            // the original failure dossier or overstate its evidence.
+            if(status=="NativeCountsMatchReviewStillRequired" &&
+                (checks==0 || (f[4]=="1" && f[5]!="1") ||
+                 observedChildren<children || observedSiblings<siblings))
+                status="PartialStartNeedsReview";
             r.Status=status;
             r.SpouseRequested=f[4]=="1";
             r.SpouseObserved=f[5]=="1";
