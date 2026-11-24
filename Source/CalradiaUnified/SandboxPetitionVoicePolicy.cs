@@ -53,6 +53,16 @@ namespace CalradiaUnified
         {
             switch(topic)
             {
+                case "Opinions":
+                    switch(tone)
+                    {
+                        case "Guarded":return "I have learned to judge a person by deeds, not words.";
+                        case "Prudent":return "A sound judgment is worth more than a promise made in haste.";
+                        case "Bold":return "I would rather face hardship than live in fear of it.";
+                        case "Dutiful":return "A person's word should be worth more than silver.";
+                        case "Warm":return "A life is worth little without those we care for.";
+                        default:return "A decent living and the freedom to choose one's own way.";
+                    }
                 case "Family":
                     switch(tone)
                     {
