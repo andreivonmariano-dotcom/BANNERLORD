@@ -505,6 +505,7 @@ namespace CalradiaUnified
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
+            RegisterGroupDiscussionMenus(starter);
             starter.AddGameMenu("cu_origin_main",
                 "This legacy editor is retired. Start a new Sandbox to use the guided creator.",
                 args=>{});
