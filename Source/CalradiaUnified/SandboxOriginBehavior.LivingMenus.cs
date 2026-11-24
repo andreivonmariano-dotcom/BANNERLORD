@@ -85,7 +85,8 @@ namespace CalradiaUnified
         private Hero RequestedCharacter()
         {
             var target=FindLivingPerson(agencyDecisions.PendingHeroId);
-            return SamePlace(Hero.MainHero,target)?target:null;
+            return target!=null && target.IsActive && !target.IsPrisoner &&
+                target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
         }
         private bool HasRequest()
         {
