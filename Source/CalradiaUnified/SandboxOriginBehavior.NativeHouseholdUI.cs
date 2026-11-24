@@ -128,14 +128,10 @@ namespace CalradiaUnified
                     ". Speak in person to give or review orders.";
             if(companion && lordInheritance.IsRecorded &&
                 NativeCourtOfficer("Master of Arms")==person)
-                duty="Master of Arms: speak in person inside "+
-                    "your own castle to station five existing, "+
-                    "healthy local recruits in its garrison.";
+                duty="Master of Arms: personal office. Direct CU garrison orders held; use native garrison controls.";
             else if(companion && kingSuccession.IsRecorded &&
                 NativeCourtOfficer("Marshal")==person)
-                duty="Marshal: meet in person at your royal seat "+
-                    "after today's council to authorize a guarded "+
-                    "transfer of five existing recruits.";
+                duty="Marshal: personal office. Direct CU garrison orders held; use native garrison controls.";
             else if(companion && person.GovernorOf!=null)
                 duty="Native governor: currently serving at "+
                     person.GovernorOf.Settlement.Name+".";
