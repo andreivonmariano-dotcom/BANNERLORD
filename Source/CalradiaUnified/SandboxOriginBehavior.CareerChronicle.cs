@@ -356,6 +356,10 @@ namespace CalradiaUnified
                     args=>RecordLifetimeRole(role),false);
             }
             starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_battle_history","Review witnessed campaign battles",
+                args=>true,args=>ShowNativeDetail("Career | Battle history",
+                    BattleHistoryDescription()),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
                 "Return to household affairs",
                 args=>true,
