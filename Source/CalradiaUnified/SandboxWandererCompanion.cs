@@ -218,6 +218,7 @@ namespace CalradiaUnified
                 string specialty=profile.WandererCompanionSpecialty;
                 string style=specialty=="Guard"?"Shieldguard":specialty=="Scout"?"Scout":"Court";
                 SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty);
+                SandboxCulturalRetinue.EquipCivilian(provisional,source,specialty);
 
                 AddCompanionAction.Apply(Clan.PlayerClan,provisional);
                 registered=Clan.PlayerClan.Companions.Contains(provisional) ||

@@ -47,10 +47,62 @@ namespace CalradiaUnified
                 default:return new string[0];
             }
         }
+        public static int StartingAge(string office)
+        {
+            switch(office)
+            {
+                case "Squire":return 19;
+                case "Knight":return 30;
+                case "Kingsguard":return 34;
+                case "MasterOfArms":return 42;
+                case "Marshal":return 48;
+                case "RoyalMinister":return 45;
+                case "Chamberlain":return 40;
+                case "HouseholdSteward":return 39;
+                case "Factor":return 36;
+                case "Sergeant":return 35;
+                case "SecondInCommand":return 33;
+                case "FirstMate":return 34;
+                case "Navigator":return 32;
+                default:return 27;
+            }
+        }
+        // Desired average native item tier (not a fabricated item ID).
+        public static int KitTier(string office,bool civilian)
+        {
+            if(office=="Squire" || office=="SecondInCommand")return 2;
+            if(office=="Marshal" || office=="Kingsguard" || office=="Knight" ||
+                office=="MasterOfArms")return civilian?3:4;
+            if(office=="RoyalMinister" || office=="Chamberlain")return civilian?4:2;
+            if(office=="HouseholdSteward" || office=="Factor" || office=="Trader" ||
+                office=="Steward" || office=="Healer")return 2;
+            return 3;
+        }
+        public static string OfficeBackground(string office)
+        {
+            switch(office)
+            {
+                case "Squire":return "A young attendant entrusted with learning arms and mounted service.";
+                case "Knight":return "A sworn household fighter trained for mounted and personal service.";
+                case "Marshal":return "A senior officer entrusted with the ordering of the household's forces.";
+                case "Kingsguard":return "A personal guard charged with protecting the sovereign.";
+                case "MasterOfArms":return "A martial instructor charged with the readiness of the household.";
+                case "RoyalMinister":return "An administrator entrusted with the affairs of the royal household.";
+                case "SecondInCommand":return "A lieutenant entrusted with keeping the band together.";
+                case "Navigator":return "A guide charged with finding safe routes.";
+                case "FirstMate":return "An officer charged with the crew's readiness.";
+                case "Sergeant":return "An officer charged with discipline and company readiness.";
+                case "HouseholdSteward":case "Chamberlain":case "Factor":
+                    return "An officer entrusted with the household's stores and accounts.";
+                default:return "";
+            }
+        }
         public static int TrainingTarget(string office,int rank)
         {
             if(rank<0)return 0;
             if(office=="Squire")return rank==0?100:rank==1?85:rank==2?75:55;
+            if(office=="Marshal" || office=="MasterOfArms" || office=="RoyalMinister")
+                return rank==0?175:rank==1?150:rank==2?125:80;
             if(office=="Sergeant" || office=="SecondInCommand")return rank==0?125:rank==1?110:rank==2?90:65;
             return rank==0?150:rank==1?130:rank==2?110:75;
         }

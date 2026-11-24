@@ -104,7 +104,7 @@ namespace CalradiaUnified
                 .SelectMany(c=>c.BattleEquipments).Concat(available)
                 .Where(e=>e!=null);
             var selected=candidates.OrderByDescending(e=>EquipmentScore(e,style))
-                .ThenByDescending(e=>KitQuality(e,style)).FirstOrDefault();
+                .ThenByDescending(e=>KitQuality(e,office,false)).FirstOrDefault();
             if(selected==null)throw new InvalidOperationException("No native companion battle equipment set");
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
                 officer.BattleEquipment[slot]=selected[slot];
@@ -118,15 +118,40 @@ namespace CalradiaUnified
                 "|gear_score="+EquipmentScore(selected,style));
         }
 
-        private static int KitQuality(Equipment gear,string style)
+        private static int KitQuality(Equipment gear,string office,bool civilian)
         {
-            int sum=0;
+            int sum=0,count=0;
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
             {
                 var item=gear[slot].Item;
-                if(item!=null)sum+=(int)item.Tier;
+                if(item==null)continue;
+                if(civilian && !item.ItemType.ToString().Contains("Armor") &&
+                    item.ItemType.ToString()!="Cape")continue;
+                sum+=(int)item.Tier;count++;
             }
-            return style=="Court" || style=="Bandit"?-sum:sum;
+            if(count==0)return -10000;
+            return -Math.Abs(sum*10/count-SandboxRetinueOfficePolicy.KitTier(office,civilian)*10);
+        }
+        internal static void EquipCivilian(Hero officer,CharacterObject source,string office)
+        {
+            if(officer==null || source==null || officer.CivilianEquipment==null)
+                throw new InvalidOperationException("Native civilian equipment unavailable");
+            var sets=CharacterObject.All.Where(c=>c!=null &&
+                c.Culture==officer.Culture && c.IsFemale==officer.IsFemale &&
+                c.CivilianEquipments!=null)
+                .OrderBy(c=>c.StringId,StringComparer.Ordinal)
+                .SelectMany(c=>c.CivilianEquipments)
+                .Concat(source.CivilianEquipments??Enumerable.Empty<Equipment>())
+                .Where(e=>e!=null && e[(int)EquipmentIndex.Body].Item!=null);
+            var selected=sets.OrderByDescending(e=>KitQuality(e,office,true)).FirstOrDefault();
+            if(selected==null)throw new InvalidOperationException("No native civilian outfit");
+            for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
+                officer.CivilianEquipment[slot]=selected[slot];
+            for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
+                if(officer.CivilianEquipment[slot].Item!=selected[slot].Item)
+                    throw new InvalidOperationException("Native civilian outfit not applied");
+            DiagnosticJournal.Event("cu_retinue_civilian_gear",
+                "hero="+officer.StringId+"|office="+office+"|native_readback=true");
         }
         private static void ApplyPersonality(Hero officer,
             string culture,string office)
@@ -135,7 +160,7 @@ namespace CalradiaUnified
                 culture,office);
             var second=SandboxRetinueCulturePolicy.SecondaryTrait(
                 culture,office);
-            foreach(var name in new[]{first,second}.Distinct())
+            foreach(var name in SandboxOriginProfile.Traits)
             {
                 var prop=typeof(
                     TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits)
@@ -147,9 +172,11 @@ namespace CalradiaUnified
                 if(trait==null)
                     throw new InvalidOperationException(
                         "Native officer trait unavailable: "+name);
-                int level=SandboxRetinueCulturePolicy.TraitLevel(
-                    name,culture,office);
+                int level=name==first || name==second?
+                    SandboxRetinueCulturePolicy.TraitLevel(name,culture,office):0;
                 officer.SetTraitLevel(trait,level);
+                if(officer.GetTraitLevel(trait)!=level)
+                    throw new InvalidOperationException("Native officer trait not applied: "+name);
             }
             DiagnosticJournal.Event("cu_retinue_personality",
                 "hero="+officer.StringId+"|office="+office+
@@ -335,8 +362,9 @@ namespace CalradiaUnified
                     string name=OfficerName(player.Culture.StringId,
                         offices[i],i,usedNames);
                     usedNames.Add(name);
+                    int age=SandboxRetinueOfficePolicy.StartingAge(offices[i]);
                     var officer=HeroCreator.CreateSpecialHero(
-                        sources[i],null,Clan.PlayerClan,null,27+i*3);
+                        sources[i],null,Clan.PlayerClan,null,age);
                     if(officer==null)
                         throw new InvalidOperationException(
                             "Native HeroCreator refused retinue officer");
@@ -344,8 +372,10 @@ namespace CalradiaUnified
                     officer.SetName(new TextObject(name),
                         new TextObject(name));
                     officer.Culture=player.Culture;
-                    officer.SetBirthDay(CampaignTime.YearsFromNow(
-                        -(27+i*3)));
+                    officer.SetBirthDay(CampaignTime.YearsFromNow(-age));
+                    if(!SandboxFamilyAgePolicy.MatchesRequestedAge(officer.Age,age))
+                        throw new InvalidOperationException("Native officer age not applied");
+                    if(!officer.IsFemale && age<=21)officer.ModifyHair(-1,0,-1);
                     // A trade factor, sergeant or navigator does not
                     // become a landed LORD merely by joining a party.
                     // Preserve native lord occupation for a noble
@@ -359,6 +389,7 @@ namespace CalradiaUnified
                         officer.ChangeState(Hero.CharacterStates.Active);
                     EquipForStyle(officer,sources[i],
                         SandboxRetinueCulturePolicy.GearStyle(player.Culture.StringId,offices[i]),offices[i]);
+                    EquipCivilian(officer,sources[i],offices[i]);
                     TrainForOffice(officer,offices[i]);
                 }
                 DiagnosticJournal.Event("cu_cultural_retinue_staged",

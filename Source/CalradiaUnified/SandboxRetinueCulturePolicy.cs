@@ -52,7 +52,9 @@ namespace CalradiaUnified
 
         public static string PrimaryTrait(string culture,string office)
         {
-            if(office=="SecondInCommand")return "Calculating";
+            if(office=="SecondInCommand" || office=="RoyalMinister" || office=="Marshal")return "Calculating";
+            if(office=="Squire" || office=="Kingsguard")return "Valor";
+            if(office=="MasterOfArms")return "Honor";
             switch(culture)
             {
                 case "vlandia":return "Honor";
@@ -68,6 +70,10 @@ namespace CalradiaUnified
         public static string SecondaryTrait(string culture,string office)
         {
             if(office=="SecondInCommand")return "Valor";
+            if(office=="Squire")return "Mercy";
+            if(office=="Kingsguard" || office=="Marshal")return "Honor";
+            if(office=="RoyalMinister")return "Generosity";
+            if(office=="MasterOfArms")return "Calculating";
             if(!SandboxRetinueOfficePolicy.IsFieldOfficer(office))
                 return "Calculating";
             switch(culture)
@@ -81,6 +87,9 @@ namespace CalradiaUnified
 
         public static int TraitLevel(string trait,string culture,string office)
         {
+            if(office=="Squire")return 1;
+            if(office=="Marshal" && trait=="Calculating" || office=="RoyalMinister" && trait=="Calculating" ||
+                office=="Kingsguard" && trait=="Honor")return 2;
             if(office=="SecondInCommand" && trait=="Calculating")
                 return 2;
             if(trait=="Valor" && culture=="sturgia")return 2;

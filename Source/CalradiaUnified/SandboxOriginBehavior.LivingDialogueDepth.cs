@@ -414,6 +414,13 @@ namespace CalradiaUnified
                         case "DefendClanStanding":reply="I wish to preserve the name and standing of my house.";break;
                         default:reply="I have not settled on a particular ambition to share.";break;
                     }
+                    string office=RecordedRetinueOffice(actor);
+                    if(office=="Squire")reply="I would learn to carry myself well in the saddle and earn my place through service.";
+                    else if(office=="MasterOfArms")reply="I would see the household's fighters well drilled and ready to stand together.";
+                    else if(office=="Marshal")reply="I would keep our forces well ordered and bring our people safely home.";
+                    else if(office=="Kingsguard")reply="My first concern is the safety of the sovereign. I mean to be worthy of that trust.";
+                    else if(office=="RoyalMinister")reply="I would keep the affairs of the household in good order and preserve its holdings.";
+                    else if(office=="Knight")reply="I would prove worthy of the service entrusted to me.";
                     if(relation<0)reply+=" I am not ready to entrust all my concerns to you.";
                     else if(actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)>0)
                         reply+=" I would rather earn it fairly than take what is not mine.";

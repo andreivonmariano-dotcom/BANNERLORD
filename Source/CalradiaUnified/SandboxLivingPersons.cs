@@ -94,6 +94,10 @@ namespace CalradiaUnified
                     ", occupation: "+occupation+
                     ", clan: "+(clan.Length==0?"none":clan)+
                     ". Native character traits: "+NativeTraits(person)+".";
+                if(office.Length>0)
+                    description=SandboxRetinueOfficePolicy.OfficeBackground(office)+
+                        " Native age "+(int)person.Age+", "+culture+". "+
+                        "Earlier deeds are not established.";
                 if(isPlayer && player.Father!=null &&
                     player.Mother!=null)
                     description+=" Native parents: "+
@@ -110,11 +114,12 @@ namespace CalradiaUnified
                     Origin=isPlayer?"CreatorSelected:"+
                         SandboxStartingLifePolicy.Household(
                             profile.Role,profile.EarlyHousehold):
-                        "PriorHistoryNotEstablished",
+                        office.Length>0?"GeneratedHouseholdOffice":"PriorHistoryNotEstablished",
                     Ambition=isPlayer?
                         SandboxStartingLifePolicy.Ambition(
                             profile.Role,profile.NobleBirthPosition,
                             profile.PersonalAmbition):
+                        office.Length>0?SandboxGeneratedCharacterGoalPolicy.Goal(culture,station,occupation,sibling,false):
                         "NotYetModeled",
                     Biography=description
                 });

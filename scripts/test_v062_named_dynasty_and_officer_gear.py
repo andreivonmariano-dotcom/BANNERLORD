@@ -42,3 +42,7 @@ assert 'retinueOffices.OfficeFor(o.StringId)=="MasterOfArms"' in ob
 assert 'retinueOffices.OfficeFor(o.StringId)=="MasterofArms"' not in ob
 assert 'key.Length==0?null' in read("SandboxOriginBehavior.KingCouncil.cs")
 assert 'Household office: "+assignedOffice' in read("SandboxOriginBehavior.NativeHouseholdUI.cs")
+
+assert "officer.CivilianEquipment[slot]=selected[slot]" in ret
+assert "officer.ModifyHair(-1,0,-1)" in ret
+assert "SandboxRetinueOfficePolicy.StartingAge(offices[i])" in ret

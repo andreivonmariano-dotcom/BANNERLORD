@@ -39,6 +39,7 @@
 - [ ] Repeat at 1280x720, 1920x1080 and wide resolution, with baseline and full modlist. Verify notifications stay in the native stack, no repeated quest/settlement menus and no UI lock after escape. Native testing remains required even after successful CI.
 
 ## Generated companions (Gate C/D)
+- [ ] Verify actual age, clean-shaven Squire, native civilian outfit in settlement scenes, office-specific native traits and ambition dialogue. Compare Squire, Knight, Marshal, Minister in inventory and native character screens; inspect gear tier, both outfit slots, and save/reload. No invented veteran battles or prior deeds.
 - [ ] Verify plain cultural names, separate office labels, native skill targets and cultural role-specific battle kits, weapon/ammunition, horse/harness and readback. Check Lord, King, Knight, Outlaw and selected Wanderer specialty individually. Rename a new officer, save/reload, verify same native identity and office. Existing saves retain names/equipment, no automatic retroactive grants. Manual Wanderer stats remain exact.
 
 ## Ordinary correspondence and living relationships (Gate D)

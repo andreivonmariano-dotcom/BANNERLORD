@@ -13,7 +13,10 @@ namespace CalradiaUnified
                     "PreserveFamilyPosition";
             if(occupation=="Factor")return "BuildTradingContacts";
             if(occupation=="Navigator")return "MapSafePassages";
-            if(occupation=="Squire")return "GainMilitaryTraining";
+            if(occupation=="Squire" || occupation=="MasterOfArms")return "GainMilitaryTraining";
+            if(occupation=="Knight" || occupation=="Kingsguard" || occupation=="Marshal" ||
+                occupation=="FirstMate" || occupation=="SecondInCommand")return "KeepCompanyTogether";
+            if(occupation=="RoyalMinister")return "MaintainHousehold";
             if(occupation=="Sergeant")return "KeepCompanyTogether";
             if(occupation=="HouseholdSteward" ||
                 occupation=="Chamberlain")return "MaintainHousehold";

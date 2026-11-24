@@ -3325,6 +3325,17 @@ internal static class Program
         Check("complete mounted bow kit preferred over missing ammunition",
             SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","Arrows","BodyArmor","OneHandedWeapon"})>
             SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","BodyArmor","OneHandedWeapon"}));
+        Check("generated companion age and training distinguish apprentice and veteran",
+            SandboxRetinueOfficePolicy.StartingAge("Squire")==19 &&
+            SandboxRetinueOfficePolicy.StartingAge("Marshal")>SandboxRetinueOfficePolicy.StartingAge("Knight") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("Marshal",0)>SandboxRetinueOfficePolicy.TrainingTarget("Squire",0) &&
+            SandboxRetinueOfficePolicy.KitTier("Squire",false)<SandboxRetinueOfficePolicy.KitTier("Knight",false));
+        Check("civilian preferences and office character profiles differ",
+            SandboxRetinueOfficePolicy.KitTier("RoyalMinister",true)>SandboxRetinueOfficePolicy.KitTier("RoyalMinister",false) &&
+            SandboxRetinueOfficePolicy.OfficeBackground("Squire")!=SandboxRetinueOfficePolicy.OfficeBackground("Marshal") &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Squire")!=SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Marshal") &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("empire","HouseholdOfficer","RoyalMinister",false,false)=="MaintainHousehold" &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("empire","HouseholdOfficer","Kingsguard",false,false)=="KeepCompanyTogether");
         Check("retinue cultures have distinct native outfit goals",
             SandboxRetinueCulturePolicy.GearStyle("vlandia","Knight")=="Lancer" &&
             SandboxRetinueCulturePolicy.GearStyle("khuzait","Knight")=="HorseArcher" &&

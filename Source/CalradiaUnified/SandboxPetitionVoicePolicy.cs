@@ -159,7 +159,7 @@ namespace CalradiaUnified
             switch(goal)
             {
                 case "ProtectSharedHousehold":case "SupportHousehold":case "MaintainHousehold":
-                    thought="I keep our household's welfare in mind.";break;
+                    thought="I keep the household's welfare in mind.";break;
                 case "GainMilitaryTraining":thought="I mean to learn more of the soldier's craft.";break;
                 case "BuildTradingContacts":case "EstablishLivelihood":
                     thought="I still hope to make a living through my own efforts.";break;
