@@ -131,8 +131,11 @@ namespace CalradiaUnified
             if(!retinueOffices.HasIdentity(prior))return "";
             var incumbent=TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<Hero>(prior);
             // Absence, captivity or temporary assignment elsewhere is not a vacancy.
+            // A resolved, permanently revoked incumbent cannot recover the CU title
+            // by rejoining the clan. The saved revocation remains authoritative.
             return incumbent!=null && (!incumbent.IsAlive || incumbent==Hero.MainHero ||
-                incumbent.Clan!=Clan.PlayerClan || incumbent.CompanionOf!=Clan.PlayerClan)?
+                incumbent.Clan!=Clan.PlayerClan || incumbent.CompanionOf!=Clan.PlayerClan ||
+                (recorded.Length==0 && retinueOffices.IsRevoked(prior)))?
                 prior:"";
         }
 
@@ -145,6 +148,7 @@ namespace CalradiaUnified
                 person.IsPrisoner || person.Age<18f || person.CharacterObject==null ||
                 person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan ||
                 retinueOffices.HasIdentity(person.StringId) || EffectiveHouseholdDuty(person).Length>0 ||
+                !retinueOffices.CanRegisterNew(person.StringId,office) ||
                 party==null || party.LeaderHero!=Hero.MainHero || party.MemberRoster==null ||
                 party.MapEvent!=null || seat==null || seat.OwnerClan!=Clan.PlayerClan ||
                 !seat.IsFortification || seat.IsUnderSiege || seat!=Hero.MainHero.CurrentSettlement ||

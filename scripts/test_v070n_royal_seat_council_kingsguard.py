@@ -101,3 +101,10 @@ assert 'key=="FamilyHomeMode" && value=="SpecificOwned"' in creator
 assert 'candidate.FamilyHomeMode=="SpecificOwned"' in creator
 assert 'SandboxFamilyPolicy.ResolveSpouseFemale(candidate.SpouseGender,hero.IsFemale)==hero.IsFemale' in creator
 print("PASS continuity and creator contracts; native ruler, existing companions, current governor and valid residence remain authoritative. SOURCE ONLY.")
+
+# Permanent revocation survives native rejoining; full registry must hide appointment.
+assert 'recorded.Length==0 && retinueOffices.IsRevoked(prior)' in council
+assert '!retinueOffices.CanRegisterNew(person.StringId,office)' in council
+assert 'public bool IsRevoked(string id)' in registry
+assert '!HasIdentity(id) && offices.Count<32' in registry
+print("PASS royal vacancy persistence and capacity guards; SOURCE ONLY.")

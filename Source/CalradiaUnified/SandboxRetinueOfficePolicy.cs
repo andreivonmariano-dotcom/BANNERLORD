@@ -217,6 +217,14 @@ namespace CalradiaUnified
         private readonly Dictionary<string,string> offices=new Dictionary<string,string>(StringComparer.Ordinal);
         public bool HasRecords {get{return offices.Count>0;}}
         public bool HasIdentity(string id){return id!=null && offices.ContainsKey(id);}
+        public bool IsRevoked(string id){return HasIdentity(id) && offices[id]=="Revoked";}
+        public bool CanRegisterNew(string id,string office)
+        {
+            return !String.IsNullOrWhiteSpace(id) && id.Length<=128 &&
+                id.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-') &&
+                SandboxRetinueOfficePolicy.Skills(office).Length>0 &&
+                !HasIdentity(id) && offices.Count<32;
+        }
         public string[] ActiveIds(){return offices.Where(x=>x.Value!="Revoked").Select(x=>x.Key).ToArray();}
         public bool Revoke(string id)
         {
@@ -234,7 +242,7 @@ namespace CalradiaUnified
                 !id.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-') ||
                 SandboxRetinueOfficePolicy.Skills(office).Length==0)return false;
             if(HasIdentity(id))return offices[id]==office;
-            if(offices.Count>=32)return false;
+            if(!CanRegisterNew(id,office))return false;
             offices.Add(id,office);return true;
         }
         // Replacement changes only a CU household designation. It never

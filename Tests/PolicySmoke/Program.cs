@@ -1366,6 +1366,28 @@ internal static class Program
             !revokedCommission.FillRevokedVacancy("departed","duplicate","Marshal") &&
             !revokedCommission.FillRevokedVacancy("unknown","other","Kingsguard") &&
             revokedCommission.OfficeFor("replacement")=="Marshal");
+        var returnedOfficer=new SandboxRetinueOfficeState();
+        returnedOfficer.Register("former","Marshal");
+        returnedOfficer.Revoke("former");
+        returnedOfficer=SandboxRetinueOfficeState.Parse(returnedOfficer.Serialize());
+        Check("revocation persists and a returned former officer cannot regain its commission",
+            returnedOfficer.IsRevoked("former") && !returnedOfficer.IsRevoked("unknown") &&
+            !returnedOfficer.CanRegisterNew("former","Marshal") &&
+            returnedOfficer.CanRegisterNew("successor","Marshal") &&
+            returnedOfficer.FillRevokedVacancy("former","successor","Marshal") &&
+            !returnedOfficer.IsRevoked("successor"));
+        var saturatedOffices=new SandboxRetinueOfficeState();
+        for(int officeIndex=0;officeIndex<32;officeIndex++)
+        {
+            string id="capacity_"+officeIndex;
+            saturatedOffices.Register(id,"Marshal");
+            saturatedOffices.Revoke(id);
+        }
+        Check("full retinue registry refuses a new appointment without losing revoked identities",
+            !saturatedOffices.CanRegisterNew("extra","Marshal") &&
+            !saturatedOffices.FillRevokedVacancy("capacity_0","extra","Marshal") &&
+            SandboxRetinueOfficeState.Parse(saturatedOffices.Serialize()).IsRevoked("capacity_0") &&
+            saturatedOffices.IsRevoked("capacity_31") && saturatedOffices.ActiveIds().Length==0);
         var branchCandidates=new Dictionary<string,SandboxLordSuccessionPolicy.Candidate[]>
         {
             {"deadchild",new[]{new SandboxLordSuccessionPolicy.Candidate("grandchild",22,false,0,true,true,true)}},
