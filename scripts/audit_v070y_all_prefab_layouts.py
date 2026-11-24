@@ -72,7 +72,7 @@ for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
 affairs=(root/"Source"/"CalradiaUnified"/"CUMapAffairsNative.cs").read_text()
 map_fragments=re.findall(r'public string Content\s*=>\s*("(?:[^"\\]|\\.)*");',affairs)
 assert len(map_fragments)==2
-for movie,fragment,command in zip(("MapBar","MapNotification"),map_fragments,
+for movie,fragment,command in zip(("MapBar","MapNotificationUI"),map_fragments,
         ("ExecuteCUAffairs","ExecuteCUAffairsNotice")):
     widget=ET.fromstring(ast.literal_eval(fragment))
     assert widget.tag=="ButtonWidget" and widget.get("Command.Click")==command
@@ -85,7 +85,10 @@ journal_vm=(root/"Source"/"CalradiaUnified"/"CUAffairsScreen.cs").read_text()
 for e in journal.iter():
     for k,v in e.attrib.items():
         if k.startswith("Command."):assert "void "+v+"(" in journal_vm,v
-        if v.startswith("@"):assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
+        if v.startswith("@") and e.tag!="ImageIdentifierWidget":assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
+assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{Portrait}" for e in journal.iter())
+for name in active:
+    assert "Popup.Done.Button.NineGrid" in (ui/name).read_text(),name
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",

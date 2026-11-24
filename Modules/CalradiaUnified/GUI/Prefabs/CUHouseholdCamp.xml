@@ -36,7 +36,7 @@
                 SuggestedWidth="878" HeightSizePolicy="Fixed"
                 SuggestedHeight="26" PositionXOffset="38"
                 PositionYOffset="76"/>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="166"
@@ -44,7 +44,7 @@
                 PositionXOffset="48" PositionYOffset="134"
                 Command.Click="ExecutePeople">
               <Children>
-                <TextWidget Text="People" Brush.FontSize="17"
+                <TextWidget Brush="Popup.Button.Text" Text="People" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -52,7 +52,7 @@
                     VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="166"
@@ -60,7 +60,7 @@
                 PositionXOffset="231" PositionYOffset="134"
                 Command.Click="ExecuteOfficers">
               <Children>
-                <TextWidget Text="Officers" Brush.FontSize="17"
+                <TextWidget Brush="Popup.Button.Text" Text="Officers" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -68,7 +68,7 @@
                     VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="166"
@@ -76,7 +76,7 @@
                 PositionXOffset="414" PositionYOffset="134"
                 Command.Click="ExecuteLetters">
               <Children>
-                <TextWidget Text="Letters" Brush.FontSize="17"
+                <TextWidget Brush="Popup.Button.Text" Text="Letters" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -84,7 +84,7 @@
                     VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="166"
@@ -92,7 +92,7 @@
                 PositionXOffset="597" PositionYOffset="134"
                 Command.Click="ExecuteService">
               <Children>
-                <TextWidget Text="Service" Brush.FontSize="17"
+                <TextWidget Brush="Popup.Button.Text" Text="Service" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -100,7 +100,7 @@
                     VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="166"
@@ -108,7 +108,7 @@
                 PositionXOffset="780" PositionYOffset="134"
                 Command.Click="ExecuteChronicle">
               <Children>
-                <TextWidget Text="Chronicle" Brush.FontSize="17"
+                <TextWidget Brush="Popup.Button.Text" Text="Chronicle" Brush.FontSize="17"
                     Color="#F6E2BAFF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
@@ -195,7 +195,7 @@
                 SuggestedWidth="686" HeightSizePolicy="Fixed"
                 SuggestedHeight="40" PositionXOffset="33"
                 PositionYOffset="558"/>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                 DoNotPassEventsToChildren="true"
                 UpdateChildrenStates="true"
                 WidthSizePolicy="Fixed" SuggestedWidth="180"
@@ -203,7 +203,7 @@
                 PositionXOffset="753" PositionYOffset="554"
                 Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Text="Return to camp"
+                <TextWidget Brush="Popup.Button.Text" Text="Return to camp"
                     Brush.FontSize="16" Color="#F6DFC0FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

@@ -2,6 +2,10 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 using TaleWorlds.Engine.GauntletUI;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.Core;
+using TaleWorlds.Core.ViewModelCollection.ImageIdentifiers;
+using SandBox.View.Map;
 using TaleWorlds.InputSystem;
 using TaleWorlds.Library;
 using TaleWorlds.ScreenSystem;
@@ -18,7 +22,7 @@ namespace CalradiaUnified
         protected override void OnInitialize()
         {
             base.OnInitialize();
-            data=new CUAffairsVM(records,CloseSafely);
+            data=new CUAffairsVM(records,CloseSafely,OpenEncyclopedia,ShowOnMap);
             layer=new GauntletLayer("CUAffairs",130,false){IsFocusLayer=true};
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
@@ -38,6 +42,31 @@ namespace CalradiaUnified
         private void CloseSafely()
         {
             if(ScreenManager.TopScreen==this)ScreenManager.PopScreen();
+        }
+        private void OpenEncyclopedia(SandboxAffair matter)
+        {
+            if(matter==null || ScreenManager.TopScreen!=this || Campaign.Current==null)return;
+            var hero=SandboxOriginBehavior.ResolveAffairHero(matter.HeroId);
+            var place=SandboxOriginBehavior.ResolveAffairPlace(matter);
+            if(hero==null && place==null)return;
+            try
+            {
+                CloseSafely();
+                Campaign.Current.EncyclopediaManager.GoToLink(hero!=null?"Hero":"Settlement",hero!=null?hero.StringId:place.StringId);
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_affairs_encyclopedia_failed",error);}
+        }
+        private void ShowOnMap(SandboxAffair matter)
+        {
+            var place=SandboxOriginBehavior.ResolveAffairPlace(matter);
+            if(place==null || ScreenManager.TopScreen!=this)return;
+            try
+            {
+                CloseSafely();
+                var map=ScreenManager.TopScreen as MapScreen;
+                if(map!=null)map.FastMoveCameraToPosition(place.GatePosition);
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_affairs_map_location_failed",error);}
         }
         protected override void OnDeactivate()
         {
@@ -65,6 +94,12 @@ namespace CalradiaUnified
     {
         private readonly List<SandboxAffair> records;
         private readonly Action close;
+        private readonly Action<SandboxAffair> encyclopedia,map;
+        private SandboxAffair current;
+        [DataSourceProperty] public CharacterImageIdentifierVM Portrait{get;private set;}
+        [DataSourceProperty] public bool HasPortrait{get;private set;}
+        [DataSourceProperty] public bool HasEncyclopedia{get;private set;}
+        [DataSourceProperty] public bool HasLocation{get;private set;}
         private string tab="Pending";
         private int page;
         [DataSourceProperty] public MBBindingList<CUAffairRowVM> Rows{get;private set;}
@@ -72,9 +107,9 @@ namespace CalradiaUnified
         [DataSourceProperty] public string PageLabel{get;private set;}
         [DataSourceProperty] public string DetailTitle{get;private set;}
         [DataSourceProperty] public string DetailBody{get;private set;}
-        public CUAffairsVM(List<SandboxAffair> items,Action closeAction)
+        public CUAffairsVM(List<SandboxAffair> items,Action closeAction,Action<SandboxAffair> openEncyclopedia,Action<SandboxAffair> showOnMap)
         {
-            records=items??new List<SandboxAffair>();close=closeAction;
+            records=items??new List<SandboxAffair>();close=closeAction;encyclopedia=openEncyclopedia;map=showOnMap;
             Rows=new MBBindingList<CUAffairRowVM>();RefreshPage();
         }
         private void RefreshPage()
@@ -94,6 +129,18 @@ namespace CalradiaUnified
         }
         private void Open(SandboxAffair item)
         {
+            current=item;
+            var hero=item==null?null:SandboxOriginBehavior.ResolveAffairHero(item.HeroId);
+            var place=SandboxOriginBehavior.ResolveAffairPlace(item);
+            HasPortrait=hero!=null && hero.CharacterObject!=null;
+            try{Portrait=new CharacterImageIdentifierVM(HasPortrait?CharacterCode.CreateFrom(hero.CharacterObject):null);}
+            catch{HasPortrait=false;Portrait=new CharacterImageIdentifierVM(null);}
+            HasEncyclopedia=hero!=null || place!=null;
+            HasLocation=place!=null;
+            OnPropertyChangedWithValue(Portrait,"Portrait");
+            OnPropertyChangedWithValue(HasPortrait,"HasPortrait");
+            OnPropertyChangedWithValue(HasEncyclopedia,"HasEncyclopedia");
+            OnPropertyChangedWithValue(HasLocation,"HasLocation");
             DetailTitle=item==null?"Select a matter":item.Title;
             DetailBody=item==null?"Choose an entry to read its details. Speak with the named person to make a decision.":
                 item.Status+"\n\n"+item.Detail;
@@ -109,6 +156,8 @@ namespace CalradiaUnified
         public void ExecutePrevious(){if(page>0){page--;RefreshPage();}}
         public void ExecuteNext(){if(page+1<SandboxAffairsIndexPolicy.PageCount(
             SandboxAffairsIndexPolicy.Select(records,tab).Length)){page++;RefreshPage();}}
+        public void ExecuteEncyclopedia(){if(HasEncyclopedia && encyclopedia!=null)encyclopedia(current);}
+        public void ExecuteLocation(){if(HasLocation && map!=null)map(current);}
         public void ExecuteClose(){if(close!=null)close();}
     }
 }

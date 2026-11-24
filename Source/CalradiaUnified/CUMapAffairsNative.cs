@@ -54,18 +54,18 @@ namespace CalradiaUnified
     }
     // The root placement is deliberately scoped to the native map movies.
     // Exact 1.5.7 movie XPath and collision checks remain live acceptance.
-    [PrefabExtension("MapBar", "descendant::Window/Children")]
+    [PrefabExtension("MapBar", "descendant::Window/Widget/Children")]
     internal sealed class CUMapAffairsTabPatch : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => "<ButtonWidget Id=\"CUMapAffairs\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"176\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"40\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Bottom\" PositionXOffset=\"-24\" PositionYOffset=\"-84\" Command.Click=\"ExecuteCUAffairs\"><Children><TextWidget Brush.FontSize=\"15\" Text=\"Correspondence\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
+        public string Content => "<ButtonWidget Id=\"CUMapAffairs\" Brush=\"Popup.Done.Button.NineGrid\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"176\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"40\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Bottom\" PositionXOffset=\"-24\" PositionYOffset=\"-84\" Command.Click=\"ExecuteCUAffairs\"><Children><TextWidget Brush=\"Popup.Button.Text\" Brush.FontSize=\"15\" Text=\"Correspondence\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
-    [PrefabExtension("MapNotification", "descendant::Window/Children")]
+    [PrefabExtension("MapNotificationUI", "descendant::ListPanel[@Id='MapNotificationWidget']/Children")]
     internal sealed class CUMapAffairsNoticePatch : PrefabExtensionInsertPatch
     {
         public override InsertType Type => InsertType.Child;
         [PrefabExtensionText]
-        public string Content => "<ButtonWidget Id=\"CUMapAffairsNotice\" IsVisible=\"@CUHasPendingAffairs\" Brush=\"ButtonBrush\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"228\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"48\" HorizontalAlignment=\"Right\" VerticalAlignment=\"Top\" PositionXOffset=\"-24\" PositionYOffset=\"166\" Command.Click=\"ExecuteCUAffairsNotice\"><Children><TextWidget Brush.FontSize=\"15\" Text=\"@CUAffairsNotice\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
+        public string Content => "<ButtonWidget Id=\"CUMapAffairsNotice\" IsVisible=\"@CUHasPendingAffairs\" Brush=\"Popup.Done.Button.NineGrid\" DoNotPassEventsToChildren=\"true\" UpdateChildrenStates=\"true\" WidthSizePolicy=\"Fixed\" SuggestedWidth=\"228\" HeightSizePolicy=\"Fixed\" SuggestedHeight=\"48\" HorizontalAlignment=\"Center\" Command.Click=\"ExecuteCUAffairsNotice\"><Children><TextWidget Brush=\"Popup.Button.Text\" Brush.FontSize=\"15\" Text=\"@CUAffairsNotice\" WidthSizePolicy=\"StretchToParent\" HeightSizePolicy=\"StretchToParent\" HorizontalAlignment=\"Center\" VerticalAlignment=\"Center\"/></Children></ButtonWidget>";
     }
 }

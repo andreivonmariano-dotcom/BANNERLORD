@@ -88,15 +88,27 @@ namespace CalradiaUnified
                 return false;
             }
         }
+        internal static Hero ResolveAffairHero(string id)
+        {
+            return String.IsNullOrEmpty(id)?null:ResolveCampaignHero(id);
+        }
+        // A distant person uses the native last-known settlement, never secret live party coordinates.
+        internal static Settlement ResolveAffairPlace(SandboxAffair affair)
+        {
+            if(affair==null)return null;
+            if(!String.IsNullOrEmpty(affair.SettlementId))return Settlement.Find(affair.SettlementId);
+            var person=ResolveAffairHero(affair.HeroId);
+            if(person==null || !person.IsAlive)return null;
+            return SamePlace(Hero.MainHero,person)?(person.StayingInSettlement ?? person.CurrentSettlement ?? person.LastKnownClosestSettlement):person.LastKnownClosestSettlement;
+        }
         private static string AffairLocation(Hero person)
         {
             if(person==null || !person.IsAlive)return "Person no longer available.";
             if(person.IsPrisoner)return "Currently held prisoner.";
             if(!person.IsActive)return "Not currently available.";
             if(SamePlace(Hero.MainHero,person))return "Nearby. Speak with them in person.";
-            var place=person.StayingInSettlement ?? person.CurrentSettlement;
-            if(place!=null)return "At "+place.Name+".";
-            if(person.PartyBelongedTo!=null)return "Traveling with "+person.PartyBelongedTo.Name+".";
+            var place=person.LastKnownClosestSettlement;
+            if(place!=null)return "Last known near "+place.Name+".";
             return "Present whereabouts unknown.";
         }
         private static string AffairPerson(Hero person)
@@ -130,7 +142,7 @@ namespace CalradiaUnified
             {
                 var p=find(agencyDecisions.PendingHeroId);
                 rows.Add(new SandboxAffair{Id="request:"+agencyDecisions.PendingHeroId,
-                    Category="Letters",Title=AffairPerson(p)+" | Petition",
+                    Category="Letters",HeroId=agencyDecisions.PendingHeroId,Title=AffairPerson(p)+" | Petition",
                     Status=p==null?"Person unavailable":"Awaiting your answer",Pending=true,
                     Day=day,Detail=PetitionConcern(agencyDecisions.PendingKind)+"\n"+
                         AffairLocation(p)+"\nSpeak with this person about their affairs. The journal cannot answer for you."});
@@ -146,7 +158,7 @@ namespace CalradiaUnified
                 string status=due?"Conversation due":story.Outcome=="Pending"?
                     "No longer awaiting a reply":supported?"Help given":"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
-                rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",
+                rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",HeroId=story.HeroId,
                     Title=AffairPerson(p)+(due?" | Follow-up":" | Earlier matter"),
                     Status=p==null?status+" | Person unavailable":status,Pending=due,Day=story.ResolvedDay>=0?story.ResolvedDay:story.StartedDay,
                     Detail=PetitionConcern(story.Kind)+"\n"+AffairLocation(p)+"\n"+
@@ -165,13 +177,13 @@ namespace CalradiaUnified
                 string location=AffairLocation(patron);
                 if(knightServiceOrders.Active && knightServiceOrders.PatronId==knightOath.PatronId)
                     rows.Add(new SandboxAffair{Id="knight-order",Category="Service",
-                        Title="Duty for "+AffairPerson(patron),Status="Due day "+knightServiceOrders.DueDay,
+                        HeroId=knightOath.PatronId,Title="Duty for "+AffairPerson(patron),Status="Due day "+knightServiceOrders.DueDay,
                         Pending=true,Day=knightServiceOrders.StartDay,
                         Detail=(knightServiceOrders.Order=="Scout"?"Survey two towns of the realm.":"Ready your sworn fighters.")+
                             "\n"+location+"\nReturn to your patron to report."});
                 if(knightOath.CanMuster(day,true))
                     rows.Add(new SandboxAffair{Id="muster",Category="Service",
-                        Title="Audience with "+AffairPerson(patron),Status="Muster due",
+                        HeroId=knightOath.PatronId,Title="Audience with "+AffairPerson(patron),Status="Muster due",
                         Pending=true,Day=knightOath.NextMusterDay,Detail=location+
                             "\nMeet your sworn lord to review your service."});
                 if(knightServiceOrders.PatronId==knightOath.PatronId &&
@@ -184,7 +196,7 @@ namespace CalradiaUnified
             {
                 var estate=String.IsNullOrEmpty(inheritanceNegotiation.SettlementId)?null:
                     Settlement.Find(inheritanceNegotiation.SettlementId);
-                rows.Add(new SandboxAffair{Id="inheritance",Category="Household",Title="Family estate claim",
+                rows.Add(new SandboxAffair{Id="inheritance",Category="Household",HeroId=inheritanceNegotiation.LeaderId,SettlementId=inheritanceNegotiation.SettlementId,Title="Family estate claim",
                     Status=inheritanceNegotiation.Authorized?"Awaiting lawful consent":"Disputed",
                     Pending=true,Day=inheritanceNegotiation.PetitionDay,Detail=
                         (estate==null?"The claim remains unresolved.":"Claim concerning "+estate.Name+".")+
@@ -195,7 +207,7 @@ namespace CalradiaUnified
                 {
                     var garrison=estate.Town==null?null:estate.Town.GarrisonParty;
                     rows.Add(new SandboxAffair{Id="estate:"+estate.StringId,Category="Household",
-                        Title=estate.Name.ToString(),Status=estate.IsUnderSiege?"Under siege":"Holding",
+                        SettlementId=estate.StringId,Title=estate.Name.ToString(),Status=estate.IsUnderSiege?"Under siege":"Holding",
                         Pending=estate.IsUnderSiege,Day=estate.IsUnderSiege?day:-1,
                         Detail=(garrison==null || garrison.MemberRoster==null?"Garrison not confirmed.":
                             "Garrison: "+garrison.MemberRoster.TotalManCount+" soldiers.")+
@@ -207,7 +219,7 @@ namespace CalradiaUnified
                     string office=EffectiveHouseholdDuty(officer);
                     if(office.Length==0)continue;
                     rows.Add(new SandboxAffair{Id="officer:"+officer.StringId,Category="Household",
-                        Title=officer.Name.ToString(),Status=office,Detail=AffairLocation(officer)+
+                        HeroId=officer.StringId,Title=officer.Name.ToString(),Status=office,Detail=AffairLocation(officer)+
                             "\nSpeak in person about their office and duties."});
                 }
             return rows;

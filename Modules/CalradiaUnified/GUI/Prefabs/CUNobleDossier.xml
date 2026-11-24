@@ -164,7 +164,7 @@
                     SuggestedWidth="882" HeightSizePolicy="Fixed"
                     SuggestedHeight="17" PositionXOffset="36"
                     PositionYOffset="542"/>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="218"
@@ -172,7 +172,7 @@
                     PositionXOffset="34" PositionYOffset="562"
                     Command.Click="ExecuteOpenFamily">
               <Children>
-                <TextWidget Text="View family portraits"
+                <TextWidget Brush="Popup.Button.Text" Text="View family portraits"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"
@@ -180,7 +180,7 @@
                         VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="218"
@@ -188,7 +188,7 @@
                     PositionXOffset="268" PositionYOffset="562"
                     Command.Click="ExecuteHearPetition">
               <Children>
-                <TextWidget Text="Correspondence"
+                <TextWidget Brush="Popup.Button.Text" Text="Correspondence"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"
@@ -196,7 +196,7 @@
                         VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="218"
@@ -204,7 +204,7 @@
                     PositionXOffset="502" PositionYOffset="562"
                     Command.Click="ExecuteRoleAction">
               <Children>
-                <TextWidget Text="@RoleActionLabel"
+                <TextWidget Brush="Popup.Button.Text" Text="@RoleActionLabel"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"
@@ -212,7 +212,7 @@
                         VerticalAlignment="Center"/>
               </Children>
             </ButtonWidget>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="184"
@@ -220,7 +220,7 @@
                     PositionXOffset="733" PositionYOffset="562"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Text="Return"
+                <TextWidget Brush="Popup.Button.Text" Text="Return"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"

@@ -73,6 +73,11 @@ namespace CalradiaUnified
                 history.Negative<0 && nativeRelation<=-10);
         }
 
+        public static bool CanSendDistantLetter(bool adult,bool active,bool prisoner,
+            bool establishedContact,bool knownSettlement,int relation)
+        {
+            return adult && active && !prisoner && establishedContact && knownSettlement && relation>=10;
+        }
         public static int Amount(string kind)
         {
             if(kind=="HouseholdAid")return 150;

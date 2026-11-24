@@ -67,8 +67,9 @@ assert 'NativeBUTRStatus("Kingdom")' in adapter
 assert 'ChangeKingdomAction' not in adapter
 assert 'HeroCreator.Create' not in adapter
 affairs=(source/"CUMapAffairsNative.cs").read_text()
-assert '[PrefabExtension("MapBar", "descendant::Window/Children")]' in affairs
-assert '[PrefabExtension("MapNotification", "descendant::Window/Children")]' in affairs
+assert '[PrefabExtension("MapBar", "descendant::Window/Widget/Children")]' in affairs
+assert '[PrefabExtension("MapNotificationUI",' in affairs
+assert "MapNotificationWidget" in affairs
 assert 'BaseViewModelMixin<MapBarVM>' in affairs
 assert 'BaseViewModelMixin<MapNotificationVM>' in affairs
 assert 'CUHasPendingAffairs' in affairs

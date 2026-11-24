@@ -86,7 +86,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="763"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="35" PositionYOffset="601"/>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="192"
@@ -94,7 +94,7 @@
                     PositionXOffset="846" PositionYOffset="597"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Brush.FontSize="16" Text="Close gallery"
+                <TextWidget Brush="Popup.Button.Text" Brush.FontSize="16" Text="Close gallery"
                     Color="#FFEED6FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

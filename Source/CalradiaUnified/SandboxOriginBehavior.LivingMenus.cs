@@ -109,6 +109,20 @@ namespace CalradiaUnified
                 return;
             OfferLocalCharacterRequest(player);
         }
+        private bool CanWriteDistantPetition(Hero player,Hero actor)
+        {
+            if(player==null || actor==null || actor==player)return false;
+            bool family=actor==player.Spouse || actor.Father==player || actor.Mother==player ||
+                player.Father==actor || player.Mother==actor ||
+                (player.Father!=null && player.Mother!=null && actor.Father==player.Father && actor.Mother==player.Mother);
+            bool companion=Clan.PlayerClan!=null && actor.CompanionOf==Clan.PlayerClan;
+            bool patron=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId && actor.StringId==knightOath.PatronId;
+            bool knownNoble=actor.Clan!=null && actor.Clan.Leader==actor &&
+                player.GetRelation(actor)>=25;
+            return SandboxAgencyDecisionPolicy.CanSendDistantLetter(actor.Age>=18f,
+                actor.IsAlive && actor.IsActive,actor.IsPrisoner,family || companion || patron || knownNoble,
+                actor.LastKnownClosestSettlement!=null,player.GetRelation(actor));
+        }
         private void OfferLocalCharacterRequest(Hero player)
         {
             if(player==null || agencyDecisions.HasPending)return;
@@ -119,7 +133,7 @@ namespace CalradiaUnified
             var wanted=new System.Collections.Generic.HashSet<string>(
                 ids,StringComparer.Ordinal);
             var local=Hero.AllAliveHeroes.Where(h=>h!=null && h.IsAlive &&
-                wanted.Contains(h.StringId) && h!=player && SamePlace(player,h))
+                wanted.Contains(h.StringId) && h!=player && (SamePlace(player,h) || CanWriteDistantPetition(player,h)))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
             foreach(string id in ids)
@@ -129,7 +143,7 @@ namespace CalradiaUnified
                 Hero hero;
                 if(!local.TryGetValue(id,out hero))continue;
                 if(hero==null || hero==player ||
-                    !SamePlace(player,hero) || hero.Age<18f ||
+                    (!SamePlace(player,hero) && !CanWriteDistantPetition(player,hero)) || hero.Age<18f ||
                     !hero.IsActive || hero.IsPrisoner)
                     continue;
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
@@ -139,7 +153,7 @@ namespace CalradiaUnified
                 if(!SandboxAgencyDecisionPolicy.CanReapproach(
                     socialBonds.For(hero.StringId),nativeRelation))continue;
                 string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
-                    record.Goal,true,true,nativeRelation,
+                    record.Goal,true,SamePlace(player,hero) || CanWriteDistantPetition(player,hero),nativeRelation,
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
                         agencyDecisions.Day-prior.LastDay,
@@ -155,7 +169,8 @@ namespace CalradiaUnified
                         hero.StringId,player.StringId,
                         "kind="+kind+
                         "|source=modeled_npc_initiative"+
-                        "|native_evidence=goal_traits_wealth_presence"+
+                        "|native_evidence=goal_traits_wealth_contact"+
+                        "|delivery="+(SamePlace(player,hero)?"in_person":"modeled_letter")+
                         "|not_a_claim_of_native_ai_dialogue=true");
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+

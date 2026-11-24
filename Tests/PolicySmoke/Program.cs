@@ -23,6 +23,12 @@ internal static class Program
     }
     private static void Main()
     {
+        Check("distant letters require known adult trusted contact and a known place",
+            SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,10) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,false,true,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,true,true,true,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,false,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,9));
         var affairs=new[]{
             new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
             new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
