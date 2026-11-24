@@ -16,7 +16,8 @@ namespace CalradiaUnified
         // Only actual local adults speak. All session state is transient.
         private string groupParent="",groupPlayerId="",groupSeatId="",groupTopic="";
         private string groupOpening="",groupClosing="",groupOccasion="";
-        private bool groupSecondRound;
+        private bool groupSecondRound,groupPlanned;
+        private SandboxGatheringPlan gatheringPlan=new SandboxGatheringPlan();
         private int groupRoundSerial;
         private readonly List<Hero> groupParticipants=new List<Hero>();
         private readonly List<string> groupPreferences=new List<string>();
@@ -100,7 +101,7 @@ namespace CalradiaUnified
         private void ClearGroupSession()
         {
             groupParent="";groupPlayerId="";groupSeatId="";groupTopic="";
-            groupOpening="";groupClosing="";groupOccasion="";groupSecondRound=false;groupRoundSerial=0;
+            groupOpening="";groupClosing="";groupOccasion="";groupSecondRound=false;groupRoundSerial=0;groupPlanned=false;
             groupParticipants.Clear();groupPreferences.Clear();
         }
 
@@ -114,6 +115,64 @@ namespace CalradiaUnified
             groupSeatId=seat==null?"":seat.StringId;
             groupParticipants.AddRange(people);
             GameMenu.SwitchToMenu("cu_group_topics");
+        }
+
+        private bool CanScheduleGathering(string occasion)
+        {
+            return groupParent!="cu_household_camp" && GroupOccasionAllowed(occasion) &&
+                gatheringPlan.CanPlan(CurrentHouseholdDay());
+        }
+        private void ScheduleGathering(string occasion)
+        {
+            if(!CanScheduleGathering(occasion))return;
+            var player=Hero.MainHero;
+            var invited=groupParticipants.Select(h=>h.StringId).ToArray();
+            var accepted=groupParticipants.Where(h=>SandboxGatheringPlan.AcceptInvitation(
+                player.GetRelation(h),PersonalVoice(h),occasion)).Select(h=>h.StringId).ToArray();
+            if(gatheringPlan.Schedule(player.StringId,groupParent,groupSeatId,occasion,
+                CurrentHouseholdDay(),invited,accepted))
+                ShowGatheringPlan();
+        }
+        private void ShowGatheringPlan()
+        {
+            if(Hero.MainHero==null || gatheringPlan.Owner!=Hero.MainHero.StringId)return;
+            var p=gatheringPlan;
+            var lines=new List<string>{p.Occasion+" | "+p.Status,
+                "Meet on day "+p.Due+" through day "+(p.Due+3)+". No one is ordered to travel."};
+            foreach(var id in p.Invited)
+            {
+                var hero=ResolveCampaignHero(id);
+                lines.Add((hero==null?id:hero.Name.ToString())+": "+
+                    (p.Accepted.Contains(id)?"willing to attend if present":"declined the invitation")+
+                    (p.Status=="Held"?(p.Attended.Contains(id)?" | attended":" | did not attend"):""));
+            }
+            ShowNativeDetail("Gathering arrangements",String.Join("\n",lines));
+        }
+        private List<Hero> PlannedAttendees(string parent)
+        {
+            var player=Hero.MainHero;var seat=Settlement.CurrentSettlement;
+            if(player==null || seat==null ||
+                !gatheringPlan.IsDue(player.StringId,parent,seat.StringId,CurrentHouseholdDay()))
+                return new List<Hero>();
+            var people=AvailableGroupParticipants(parent).Where(h=>gatheringPlan.Accepted.Contains(h.StringId)).ToList();
+            if(parent=="cu_native_royal_council" && people.Count!=3)return new List<Hero>();
+            return people;
+        }
+        private void AttendPlannedGathering(string parent)
+        {
+            var people=PlannedAttendees(parent);
+            if(people.Count<2)return;
+            ClearGroupSession();
+            groupParent=parent;groupPlayerId=Hero.MainHero.StringId;
+            groupSeatId=Settlement.CurrentSettlement.StringId;
+            groupParticipants.AddRange(people);groupPlanned=true;
+            if(!GroupOccasionAllowed(gatheringPlan.Occasion))
+            {
+                ClearGroupSession();
+                ShowNativeDetail("Gathering","The occasion can no longer be held with those present.");
+                return;
+            }
+            BeginGroupOccasion(gatheringPlan.Occasion);
         }
 
         private void LeaveGroupDiscussion()
@@ -184,7 +243,7 @@ namespace CalradiaUnified
                     int nativeRelation=a.GetRelation(b);
                     string standing=nativeRelation<=-20?"Strained relations":
                         nativeRelation>=30?"Good standing":"Standing uncertain";
-                    if(record!=null)standing+=". Last recorded priorities: "+
+                    if(record!=null)standing+=". "+SandboxPeerSocialState.Trend(record)+". Last recorded priorities: "+
                         (record.Interest=="CommonInterest"?"similar":"different")+
                         " (day "+record.LastDay+").";
                     lines.Add(a.Name+" and "+b.Name+": "+standing);
@@ -336,6 +395,10 @@ namespace CalradiaUnified
                 !SandboxPetitionVoicePolicy.GroupPriority(priority) ||
                 !SandboxPetitionVoicePolicy.GroupTopic(groupTopic) ||
                 groupPreferences.Count!=groupParticipants.Count)return;
+            if(groupPlanned && (!gatheringPlan.IsDue(groupPlayerId,groupParent,groupSeatId,CurrentHouseholdDay()) ||
+                gatheringPlan.Occasion!=groupOccasion || !gatheringPlan.Finish(groupPlayerId,CurrentHouseholdDay(),
+                    groupParticipants.Select(h=>h.StringId).ToArray())))return;
+            groupPlanned=false;
             // No native campaign mutation; this is a stated preference only.
             var lines=new List<string>{"You: "+GroupChoiceWords(priority)};
             for(int i=0;i<groupParticipants.Count;i++)
@@ -369,6 +432,18 @@ namespace CalradiaUnified
                     args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
                         return AvailableGroupParticipants(parent).Count>=2;},
                     args=>OpenGroupDiscussion(parent),false);
+                if(parent!="cu_household_camp")
+                {
+                    starter.AddGameMenuOption(parent,"cu_group_plan_view_"+parent,"Review gathering arrangements",
+                        args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent;},
+                        args=>ShowGatheringPlan(),false);
+                    starter.AddGameMenuOption(parent,"cu_group_plan_attend_"+parent,"Hold the arranged gathering",
+                        args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;return PlannedAttendees(parent).Count>=2;},
+                        args=>AttendPlannedGathering(parent),false);
+                    starter.AddGameMenuOption(parent,"cu_group_plan_cancel_"+parent,"Cancel the arranged gathering",
+                        args=>Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent && gatheringPlan.Status=="Pending",
+                        args=>{if(Hero.MainHero!=null)gatheringPlan.Cancel(Hero.MainHero.StringId,CurrentHouseholdDay());},false);
+                }
             }
             starter.AddGameMenu("cu_group_topics","{CU_GROUP_TOPICS}",args=>
             {
@@ -393,6 +468,9 @@ namespace CalradiaUnified
                     args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
                         return GroupOccasionAllowed(occasion);},
                     args=>BeginGroupOccasion(occasion),false);
+                starter.AddGameMenuOption("cu_group_topics","cu_group_schedule_"+occasion,"Arrange: "+words+" (in two days)",
+                    args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;return CanScheduleGathering(occasion);},
+                    args=>ScheduleGathering(occasion),false);
             }
             foreach(var subject in new[]{"Family","Defense","Livelihood","Relations"})
             {
@@ -429,7 +507,7 @@ namespace CalradiaUnified
                 }
             }
             starter.AddGameMenuOption("cu_group_exchange","cu_group_defer","Let us leave this matter undecided.",
-                args=>GroupSessionValid(),args=>{groupTopic="";groupPreferences.Clear();
+                args=>GroupSessionValid() && !groupPlanned,args=>{groupTopic="";groupPreferences.Clear();
                     GameMenu.SwitchToMenu("cu_group_topics");},false);
             starter.AddGameMenu("cu_group_reply","{CU_GROUP_REPLY}",args=>
                 MBTextManager.SetTextVariable("CU_GROUP_REPLY",new TextObject(
