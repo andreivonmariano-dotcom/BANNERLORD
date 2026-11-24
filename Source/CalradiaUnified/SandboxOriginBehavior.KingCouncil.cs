@@ -117,6 +117,65 @@ namespace CalradiaUnified
             return result;
         }
 
+        private string VacantRecordedRoyalOffice(string office)
+        {
+            if(!CanRestoreRoyalCourt() || !SandboxKingStartPolicy.CourtOffices.Contains(office) ||
+                TaleWorlds.ObjectSystem.MBObjectManager.Instance==null)return "";
+            var recorded=retinueOffices.ActiveIds().Where(id=>retinueOffices.OfficeFor(id)==office).ToArray();
+            if(recorded.Length!=1)return "";
+            var incumbent=TaleWorlds.ObjectSystem.MBObjectManager.Instance.GetObject<Hero>(recorded[0]);
+            // Absence, captivity or temporary assignment elsewhere is not a vacancy.
+            return incumbent!=null && (!incumbent.IsAlive ||
+                incumbent.Clan!=Clan.PlayerClan || incumbent.CompanionOf!=Clan.PlayerClan)?
+                recorded[0]:"";
+        }
+
+        private bool CanReplaceRoyalOfficer(string office)
+        {
+            if(VacantRecordedRoyalOffice(office).Length==0)return false;
+            var person=Hero.OneToOneConversationHero;var party=MobileParty.MainParty;
+            var seat=Settlement.CurrentSettlement;
+            if(person==null || person==Hero.MainHero || !person.IsAlive || !person.IsActive ||
+                person.IsPrisoner || person.Age<18f || person.CharacterObject==null ||
+                person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan ||
+                retinueOffices.HasIdentity(person.StringId) || EffectiveHouseholdDuty(person).Length>0 ||
+                party==null || party.LeaderHero!=Hero.MainHero || party.MemberRoster==null ||
+                party.MapEvent!=null || seat==null || seat.OwnerClan!=Clan.PlayerClan ||
+                !seat.IsFortification || seat.IsUnderSiege || seat!=Hero.MainHero.CurrentSettlement ||
+                (seat.Party!=null && seat.Party.MapEvent!=null))return false;
+            return office=="RoyalMinister"?
+                person.PartyBelongedTo==null && person.CurrentSettlement==seat &&
+                SandboxKingNativeMinistry.VerifiedGovernor(person) && person.GovernorOf.Settlement==seat:
+                person.PartyBelongedTo==party && party.MemberRoster.GetTroopCount(person.CharacterObject)==1;
+        }
+
+        private void ReplaceRoyalOfficer(string office)
+        {
+            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
+                new TaleWorlds.Localization.TextObject("The appointment cannot be confirmed."));
+            if(!CanReplaceRoyalOfficer(office))return;
+            var person=Hero.OneToOneConversationHero;
+            string prior=VacantRecordedRoyalOffice(office);
+            if(!retinueOffices.Replace(prior,person.StringId,office))return;
+            DiagnosticJournal.Event("cu_royal_officer_replaced","office="+office+
+                "|previous="+prior+"|current="+person.StringId+"|native_appointments_unchanged=true");
+            TaleWorlds.Core.MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",
+                new TaleWorlds.Localization.TextObject("I accept the household designation. We can restore the court when all its members are present."));
+        }
+
+        private void RegisterRoyalOfficerReplacement(CampaignGameStarter starter)
+        {
+            foreach(string key in SandboxKingStartPolicy.CourtOffices)
+            {
+                string office=key;
+                starter.AddPlayerLine("cu_royal_replace_"+office,"hero_main_options",
+                    "cu_royal_replace_reply","Take up the vacant office of "+SandboxRetinueOfficePolicy.Label(office)+".",
+                    ()=>CanReplaceRoyalOfficer(office),()=>ReplaceRoyalOfficer(office),110);
+            }
+            starter.AddDialogLine("cu_royal_replace_reply","cu_royal_replace_reply","close_window",
+                "{CU_REPLACE_ROYAL_OFFICER}",null,null,110);
+        }
+
         private bool CanRestoreRoyalCourt()
         {
             return applied && IsStandaloneSandbox() && CurrentNobleAuthority(true) &&
@@ -169,6 +228,7 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            RegisterRoyalOfficerReplacement(starter);
             starter.AddGameMenu("cu_native_royal_council",
                 "Royal court at an actual player-owned seat. The Royal "+
                 "Minister governs this holding. Marshal and one real "+
