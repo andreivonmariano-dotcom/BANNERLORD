@@ -48,14 +48,10 @@ if ($RunPolicyTests) {
     & $Dotnet.Source run --project $TestProject --configuration Release
     if ($LASTEXITCODE -ne 0) { throw 'Policy test run failed. Nothing was staged.' }
 }
-# Stage into a fresh output folder only AFTER successful compilation.
-if (Test-Path -LiteralPath $Output) { Remove-Item -LiteralPath $Output -Recurse -Force }
-New-Item -ItemType Directory -Force -Path (Join-Path $Output 'bin\Win64_Shipping_Client') | Out-Null
-Copy-Item -LiteralPath (Join-Path $Root 'Modules\CalradiaUnified\SubModule.xml') -Destination $Output
-New-Item -ItemType Directory -Force -Path (Join-Path $Output 'ModuleData') | Out-Null
-Get-ChildItem -LiteralPath (Join-Path $Root 'Modules\CalradiaUnified\ModuleData') -Force |
-  Copy-Item -Destination (Join-Path $Output 'ModuleData') -Recurse
-Copy-Item -LiteralPath $Dll -Destination (Join-Path $Output 'bin\Win64_Shipping_Client\CalradiaUnified.dll')
+# Use the same staging and identity checks as CI, not a second package path.
+& (Join-Path $Root 'scripts\Package-Compiled.ps1') -Dll $Dll -ProjectRoot $Root
+if ($LASTEXITCODE -ne 0) { throw 'Packaging failed.' }
+# The canonical packager has already staged the one-folder module.
 $Hash = (Get-FileHash -Algorithm SHA256 -LiteralPath (Join-Path $Output 'bin\Win64_Shipping_Client\CalradiaUnified.dll')).Hash
 "Game=$Version`nDLL_SHA256=$Hash`nBuilt_UTC=$([DateTime]::UtcNow.ToString('o'))" | Set-Content -LiteralPath (Join-Path $LogsDir 'build-proof.txt')
 Write-Host "Success: Output\Modules\CalradiaUnified"
