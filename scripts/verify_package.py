@@ -32,8 +32,7 @@ def verify(filename, version):
             assert category.attrib.get("Name")=="ui_calradiaunified"
             assert category.find("AlwaysLoad") is not None
         gauntlet_prefab = prefix + "GUI/Prefabs/CUSettingsPanel.xml"
-        assert gauntlet_prefab in names, "Native UI prefab missing"
-        assert ET.fromstring(archive.read(gauntlet_prefab)).tag == "Prefab", "Invalid prefab XML"
+        assert gauntlet_prefab not in names, "Retired pre-MCM settings UI must not ship"
         # The former pre-game screen has an observed broken layout and blocked
         # Back navigation. It is intentionally excluded from shipped builds.
         origin_prefab = prefix + "GUI/Prefabs/CUOriginPanel.xml"
