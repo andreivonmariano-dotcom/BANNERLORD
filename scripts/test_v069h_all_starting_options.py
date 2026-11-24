@@ -68,6 +68,10 @@ assert "profile.NormalizeGuidedCareerDraft()" not in behavior
 assert 'profile.SoldierGuidedStart &&' in native
 assert 'profile.KnightGuidedStart && profile.Role=="Knight"' in native
 assert '"default":StartTypeForRole(profile.Role)' in native
+assert world.count("profile.IsFixedGuidedKnightField(key)") == 2
+assert 'RetinueMode="RoleBased";' in normalize
+assert 'FamilyHomeMode="None";' in normalize
+assert 'Gold=-1;Influence=-1;Troops=0;' in normalize
 assert 'SandboxKnightStartPolicy.ValidateNativeSwornHouse(' in preflight
 assert 'SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(' in preflight
 assert 'SandboxKingStartPolicy.ValidateNativeCrown(' in preflight
