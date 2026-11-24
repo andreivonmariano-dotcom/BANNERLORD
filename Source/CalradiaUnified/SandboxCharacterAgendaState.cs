@@ -170,6 +170,7 @@ namespace CalradiaUnified
                     !Int32.TryParse(f[9],out pulses) ||
                     days<0 || pulses<0 || pulses>5)continue;
                 var id=D(f[1]);
+                if(result.Get(id)!=null)continue;
                 if(!result.Register(id,D(f[2]),D(f[3]),
                     D(f[4]),D(f[5]),D(f[6]),D(f[7])))continue;
                 var e=result.Get(id);
