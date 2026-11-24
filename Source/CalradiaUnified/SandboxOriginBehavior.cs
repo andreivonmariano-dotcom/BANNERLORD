@@ -1443,7 +1443,7 @@ namespace CalradiaUnified
                                 .GetTroopCount(o.CharacterObject)==1);
                     bool offices=lordOfficers.Length==2 &&
                         lordOfficers.Count(o=>o!=null &&
-                            retinueOffices.OfficeFor(o.StringId)=="MasterofArms")==1 &&
+                            retinueOffices.OfficeFor(o.StringId)=="MasterOfArms")==1 &&
                         lordOfficers.Count(o=>o!=null &&
                             retinueOffices.OfficeFor(o.StringId)=="Knight")==1;
                     string lordRetinue=SandboxLordStartPolicy

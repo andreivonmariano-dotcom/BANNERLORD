@@ -25,6 +25,7 @@ namespace CalradiaUnified
         public static string Key(string label)
         {
             if(label=="Band Lieutenant" || label=="Second In Command")return "SecondInCommand";
+            if(label=="Master of Arms" || label=="Master ofArms")return "MasterOfArms";
             string key=(label??"").Replace(" ","");
             return Skills(key).Length>0?key:"";
         }
@@ -33,6 +34,18 @@ namespace CalradiaUnified
             if(String.IsNullOrEmpty(name) || !name.EndsWith(")",StringComparison.Ordinal))return "";
             int start=name.LastIndexOf(" (",StringComparison.Ordinal);
             return start<1?"":Key(name.Substring(start+2,name.Length-start-3));
+        }
+        public static string[] WandererSupportSkills(string specialty)
+        {
+            switch(specialty)
+            {
+                case "Guard":return new[]{"Athletics","Polearm"};
+                case "Scout":return new[]{"Riding","Bow"};
+                case "Healer":return new[]{"Steward","Athletics"};
+                case "Steward":return new[]{"Trade","Charm"};
+                case "Trader":return new[]{"Steward","Charm"};
+                default:return new string[0];
+            }
         }
         public static int TrainingTarget(string office,int rank)
         {

@@ -17,11 +17,12 @@ namespace CalradiaUnified
         private static Hero NativeCourtOfficer(string office)
         {
             var clan=Clan.PlayerClan;
-            return clan==null?null:clan.Companions
+            string key=SandboxRetinueOfficePolicy.Key(office);
+            return clan==null || key.Length==0?null:clan.Companions
                 .FirstOrDefault(hero=>hero!=null &&
                     hero.IsActive && hero.IsAlive &&
                     hero.Clan==clan && hero.CompanionOf==clan &&
-                    RecordedRetinueOffice(hero)==SandboxRetinueOfficePolicy.Key(office));
+                    RecordedRetinueOffice(hero)==key);
         }
 
         private Settlement RecordedRoyalSeat()

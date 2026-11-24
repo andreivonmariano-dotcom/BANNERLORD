@@ -154,6 +154,7 @@ namespace CalradiaUnified
                 (c.Occupation==Occupation.Wanderer ||
                  c.Occupation==Occupation.Lord))
                 .OrderBy(c=>c.Occupation==Occupation.Wanderer?0:1)
+                .ThenByDescending(c=>c.GetSkillValue(skill))
                 .ThenBy(c=>c.StringId,StringComparer.Ordinal)
                 .FirstOrDefault();
             if(source==null)
@@ -200,6 +201,18 @@ namespace CalradiaUnified
                         "Exact companion specialty skill not established");
                 // The same editor used for the player's own native stats
                 // now edits this independent companion override dictionary.
+                foreach(string supporting in SandboxRetinueOfficePolicy.WandererSupportSkills(profile.WandererCompanionSpecialty))
+                {
+                    var support=SandboxNativeSkillCatalog.Find(supporting);
+                    if(support!=null && support!=skill)
+                    {
+                        int desired=Math.Max(provisional.GetSkillValue(support),
+                            Math.Min(80,profile.WandererCompanionSkill*2/3));
+                        provisional.HeroDeveloper.SetInitialSkillLevel(support,desired);
+                        if(provisional.GetSkillValue(support)!=desired)
+                            throw new InvalidOperationException("Companion support skill not established");
+                    }
+                }
                 ApplyCustomStats(profile,provisional);
 
                 string specialty=profile.WandererCompanionSpecialty;

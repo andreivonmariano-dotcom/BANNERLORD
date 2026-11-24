@@ -153,10 +153,13 @@ namespace CalradiaUnified
                     "Our company numbers "+strength+" souls.";
                 string holdings="Our house holds "+clan.Settlements.Count+" settlements.";
                 bool owned=seat!=null && seat.OwnerClan==clan && seat.IsFortification;
-                if(office=="Steward" || office=="Royal Minister")
+                if(office=="Steward" || office=="Royal Minister" ||
+                    office=="Household Steward" || office=="Chamberlain" || office=="Factor")
                     reply=holdings+" Your purse holds "+Hero.MainHero.Gold+" denars. "+
                         (owned?"We can inspect the stores and defenses here.":
                         "Let us inspect our own holdings when we return.");
+                else if(office=="Navigator")
+                    reply="My concern is the road ahead. We should travel with care and keep sight of our route.";
                 else if(office=="Envoy")
                     reply=clan.Kingdom==null?"We owe allegiance to no realm at present.":
                         "Our allegiance is to "+clan.Kingdom.Name+".";
@@ -182,7 +185,8 @@ namespace CalradiaUnified
                 }
             }
             reply+=" "+SandboxPetitionVoicePolicy.Opinion(PersonalVoice(speaker),
-                office=="Steward" || office=="Royal Minister"?"Finances":"Service");
+                office=="Steward" || office=="Royal Minister" || office=="Household Steward" ||
+                office=="Chamberlain" || office=="Factor"?"Finances":"Service");
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_DUTY_REPLY",new TextObject(reply));
             return true;
         }

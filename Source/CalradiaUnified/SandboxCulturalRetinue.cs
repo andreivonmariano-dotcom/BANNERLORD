@@ -94,8 +94,8 @@ namespace CalradiaUnified
         internal static void EquipForStyle(Hero officer,
             CharacterObject source,string style,string office)
         {
-            if(officer==null || officer.BattleEquipment==null ||
-                source==null || source.BattleEquipments==null)return;
+            if(officer==null || officer.BattleEquipment==null || source==null || source.BattleEquipments==null)
+                throw new InvalidOperationException("Native companion battle equipment unavailable");
             var available=source.BattleEquipments.ToArray();
             var candidates=CharacterObject.All.Where(c=>c!=null &&
                 c.Culture==officer.Culture && c.BattleEquipments!=null &&
@@ -105,7 +105,7 @@ namespace CalradiaUnified
                 .Where(e=>e!=null);
             var selected=candidates.OrderByDescending(e=>EquipmentScore(e,style))
                 .ThenByDescending(e=>KitQuality(e,style)).FirstOrDefault();
-            if(selected==null)return;
+            if(selected==null)throw new InvalidOperationException("No native companion battle equipment set");
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
                 officer.BattleEquipment[slot]=selected[slot];
             for(int slot=0;slot<(int)EquipmentIndex.NumEquipmentSetSlots;slot++)
@@ -113,7 +113,7 @@ namespace CalradiaUnified
                     throw new InvalidOperationException("Native officer equipment not applied");
             DiagnosticJournal.Event("cu_retinue_native_gear",
                 "hero="+officer.StringId+"|office="+office+
-                "|source="+source.StringId+"|native_gear=true"+
+                "|hero_template="+source.StringId+"|native_gear=true"+
                 "|style="+style+
                 "|gear_score="+EquipmentScore(selected,style));
         }
@@ -159,7 +159,8 @@ namespace CalradiaUnified
 
         private static void TrainForOffice(Hero officer,string office)
         {
-            if(officer==null || officer.HeroDeveloper==null)return;
+            if(officer==null || officer.HeroDeveloper==null)
+                throw new InvalidOperationException("Native officer training model missing");
             string culture=officer.Culture.StringId;
             var skills=SandboxRetinueCulturePolicy.Training(
                 culture,office);
