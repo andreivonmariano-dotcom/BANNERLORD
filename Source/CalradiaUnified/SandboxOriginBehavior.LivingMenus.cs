@@ -112,9 +112,11 @@ namespace CalradiaUnified
         private void OfferLocalCharacterRequest(Hero player)
         {
             if(player==null || agencyDecisions.HasPending)return;
-            foreach(var record in characterAgendas.Entries
-                .OrderBy(a=>a.Id,StringComparer.Ordinal))
+            foreach(string id in agencyDecisions.Prioritize(
+                characterAgendas.Entries.Select(a=>a.Id)))
             {
+                var record=characterAgendas.Get(id);
+                if(record==null)continue;
                 var hero=FindLivingPerson(record.Id);
                 if(hero==null || hero==player ||
                     !SamePlace(player,hero) || hero.Age<18f ||
@@ -148,8 +150,8 @@ namespace CalradiaUnified
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
                         "|day="+agencyDecisions.Day);
+                    break;
                 }
-                break;
             }
         }
         private void DescribeCharacterRequest()

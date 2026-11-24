@@ -364,17 +364,14 @@ namespace CalradiaUnified
                     record.HouseholdId=clan;
                     events++;
                 }
-                if(hero.Spouse!=null &&
+                if(hero.Spouse!=null && hero.Spouse!=hero &&
+                    hero.Spouse.Spouse==hero &&
                     !state.Bonds.Any(x=>x.From==hero.StringId &&
                         x.To==hero.Spouse.StringId &&
                         x.Kind=="Spouse"))
                 {
-                    state.Tie(hero.StringId,hero.Spouse.StringId,
-                        "Spouse","VerifiedNativeMarriage");
-                    state.Remember("NativeMarriageObserved",
-                        hero.StringId,hero.Spouse.StringId,
-                        "native_marriage_seen=true|date_not_established");
-                    events++;
+                    if(state.ObserveMarriage(hero.StringId,
+                        hero.Spouse.StringId,true))events++;
                 }
                 if(hero!=player)
                 {

@@ -148,7 +148,12 @@ namespace CalradiaUnified
                 "\n"+duty+
                 "\nStanding with you: "+
                 (person==player?"your own character":
-                    player.GetRelation(person).ToString()));
+                    player.GetRelation(person).ToString())+
+                "\nCurrent reciprocal spouse: "+
+                (person.Spouse!=null && person.Spouse.Spouse==person?
+                    NativePersonName(person.Spouse):"not verified")+
+                (person==player?"":"\n"+SocialBondDescription(person))+
+                "\n\n"+PersonalHistoryText(person));
         }
 
         private void OpenDossierFamilyPortraits()

@@ -24,6 +24,17 @@ namespace CalradiaUnified
         {
             return Records.FirstOrDefault(x=>x.HeroId==id);
         }
+        // Rotate opportunities among known people without bypassing
+        // eligibility, cooldowns, or the one-pending-request rule.
+        public string[] Prioritize(IEnumerable<string> ids)
+        {
+            if(ids==null)return new string[0];
+            return ids.Where(id=>!String.IsNullOrWhiteSpace(id))
+                .Distinct(StringComparer.Ordinal)
+                .OrderBy(id=>For(id)==null?0:For(id).RequestsMade)
+                .ThenBy(id=>For(id)==null?-1:For(id).LastDay)
+                .ThenBy(id=>id,StringComparer.Ordinal).ToArray();
+        }
         public void Tick()
         {
             if(Day<Int32.MaxValue)Day++;

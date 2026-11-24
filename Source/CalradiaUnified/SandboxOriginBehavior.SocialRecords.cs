@@ -30,6 +30,17 @@ namespace CalradiaUnified
                 "\nNo artificial loyalty score or hostility is applied.";
         }
 
+        // Display saved record kinds, not invented quotations or dates.
+        private string PersonalHistoryText(Hero person)
+        {
+            if(person==null)return "No identified person.";
+            var events=livingPersons.RecentFor(person.StringId,5);
+            if(events.Length==0)return "No recent CU events recorded for this person.";
+            return "Recent recorded events (newest first):\n"+
+                String.Join("\n",events.Select(e=>e.Kind+
+                    " | "+e.Detail));
+        }
+
         private string CampChronicleText()
         {
             string result="Witnessed career chapters: "+
@@ -66,6 +77,7 @@ namespace CalradiaUnified
                     " ("+deed.Outcome+")";
             }
             return result+
+                "\n\n"+PersonalHistoryText(player)+
                 "\nNative game records remain authoritative.";
         }
     }

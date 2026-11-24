@@ -8,6 +8,90 @@ namespace CalradiaUnified
 {
     public sealed partial class SandboxOriginBehavior
     {
+        private SandboxCareerReviewState recurringCareerReviews=
+            new SandboxCareerReviewState();
+
+        // A voluntary check of present native conditions, not an extra
+        // quest, contract, payment, promotion, or political action.
+        private string ReviewCareerEvidence(string role)
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            var party=MobileParty.MainParty;
+            if(!applied || !IsStandaloneSandbox() || player==null ||
+                !player.IsAlive || !player.IsActive || player.IsPrisoner ||
+                clan==null || party==null || party.MapEvent!=null ||
+                party.IsCurrentlyAtSea)return "";
+            var town=Settlement.CurrentSettlement;
+            switch(role)
+            {
+                case "Wanderer":
+                    return clan.Kingdom==null && town!=null && town.IsTown?
+                        "Current independent town presence confirmed. Review livelihood and household needs.":"";
+                case "Outlaw":
+                    return clan.Kingdom==null && party.LeaderHero==player &&
+                        party.MemberRoster!=null && party.MemberRoster.TotalManCount>=5?
+                        "Independent party of at least five confirmed. Review supplies and band security; criminal status not inferred.":"";
+                case "Mercenary":
+                    return clan.Kingdom!=null && clan.IsUnderMercenaryService?
+                        "Native mercenary contract confirmed. Review company obligations and resources.":"";
+                case "Soldier":
+                    var service=SandboxSaSBridge.Read();
+                    return service.Available && service.Enlisted &&
+                        service.InsideHostParty && !String.IsNullOrEmpty(service.LordId)?
+                        "External enlistment and host-party presence confirmed. Review provider rank and duty.":"";
+                case "Knight":
+                    var patron=KnightOathPatron();
+                    return knightOath.HasCurrentOath && patron!=null &&
+                        patron.IsAlive && !patron.IsPrisoner &&
+                        patron.Clan!=null && patron.Clan.StringId==knightOath.PatronClanId &&
+                        patron.Clan.Kingdom!=null &&
+                        patron.Clan.Kingdom.StringId==knightOath.KingdomId?
+                        "Current personal oath and patron affiliation confirmed. Review muster and escort obligations.":"";
+                case "Lord":
+                    return clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService &&
+                        clan.Settlements!=null && clan.Settlements.Count>0?
+                        "Native non-ruling landed clan leadership confirmed. Review estate and household affairs.":"";
+                case "King":
+                    return clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan==clan && !clan.IsUnderMercenaryService?
+                        "Native rulership confirmed. Review royal obligations and council records.":"";
+                default: return "";
+            }
+        }
+
+        private string RecurringCareerReviewText()
+        {
+            var player=Hero.MainHero;
+            string role=CurrentCareerRole();
+            var receipt=player==null?null:
+                recurringCareerReviews.For(player.StringId,role);
+            string activity=SandboxCareerReviewState.Activity(role);
+            if(activity.Length==0)return "No supported career review.";
+            return activity+"\nRecorded reviews: "+(receipt==null?0:receipt.Count)+
+                (receipt==null?"":" | Last observed day: "+receipt.LastDay)+
+                "\nReviews require current evidence and are seven days apart. They grant no rewards.";
+        }
+
+        private void ReviewRecurringCareer()
+        {
+            string role=CurrentCareerRole();
+            string evidence=ReviewCareerEvidence(role);
+            var player=Hero.MainHero;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            bool recorded=player!=null &&
+                recurringCareerReviews.Record(player.StringId,role,day,evidence.Length>0);
+            if(recorded)
+                livingPersons.Remember("CareerReviewObserved",player.StringId,"",
+                    "role="+role+"|day="+day+"|current_condition_only=true");
+            ShowNativeDetail("Career | Recurring review",
+                (recorded?evidence:evidence.Length==0?
+                    "Current career conditions could not be verified.":
+                    "Review not recorded: seven-day interval or record limit.")+
+                "\n\n"+RecurringCareerReviewText());
+        }
+
         private string CurrentCareerRole()
         {
             if(kingSuccession.IsRecorded)return "King";
@@ -145,6 +229,7 @@ namespace CalradiaUnified
                 "\nLast recorded external service status: "+
                 serviceCareer.Status+
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
+                "\n"+RecurringCareerReviewText()+
                 "\nPresent charge: "+
                 SandboxCareerChronicleState.ChapterObjective(
                     role,careerChronicle.Chapter)+
@@ -182,6 +267,11 @@ namespace CalradiaUnified
                     ShowNativeDetail("Career | Your next charge",
                         CareerChronicleDescription());
                 },false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_recurring_review",
+                "Review my recurring career duties",
+                args=>CurrentCareerRole().Length>0,
+                args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
                 "Return to household affairs",
