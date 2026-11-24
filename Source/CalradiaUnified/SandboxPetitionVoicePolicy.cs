@@ -1,3 +1,5 @@
+using System;
+
 namespace CalradiaUnified
 {
     /// <summary>
@@ -100,6 +102,76 @@ namespace CalradiaUnified
             return tone=="Bold"?"I still hold to my counsel. I ask that you do not dismiss the risk.":
                 tone=="Prudent"?"I hear your decision. Keep the other costs in mind before acting.":
                 "I understand your choice, though my concern remains.";
+        }
+        // Stable variation per participant and topic; no random state in UI
+        // conditions. Adjacent days rotate through distinct authored lines.
+        public static int DialogueVariant(string speaker,string topic,int day,int count)
+        {
+            if(count<=0)return 0;
+            uint hash=2166136261u;
+            unchecked { foreach(char c in (speaker??"")+"|"+(topic??""))
+                hash=(hash^c)*16777619u; }
+            return (int)(((ulong)hash+(ulong)Math.Max(0,day))%(ulong)count);
+        }
+        public static string GroupTopicPreference(string topic,string office,string goal,
+            string tone,int relation,bool urgentDefense,bool youngFamily)
+        {
+            if(!GroupTopic(topic))return "";
+            if(topic=="Defense" && urgentDefense && tone!="Guarded" &&
+                (tone=="Bold" || tone=="Dutiful" || office=="Marshal" || office=="Captain"))
+                return "Security";
+            if(topic=="Family" && youngFamily &&
+                (goal=="SupportHousehold" || goal=="ProtectDescendants" || tone=="Warm"))
+                return "Welfare";
+            if(topic=="Livelihood" && (tone=="Prudent" || goal=="BuildTradingContacts"))
+                return "Reserve";
+            if(topic=="Relations" && tone=="Dutiful" && relation>=0)return "Security";
+            return GroupPreference(office,goal,tone,relation);
+        }
+        public static string GroupNuance(string topic,string priority,string tone,int variant)
+        {
+            if(!GroupTopic(topic) || !GroupPriority(priority))return "";
+            if(variant%3==0)return GroupArgument(topic,priority);
+            string[] lines;
+            switch(topic)
+            {
+                case "Family":
+                    lines=priority=="Security"?new[]{"Our children should learn to judge danger, not seek it.","Let the grown members of this house carry their share of its duties."}:
+                        priority=="Welfare"?new[]{"Ask what each member of our family needs before deciding for them.","I would rather hear our kin speak freely than see them obey in silence."}:
+                        new[]{"Settle what we can provide before promising more to our kin.","Let us distinguish the needs of the young from the wishes of the grown."};break;
+                case "Defense":
+                    lines=priority=="Security"?new[]{"Make certain our company can answer danger without abandoning those at home.","A threat to one holding can leave another exposed. Consider both."}:
+                        priority=="Welfare"?new[]{"The people beneath our banner must not bear every cost of preparedness.","Our soldiers have families too. Keep their needs in mind."}:
+                        new[]{"Before sending men anywhere, count the garrison and what must remain.","I would know which defenses need work before paying for more."};break;
+                case "Livelihood":
+                    lines=priority=="Security"?new[]{"A purse is little comfort if the roads we travel are unsafe.","Keep enough strength to protect our means of living."}:
+                        priority=="Welfare"?new[]{"The house prospers through people, not coin alone.","See that those doing the work have reason to continue it."}:
+                        new[]{"Distinguish what must be paid now from what can wait.","Do not spend tomorrow's silver on today's display."};break;
+                default:
+                    lines=priority=="Security"?new[]{"An ally must know what we can actually undertake.","We should keep our word and be ready to defend it."}:
+                        priority=="Welfare"?new[]{"Hear the grievance of another house before it becomes a feud.","There is room to settle differences without humiliating either house."}:
+                        new[]{"Find out what another house seeks before giving our word.","A useful bargain begins with knowing what each side can afford."};break;
+            }
+            return lines[(variant%3+3)%3==1?0:1];
+        }
+        public static string GroupChallenge(string topic,string priority,string tone,bool practical)
+        {
+            if(!GroupTopic(topic) || !GroupPriority(priority))return "";
+            if(practical)
+            {
+                switch(topic)
+                {
+                    case "Family":return priority=="Welfare"?"Begin by hearing the children and kin who are old enough to speak for themselves.":priority=="Security"?"Agree which duties belong to which grown members, rather than demanding the same of everyone.":"Count the obligations we already have before offering anything new.";
+                    case "Defense":return priority=="Security"?"Review the actual garrison and party strength, then decide what can be spared.":priority=="Welfare"?"Ask what the proposed defense leaves for the people who rely on us.":"Inspect the defenses and compare the cost of each proposal.";
+                    case "Livelihood":return priority=="Reserve"?"Review the existing obligations and cash before authorizing expenditure.":priority=="Security"?"Review the safety of the routes on which our livelihood depends.":"Ask what our people need and distinguish that from needless display.";
+                    default:return priority=="Welfare"?"Hear the other party's actual grievance in person.":priority=="Security"?"Check the commitments already made before offering new ones.":"Ask what each party offers, and keep the question open until we know.";
+                }
+            }
+            return tone=="Guarded"?"I will reconsider if the facts change, not merely to please the room.":
+                tone=="Prudent"?"The objection is fair. We should compare the costs of both courses.":
+                tone=="Bold"?"I will hear the objection, but I shall not pretend the danger has vanished.":
+                tone=="Dutiful"?"Let us weigh our obligations to those who will bear the cost.":
+                "Let us hear the other view before we settle on a course.";
         }
         public static string Greeting(string tone)
         {
