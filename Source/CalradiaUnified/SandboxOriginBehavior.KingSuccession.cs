@@ -121,6 +121,9 @@ namespace CalradiaUnified
                         "No automatic underage regency or estate grant.");
                 },false);
             starter.AddGameMenuOption("cu_king_succession",
+                "cu_king_dynastic_branches","Review descendants and collateral kin",
+                args=>kingSuccession.IsRecorded,args=>ShowDynasticBranches(true),false);
+            starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_succession_return","Return",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(kingSuccessionReturnMenu),
