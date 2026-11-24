@@ -209,6 +209,15 @@ namespace CalradiaUnified
                 args=>ShowNativeDetail("Camp | Present duties",
                     CareerChronicleDescription()),false);
             starter.AddGameMenuOption("cu_household_camp",
+                "cu_household_camp_agree_charge","Agree on my next duty",
+                args=>CanSetUpNativeCamp() && !IsPersonalChargeActive() && SelectedReviewRole().Length>0,
+                args=>ShowNativeDetail("Career | New charge",
+                    AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
+            starter.AddGameMenuOption("cu_household_camp",
+                "cu_household_camp_withdraw_charge","Set aside my current charge",
+                args=>CanSetUpNativeCamp() && IsPersonalChargeActive(),
+                args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
+            starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_recurring_review",
                 "Review recurring career duties",
                 args=>CanSetUpNativeCamp() && SelectedReviewRole().Length>0,
