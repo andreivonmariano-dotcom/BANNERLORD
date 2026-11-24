@@ -177,7 +177,23 @@ namespace CalradiaUnified
                     characterAgendas.Get(actor.StringId).Goal)+
                 ". This is a new request, not a fabricated earlier promise.");
         }
+        private bool answeringCharacterRequest;
         private void AnswerCharacterRequest(bool accept)
+        {
+            // Native actions can invoke other campaign callbacks synchronously.
+            if(answeringCharacterRequest)return;
+            answeringCharacterRequest=true;
+            try
+            {
+                AnswerCharacterRequestCore(accept);
+            }
+            finally
+            {
+                answeringCharacterRequest=false;
+            }
+        }
+
+        private void AnswerCharacterRequestCore(bool accept)
         {
             var player=Hero.MainHero;
             var actor=RequestedCharacter();
@@ -288,13 +304,13 @@ namespace CalradiaUnified
                 "|relation_proof="+relationProof+
                 "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
-            ResolvePetitionStory(actor,accept,kind,
-                giftProof=="confirmed",actualRelation,relationProof);
-            // A confirmed payment must never be duplicated if a following
-            // native relation action fails. The choice is terminal.
+            // Consume the choice before supplementary story/diagnostic UI work.
+            // A confirmed payment must not be replayed if story recording fails.
             agencyDecisions.Dismiss(relationProof?
                 (accept?"Accepted":"Declined"):
                 "NativeRelationUnverified");
+            ResolvePetitionStory(actor,accept,kind,
+                giftProof=="confirmed",actualRelation,relationProof);
             Notify(actor.Name.ToString()+": "+
                 (relationProof?
                     (actualRelation>0?
