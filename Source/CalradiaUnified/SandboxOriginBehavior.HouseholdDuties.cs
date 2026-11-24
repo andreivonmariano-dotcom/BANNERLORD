@@ -138,6 +138,15 @@ namespace CalradiaUnified
                 EffectiveHouseholdDuty(speaker).Length>0;
         }
 
+        private static string NativeOfficerSkills(Hero officer,string office)
+        {
+            if(officer==null)return "";
+            var values=SandboxRetinueOfficePolicy.Skills(SandboxRetinueOfficePolicy.Key(office))
+                .Select(name=>new {Name=name,Skill=SandboxNativeSkillCatalog.Find(name)})
+                .Where(x=>x.Skill!=null)
+                .Select(x=>x.Name+"="+officer.GetSkillValue(x.Skill));
+            return String.Join(", ",values);
+        }
         private string dutyReplySpeaker="",dutyReplyPlayer="";
         private int dutyReplyVariant;
         private bool PrepareHouseholdDutyReply()
@@ -185,6 +194,8 @@ namespace CalradiaUnified
                 string focus=SandboxRetinueOfficePolicy.DutyFocus(office,owned,
                     owned && seat.IsUnderSiege,SandboxKingNativeMinistry.VerifiedGovernor(speaker),variant);
                 if(focus.Length>0)reply+=" "+focus;
+                string skills=NativeOfficerSkills(speaker,office);
+                if(skills.Length>0)reply+=" Current native level: "+speaker.Level+". Office skills: "+skills+". ";
                 if(ExistingCourtDuty(speaker).Length==0)
                 {
                     int reports=householdDuties.ReportCount(office);
@@ -207,9 +218,11 @@ namespace CalradiaUnified
             string recorded=ExistingCourtDuty(person);
             if(recorded.Length>0)
             {
-                string detail="office="+recorded+"|day="+CurrentHouseholdDay();
+                string dayKey="office="+recorded+"|day="+CurrentHouseholdDay();
+                string detail=dayKey+"|level="+person.Level+"|skills="+NativeOfficerSkills(person,recorded);
                 if(!livingPersons.Events.Any(e=>e.Kind=="CourtDutyConsulted" &&
-                    e.Actor==person.StringId && e.Target==Hero.MainHero.StringId && e.Detail==detail))
+                    e.Actor==person.StringId && e.Target==Hero.MainHero.StringId &&
+                    (e.Detail==dayKey || e.Detail.StartsWith(dayKey+"|",StringComparison.Ordinal))))
                     livingPersons.Remember("CourtDutyConsulted",person.StringId,Hero.MainHero.StringId,detail);
             }
             // Generated court titles own the role; old private appointments
