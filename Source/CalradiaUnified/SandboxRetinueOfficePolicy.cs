@@ -199,6 +199,15 @@ namespace CalradiaUnified
             if(offices.Count>=32)return false;
             offices.Add(id,office);return true;
         }
+        // Replacement changes only a CU household designation. It never
+        // assigns a native occupation, party role, governorship or estate.
+        public bool Replace(string oldId,string newId,string office)
+        {
+            if(oldId==newId || OfficeFor(oldId)!=office || HasIdentity(newId) ||
+                ActiveIds().Count(id=>OfficeFor(id)==office)!=1)return false;
+            if(!Register(newId,office))return false;
+            return Revoke(oldId);
+        }
         public string Serialize()
         {
             return Version+String.Concat(offices.OrderBy(x=>x.Key,StringComparer.Ordinal)
