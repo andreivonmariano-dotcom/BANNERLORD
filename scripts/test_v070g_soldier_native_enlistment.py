@@ -41,9 +41,9 @@ assert 'candidate.SoldierGuidedStart=candidate.Role=="Soldier";' in vm
 assert 'candidate.StartingFiefMode="Native";' in vm
 assert 'candidate.RetinueMode="FamilyOnly";' in vm
 assert 'candidate.RoleAffiliationsEnabled=false;' in vm
-assert '"SoldierEntryRank","Requested service entry"' in vm
-assert 'SandboxSoldierEnlistmentPolicy.EntryChoices' in vm
-assert 'preCampaign && profile.Role=="Soldier"' in vm
+assert '"SoldierEntryRank","Requested service entry"' not in vm
+assert 'SandboxSoldierEnlistmentPolicy.EntryChoices' not in vm
+assert 'candidate.NormalizeGuidedCareerDraft()' in vm
 assert 'Actual SaS' not in vm or 'SaS' in vm
 assert 'case "Soldier":' in role_matrix
 assert 'case "Mercenary":return "mercenary";' in role_matrix
