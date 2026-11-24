@@ -56,6 +56,30 @@ namespace CalradiaUnified
             }
             string status=SandboxKingStartPolicy.ValidateObservedRoyalFamily(
                 married,sameClan,profile.ChildCount,verified);
+            if(status.Length==0 && profile.SpouseBackground!="Commoner")
+            {
+                var born=spouse.OriginClan;
+                var fatherOfSpouse=spouse.Father;var motherOfSpouse=spouse.Mother;
+                bool foreign=born!=null && born!=clan && !born.IsEliminated &&
+                    !born.IsBanditFaction && !born.IsRebelClan && born.Kingdom!=null &&
+                    born.Kingdom.StringId==profile.StartingKingdomId;
+                bool both=fatherOfSpouse!=null && motherOfSpouse!=null;
+                bool originMatches=both && fatherOfSpouse.Clan==born && motherOfSpouse.Clan==born;
+                bool paired=originMatches && fatherOfSpouse.IsAlive && motherOfSpouse.IsAlive &&
+                    fatherOfSpouse.IsLord && motherOfSpouse.IsLord &&
+                    fatherOfSpouse.Spouse==motherOfSpouse && motherOfSpouse.Spouse==fatherOfSpouse;
+                bool linked=both && fatherOfSpouse.Children!=null && motherOfSpouse.Children!=null &&
+                    fatherOfSpouse.Children.Contains(spouse) && motherOfSpouse.Children.Contains(spouse);
+                bool named=profile.SpouseBackground!="NobleChosen" ||
+                    (born!=null && String.Equals(born.StringId,profile.SpouseBirthClanId,
+                        StringComparison.OrdinalIgnoreCase));
+                status=SandboxLordStartPolicy.ValidateNativeNobleSpouse(foreign,paired,linked,
+                    originMatches,named,fatherOfSpouse==null && motherOfSpouse==null);
+                DiagnosticJournal.Event("cu_king_native_spouse_origin_verification",
+                    "result="+(status.Length==0?"PASS":"FAIL")+"|reason="+status+
+                    "|birth_clan="+(born==null?"none":born.StringId)+
+                    "|ancestry_unrecorded="+(fatherOfSpouse==null && motherOfSpouse==null));
+            }
             DiagnosticJournal.Event("cu_king_native_dynasty_verification",
                 "result="+(status.Length==0?"PASS":"FAIL")+
                 "|reason="+status+
