@@ -44,7 +44,9 @@ namespace CalradiaUnified
             if(!applied || !IsStandaloneSandbox() || player==null ||
                 player!=Hero.MainHero)return;
             int day=CurrentHouseholdDay();
-            if(day<0 || peerSocial.Pairs.Any(p=>p.LastDay>=day))return;
+            int interval=SandboxStoryDirectorState.PeerInterval(storyDirector.Detail);
+            if(interval==0 || day<0 || day%interval!=0 ||
+                peerSocial.Pairs.Any(p=>p.LastDay>=day))return;
             // Bounded subset of already tracked adults, not a world-wide
             // pairwise relationship scan. Current native location is required.
             var ids=new System.Collections.Generic.HashSet<string>(
