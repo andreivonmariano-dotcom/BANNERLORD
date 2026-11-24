@@ -102,10 +102,10 @@ namespace CalradiaUnified
         public static SandboxAgencyDecisionState Parse(string packed)
         {
             var result=new SandboxAgencyDecisionState();
-            if(String.IsNullOrEmpty(packed) || packed.Length>18000)
+            if(String.IsNullOrEmpty(packed) || packed.Length>131072)
                 return result;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length<2 || rows[0]!="CU_AGENCY_1")
+            if(rows.Length<2 || rows.Length>66 || rows[0]!="CU_AGENCY_1")
                 return result;
             var head=rows[1].Split('|');
             int day,opened;
