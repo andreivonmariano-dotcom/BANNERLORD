@@ -33,6 +33,18 @@ namespace CalradiaUnified
 
         private void ObserveSocietyAccountsAndPeers()
         {
+            try
+            {
+                ObserveSocietyAccountsAndPeersCore();
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception("cu_society_observation_failed",error);
+            }
+        }
+
+        private void ObserveSocietyAccountsAndPeersCore()
+        {
             var player=Hero.MainHero;
             var clan=Clan.PlayerClan;
             if(!applied || !IsStandaloneSandbox() || player==null || clan==null ||
