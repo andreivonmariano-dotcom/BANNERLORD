@@ -23,6 +23,56 @@ internal static class Program
     }
     private static void Main()
     {
+        var lifetimeTest=new SandboxLifetimeCareerState();
+        Check("career episodes require evidence and voluntary selection",
+            !lifetimeTest.Record("hero_a","Knight",0,false,true) &&
+            !lifetimeTest.Record("hero_a","Knight",0,true,false) &&
+            !lifetimeTest.Record("hero_a","Admiral",0,true,true) &&
+            lifetimeTest.Record("hero_a","Knight",0,true,true));
+        Check("career transition preserves earlier observation and prevents same-day change",
+            lifetimeTest.Record("hero_a","Knight",4,true,true) &&
+            !lifetimeTest.Record("hero_a","Lord",4,true,true) &&
+            lifetimeTest.Record("hero_a","Lord",5,true,true) &&
+            lifetimeTest.For("hero_a")[0].LastDay==4 &&
+            lifetimeTest.For("hero_a").Length==2);
+        Check("career retirement return and succession remain separate",
+            lifetimeTest.Record("hero_a","Wanderer",10,true,true) &&
+            lifetimeTest.Record("hero_b","Wanderer",10,true,true) &&
+            lifetimeTest.Record("hero_a","Knight",12,true,true) &&
+            SandboxLifetimeCareerState.Parse(lifetimeTest.Serialize()).For("hero_a").Length==4 &&
+            SandboxLifetimeCareerState.Parse(lifetimeTest.Serialize()).For("hero_b").Length==1);
+        Check("lifetime parser rejects overlapping episodes",
+            SandboxLifetimeCareerState.Parse("CU_LIFETIME_CAREER_1\nhero_a|Knight|0|7\nhero_a|Lord|7|9").For("hero_a").Length==0);
+        var peerTest=new SandboxPeerInitiativeState();
+        Check("peer initiative requires two eligible co-located distinct people",
+            !peerTest.Record("a","a","SupportHousehold",0,true,true,20,1,0) &&
+            !peerTest.Record("a","b","SupportHousehold",0,false,true,20,1,0) &&
+            !peerTest.Record("a","b","SupportHousehold",0,true,false,20,1,0) &&
+            peerTest.Record("a","b","SupportHousehold",0,true,true,20,1,0));
+        var peerRestored=SandboxPeerInitiativeState.Parse(peerTest.Serialize());
+        Check("peer receipts persist and respect global and individual cooldown",
+            peerRestored.Entries.Length==1 &&
+            peerRestored.Entries[0].Outcome=="ModeledInterest" &&
+            !peerRestored.Record("c","d","GainMilitaryTraining",6,true,true,0,0,0) &&
+            !peerRestored.Record("b","c","GainMilitaryTraining",7,true,true,0,0,0) &&
+            peerRestored.Record("c","d","GainMilitaryTraining",7,true,true,-20,0,0) &&
+            peerRestored.Entries[1].Outcome=="ModeledDecline");
+        Check("peer parser rejects false native consent",
+            SandboxPeerInitiativeState.Parse("CU_PEER_INITIATIVE_1\na|b|PatronageInterest|NativeConsent|0").Entries.Length==0);
+        var accountTest=new SandboxHouseholdAccountsState();
+        Check("household account baseline never implies income",
+            accountTest.Observe("hero_a",0,100) &&
+            !accountTest.For("hero_a").LastChange.HasValue &&
+            !accountTest.Observe("hero_a",0,200) &&
+            accountTest.Observe("hero_a",3,75) &&
+            accountTest.For("hero_a").LastChange==-25);
+        Check("personal balances do not transfer to a successor",
+            accountTest.Observe("hero_b",3,20) &&
+            SandboxHouseholdAccountsState.Parse(accountTest.Serialize()).For("hero_b").Gold==20 &&
+            !SandboxHouseholdAccountsState.Parse(accountTest.Serialize()).For("hero_b").LastChange.HasValue);
+        Check("account parser rejects impossible previous gold and duplicate IDs",
+            SandboxHouseholdAccountsState.Parse("CU_HOUSEHOLD_ACCOUNTS_1\nhero_a|3|20|30").For("hero_a")==null &&
+            SandboxHouseholdAccountsState.Parse("CU_HOUSEHOLD_ACCOUNTS_1\nhero_a|3|20|\nhero_a|4|30|10").For("hero_a")==null);
         var recurringLife=new SandboxCareerReviewState();
         foreach(string path in SandboxStartingLifePolicy.SevenPaths)
             Check("recurring review "+path+" requires evidence and respects interval",

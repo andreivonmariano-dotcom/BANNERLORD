@@ -85,6 +85,8 @@ namespace CalradiaUnified
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveCareerChronicleDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
+                this, ObserveSocietyAccountsAndPeers);
+            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, AdvanceFamilyUpbringing);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, RefundWandererCompanionWage);
@@ -424,6 +426,15 @@ namespace CalradiaUnified
             string recurringReviews=recurringCareerReviews.Serialize();
             store.SyncData("CU_recurring_career_reviews_1",ref recurringReviews);
             recurringCareerReviews=SandboxCareerReviewState.Parse(recurringReviews);
+            string lifetime=lifetimeCareers.Serialize();
+            store.SyncData("CU_lifetime_career_1",ref lifetime);
+            lifetimeCareers=SandboxLifetimeCareerState.Parse(lifetime);
+            string peers=peerInitiatives.Serialize();
+            store.SyncData("CU_peer_initiative_1",ref peers);
+            peerInitiatives=SandboxPeerInitiativeState.Parse(peers);
+            string accounts=householdAccounts.Serialize();
+            store.SyncData("CU_household_accounts_1",ref accounts);
+            householdAccounts=SandboxHouseholdAccountsState.Parse(accounts);
             string stories=petitionStories.Serialize();
             store.SyncData("CU_v071e_personal_petition_stories",
                 ref stories);

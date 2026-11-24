@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
@@ -8,6 +9,58 @@ namespace CalradiaUnified
 {
     public sealed partial class SandboxOriginBehavior
     {
+        private SandboxLifetimeCareerState lifetimeCareers=
+            new SandboxLifetimeCareerState();
+
+        // The player's voluntary choice records an evidenced calling.
+        // It does not enroll, discharge, confer a title or transfer land.
+        private bool CanRecordLifetimeRole(string role)
+        {
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            if(player==null || clan==null || ReviewCareerEvidence(role).Length==0)
+                return false;
+            var service=SandboxSaSBridge.Read();
+            bool activeOath=knightOath.HasCurrentOath &&
+                knightOath.PlayerId==player.StringId;
+            if(role=="Soldier")return service.Available && service.Enlisted &&
+                service.InsideHostParty && !activeOath;
+            if(service.Enlisted || (!service.Available &&
+                (serviceCareer.VerifiedExternalEnlistment ||
+                 serviceCareer.Status=="ExternalStatusUnverified")))return false;
+            if(role=="Knight")return activeOath;
+            if(activeOath)return false;
+            // Independence does not establish criminality. Only an
+            // existing recorded Outlaw calling is eligible for this label.
+            if(role=="Outlaw")return CurrentCareerRole()=="Outlaw";
+            if(role=="Wanderer")return clan.Settlements!=null &&
+                clan.Settlements.Count==0 && clan.Kingdom==null;
+            return true;
+        }
+
+        private void RecordLifetimeRole(string role)
+        {
+            var player=Hero.MainHero;
+            if(player==null || !CanRecordLifetimeRole(role))return;
+            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+            bool recorded=lifetimeCareers.Record(player.StringId,role,day,true,true);
+            ShowNativeDetail("Lifetime career",
+                (recorded?"Chosen career observation recorded.":
+                    "No new receipt: same/earlier day or history limit.")+
+                "\n\n"+LifetimeCareerText(player));
+        }
+
+        private string LifetimeCareerText(Hero person)
+        {
+            if(person==null)return "No identified person.";
+            var records=lifetimeCareers.For(person.StringId);
+            return "Lifetime career observations (not continuous service):\n"+
+                (records.Length==0?"No personal episodes yet.":
+                    String.Join("\n",records.Select(e=>e.Role+
+                    " | first seen day "+e.FirstDay+" | last seen day "+e.LastDay)))+
+                "\nOriginal career chapter ledger is retained separately.";
+        }
+
         private SandboxCareerReviewState recurringCareerReviews=
             new SandboxCareerReviewState();
 
@@ -272,6 +325,18 @@ namespace CalradiaUnified
                 "Review my recurring career duties",
                 args=>CurrentCareerRole().Length>0,
                 args=>ReviewRecurringCareer(),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_lifetime_history","Read my lifetime career history",
+                args=>true,args=>ShowNativeDetail("Lifetime career",
+                    LifetimeCareerText(Hero.MainHero)),false);
+            foreach(string candidate in SandboxStartingLifePolicy.SevenPaths)
+            {
+                string role=candidate;
+                starter.AddGameMenuOption("cu_career_chronicle",
+                    "cu_lifetime_record_"+role,"Record observed calling: "+role,
+                    args=>CanRecordLifetimeRole(role),
+                    args=>RecordLifetimeRole(role),false);
+            }
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
                 "Return to household affairs",
