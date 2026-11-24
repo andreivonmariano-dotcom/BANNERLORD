@@ -57,7 +57,7 @@ namespace CalradiaUnified
                 person.GovernorOf.Settlement==seat;
         }
 
-        private List<Hero> AvailableGroupParticipants(string parent)
+        private List<Hero> AvailableGroupParticipants(string parent,bool includeAll=false)
         {
             var result=new List<Hero>();
             if(!GroupLocationValid(parent))return result;
@@ -81,7 +81,7 @@ namespace CalradiaUnified
             foreach(var person in candidates.Where(h=>h!=null).Distinct())
             {
                 if(GroupParticipantPresent(person,parent))result.Add(person);
-                if(result.Count>=4)break;
+                if(!includeAll && result.Count>=4)break;
             }
             return result;
         }
@@ -94,7 +94,7 @@ namespace CalradiaUnified
             var seat=Settlement.CurrentSettlement;
             if((seat==null?"":seat.StringId)!=groupSeatId)return false;
             // Revalidate identity, membership and presence before each turn.
-            var available=AvailableGroupParticipants(groupParent);
+            var available=AvailableGroupParticipants(groupParent,true);
             return groupParticipants.All(person=>available.Contains(person));
         }
 
@@ -154,7 +154,7 @@ namespace CalradiaUnified
             if(player==null || seat==null ||
                 !gatheringPlan.IsDue(player.StringId,parent,seat.StringId,CurrentHouseholdDay()))
                 return new List<Hero>();
-            var people=AvailableGroupParticipants(parent).Where(h=>gatheringPlan.Accepted.Contains(h.StringId)).ToList();
+            var people=AvailableGroupParticipants(parent,true).Where(h=>gatheringPlan.Accepted.Contains(h.StringId)).ToList();
             if(parent=="cu_native_royal_council" && people.Count!=3)return new List<Hero>();
             return people;
         }
@@ -261,6 +261,10 @@ namespace CalradiaUnified
                 return priority=="Security"?"Let their memory remind us to protect those still with us.":
                     priority=="Welfare"?"Let us make time for those who grieve, rather than pass over their loss.":
                     "We need not make grand promises in a moment of grief. Quiet remembrance is enough.";
+            if(groupOccasion=="MarriageCelebration" && Hero.MainHero!=null && speaker==Hero.MainHero.Spouse && speaker.Spouse==Hero.MainHero)
+                return variant==0?"Let us not forget the life we share apart from the duties of this house.":
+                    variant==1?"I would rather we kept small promises to each other than made splendid ones before the company.":
+                    "We have our own hopes for the years ahead. I wish us time to speak of them together.";
             if(groupOccasion=="MarriageCelebration" && variant==1)
                 return priority=="Security"?"May you stand beside each other in hardship, not only in prosperity.":priority=="Welfare"?"Do not let the affairs of the house take every moment you have together.":"Trust grows through small promises kept over many years.";
             if(groupOccasion=="MarriageCelebration" && variant==2)
