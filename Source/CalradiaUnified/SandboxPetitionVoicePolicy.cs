@@ -37,6 +37,70 @@ namespace CalradiaUnified
             if(mercy>0 || generosity>0 || relation>=50)return "Warm";
             return "Plain";
         }
+        // A group discussion is advice, not an executable native order.
+        public static bool GroupTopic(string topic)
+        {
+            return topic=="Family" || topic=="Defense" || topic=="Livelihood" || topic=="Relations";
+        }
+        public static bool GroupPriority(string priority)
+        {
+            return priority=="Security" || priority=="Welfare" || priority=="Reserve";
+        }
+        public static string GroupPreference(string office,string goal,string tone,int relation)
+        {
+            if(relation< -10)return "Reserve";
+            if(office=="Marshal" || office=="MasterOfArms" || office=="Kingsguard" ||
+                office=="Captain" || office=="Master of Arms" || office=="Knight" ||
+                goal=="GainMilitaryTraining" || goal=="KeepCompanyTogether")return "Security";
+            if(office=="RoyalMinister" || office=="Royal Minister" || office=="Steward" ||
+                office=="HouseholdSteward" || office=="Factor" || office=="Chamberlain" ||
+                goal=="BuildTradingContacts" || goal=="EstablishLivelihood")return "Reserve";
+            if(goal=="SupportHousehold" || goal=="ProtectSharedHousehold" ||
+                goal=="ProtectDescendants" || goal=="MaintainHousehold" || tone=="Warm")
+                return "Welfare";
+            return tone=="Bold"?"Security":tone=="Prudent" || tone=="Guarded"?"Reserve":"Welfare";
+        }
+        public static string GroupArgument(string topic,string priority)
+        {
+            if(!GroupTopic(topic) || !GroupPriority(priority))return "";
+            switch(topic)
+            {
+                case "Family":
+                    return priority=="Security"?"Teach our kin how to stand on their own feet. A house must be able to defend itself.":
+                        priority=="Welfare"?"Our kin need our time and care. Let us hear what they want for their own futures.":
+                        "We should not make promises to every member of the house before we know what we can provide.";
+                case "Defense":
+                    return priority=="Security"?"Put the defense of our people first. Count the men we can spare before any other undertaking.":
+                        priority=="Welfare"?"Defenses matter, but not at the cost of leaving families and dependants without support.":
+                        "Inspect the rolls and the cost before committing any men. A larger force is not always a stronger one.";
+                case "Livelihood":
+                    return priority=="Security"?"Our livelihood will not endure without a company able to protect it.":
+                        priority=="Welfare"?"A prosperous house should improve the lives of those who depend on it.":
+                        "Keep a reserve for lean days. We should know the cost before making another promise.";
+                default:
+                    return priority=="Security"?"Keep faith with reliable allies and be prepared to defend our interests.":
+                        priority=="Welfare"?"Hear the other house before judging it. Good relations are worth preserving.":
+                        "I would promise little until we know what the other house is willing to undertake.";
+            }
+        }
+        public static string GroupResponse(string preference,string previous,int peerRelation,bool hasPrevious)
+        {
+            if(!hasPrevious || !GroupPriority(preference) || !GroupPriority(previous))return "";
+            if(preference==previous)return peerRelation< -10?
+                "On this point, at least, I agree. ":"I agree with that counsel. ";
+            return peerRelation< -10?"I cannot support that course. ":
+                peerRelation>=20?"I respect that view, but see another difficulty. ":
+                "I would weigh another concern. ";
+        }
+        public static string GroupDecisionReply(string preference,string chosen,string tone)
+        {
+            if(!GroupPriority(preference) || !GroupPriority(chosen))return "";
+            if(preference==chosen)return tone=="Guarded"?"I shall judge that intention by your deeds.":
+                "That is the course I hoped you would favor.";
+            return tone=="Bold"?"I still hold to my counsel. I ask that you do not dismiss the risk.":
+                tone=="Prudent"?"I hear your decision. Keep the other costs in mind before acting.":
+                "I understand your choice, though my concern remains.";
+        }
         public static string Greeting(string tone)
         {
             switch(tone)
