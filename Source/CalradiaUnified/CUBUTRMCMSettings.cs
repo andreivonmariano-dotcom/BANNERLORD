@@ -63,25 +63,7 @@ namespace CalradiaUnified
             set=>Set("EnableSupplyWarnings",value);
         }
 
-        [SettingPropertyBool("Native civic transactions",Order=3,
-            RequireRestart=true,
-            HintText="Permit real item and roster civic actions at eligible holdings.")]
-        [SettingPropertyGroup("Campaign")]
-        public bool EnableCivicSystems
-        {
-            get=>Read("EnableCivicSystems");
-            set=>Set("EnableCivicSystems",value);
-        }
 
-        [SettingPropertyBool("Garrison training",Order=4,
-            RequireRestart=true,
-            HintText="Allow guarded native training of existing troops.")]
-        [SettingPropertyGroup("Estates")]
-        public bool EnableGarrisonTraining
-        {
-            get=>Read("EnableGarrisonTraining");
-            set=>Set("EnableGarrisonTraining",value);
-        }
 
         [SettingPropertyBool("Player-clan advisory",Order=5,
             RequireRestart=true,
@@ -93,24 +75,6 @@ namespace CalradiaUnified
             set=>Set("EnableNpcAdvisory",value);
         }
 
-        [SettingPropertyBool("Kingdom levies",Order=6,
-            RequireRestart=true,
-            HintText="Permit native kingdom levy recruitment with real resources.")]
-        [SettingPropertyGroup("Kingdom")]
-        public bool EnableKingdomLevies
-        {
-            get=>Read("EnableKingdomLevies");
-            set=>Set("EnableKingdomLevies",value);
-        }
 
-        [SettingPropertyBool("Physical supply convoys",Order=7,
-            RequireRestart=true,
-            HintText="Experimental. Use real native parties; subject to gameplay checks.")]
-        [SettingPropertyGroup("Estates")]
-        public bool EnablePhysicalConvoys
-        {
-            get=>Read("EnablePhysicalConvoys");
-            set=>Set("EnablePhysicalConvoys",value);
-        }
     }
 }
