@@ -37,3 +37,8 @@ for culture,style in [("vlandia","Lancer"),("sturgia","Axeguard"),
                       ("khuzait","HorseArcher"),("aserai","Skirmisher")]:
     assert f'case "{culture}":return "{style}"' in pol
 print("PASS: projected/confirmed named native elder and cultural gear/personality wiring (SOURCE ONLY)")
+
+assert 'retinueOffices.OfficeFor(o.StringId)=="MasterOfArms"' in ob
+assert 'retinueOffices.OfficeFor(o.StringId)=="MasterofArms"' not in ob
+assert 'key.Length==0?null' in read("SandboxOriginBehavior.KingCouncil.cs")
+assert 'Household office: "+assignedOffice' in read("SandboxOriginBehavior.NativeHouseholdUI.cs")
