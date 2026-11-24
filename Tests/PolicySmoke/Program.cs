@@ -23,6 +23,42 @@ internal static class Program
     }
     private static void Main()
     {
+        var fullBattleLedger=new SandboxBattleHistoryState();
+        string longBattleId=new string('a',80);
+        string woundedIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('w',79)+i));
+        string fallenIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('f',79)+i));
+        bool allBattles=true;
+        for(int i=0;i<SandboxBattleHistoryState.MaxEntries;i++)
+            allBattles &= fullBattleLedger.RecordObserved(
+                SandboxBattleHistoryState.EventKey("full_"+i),i,"Field","Victory",
+                "PlayerParty",longBattleId,longBattleId,longBattleId,4,4,woundedIds,fallenIds);
+        Check("full battle ledger survives its own serialization limit",
+            allBattles && fullBattleLedger.Serialize().Length>16000 &&
+            SandboxBattleHistoryState.Parse(fullBattleLedger.Serialize()).Entries.Count==SandboxBattleHistoryState.MaxEntries);
+        var fullLifeLedger=new SandboxLifeHistoryState();
+        string longBiography=new string('\u754c',240);
+        for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
+            fullLifeLedger.Record(new SandboxLifeHistoryState.Person{Id="person_"+i,Age=30,Biography=longBiography});
+        Check("encoded full biography ledger survives reload",
+            fullLifeLedger.Serialize().Length>100000 &&
+            SandboxLifeHistoryState.Parse(fullLifeLedger.Serialize()).People.Count==SandboxLifeHistoryState.MaxPeople);
+        var fullAgendaLedger=new SandboxCharacterAgendaState();
+        string longGoal=new string('\u754c',180);
+        for(int i=0;i<SandboxCharacterAgendaState.MaxEntries;i++)
+            fullAgendaLedger.Register("person_"+i,longGoal,"","Unverified","","","");
+        Check("encoded full agenda ledger survives reload",
+            fullAgendaLedger.Serialize().Length>45000 &&
+            SandboxCharacterAgendaState.Parse(fullAgendaLedger.Serialize()).Entries.Count==SandboxCharacterAgendaState.MaxEntries);
+        var fullAgencyLedger=new SandboxAgencyDecisionState();
+        for(int i=0;i<64;i++)
+        {
+            fullAgencyLedger.Day=i*100;
+            fullAgencyLedger.Propose(new string('\u754c',155)+i,"HouseholdAid");
+            fullAgencyLedger.Dismiss("test");
+        }
+        Check("encoded full invitation quota ledger survives reload",
+            fullAgencyLedger.Serialize().Length>18000 &&
+            SandboxAgencyDecisionState.Parse(fullAgencyLedger.Serialize()).Records.Count==64);
         var reconciledBattles=new SandboxBattleHistoryState();
         string reconciledKey=SandboxBattleHistoryState.EventKey("native-battle-example");
         Check("battle ledger rejects overlap of fallen and wounded identities",
