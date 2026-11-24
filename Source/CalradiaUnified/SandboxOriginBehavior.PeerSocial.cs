@@ -51,7 +51,10 @@ namespace CalradiaUnified
                 characterAgendas.Entries.Select(e=>e.Id),StringComparer.Ordinal);
             var people=Hero.AllAliveHeroes.Where(h=>PeerAvailable(h) && ids.Contains(h.StringId))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal).Select(g=>g.First())
-                .OrderBy(h=>h.StringId,StringComparer.Ordinal).Take(12).ToArray();
+                .OrderBy(h=>h.StringId,StringComparer.Ordinal).ToArray();
+            // Rotate the bounded window so later IDs are not excluded forever.
+            int offset=people.Length==0?0:day%people.Length;
+            people=people.Skip(offset).Concat(people.Take(offset)).Take(12).ToArray();
             var choices=(from a in people from b in people
                 where StringComparer.Ordinal.Compare(a.StringId,b.StringId)<0 &&
                     PeerSamePlace(a,b) && peerSocial.CanObserve(a.StringId,b.StringId,day)
