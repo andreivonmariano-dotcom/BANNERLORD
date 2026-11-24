@@ -207,6 +207,7 @@ namespace CalradiaUnified
             return result+
                 "\n\n"+SocietyDigestText()+
                 "\n\n"+LifetimeCareerText(player)+
+                "\n\n"+BattleHistoryDescription()+
                 "\n\n"+HouseholdAccountText(player)+
                 "\n\n"+PersonalHistoryText(player)+
                 "\nNative game records remain authoritative.";
