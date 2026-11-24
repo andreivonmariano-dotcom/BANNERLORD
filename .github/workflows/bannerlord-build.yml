@@ -41,6 +41,8 @@ jobs:
         run: |
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
+      - name: Inventory complete CU source and runtime reachability candidates
+        run: python scripts/audit_cu_source_reachability.py
       - name: Audit ownership freeze and retired feature paths
         run: python scripts/test_cu_acceptance_freeze_ownership.py
       - name: Audit stabilization pass 2 existing role and creator wiring
@@ -666,6 +668,7 @@ jobs:
             BuildResults/audit-personal-stress.log
             BuildResults/v069e_creator_hitbox_simulation.json
             BuildResults/policy-tests.log
+            BuildResults/cu-source-reachability-inventory.json
           if-no-files-found: ignore
       - name: Upload build diagnostics
         if: always()
