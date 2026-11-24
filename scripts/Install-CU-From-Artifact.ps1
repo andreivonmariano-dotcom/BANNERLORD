@@ -163,6 +163,20 @@ try {
         throw ("Artifact rejected BEFORE installation. Expected CI DLL SHA256: " +
             $trustedHash + "; downloaded DLL SHA256: " + $sourceHash)
     }
+    if ($ExpectedVersion -eq 'v0.74.0') {
+        $identityPath = Join-Path $source 'ModuleData\CU-BuildIdentity.json'
+        if (-not (Test-Path -LiteralPath $identityPath -PathType Leaf)) {
+            throw 'Artifact rejected BEFORE installation: missing build identity.'
+        }
+        $identity = Get-Content -LiteralPath $identityPath -Raw | ConvertFrom-Json
+        if ($identity.module_id -ne 'CalradiaUnified' -or
+            $identity.manifest_version -ne $ExpectedVersion -or
+            $identity.assembly_version -ne ($ExpectedVersion.Substring(1)+'.0') -or
+            $identity.dll_sha256 -ne $sourceHash -or
+            $identity.acceptance -ne 'COMPILED_UNTESTED') {
+            throw 'Artifact rejected BEFORE installation: inconsistent build identity.'
+        }
+    }
     if (Test-Path -LiteralPath $destination) {
         if (-not $ReplaceExisting) {
             throw ("Module already exists at " + $destination +
