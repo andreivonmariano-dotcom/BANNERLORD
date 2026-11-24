@@ -14,6 +14,8 @@ origin=read("SandboxOriginBehavior.cs")
 council=read("SandboxOriginBehavior.KingCouncil.cs")
 retinue=read("SandboxCulturalRetinue.cs")
 assert 'RegisterNobleOfficerConversations(starter);' in origin
+assert 'if(!Settings.NativeOfficerTransfersEnabled)return false;' in s
+assert 'NativeOfficerTransfersEnabled { get { return false; } }' in read("Settings.cs")
 for phrase in ('Hero.OneToOneConversationHero==officer',
     'RealOfficerSpeaking("Master of Arms")',
     'RealOfficerSpeaking("Marshal")',
@@ -54,6 +56,6 @@ for role,receipt in (
     assert receipt in mod.REQUIRED[role]
     assert mod.GOOD[receipt] == (
         "result=PASS|troops_transferred=5|troops_spawned=0|real_garrison=True",)
-print("PASS v0.70w SOURCE: martial officer actions use actual Hero "+
-      "conversations and verified party-to-garrison transfer, not "+
-      "spawned troops or fictional law. Real game still unverified.")
+print("PASS v0.70w SOURCE: historical officer contracts remain guarded; "+
+      "direct transfers are held during acceptance. Historical live "+
+      "transfer receipt requirement remains unfulfilled.")
