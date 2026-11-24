@@ -58,7 +58,7 @@ namespace CalradiaUnified
             return story!=null &&
                 story.Outcome==(supported?"Supported":"Declined") &&
                 story.ResolvedDay>=0 &&
-                (long)CurrentHouseholdDay()-story.ResolvedDay>=SandboxPetitionStoryState.FollowUpDays;
+                petitionStories.CanFollowUp(person.StringId,CurrentHouseholdDay());
         }
         private void CompletePetitionStoryFollowUp()
         {

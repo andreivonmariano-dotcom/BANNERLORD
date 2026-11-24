@@ -232,10 +232,78 @@ namespace CalradiaUnified
             return created;
         }
 
+        // Observe the actual immediate family and clan companions as the
+        // campaign changes. Keep the original biography and native IDs intact.
+        // No world search, generated hero, invented birth date or marriage action.
+        private static void TrackCurrentHousehold(SandboxLifeHistoryState life,
+            SandboxCharacterAgendaState agenda,Hero player)
+        {
+            var people=new List<Hero>();
+            if(player.Spouse!=null && player.Spouse.Spouse==player)
+                Add(people,player.Spouse);
+            if(player.Children!=null)
+                foreach(var child in player.Children)
+                    if(child!=null && (child.Father==player || child.Mother==player))
+                        Add(people,child);
+            var clan=Clan.PlayerClan;
+            if(clan!=null && clan.Companions!=null)
+                foreach(var companion in clan.Companions)
+                    if(companion!=null && companion.Clan==clan && companion.CompanionOf==clan)
+                        Add(people,companion);
+            foreach(var person in people)
+            {
+                if(person==player || !person.IsAlive ||
+                    String.IsNullOrWhiteSpace(person.StringId))continue;
+                bool spouse=person==player.Spouse && person.Spouse==player;
+                bool child=person.Father==player || person.Mother==player;
+                string station=spouse?"SpouseInPlayerClan":child?
+                    "RecordedOffspring":"ClanCompanion";
+                string occupation=Office(person);
+                if(occupation.Length==0)occupation=person.Occupation.ToString();
+                string culture=person.Culture==null?"":person.Culture.StringId;
+                string clanId=person.Clan==null?"":person.Clan.StringId;
+                string goal=SandboxGeneratedCharacterGoalPolicy.Goal(culture,
+                    child && person.Age>=18f?"AdultOffspring":station,
+                    occupation,false,false);
+                var record=life.People.FirstOrDefault(p=>p.Id==person.StringId);
+                if(record==null)
+                {
+                    if(!life.RecordNew(new SandboxLifeHistoryState.Person{
+                        Id=person.StringId,Name=person.Name.ToString(),
+                        Age=Math.Max(0,Math.Min(120,(int)person.Age)),Culture=culture,
+                        Station=station,Occupation=occupation,HouseholdId=clanId,
+                        Origin="FirstObservedDuringCampaign",Ambition=goal,
+                        Biography="Observed in the current native household. Earlier history is not established."
+                    }))continue;
+                    life.Remember("NativeHouseholdMemberObserved",person.StringId,
+                        player.StringId,"station="+station+"|date_of_joining_not_assumed=true");
+                }
+                if(spouse)life.ObserveMarriage(player.StringId,person.StringId,true);
+                if(child)
+                {
+                    if(person.Father==player)
+                        life.Tie(person.StringId,player.StringId,"Father","VerifiedNativeParent");
+                    if(person.Mother==player)
+                        life.Tie(person.StringId,player.StringId,"Mother","VerifiedNativeParent");
+                }
+                if(!spouse && !child)
+                    life.Tie(player.StringId,person.StringId,"ClanCompanion","NativeClanRoster");
+                if(agenda.Get(person.StringId)==null)
+                {
+                    string evidence;
+                    string home=RealHome(person,out evidence);
+                    agenda.Register(person.StringId,goal,home,evidence,
+                        occupation,culture,clanId);
+                }
+            }
+        }
+
         internal static void ObserveAgenda(SandboxLifeHistoryState life,
             SandboxCharacterAgendaState agenda,Hero player)
         {
-            if(life==null || agenda==null || player==null || agenda.Entries.Count==0)return;
+            if(life==null || agenda==null || player==null)return;
+            TrackCurrentHousehold(life,agenda,player);
+            if(agenda.Entries.Count==0)return;
             var tracked=new HashSet<string>(agenda.Entries.Select(e=>e.Id),
                 StringComparer.Ordinal);
             var alive=Hero.AllAliveHeroes.Where(h=>h!=null && tracked.Contains(h.StringId))
@@ -277,10 +345,20 @@ namespace CalradiaUnified
                         office:person.Occupation.ToString();
                     string currentClan=person.Clan==null?"":
                         person.Clan.StringId;
+                    // Historical station stays in the biography. Current
+                    // ambitions use current kinship and adulthood instead.
+                    string currentStation=known.Station;
+                    if(person==player.Spouse && person.Spouse==player)
+                        currentStation="SpouseInPlayerClan";
+                    else if(person.Father==player || person.Mother==player)
+                        currentStation=person.Age>=18f?"AdultOffspring":"RecordedOffspring";
+                    else if(currentStation=="SpouseInPlayerClan" ||
+                        currentStation=="RecordedOffspring")
+                        currentStation="FormerHouseholdMember";
                     string inferredGoal=
                         SandboxGeneratedCharacterGoalPolicy.Goal(
                             person.Culture==null?"":person.Culture.StringId,
-                            known.Station,currentOccupation,
+                            currentStation,currentOccupation,
                             siblings,actualParty);
                     string previousGoal=entry.Goal;
                     if(agenda.ObserveNativeGoal(entry.Id,inferredGoal,

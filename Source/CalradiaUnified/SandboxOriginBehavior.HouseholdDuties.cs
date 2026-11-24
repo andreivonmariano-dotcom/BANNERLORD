@@ -242,6 +242,10 @@ namespace CalradiaUnified
                 "|companion="+speaker.StringId+
                 "|reports="+householdDuties.ReportCount(office)+
                 "|actual_native_evidence=true|free_rewards=0");
+            // Record the witnessed consultation, not a new economic or military action.
+            if(result=="native_duty_report_recorded")
+                livingPersons.Remember("HouseholdDutyReviewed",speaker.StringId,
+                    Hero.MainHero.StringId,"office="+office+"|day="+CurrentHouseholdDay());
             // The conversation itself reports the state; no receipt popup.
         }
         private static int CurrentHouseholdDay()

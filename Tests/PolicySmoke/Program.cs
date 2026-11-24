@@ -451,6 +451,29 @@ internal static class Program
             petitionStory.RecordFollowUp("actor_1",10)==
                 "face_to_face_story_followup_recorded" &&
             !petitionStory.CanFollowUp("actor_1",11));
+        Check("resolved petition is recallable before and after its one-time follow-up",
+            petitionStory.CanRecall("actor_1",9) &&
+            !petitionStory.CanRecall("actor_1",2) &&
+            petitionStory.CanRecall("actor_1",10) &&
+            SandboxPetitionStoryState.Parse(petitionStory.Serialize()).CanRecall("actor_1",30));
+        var dueStory=new SandboxPetitionStoryState();
+        Check("due follow-up takes precedence over ordinary recollection",
+            dueStory.Begin("actor_due","Recognition",1) &&
+            dueStory.Resolve("actor_due",false,2,false,0) &&
+            dueStory.CanFollowUp("actor_due",9) &&
+            !dueStory.CanRecall("actor_due",9) &&
+            dueStory.RecordFollowUp("actor_due",9)=="face_to_face_story_followup_recorded" &&
+            dueStory.CanRecall("actor_due",9));
+        var growingHouse=new SandboxLifeHistoryState();
+        Check("new household observations never replace original biographies",
+            growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="original",Origin="Creator"}) &&
+            !growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="original",Origin="Observed"}) &&
+            growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="new_child",Origin="Observed"}) &&
+            SandboxLifeHistoryState.Parse(growingHouse.Serialize()).People.Any(p=>p.Id=="original" && p.Origin=="Creator") &&
+            SandboxLifeHistoryState.Parse(growingHouse.Serialize()).People.Any(p=>p.Id=="new_child"));
+        Check("grown offspring no longer retain a minor upbringing ambition",
+            SandboxGeneratedCharacterGoalPolicy.Goal("","RecordedOffspring","",false,false)=="CompleteUpbringing" &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("","AdultOffspring","",false,false)=="EstablishLivelihood");
         Check("petition story preserves outcome and one-shot follow-up",
             SandboxPetitionStoryState.Parse(
                 petitionStory.Serialize()).Serialize()==

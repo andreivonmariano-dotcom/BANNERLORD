@@ -103,10 +103,7 @@ namespace CalradiaUnified
             {
                 var story=petitionStories.For(actor.StringId);
                 return story!=null &&
-                    ((story.ResolvedDay>=0 &&
-                      (long)CurrentHouseholdDay()-story.ResolvedDay<SandboxPetitionStoryState.FollowUpDays) ||
-                     (story.Outcome=="Pending" && agencyDecisions.HasPending &&
-                      agencyDecisions.PendingHeroId==actor.StringId));
+                    petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay());
             }
             return topic=="Ambitions" && characterAgendas.Get(actor.StringId)!=null;
         }
@@ -176,8 +173,10 @@ namespace CalradiaUnified
                 target=NativeHeroDisplayName(target);
             else if(careerCharge.Kind=="BuildBand" && Clan.PlayerClan!=null)
                 target=Clan.PlayerClan.Name.ToString();
-            else if(careerCharge.Kind=="CompanyBattle" && Clan.PlayerClan!=null &&
-                Clan.PlayerClan.Kingdom!=null)target=Clan.PlayerClan.Kingdom.Name.ToString();
+            else if(careerCharge.Kind=="CompanyBattle")
+                target=Clan.PlayerClan!=null && Clan.PlayerClan.Kingdom!=null &&
+                    Clan.PlayerClan.Kingdom.StringId==careerCharge.TargetId?
+                    Clan.PlayerClan.Kingdom.Name.ToString():"our former employer";
             switch(careerCharge.Kind)
             {
                 case "VisitTown":return "There is little reason to stay in "+target+
@@ -266,6 +265,8 @@ namespace CalradiaUnified
         private string DiscussChargeProgress()
         {
             if(!IsPersonalChargeActive())return ChargeDescription();
+            if(SelectedReviewRole()!=careerCharge.Role)
+                return "Our calling has changed. Let us set the former charge aside.";
             if(!ObserveChargeCompletion())return "The charge is not yet fulfilled. "+ChargeDescription();
             var player=Hero.MainHero;
             int day=CurrentHouseholdDay();
@@ -279,7 +280,7 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_career_charge_completed","hero="+player.StringId+
                 "|role="+role+"|kind="+kind+"|target="+target+"|day="+day+
                 "|weekly_review="+formalReview+"|extra_reward=false");
-            return "You have carried out the charge. It stands in the chronicle. We shall consider another duty on a later day.";
+            return "You have carried out what we agreed. There is no more to be done on that matter.";
         }
 
         private string WithdrawCareerCharge()
@@ -287,7 +288,7 @@ namespace CalradiaUnified
             if(!IsPersonalChargeActive() || !careerCharge.Close(Hero.MainHero.StringId,CurrentHouseholdDay()))
                 return "There is no charge to withdraw.";
             DiagnosticJournal.Event("cu_career_charge_withdrawn","hero="+Hero.MainHero.StringId+"|reward=false");
-            return "Then we set that plan aside. No deed has been entered as accomplished.";
+            return "Then we set that plan aside. Let us attend to what lies before us.";
         }
 
         private string educationChildId="";
@@ -391,6 +392,10 @@ namespace CalradiaUnified
                         case "EstablishLivelihood":case "BuildTradingContacts":
                             reply="I want the means to establish a livelihood of my own.";break;
                         case "MapSafePassages":reply="I would learn the roads and passages we can travel safely.";break;
+                        case "ProtectDescendants":reply="I wish to see my children and their children secure.";break;
+                        case "CompleteUpbringing":reply="I have much yet to learn before I find my own place.";break;
+                        case "KeepCompanyTogether":reply="I would see the company stand together through hardship.";break;
+                        case "DefendClanStanding":reply="I wish to preserve the name and standing of my house.";break;
                         default:reply="I have not settled on a particular ambition to share.";break;
                     }
                     if(relation<0)reply+=" I am not ready to entrust all my concerns to you.";
@@ -450,8 +455,14 @@ namespace CalradiaUnified
                 {
                     var story=petitionStories.For(actor.StringId);
                     reply=story==null?"There is nothing further to say on that matter.":
-                        story.Outcome=="Supported"?"I remember your support for my earlier concern.":
-                        story.Outcome=="Declined"?"I remember your refusal. We can still speak of our affairs.":
+                        story.Outcome=="Supported"?
+                            (tone=="Guarded"?"I remember what you did. Deeds carry more weight than words.":
+                             tone=="Warm"?"I have not forgotten your kindness to me.":
+                             "I remember your help in that matter."):
+                        story.Outcome=="Declined"?
+                            (tone=="Guarded"?"I remember your answer. I have kept my own counsel.":
+                             tone=="Bold"?"You had your reasons. I shall find my own way.":
+                             "I remember your answer. We need not quarrel over it."):
                         "There is still a matter awaiting your answer.";
                 }
                 string opinion=topic=="Opinions"?"":SandboxPetitionVoicePolicy.Opinion(tone,topic);

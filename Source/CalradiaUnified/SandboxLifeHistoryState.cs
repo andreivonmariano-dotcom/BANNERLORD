@@ -53,6 +53,11 @@ namespace CalradiaUnified
             if(People.Count>=MaxPeople)return false;
             People.Add(p);return true;
         }
+        // A later native observation must never overwrite an established origin.
+        public bool RecordNew(Person p)
+        {
+            return p!=null && !People.Any(x=>x.Id==p.Id) && Record(p);
+        }
         public bool Tie(string from,string to,string kind,string evidence)
         {
             if(String.IsNullOrWhiteSpace(from) ||

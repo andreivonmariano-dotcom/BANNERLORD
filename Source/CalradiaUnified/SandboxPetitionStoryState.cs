@@ -77,6 +77,15 @@ namespace CalradiaUnified
                 story.FollowUpDay<0 && story.ResolvedDay>=0 &&
                 day>=story.ResolvedDay+FollowUpDays;
         }
+        // Keep the resolved matter available for ordinary conversation
+        // after the one-time follow-up, but never duplicate the due option.
+        public bool CanRecall(string id,int day)
+        {
+            var story=For(id);
+            return story!=null && (story.Outcome=="Supported" ||
+                story.Outcome=="Declined") && story.ResolvedDay>=0 &&
+                day>=story.ResolvedDay && !CanFollowUp(id,day);
+        }
         public string RecordFollowUp(string id,int day)
         {
             if(!CanFollowUp(id,day))return "followup_not_due";

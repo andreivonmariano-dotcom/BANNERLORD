@@ -63,6 +63,9 @@ assert 'petitions' not in stories or 'petitionStories.For' in stories
 assert 'Hero.OneToOneConversationHero' in stories
 assert 'SamePlace(Hero.MainHero,person)' in stories
 assert 'petitionStories.RecordFollowUp(' in stories
+assert 'petitionStories.CanFollowUp(person.StringId,CurrentHouseholdDay())' in stories
+assert 'petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay())' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+assert 'TrackCurrentHousehold(life,agenda,player);' in read("SandboxLivingPersons.cs")
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in stories
 assert 'FollowUpDays=7' in states[0]
 assert 'return "face_to_face_story_followup_recorded";' in states[0]
