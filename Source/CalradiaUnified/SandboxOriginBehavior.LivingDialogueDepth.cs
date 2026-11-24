@@ -75,8 +75,14 @@ namespace CalradiaUnified
         }
         private bool CanOfferCharge(string kind)
         {
+            return CanCounselCareer() && CanBeginCareerCharge(kind);
+        }
+        private bool CanBeginCareerCharge(string kind)
+        {
+            // The sworn patron already owns knight service orders and musters.
+            // Keep old saved muster charges readable, but offer no parallel task.
             string target;int baseline;
-            return !IsPersonalChargeActive() && CanCounselCareer() &&
+            return kind!="Muster" && !IsPersonalChargeActive() &&
                 TryChargeStartEvidence(kind,out target,out baseline);
         }
         private bool CanDiscussPersonalTopic(string topic)
@@ -195,6 +201,7 @@ namespace CalradiaUnified
         private string AgreeCareerCharge(string kind)
         {
             string target;int baseline;
+            if(kind=="Muster")return "Speak with your sworn lord about your next service.";
             if(!TryChargeStartEvidence(kind,out target,out baseline))return
                 "We cannot undertake that duty in our present circumstances.";
             var player=Hero.MainHero;
