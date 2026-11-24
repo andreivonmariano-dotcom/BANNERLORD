@@ -103,7 +103,7 @@ namespace CalradiaUnified
                  e.Kind=="HouseholdDutyAppointed" || e.Kind=="HouseholdDutyReleased" ||
                  e.Kind=="HouseholdDutyReviewed" || e.Kind=="NativeMarriageObserved" ||
                  e.Kind=="VerifiedSiblingComradeship" || e.Kind=="PersonalAudienceAnswered" ||
-                 e.Kind=="PersonalDialogueChoice"));
+                 (e.Kind=="PersonalDialogueChoice" && !e.Detail.Contains("|topic=Memory|"))));
         }
         public static bool IsConversationTopic(string topic)
         {
