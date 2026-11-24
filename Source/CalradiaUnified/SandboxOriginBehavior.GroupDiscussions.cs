@@ -49,7 +49,7 @@ namespace CalradiaUnified
             var seat=Settlement.CurrentSettlement;
             if(seat==null)return false;
             if(person.StayingInSettlement==seat && person.PartyBelongedTo==null)return true;
-            return person.PartyBelongedTo==null &&
+            return person.PartyBelongedTo==null && person.CurrentSettlement==seat &&
                 SandboxKingNativeMinistry.VerifiedGovernor(person) &&
                 person.GovernorOf.Settlement==seat;
         }
@@ -133,7 +133,7 @@ namespace CalradiaUnified
             {
                 var siege=clan.Settlements.FirstOrDefault(s=>s!=null &&
                     s.OwnerClan==clan && s.IsUnderSiege);
-                string text=siege==null?"":"Word reaches the gathering that "+siege.Name+" is under siege. ";
+                string text=siege==null?"":siege.Name+" is under siege. ";
                 if(seat!=null && seat.Town!=null && seat.Town.GarrisonParty!=null &&
                     seat.Town.GarrisonParty.MemberRoster!=null)
                     text+="The garrison here numbers "+seat.Town.GarrisonParty.MemberRoster.TotalManCount+". ";
@@ -147,7 +147,7 @@ namespace CalradiaUnified
                     "The gathering turns to the future of the household.";
             }
             if(topic=="Livelihood")return "The gathering considers how the house will provide for itself in the days ahead.";
-            return "The gathering considers obligations to other houses. No alliance or political decision is made here.";
+            return "The gathering considers obligations to other houses and how best to deal with them.";
         }
 
         private string GroupPreferenceFor(Hero actor)
@@ -181,10 +181,10 @@ namespace CalradiaUnified
                     var fields=memory.Detail.Split('|');
                     if(fields.Length==3 && fields[1]=="topic="+topic &&
                         fields[2]=="priority="+preference)
-                        reply+=" You heard this same concern at our earlier gathering.";
+                        reply+=" At our earlier gathering you favored this priority.";
                     else if(fields.Length==3 && fields[1]=="topic="+topic &&
                         fields[2].StartsWith("priority=",StringComparison.Ordinal))
-                        reply+=" We considered a different priority at our earlier gathering.";
+                        reply+=" At our earlier gathering you favored a different priority.";
                 }
                 lines.Add(speaker.Name+": "+reply);
                 groupPreferences.Add(preference);
