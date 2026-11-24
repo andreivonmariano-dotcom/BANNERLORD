@@ -52,6 +52,17 @@ namespace CalradiaUnified
             return PlaceAt(player, target, "explicit_settlement_menu");
         }
 
+        // Read-only startup preflight after native ownership exists.
+        // A bad residence must not be discovered after creating a family.
+        internal static string PreflightNativeHome(SandboxOriginProfile profile)
+        {
+            if(profile==null)return "missing_profile";
+            if(!profile.SpouseEnabled || profile.FamilyHomeMode=="None")return "";
+            string refusal;
+            return Resolve(profile.FamilyHomeMode,profile.FamilyHomeId,"",out refusal)!=null?
+                "":refusal;
+        }
+
         private static Settlement Resolve(string mode,string id,
             string startingFiefOutcome, out string refusal)
         {
@@ -91,6 +102,8 @@ namespace CalradiaUnified
                     return newFief;
             }
 
+            if(clan.Settlements==null)
+            {refusal="no_safe_owned_town_or_castle";return null;}
             var owned = clan.Settlements.Where(s =>
                 s != null && Check(s).Length == 0)
                 .OrderBy(s => s.IsTown ? 0 : 1)
