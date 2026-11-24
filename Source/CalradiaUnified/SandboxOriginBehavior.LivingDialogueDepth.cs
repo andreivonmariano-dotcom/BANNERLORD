@@ -139,6 +139,25 @@ namespace CalradiaUnified
                 if(story.Kind=="Audience")return "We spoke of our houses before. I valued the chance to hear your views.";
                 if(story.Kind=="Recognition")return "You acknowledged my work when I asked. I have not forgotten.";
             }
+            var group=livingPersons.LatestGroupDiscussion(player.StringId,actor.StringId);
+            if(group!=null)
+            {
+                var fields=group.Detail.Split('|');
+                if(fields.Length==3 && fields[1].StartsWith("topic=",StringComparison.Ordinal) &&
+                    fields[2].StartsWith("priority=",StringComparison.Ordinal))
+                {
+                    string subject=fields[1].Substring(6),priority=fields[2].Substring(9);
+                    if(SandboxPetitionVoicePolicy.GroupTopic(subject) &&
+                        SandboxPetitionVoicePolicy.GroupPriority(priority))
+                    {
+                        string topicWords=subject=="Family"?"the future of our household":
+                            subject=="Defense"?"our defenses":subject=="Livelihood"?"our livelihood":"our dealings with other houses";
+                        return "At our gathering we spoke of "+topicWords+". You favored "+
+                            (priority=="Security"?"security":priority=="Welfare"?"the welfare of those who depend on us":"keeping our resources in reserve")+
+                            ". I remember your counsel, not a promise that the work was done.";
+                    }
+                }
+            }
             var e=livingPersons.SharedConversationMemory(player.StringId,actor.StringId);
             if(e!=null)
             {
