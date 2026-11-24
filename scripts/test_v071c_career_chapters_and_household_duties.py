@@ -52,7 +52,9 @@ assert 'FamilyCooldownDays=30' in office
 assert 'RecordGiftAttempt' in duties
 assert 'GiftResult(' in duties
 assert 'GiveGoldAction.ApplyBetweenCharacters(' in duties
-assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in duties
+assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' not in duties
+assert 'livingPersons.Remember("FamilyVisit"' in duties
+assert 'householdDuties.Release(office,speaker.StringId)' in duties
 assert 'ReportCount(office)' in duties
 assert 'party.MemberRoster.GetTroopCount(' in duties
 assert 'speaker.CompanionOf==clan' in duties
