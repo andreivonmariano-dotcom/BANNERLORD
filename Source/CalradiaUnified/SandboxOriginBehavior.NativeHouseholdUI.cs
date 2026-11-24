@@ -300,7 +300,9 @@ namespace CalradiaUnified
             else if(lordInheritance.IsRecorded)
             {
                 type="Lord";
-                role="Lord of "+clan.Name+". "+
+                role=(CurrentNobleAuthority(false) && clan.StringId==lordInheritance.ClanId?
+                    "Native vassal of "+clan.Kingdom.Name+". ":
+                    "Founding Lord's household record; current vassal authority not verified. ")+
                     "Household head: "+NativePersonName(clan.Leader)+
                     "\nEstates held: "+(clan.Settlements==null?0:
                         clan.Settlements.Count)+
@@ -315,15 +317,15 @@ namespace CalradiaUnified
                 var minister=NativeCourtOfficer("Royal Minister");
                 var marshal=NativeCourtOfficer("Marshal");
                 var guard=NativeCourtOfficer("Kingsguard");
-                role=(clan.Kingdom!=null &&
-                    clan.Kingdom.RulingClan==clan?
+                role=(CurrentNobleAuthority(true)?
                     "You hold the native crown of "+clan.Kingdom.Name+".":
                     "Your claim to the crown is not verified.")+
                     "\nMinister: "+NativePersonName(minister)+
                     " | Marshal: "+NativePersonName(marshal)+
                     "\nKingsguard: "+NativePersonName(guard)+
-                    " | Council: "+(royalCouncil.IsRecorded?
-                        "appointed":"not yet appointed")+
+                    " | Council: "+(NativeRoyalCouncilPresent(false)?
+                        "verified officers and seat":royalCouncil.IsRecorded?
+                        "recorded; current court incomplete":"not yet appointed")+
                     "\nThe kingdom assembly governs lawful decisions.";
             }
             else if(roleEconomy.Started)
