@@ -32,11 +32,25 @@
 - NoblesBuyStuff: https://www.nexusmods.com/mountandblade2bannerlord/mods/12366 — equipment shopping; leave purchasing/stock control with existing owner.
 - Customisable UI: https://www.nexusmods.com/mountandblade2bannerlord/mods/13944 — interface styling; test native UI coexistence. Other module roles are conservative boundaries based on the baseline, not audited exact code.
 
+## Final career-path decision | 24 November 2026
+
+The user has finalized exactly seven top-level playable career paths, in this order: Wanderer, Outlaw, Mercenary, Soldier, Knight, Lord, King. The canonical source is SandboxStartingLifePolicy.SevenPaths, already used by the guided creator in CUGuidedCreatorVM.cs. Do not add an eighth career or expand the top-level selector. This decision supersedes older 12- or 13-role roadmap targets. The 13 IDs in SandboxOriginProfile.Roles are historical storage/compatibility identifiers, not 13 current selectable careers.
+
+- Wanderer: independent life, with trade, poverty, exploration and household livelihood as backgrounds or pursuits.
+- Outlaw: bandit/criminal career, with criminal-system authority retained by the native game and Fourberie.
+- Mercenary: independent paid-company service through native contracts.
+- Soldier: actual Serve as Soldier service; Recruit, Sergeant and Captain are requested sub-ranks, not separate careers.
+- Knight: personal patronage and sworn-house service; younger sibling of a lord is a subtype subject to the existing native kinship gate. Household knight is not an extra path.
+- Lord: actual native noble clan leadership and verified political/estate status.
+- King: actual native ruling-clan authority, not a cosmetic title.
+
+Noble cadet is a birth status, not a career. Admiral is a verified naval office or specialization, not an eighth path. Legacy Recruit, HouseholdKnight, NobleCadet, Admiral, Trader and Beggar IDs remain readable for historical profiles and saves; no automatic conversion of running campaigns or deletion of old records. New guided starts use only the seven paths. Existing family, culture, birth, succession, household, office, trade, naval and personality features remain cross-cutting systems; they do not become additional careers. No forced progression to nobility or kingship. All seven careers must pass native acceptance independently, including applicable subtypes and saved legacy regression cases. No new gameplay code is required to record this design decision.
+
 ## Q2: Living medieval society roadmap (design only)
 
-P0 — Existing acceptance and compatibility audit. Keep PR #93 draft. Verify the installed CU DLL against the pinned v0.69g run, effective flags, full list, UI warnings and logs. Reconcile current source coverage and existing feature registry. Run minimal control and curated full-stack cases. Diagnose reproducible P0/P1 issues before expansion. Existing 12-role, 3-resolution, 30-day, 60-minute and save/quit/reload protocol remains binding.
+P0 — Existing acceptance and compatibility audit. Keep PR #93 draft. Verify the installed CU DLL against the pinned v0.69g run, effective flags, full list, UI warnings and logs. Reconcile current source coverage and existing feature registry. Run minimal control and curated full-stack cases. Diagnose reproducible P0/P1 issues before expansion. Existing seven-path (plus legacy save regression), 3-resolution, 30-day, 60-minute and save/quit/reload protocol remains binding.
 
-P1 — Starting Life integrity. All 12 existing roles must produce verified native family, birth order, affiliation, possessions and actual residence. No eligible older native lord => remain in House with choices intact, or explicit independent start. Test ages, spouse/children/siblings, failed retinue/grants, native Review Back, and save reload. Do not introduce new creator screens before acceptance.
+P1 — Starting Life integrity. All seven guided paths must produce verified native family, birth order, affiliation, possessions and actual residence. No eligible older native lord => remain in House with choices intact, or explicit independent start. Test ages, spouse/children/siblings, failed retinue/grants, native Review Back, and save reload. Do not introduce new creator screens before acceptance.
 
 P2 — Social stations and household contract. Build on existing origins, knight oath, lord/king records and service observations. Define social station, occupation, actual title, land and residence as different properties. Landed and landless roles have different obligations and lawful transitions. Existing SaS owns enlistment and payroll; native kingdom owns actual rank/ownership. Verify a service transition and a refusal with no duplicate reward.
 
