@@ -106,6 +106,48 @@ namespace CalradiaUnified
                 default:return "";
             }
         }
+        // Authored cultural registers, not claims about individual native customs.
+        // The request content and cost stay identical across all voices.
+        public static string Letter(string kind,string tone,string culture,
+            string contact,bool recipientRuler,bool recipientNoble,int relation)
+        {
+            string concern;
+            switch(kind)
+            {
+                case "HouseholdAid":concern="I ask for 150 denars to help my household.";break;
+                case "LivelihoodAid":concern="I ask for 200 denars to make a start in my livelihood.";break;
+                case "Recognition":concern="I ask that my service be acknowledged.";break;
+                case "Audience":concern="I ask for a private audience concerning the standing of our houses.";break;
+                default:return "";
+            }
+            string greeting=contact=="Spouse" && relation>=20?"My dear companion,":
+                contact=="Kin" && relation>=10?"To my kin,":
+                recipientRuler?"To the sovereign,":
+                contact=="Patron"?"To my sworn companion,":
+                recipientNoble?"To the head of your house,":"Greetings,";
+            string voice;
+            switch(tone)
+            {
+                case "Guarded":voice="I shall state my purpose plainly. I ask for no promises in writing.";break;
+                case "Prudent":voice="Let us weigh the matter carefully when we meet.";break;
+                case "Bold":voice="I would rather speak plainly than leave this matter unsettled.";break;
+                case "Dutiful":voice="I mean to bear my own share of our obligations.";break;
+                case "Warm":voice="I value the chance to speak with you in trust.";break;
+                default:voice="I would welcome a word with you in person.";break;
+            }
+            string closing;
+            switch((culture??"").ToLowerInvariant())
+            {
+                case "empire":closing="With due respect.";break;
+                case "vlandia":closing="In good faith.";break;
+                case "sturgia":closing="May your road be safe.";break;
+                case "battania":closing="May your hearth be well kept.";break;
+                case "aserai":closing="Peace upon your household.";break;
+                case "khuzait":closing="May your travels be fortunate.";break;
+                default:closing="Until we meet.";break;
+            }
+            return greeting+"\n\n"+concern+" "+voice+"\n\n"+closing;
+        }
         public static bool AcceptsHouseholdDuty(int relation,int honor,int calculating)
         {
             return relation>=0 && (relation>=20 || honor>0 || calculating<=0);

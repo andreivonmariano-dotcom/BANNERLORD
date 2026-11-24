@@ -95,6 +95,11 @@ namespace CalradiaUnified
         }
         private void ObserveAgencyDaily(Hero player)
         {
+            // Repair orphaned pending histories (older save or failed native receipt).
+            foreach(var story in petitionStories.Stories.Where(s=>s.Outcome=="Pending" &&
+                (!agencyDecisions.HasPending || agencyDecisions.PendingHeroId!=s.HeroId ||
+                    agencyDecisions.PendingKind!=s.Kind)).ToArray())
+                petitionStories.CloseUnanswered(story.HeroId,CurrentHouseholdDay(),"Unconfirmed");
             string before=agencyDecisions.PendingHeroId;
             agencyDecisions.Tick();
             if(before.Length>0 && !agencyDecisions.HasPending)
@@ -166,7 +171,7 @@ namespace CalradiaUnified
                     hero.GetTraitLevel(DefaultTraits.Generosity),
                     hero.GetTraitLevel(DefaultTraits.Calculating),
                     hero.Gold);
-                if(kind.Length==0)continue;
+                if(kind.Length==0 || !petitionStories.CanBegin(hero.StringId,kind,CurrentHouseholdDay()))continue;
                 if(agencyDecisions.Propose(hero.StringId,kind))
                 {
                     RememberPetitionStory(hero,kind);
@@ -298,7 +303,10 @@ namespace CalradiaUnified
                     // transfer. An entirely unchanged transfer can be
                     // attempted later at the player's choice.
                     if(giftProof!="no_native_effect")
+                    {
+                        petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed");
                         agencyDecisions.Dismiss("UnverifiedNativeGift");
+                    }
                     Notify("Both native gold balances did not confirm "+
                         "the intended gift. No acceptance was recorded.");
                     return;

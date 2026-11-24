@@ -99,6 +99,9 @@ for name in active:
 assert any(e.get("Sprite")=="Quest\\header left" for e in journal.iter())
 assert any(e.get("Sprite")=="SPGeneral\\MapNotification\\kingdom_banner_frame_2" for e in journal.iter())
 assert "Map.Notification.More.Panel" in affairs
+assert any(e.get("Brush")=="Popup.SelectionElement.Tuple" and e.get("IsSelected")=="@Selected" for e in journal.iter())
+assert any(e.get("Brush")=="Quest.Tuple.Notification" and e.get("IsVisible")=="@Pending" for e in journal.iter())
+assert any(e.get("Sprite")=="General\\Icons\\icon_quest_done_checkmark" and e.get("IsVisible")=="@Completed" for e in journal.iter())
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",

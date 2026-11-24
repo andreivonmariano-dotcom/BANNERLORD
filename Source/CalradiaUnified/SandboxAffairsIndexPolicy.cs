@@ -10,7 +10,7 @@ namespace CalradiaUnified
         public string Id="",Category="",Title="",Status="",Detail="";
         public string HeroId="",SettlementId="";
         public int Day=-1;
-        public bool Pending;
+        public bool Pending,Completed;
     }
     public static class SandboxAffairsIndexPolicy
     {

@@ -148,7 +148,8 @@ namespace CalradiaUnified
                     Status=p==null?"Person unavailable":"Awaiting your answer",Pending=true,
                     Day=pendingStory!=null && pendingStory.Kind==agencyDecisions.PendingKind?
                         pendingStory.StartedDay:Math.Max(0,day-(agencyDecisions.Day-agencyDecisions.PendingOpenedDay)),
-                    Detail=PetitionConcern(agencyDecisions.PendingKind)+"\n"+
+                    Detail=(pendingStory!=null && pendingStory.Letter.Length>0?pendingStory.Letter:
+                        PetitionConcern(agencyDecisions.PendingKind))+"\n\n"+
                         AffairLocation(p)+"\nSpeak with this person about their affairs. The journal cannot answer for you."});
             }
             foreach(var story in petitionStories.Stories)
@@ -161,13 +162,15 @@ namespace CalradiaUnified
                 bool supported=story.Outcome=="Supported";
                 string status=due?"Conversation due":story.Outcome=="Pending"?
                     "No longer awaiting a reply":story.Outcome=="Expired"?"Reply period ended":
-                    story.Outcome=="Unavailable"?"Person unavailable":supported?
+                    story.Outcome=="Unavailable"?"Person unavailable":
+                    story.Outcome=="Unconfirmed"?"Outcome not confirmed":supported?
                     (story.Kind=="Audience"?"Audience heard":"Help given"):"Request declined";
                 if(story.FollowUpDay>=0)status+=" | Revisited";
                 rows.Add(new SandboxAffair{Id="story:"+story.HeroId,Category="Letters",HeroId=story.HeroId,
                     Title=AffairPerson(p)+(due?" | Follow-up":" | Earlier matter"),
                     Status=p==null?status+" | Person unavailable":status,Pending=due,Day=story.ResolvedDay>=0?story.ResolvedDay:story.StartedDay,
-                    Detail=PetitionConcern(story.Kind)+"\n"+AffairLocation(p)+"\n"+
+                    Completed=story.Outcome=="Supported" || story.Outcome=="Declined",
+                    Detail=(story.Letter.Length>0?story.Letter:PetitionConcern(story.Kind))+"\n\n"+AffairLocation(p)+"\n"+
                         (due?"Ask how their affairs have fared since your decision.":
                          "An earlier matter from your personal history.")});
             }

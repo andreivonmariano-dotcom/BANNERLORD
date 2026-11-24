@@ -37,7 +37,7 @@ namespace CalradiaUnified
             var history=agencyDecisions.For(actor.StringId);
             if(!SandboxAgencyDecisionPolicy.CanReapproach(
                 socialBonds.For(actor.StringId),player.GetRelation(actor)))return "";
-            return SandboxAgencyDecisionPolicy.ChooseInitiative(
+            string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
                 agenda.Goal,true,true,player.GetRelation(actor),
                 history==null?0:history.RequestsMade,
                 history==null?1000:
@@ -46,6 +46,7 @@ namespace CalradiaUnified
                 actor.GetTraitLevel(DefaultTraits.Generosity),
                 actor.GetTraitLevel(DefaultTraits.Calculating),
                 actor.Gold);
+            return petitionStories.CanBegin(actor.StringId,kind,CurrentHouseholdDay())?kind:"";
         }
 
         private string PetitionerStyle()

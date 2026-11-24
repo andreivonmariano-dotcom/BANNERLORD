@@ -9,11 +9,30 @@ namespace CalradiaUnified
         private SandboxPetitionStoryState petitionStories=
             new SandboxPetitionStoryState();
 
+        private string ComposePetitionLetter(Hero person,string kind)
+        {
+            var player=Hero.MainHero;
+            if(person==null || player==null)return "";
+            bool spouse=person==player.Spouse && person.Spouse==player;
+            bool kin=person.Father==player || person.Mother==player ||
+                player.Father==person || player.Mother==person ||
+                (player.Father!=null && player.Mother!=null &&
+                    person.Father==player.Father && person.Mother==player.Mother);
+            bool patron=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId &&
+                knightOath.PatronId==person.StringId;
+            var clan=Clan.PlayerClan;
+            bool ruler=clan!=null && clan.Kingdom!=null && clan.Kingdom.RulingClan==clan && clan.Leader==player;
+            bool noble=clan!=null && clan.Kingdom!=null && clan.Leader==player;
+            return SandboxPetitionVoicePolicy.Letter(kind,PersonalVoice(person),
+                person.Culture==null?"":person.Culture.StringId,
+                spouse?"Spouse":kin?"Kin":patron?"Patron":"Other",
+                ruler,noble,player.GetRelation(person));
+        }
         private void RememberPetitionStory(Hero person,string kind)
         {
             if(person==null || kind==null)return;
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
-            if(petitionStories.Begin(person.StringId,kind,day))
+            if(petitionStories.Begin(person.StringId,kind,day,ComposePetitionLetter(person,kind)))
                 DiagnosticJournal.Event("cu_petition_personal_story_opened",
                     "person="+person.StringId+"|kind="+kind+
                     "|native_hero=true|prior_promise_fabricated=false");
@@ -27,7 +46,11 @@ namespace CalradiaUnified
             // A verified gift or an explicit refusal remains a real
             // decision even if the native relation effect is unconfirmed.
             // Recognition still needs its actual native effect.
-            if(accepted && !relationVerified && !paymentVerified)return;
+            if(accepted && !relationVerified && !paymentVerified)
+            {
+                petitionStories.CloseUnanswered(person.StringId,CurrentHouseholdDay(),"Unconfirmed");
+                return;
+            }
             int decisionDay=(int)Math.Floor(CampaignTime.Now.ToDays);
             bool socialRecorded=relationVerified && socialBonds.RecordPetition(
                 person.StringId,accepted,relationDelta,decisionDay);
@@ -40,8 +63,9 @@ namespace CalradiaUnified
                 "|native_relation_not_overridden=true");
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
             var story=petitionStories.For(person.StringId);
-            if(story==null || story.Kind!=kind ||
-                (long)day-story.StartedDay>=SandboxAgencyDecisionPolicy.ExpiryDays)return;
+            // Existing agency state was validated in the actual conversation.
+            // Its tick clock owns expiry, not a second campaign-day comparison.
+            if(story==null || story.Kind!=kind)return;
             if(petitionStories.Resolve(person.StringId,accepted,
                 day,paymentVerified,relationDelta))
                 DiagnosticJournal.Event("cu_petition_personal_story_decision",

@@ -90,6 +90,15 @@ namespace CalradiaUnified
         {matter=item;open=action;Title=item.Title;Status=item.Status;}
         [DataSourceProperty] public string Title{get;private set;}
         [DataSourceProperty] public string Status{get;private set;}
+        [DataSourceProperty] public bool Pending{get{return matter.Pending;}}
+        [DataSourceProperty] public bool Completed{get{return matter.Completed && !matter.Pending;}}
+        [DataSourceProperty] public bool Selected{get;private set;}
+        public void Select(string id)
+        {
+            bool value=matter.Id==id;
+            if(Selected==value)return;
+            Selected=value;OnPropertyChangedWithValue(Selected,"Selected");
+        }
         public void ExecuteOpen(){if(open!=null)open(matter);}
     }
     public sealed class CUAffairsVM : ViewModel
@@ -136,6 +145,7 @@ namespace CalradiaUnified
         private void Open(SandboxAffair item)
         {
             current=item;
+            foreach(var row in Rows)row.Select(item==null?"":item.Id);
             var hero=item==null?null:SandboxOriginBehavior.ResolveAffairHero(item.HeroId);
             var place=SandboxOriginBehavior.ResolveAffairPlace(item);
             HasPortrait=hero!=null && hero.CharacterObject!=null;

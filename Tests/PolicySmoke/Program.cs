@@ -29,6 +29,27 @@ internal static class Program
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,true,true,true,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,false,90) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,9));
+        var voices=new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"};
+        var cultures=new[]{"empire","vlandia","sturgia","battania","aserai","khuzait"};
+        Check("letters retain request cost across distinct six voices and culture registers",
+            voices.Select(t=>SandboxPetitionVoicePolicy.Letter("HouseholdAid",t,"empire","Other",false,false,10)).Distinct().Count()==6 &&
+            cultures.Select(c=>SandboxPetitionVoicePolicy.Letter("HouseholdAid","Plain",c,"Other",false,false,10)).Distinct().Count()==6 &&
+            voices.All(t=>SandboxPetitionVoicePolicy.Letter("HouseholdAid",t,"empire","Other",false,false,10).Contains("150 denars")) &&
+            SandboxPetitionVoicePolicy.Letter("Audience","Warm","empire","Spouse",false,false,40).StartsWith("My dear companion") &&
+            SandboxPetitionVoicePolicy.Letter("Audience","Plain","empire","Other",true,true,10).StartsWith("To the sovereign"));
+        var writtenStory=new SandboxPetitionStoryState();
+        string originalLetter=SandboxPetitionVoicePolicy.Letter("Audience","Bold","vlandia","Other",false,true,30);
+        Check("letter snapshot round trips and old stories remain readable",
+            writtenStory.Begin("writer","Audience",1,originalLetter) &&
+            !writtenStory.CanBegin("writer","Audience",100) &&
+            SandboxPetitionStoryState.Parse(writtenStory.Serialize()).For("writer").Letter==originalLetter &&
+            SandboxPetitionStoryState.Parse("CU_PETITION_STORIES_1\nold|Recognition|Declined|1|2|-1|0|0").For("old").Letter=="");
+        Check("unconfirmed receipt closes without allowing another reward or followup",
+            writtenStory.CloseUnanswered("writer",2,"Unconfirmed") &&
+            !writtenStory.Resolve("writer",true,3,false,0) &&
+            !writtenStory.CanFollowUp("writer",50) &&
+            writtenStory.CanBegin("writer","Audience",71) &&
+            SandboxPetitionStoryState.Parse(writtenStory.Serialize()).For("writer").Outcome=="Unconfirmed");
         var closedPetition=new SandboxPetitionStoryState();
         Check("expired and unavailable petitions retain history without rewards or followups",
             closedPetition.Begin("expired", "HouseholdAid", 5) &&

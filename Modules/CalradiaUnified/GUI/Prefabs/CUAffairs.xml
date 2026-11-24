@@ -16,9 +16,11 @@
 <Widget Sprite="BlankWhiteSquare_9" Color="#3B2C20FF" WidthSizePolicy="Fixed" SuggestedWidth="407" HeightSizePolicy="Fixed" SuggestedHeight="331" PositionXOffset="30" PositionYOffset="175"/>
 <Widget Sprite="BlankWhiteSquare_9" Color="#322419FF" WidthSizePolicy="Fixed" SuggestedWidth="487" HeightSizePolicy="Fixed" SuggestedHeight="363" PositionXOffset="450" PositionYOffset="143"/>
 <ListPanel DataSource="{Rows}" WidthSizePolicy="Fixed" SuggestedWidth="397" HeightSizePolicy="Fixed" SuggestedHeight="310" StackLayout.LayoutMethod="VerticalTopToBottom" PositionXOffset="35" PositionYOffset="180"><ItemTemplate>
-<ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="392" HeightSizePolicy="Fixed" SuggestedHeight="60" Command.Click="ExecuteOpen"><Children>
-<TextWidget Brush="Quest.LeftPanel.Quest.Text" Text="@Title" Brush.FontSize="17" Color="#F9E3C0FF" WidthSizePolicy="Fixed" SuggestedWidth="374" HeightSizePolicy="Fixed" SuggestedHeight="29" PositionXOffset="10" PositionYOffset="5"/>
-<TextWidget Text="@Status" Brush="Quest.LeftPanel.Quest.Time.Text" Brush.FontSize="14" Color="#D5B389FF" WidthSizePolicy="Fixed" SuggestedWidth="374" HeightSizePolicy="Fixed" SuggestedHeight="23" PositionXOffset="10" PositionYOffset="32"/>
+<ButtonWidget Brush="Popup.SelectionElement.Tuple" IsSelected="@Selected" DoNotPassEventsToChildren="true" UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="392" HeightSizePolicy="Fixed" SuggestedHeight="60" Command.Click="ExecuteOpen"><Children>
+<TextWidget Brush="Quest.LeftPanel.Quest.Text" Text="@Title" Brush.FontSize="17" Color="#F9E3C0FF" WidthSizePolicy="Fixed" SuggestedWidth="327" HeightSizePolicy="Fixed" SuggestedHeight="29" PositionXOffset="10" PositionYOffset="5"/>
+<TextWidget Text="@Status" Brush="Quest.LeftPanel.Quest.Time.Text" Brush.FontSize="14" Color="#D5B389FF" WidthSizePolicy="Fixed" SuggestedWidth="327" HeightSizePolicy="Fixed" SuggestedHeight="23" PositionXOffset="10" PositionYOffset="32"/>
+<BrushWidget Brush="Quest.Tuple.Notification" IsVisible="@Pending" WidthSizePolicy="Fixed" SuggestedWidth="24" HeightSizePolicy="Fixed" SuggestedHeight="24" PositionXOffset="352" PositionYOffset="18"/>
+<Widget Sprite="General\Icons\icon_quest_done_checkmark" IsVisible="@Completed" WidthSizePolicy="Fixed" SuggestedWidth="24" HeightSizePolicy="Fixed" SuggestedHeight="24" PositionXOffset="352" PositionYOffset="18"/>
 </Children></ButtonWidget>
 </ItemTemplate></ListPanel>
 <TextWidget Id="CUDetailTitle" Text="@DetailTitle" Brush="Quest.CenterPanel.Title.Text" Brush.FontSize="22" Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Top" Color="#F0E5D5FF" WidthSizePolicy="Fixed" SuggestedWidth="278" HeightSizePolicy="Fixed" SuggestedHeight="44" PositionXOffset="466" PositionYOffset="153"/>
