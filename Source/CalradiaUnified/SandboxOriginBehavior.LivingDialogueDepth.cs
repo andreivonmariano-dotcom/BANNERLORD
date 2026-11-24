@@ -43,8 +43,7 @@ namespace CalradiaUnified
             var place=Settlement.CurrentSettlement;
             string role=SelectedReviewRole();
             if(!CanRecordLifetimeRole(role) || player==null || clan==null || party==null ||
-                (kind!=SandboxCareerChargeState.DefaultKind(role) &&
-                 !(role=="Lord" && kind=="StrengthenGarrison")))return false;
+                !SandboxCareerChargeState.IsKindForRole(role,kind))return false;
             switch(kind)
             {
                 case "VisitTown":
@@ -326,8 +325,14 @@ namespace CalradiaUnified
                 ()=>chargeReply=AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),100);
             starter.AddPlayerLine("cu_personal_charge_defend","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us strengthen the garrison here.",
-                ()=>CanDiscussEstateTopic() && SelectedReviewRole()=="Lord" && !IsPersonalChargeActive(),
+                ()=>CanDiscussEstateTopic() &&
+                    SandboxCareerChargeState.IsKindForRole(SelectedReviewRole(),"StrengthenGarrison") &&
+                    !IsPersonalChargeActive(),
                 ()=>chargeReply=AgreeCareerCharge("StrengthenGarrison"),100);
+            starter.AddPlayerLine("cu_personal_charge_royal_estate","cu_personal_matters_topics",
+                "cu_personal_charge_reply","Let us visit another royal holding.",
+                ()=>CanDiscussEstateTopic() && SelectedReviewRole()=="King" && !IsPersonalChargeActive(),
+                ()=>chargeReply=AgreeCareerCharge("VisitEstate"),100);
             starter.AddPlayerLine("cu_personal_charge_progress","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us review what we have accomplished.",
                 ()=>CanDiscussPersonalMatters() && IsPersonalChargeActive(),
