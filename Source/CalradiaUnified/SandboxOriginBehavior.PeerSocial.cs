@@ -30,6 +30,15 @@ namespace CalradiaUnified
             var seat=a.StayingInSettlement;
             return seat!=null && seat==b.StayingInSettlement && !seat.IsUnderSiege;
         }
+        private static string PeerVoice(Hero actor,int relation)
+        {
+            return SandboxPetitionVoicePolicy.Tone(
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Generosity),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Valor),
+                actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Mercy),relation);
+        }
         private void ObservePeerSocialDaily(Hero player)
         {
             if(!applied || !IsStandaloneSandbox() || player==null ||
@@ -54,12 +63,13 @@ namespace CalradiaUnified
                 if(!PeerSamePlace(pair.A,pair.B))continue;
                 var ga=characterAgendas.Get(pair.A.StringId);
                 var gb=characterAgendas.Get(pair.B.StringId);
+                int relation=pair.A.GetRelation(pair.B);
                 string a=SandboxPetitionVoicePolicy.GroupPreference(EffectiveHouseholdDuty(pair.A),
-                    ga==null?"":ga.Goal,PersonalVoice(pair.A),0);
+                    ga==null?"":ga.Goal,PeerVoice(pair.A,relation),relation);
                 string b=SandboxPetitionVoicePolicy.GroupPreference(EffectiveHouseholdDuty(pair.B),
-                    gb==null?"":gb.Goal,PersonalVoice(pair.B),0);
+                    gb==null?"":gb.Goal,PeerVoice(pair.B,relation),relation);
                 if(peerSocial.Observe(pair.A.StringId,pair.B.StringId,day,
-                    pair.A.GetRelation(pair.B),a==b?"CommonInterest":"DifferentPriorities"))
+                    relation,a==b?"CommonInterest":"DifferentPriorities"))
                 {
                     DiagnosticJournal.Event("cu_peer_social_sample",
                         "a="+pair.A.StringId+"|b="+pair.B.StringId+
