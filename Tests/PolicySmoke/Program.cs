@@ -407,6 +407,34 @@ internal static class Program
         Check("36500 modeled days keep director and dialogue ledger bounded across generational reloads",
             directorStable && longDirector.Receipts.Count==SandboxStoryDirectorState.MaxReceipts &&
             longVariety.Entries.Count==SandboxDialogueVarietyState.Capacity);
+        var peerThread=new SandboxStoryDirectorState();
+        Check("peer story requires exact distinct third participant and supported kind",
+            !peerThread.Open("player","a","PeerTension","evidence",1) &&
+            !peerThread.Open("player","a","PeerTension","evidence",1,"player") &&
+            !peerThread.Open("player","a","ChangedClan","evidence",1,"b") &&
+            peerThread.Open("player","a","PeerTension","evidence",1,"b"));
+        var restoredPeerThread=SandboxStoryDirectorState.Parse(peerThread.Serialize());
+        Check("peer thread retains third participant and prevents successor or peer impersonation",
+            restoredPeerThread.Peer=="b" && restoredPeerThread.Actor=="a" &&
+            !restoredPeerThread.CanDiscuss("heir","a",1) &&
+            !restoredPeerThread.CanDiscuss("player","b",1) &&
+            restoredPeerThread.Answer("player","a","Listen",1) &&
+            SandboxStoryDirectorState.Parse(restoredPeerThread.Serialize()).Peer=="b");
+        string legacyDirector=String.Join("|",director.Serialize().Split('|').Take(12));
+        Check("previous twelve-field director records remain readable",
+            SandboxStoryDirectorState.Parse(legacyDirector).Actor==director.Actor &&
+            SandboxStoryDirectorState.Parse(legacyDirector).Peer=="");
+        var reputationPeers=new SandboxPeerSocialState();
+        reputationPeers.Observe("a","b",1,35,"CommonInterest");
+        reputationPeers.Observe("a","c",2,40,"CommonInterest");
+        reputationPeers.Observe("a","b",8,35,"CommonInterest");
+        reputationPeers.Observe("a","c",9,40,"CommonInterest");
+        Check("reputation requires two recently and repeatedly sampled peers",
+            reputationPeers.Reputation("a",9)=="Good standing among sampled acquaintances" &&
+            reputationPeers.Reputation("b",9)=="" && reputationPeers.Reputation("heir",9)=="" &&
+            reputationPeers.Reputation("a",100)=="" &&
+            SandboxPeerSocialState.Parse(reputationPeers.Serialize()).Reputation("a",9)==
+                reputationPeers.Reputation("a",9));
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
