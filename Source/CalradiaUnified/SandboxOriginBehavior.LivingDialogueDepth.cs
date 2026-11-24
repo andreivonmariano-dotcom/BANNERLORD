@@ -242,10 +242,10 @@ namespace CalradiaUnified
                     }
                 }
             }
-            var e=livingPersons.SharedConversationMemory(player.StringId,actor.StringId);
-            if(e!=null)
+            var sharedEvent=livingPersons.SharedConversationMemory(player.StringId,actor.StringId);
+            if(sharedEvent!=null)
             {
-                switch(e.Kind)
+                switch(sharedEvent.Kind)
                 {
                     case "FamilyVisit":return "I remember the last time we made time for our family affairs.";
                     case "FamilyGiftConfirmed":return "I remember the gift you placed in my hands. You owe me nothing further for it.";
@@ -258,7 +258,7 @@ namespace CalradiaUnified
                     case "VerifiedSiblingComradeship":return "We spent time in the same company. Those days are part of our history.";
                     case "PersonalAudienceAnswered":return "We have had a private audience before. We need not settle everything in one sitting.";
                     case "PersonalDialogueChoice":
-                        var fields=e.Detail.Split('|');
+                        var fields=sharedEvent.Detail.Split('|');
                         if(fields.Length==3 && fields[1].StartsWith("topic=",StringComparison.Ordinal))
                         {
                             string subject=fields[1].Substring(6);
