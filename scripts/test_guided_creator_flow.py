@@ -40,10 +40,13 @@ creator_fields=flow.split('private List<Field> BuildFields()',1)[1]
 front=creator_fields.split('if(preCampaign)\n            {',1)[1].split('\n            else\n            {',1)[0]
 tail=creator_fields.split('            else\n            {',1)[1].split('\n            return list;',1)[0]
 for key in ("StartingScenario","Role","StartingKingdomId",
-            "NobleBirthPosition","NobleElderHeroId",
             "ScenarioFaction1","ScenarioFaction2","ScenarioVariant",
             "WorldSeed"):
     assert '"'+key+'"' in front,key
+for retired in ("KnightOrigin","SoldierEntryRank","NobleBirthPosition","NobleElderHeroId"):
+    assert '"'+retired+'"' not in front and '"'+retired+'"' not in tail,retired
+assert "choices:SandboxStartingLifePolicy.SevenPaths" in front
+assert flow.count("candidate.NormalizeGuidedCareerDraft()")==2
 for key in ("SpouseEnabled","SpouseAge","ChildCount","Gold","Influence",
             "Troops","StartingFiefMode","AllowStartingFiefTransfer",
             "FamilyHomeMode","FamilyHomeId"):
