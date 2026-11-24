@@ -119,7 +119,16 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
             var story=petitionStories.For(actor.StringId);
-            if(story!=null && petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay()))
+            // Old petition stories are keyed by petitioner alone. A matching
+            // player/speaker receipt prevents a successor claiming the old choice.
+            bool sharedPetition=story!=null && livingPersons.Events.Any(e=>
+                e.Actor==actor.StringId && e.Target==player.StringId &&
+                ((story.Kind=="Audience" && e.Kind=="PersonalAudienceAnswered") ||
+                 ((e.Kind=="CharacterRequestAccepted" || e.Kind=="CharacterRequestDeclined" ||
+                   e.Kind=="CharacterRequestRelationUnverified") &&
+                  e.Detail.Split('|').Contains("kind="+story.Kind) &&
+                  e.Detail.Split('|').Contains("choice="+(story.Outcome=="Supported"?"accept":"decline")))));
+            if(sharedPetition && story!=null && petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay()))
             {
                 if(story.Outcome=="Declined")return "I remember the request you declined. I will not pretend you made a promise.";
                 if(story.NativePaymentVerified)return "I remember the silver you gave me when I asked for help. That matter is settled.";
@@ -171,9 +180,9 @@ namespace CalradiaUnified
             {
                 if(battle.WoundedHeroIds.Split(',').Contains(actor.StringId))
                     return "I remember being wounded in that campaign. Let us not treat the cost of battle lightly.";
-                return "I remember the service we witnessed in battle. "+
-                    (battle.Outcome=="Victory"?"We had the better of that encounter.":
-                    battle.Outcome=="Defeat"?"The encounter did not go our way.":"Its outcome was not settled.");
+                return "I remember that encounter in our campaign records. "+
+                    (battle.Outcome=="Victory"?"Our side prevailed.":
+                    battle.Outcome=="Defeat"?"Our side did not prevail.":"Its outcome was not settled.");
             }
             return "";
         }
@@ -183,7 +192,7 @@ namespace CalradiaUnified
             if(!CanFollowPersonalTopic())return;
             var actor=Hero.OneToOneConversationHero;
             var player=Hero.MainHero;
-            if(CanDiscussPersonalMatters())
+            if(CanDiscussPersonalMatters() && personalTopicName!="Memory")
                 livingPersons.RecordConversationChoice(player.StringId,actor.StringId,
                     personalTopicName,disagreed,CurrentHouseholdDay());
         }
@@ -263,7 +272,10 @@ namespace CalradiaUnified
                         "We have agreed no particular charge. I would rather choose a duty we can carry out than make a grand promise.";
                     break;
                 case "Standing":
-                    answer=relation<0?"Trust is not restored by asking for it. Give me reason to see matters differently.":
+                    answer=actor==player.Spouse && actor.Spouse==player?
+                        (relation<0?"I would rather hear what troubles you than accept another promise of affection. We can speak without agreeing.":
+                         "Make time for us, not merely for our duties. I would rather we made decisions together than heard of them afterward."):
+                        relation<0?"Trust is not restored by asking for it. Give me reason to see matters differently.":
                         relation>=20?"I value our good standing. I would not put it at risk with a promise neither of us can keep.":
                         "We need time and honest dealings before I can speak of deeper trust.";
                     break;
@@ -274,8 +286,22 @@ namespace CalradiaUnified
                     break;
                 case "Ambitions":
                     string office=RecordedRetinueOffice(actor);
+                    var ambition=characterAgendas.Get(actor.StringId);
+                    string goal=ambition==null?"":ambition.Goal;
                     answer=office=="MasterOfArms" || office=="Marshal" || office=="Kingsguard"?
                         "Judge my service by the duties I actually carry out. I would rather earn your confidence than be praised for my title.":
+                        goal=="BuildTradingContacts" || goal=="EstablishLivelihood"?
+                        "I want to build a livelihood of my own. I would start with a modest undertaking, not put our whole household's silver at risk.":
+                        goal=="GainMilitaryTraining"?
+                        "I would learn from those who have served longer than I have, and prove myself through useful work.":
+                        goal=="ProtectSharedHousehold" || goal=="MaintainHousehold" || goal=="SupportHousehold"?
+                        "I would settle our family's needs before chasing honors. A flourishing household is an ambition in its own right.":
+                        goal=="DefendClanStanding" || goal=="PreserveFamilyPosition"?
+                        "I want our house to be respected for keeping its word. I would not purchase a reputation with empty promises.":
+                        goal=="MapSafePassages"?
+                        "I would learn which roads are safe through actual travel, not trust every rumor of danger.":
+                        goal=="KeepCompanyTogether"?
+                        "I want our company to remain together. I would rather hear what our people need than demand blind obedience.":
                         tone=="Prudent"?"I would take a small step I can sustain rather than make a promise beyond my means.":
                         tone=="Bold"?"I would rather attempt something difficult than wait for fortune to find me.":
                         "I want the chance to make my own choices, not have every matter settled for me.";
@@ -365,9 +391,7 @@ namespace CalradiaUnified
             if(topic=="Service")return CanCounselCareer();
             if(topic=="Memory")
             {
-                var story=petitionStories.For(actor.StringId);
-                return (story!=null &&
-                    petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay())) || PersonalMemoryText().Length>0;
+                return PersonalMemoryText().Length>0;
             }
             return topic=="Ambitions" && characterAgendas.Get(actor.StringId)!=null;
         }
@@ -649,7 +673,16 @@ namespace CalradiaUnified
                 }
                 else if(topic=="Standing")
                 {
-                    reply=SandboxPetitionVoicePolicy.StandingReply(relation);
+                    reply=actor==player.Spouse && actor.Spouse==player?
+                        (relation<0?"We share a household, but I do not want us to pretend that everything between us is well.":
+                         relation>=50?"I value the life we share. I would rather we spoke honestly than agreed for the sake of peace.":
+                         relation>=20?"I am glad we can speak as husband and wife. Let us make time for one another.":
+                         "I would like us to understand each other better, not merely share the same household."):
+                        SpeakingWithHouseholdCompanion()?
+                        (relation<0?"I serve in your company, but I have my doubts about our dealings.":
+                         relation>=50?"I value your confidence. I would still speak against a course I think unwise.":
+                         "I would judge our companionship by what we do for one another."):
+                        SandboxPetitionVoicePolicy.StandingReply(relation);
                     var bond=socialBonds.For(actor.StringId);
                     if(bond!=null && bond.Supported>0 && bond.Positive>0 && relation>=20)
                         reply+=" I remember the help you gave in earlier matters.";
@@ -700,13 +733,16 @@ namespace CalradiaUnified
                         "We have no living children of our own.":"You have no living children of your own."):
                         (actor==player.Spouse?"Our family":"Your family")+" has "+children+
                         " children living. "+(young>0?"The younger ones still need care.":"They have their own lives to lead.");
-                    if(actor==player.Spouse)reply+=" Let us discuss how we provide for them.";
+                    if(actor==player.Spouse && children>0)reply+=" Let us discuss how we provide for them.";
                     if(player.Children!=null)
                     {
                         var living=kin.OrderByDescending(h=>h.Age).Take(3).ToArray();
                         if(living.Length>0)
-                            reply+=" We should consider "+String.Join(", ",living.Select(h=>
-                                h.Name.ToString()))+".";
+                        {
+                            var child=living.FirstOrDefault(h=>h.Age<18f)??living[0];
+                            reply+=" I think of "+child.Name+" in particular. "+(child.Age<18f?
+                                "We still have a chance to guide the years ahead.":"It is time to respect the choices of our grown children.");
+                        }
                     }
                 }
                 else if(topic=="Finances")
