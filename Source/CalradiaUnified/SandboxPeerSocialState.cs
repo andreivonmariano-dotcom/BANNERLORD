@@ -79,6 +79,19 @@ namespace CalradiaUnified
             if(p.KnownSamples>=3 && p.CommonSamples==0)return "Repeatedly different modeled priorities";
             return "No sustained change established";
         }
+        // Describes only sampled peers, not an invented universal reputation.
+        public string Reputation(string actor,int day)
+        {
+            if(!ValidId(actor) || day<0)return "";
+            var known=Pairs.Where(p=>(p.A==actor || p.B==actor) &&
+                p.KnownSamples>=2 && day>=p.LastDay && day-p.LastDay<=90).ToArray();
+            if(known.Length<2)return "";
+            int favorable=known.Count(p=>p.NativeRelation>=30);
+            int strained=known.Count(p=>p.NativeRelation<=-20);
+            return favorable>=2 && strained==0?"Good standing among sampled acquaintances":
+                strained>=2 && favorable==0?"Strained standing among sampled acquaintances":
+                favorable>0 && strained>0?"Mixed standing among sampled acquaintances":"No consistent standing among sampled acquaintances";
+        }
         public string Serialize()
         {
             var rows=new List<string>{Version};
