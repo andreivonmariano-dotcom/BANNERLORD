@@ -278,14 +278,14 @@ namespace CalradiaUnified
             out string error)
         {
             string normalized;
-            if (value=="true" && IsHeldMutation(key))
-            {
-                error="Held during compatibility acceptance.";
-                return false;
-            }
             if (!SettingsMenuPolicy.TryNormalize(key, value, out normalized))
             {
                 error = "This setting is not editable in the in-game menu.";
+                return false;
+            }
+            if(normalized=="true" && IsHeldMutation(key))
+            {
+                error="Held during compatibility acceptance.";
                 return false;
             }
             try
