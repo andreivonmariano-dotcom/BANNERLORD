@@ -136,24 +136,23 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_petition_recognition","cu_petition_open",
                 "cu_petition_answers",
-                "I have served as best I can. I ask that "+
-                "my work not go unnoticed.",
+                "I ask no silver of you. I would like you to acknowledge the work I have done, and hear what I hope to do next.",
                 ()=>SpeakingWithPendingPetitioner() &&
                     agencyDecisions.PendingKind=="Recognition",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_household","cu_petition_open",
                 "cu_petition_answers",
-                "My household is short of means. "+
-                "A little silver would bring us some relief.",
+                "I would rather not burden you with my affairs, but I need help for my household. Could you spare "+
+                SandboxAgencyDecisionPolicy.Amount("HouseholdAid")+" denars?",
                 ()=>SpeakingWithPendingPetitioner() &&
                     agencyDecisions.PendingKind=="HouseholdAid",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_livelihood","cu_petition_open",
                 "cu_petition_answers",
-                "I have a chance to establish myself. "+
-                "I need help to make a beginning.",
+                "I want to make my own living, not spend my days asking favors. I ask for "+
+                SandboxAgencyDecisionPolicy.Amount("LivelihoodAid")+" denars to make a beginning.",
                 ()=>SpeakingWithPendingPetitioner() &&
                     agencyDecisions.PendingKind=="LivelihoodAid",
                 null,120);
@@ -218,7 +217,7 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_petition_accept","cu_petition_answers",
                 "cu_petition_accept_reply",
-                "You shall have my support.",
+                "I agree to your request.",
                 ()=>CanAcceptPetitionInConversation() && agencyDecisions.PendingKind!="Audience",
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
