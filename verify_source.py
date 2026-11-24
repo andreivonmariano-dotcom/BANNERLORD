@@ -19,7 +19,8 @@ for f in files:
 ET.parse(src/'CalradiaUnified.csproj')
 manifest=ET.parse(P/'Modules/CalradiaUnified/SubModule.xml').getroot()
 assert manifest.find('Id').get('value')=='CalradiaUnified'
-assert manifest.find('Version').get('value')=='v0.38.0'
+version=ET.parse(src/'CalradiaUnified.csproj').getroot().find('.//Version').text
+assert manifest.find('Version').get('value')=='v'+version
 assert manifest.find('.//DLLName').get('value')=='CalradiaUnified.dll'
 assert not any((P/'Modules').rglob('*.dll'))
 settings=(src/'Settings.cs').read_text()
