@@ -61,7 +61,8 @@ namespace CalradiaUnified
             var bornClan=spouse==null?null:spouse.OriginClan;
             var nativeFather=spouse==null?null:spouse.Father;
             var nativeMother=spouse==null?null:spouse.Mother;
-            bool distinctNobleBirth=bornClan!=null &&
+            bool distinctNobleBirth=SandboxGeneratedSpouseOrigin.EligibleForeignNobleClan(bornClan,clan==null?null:clan.Kingdom) &&
+                bornClan!=null &&
                 bornClan!=clan && !bornClan.IsEliminated &&
                 !bornClan.IsBanditFaction && !bornClan.IsRebelClan &&
                 bornClan.Kingdom!=null &&
