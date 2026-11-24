@@ -86,10 +86,70 @@ namespace CalradiaUnified
 
         public static Settings Load()
         {
-            return LoadFromPaths(
+            var settings=LoadFromPaths(
                 Path.Combine(Log.ModuleRoot, "ModuleData", "calradia-config.ini"),
                 UserOverridePath);
+            settings.ApplyAcceptanceFreeze();
+            return settings;
         }
+
+        // Acceptance build: legacy settings remain readable for migration,
+        // but cannot restore retired/overlapping mutations through old INI files.
+        public static bool IsHeldMutation(string key)
+        {
+            switch(key)
+            {
+                case "EnablePlayerForaging":
+                case "EnableCivicSystems":
+                case "EnableAbstractShipments":
+                case "EnableEconomy":
+                case "EnableRecruitment":
+                case "EnableLocalDiplomacy":
+                case "EnablePhysicalConvoys":
+                case "EnableDepotTrade":
+                case "EnableKingdomLevies":
+                case "EnableKingdomDiplomacy":
+                case "EnableAutonomousClanResupply":
+                case "EnableAutonomousClanRecruitTrips":
+                case "EnableAutonomousClanPatrol":
+                case "EnableGarrisonTraining":
+                case "EnableAutoGarrisonWageCaps":
+                case "EnableManualGarrisonTransfers":
+                case "EnableManualGarrisonWageCaps":
+                case "EnableAutoGarrisonTraining":
+                case "EnableVillageHarvest":
+                case "EnableSurplusEstateSales":
+                    return true;
+                default:return false;
+            }
+        }
+        public void ApplyAcceptanceFreeze()
+        {
+            EnablePlayerForaging=false;
+            EnableCivicSystems=false;
+            EnableAbstractShipments=false;
+            EnableEconomy=false;
+            EnableRecruitment=false;
+            EnableLocalDiplomacy=false;
+            EnablePhysicalConvoys=false;
+            EnableDepotTrade=false;
+            EnableKingdomLevies=false;
+            EnableKingdomDiplomacy=false;
+            EnableAutonomousClanResupply=false;
+            EnableAutonomousClanRecruitTrips=false;
+            EnableAutonomousClanPatrol=false;
+            EnableGarrisonTraining=false;
+            EnableAutoGarrisonWageCaps=false;
+            EnableManualGarrisonTransfers=false;
+            EnableManualGarrisonWageCaps=false;
+            EnableAutoGarrisonTraining=false;
+            EnableVillageHarvest=false;
+            EnableSurplusEstateSales=false;
+        }
+
+        // Direct roster edits are held until the installed garrison owner
+        // and native roster conservation are verified in a real campaign.
+        public static bool NativeOfficerTransfersEnabled { get { return false; } }
 
         public static string UserOverridePath
         {
@@ -218,6 +278,11 @@ namespace CalradiaUnified
             out string error)
         {
             string normalized;
+            if (value=="true" && IsHeldMutation(key))
+            {
+                error="Held during compatibility acceptance.";
+                return false;
+            }
             if (!SettingsMenuPolicy.TryNormalize(key, value, out normalized))
             {
                 error = "This setting is not editable in the in-game menu.";
