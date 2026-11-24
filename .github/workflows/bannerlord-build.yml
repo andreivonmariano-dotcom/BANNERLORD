@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - "audit/v069e-current-gameplay-and-visual-acceptance"
+      - "integration/cu-living-society-acceptance"
     paths:
       - "Source/**"
       - "Data/**"
