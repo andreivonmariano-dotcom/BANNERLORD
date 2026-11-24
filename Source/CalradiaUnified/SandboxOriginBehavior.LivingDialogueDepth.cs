@@ -219,6 +219,10 @@ namespace CalradiaUnified
                         default:reply="I have not settled on a particular ambition to share.";break;
                     }
                     if(relation<0)reply+=" I am not ready to entrust all my concerns to you.";
+                    else if(actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)>0)
+                        reply+=" I would rather earn it fairly than take what is not mine.";
+                    else if(actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)>0)
+                        reply+=" We must weigh the cost before committing ourselves.";
                 }
                 else if(topic=="Family")
                 {
@@ -227,6 +231,14 @@ namespace CalradiaUnified
                     reply="Your house has "+children+" living children; "+young+" are still young. "+
                         (young>0?"Their upbringing deserves our attention.":"We must think of their own places in the world.");
                     if(actor==player.Spouse)reply+=" Let us discuss how we provide for them.";
+                    if(player.Children!=null)
+                    {
+                        var living=player.Children.Where(h=>h!=null && h.IsAlive)
+                            .OrderByDescending(h=>h.Age).Take(3).ToArray();
+                        if(living.Length>0)
+                            reply+=" We should consider "+String.Join(", ",living.Select(h=>
+                                h.Name.ToString()+" ("+(int)h.Age+")"))+".";
+                    }
                 }
                 else if(topic=="Finances")
                     reply="You have "+player.Gold+" denars in your purse. I hold "+actor.Gold+
@@ -248,7 +260,15 @@ namespace CalradiaUnified
                     }
                 }
                 else if(topic=="Service")
+                {
                     reply=ChargeDescription();
+                    var recent=battleHistory.Entries.LastOrDefault();
+                    if(recent!=null && recent.Day>=0 &&
+                        (long)CurrentHouseholdDay()-recent.Day>=0 &&
+                        (long)CurrentHouseholdDay()-recent.Day<=14 && recent.PartyDead>=0)
+                        reply+=" Our campaign record recently counted "+recent.PartyDead+
+                            " fallen and "+recent.PartyWounded+" wounded in an involved party.";
+                }
                 else if(topic=="Memory")
                 {
                     var story=petitionStories.For(actor.StringId);
