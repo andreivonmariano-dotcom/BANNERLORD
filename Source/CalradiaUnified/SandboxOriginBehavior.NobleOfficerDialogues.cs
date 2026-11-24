@@ -2,6 +2,8 @@ using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace CalradiaUnified
 {
@@ -64,6 +66,8 @@ namespace CalradiaUnified
         }
         private void TransferExistingTroopsByOfficer(bool royal)
         {
+            MBTextManager.SetTextVariable("CU_OFFICER_TRANSFER_REPLY",new TextObject(
+                "The order cannot be carried out just now. No transfer has been confirmed."));
             bool permitted=royal?
                 KingMarshalAvailable():LordMasterAvailable();
             if(!permitted)return;
@@ -107,6 +111,9 @@ namespace CalradiaUnified
                 "|troops_transferred="+(confirmed?5:0)+
                 "|troops_spawned=0"+
                 "|real_garrison="+confirmed);
+            MBTextManager.SetTextVariable("CU_OFFICER_TRANSFER_REPLY",new TextObject(
+                confirmed?"Five of your recruits now serve in "+seat.Name+"’s garrison. The men have been accounted for.":
+                "I cannot confirm that the order was carried out. We should check the rolls before attempting it again."));
             Notify(confirmed?
                 "Five of your existing recruits now serve "+
                     "in "+seat.Name+"'s native garrison.":
@@ -124,7 +131,7 @@ namespace CalradiaUnified
                 ()=>TransferExistingTroopsByOfficer(false),100);
             starter.AddDialogLine("cu_lord_master_order_reply",
                 "cu_lord_master_order_reply","close_window",
-                "I will post your existing soldiers to the garrison.",
+                "{CU_OFFICER_TRANSFER_REPLY}",
                 null,null,100);
             starter.AddPlayerLine("cu_king_marshal_order",
                 "hero_main_options","cu_king_marshal_order_reply",
@@ -133,7 +140,7 @@ namespace CalradiaUnified
                 ()=>TransferExistingTroopsByOfficer(true),100);
             starter.AddDialogLine("cu_king_marshal_order_reply",
                 "cu_king_marshal_order_reply","close_window",
-                "I will move your own recruits to our royal holding.",
+                "{CU_OFFICER_TRANSFER_REPLY}",
                 null,null,100);
         }
     }
