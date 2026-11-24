@@ -139,6 +139,14 @@ namespace CalradiaUnified
                 if(story.Kind=="Audience")return "We spoke of our houses before. I valued the chance to hear your views.";
                 if(story.Kind=="Recognition")return "You acknowledged my work when I asked. I have not forgotten.";
             }
+            var intention=livingPersons.LatestRelationshipIntention(player.StringId,actor.StringId);
+            if(intention!=null)
+            {
+                if(intention.Detail.EndsWith("|intention=Repair",StringComparison.Ordinal))
+                    return "I remember that you wished to mend matters between us. I judge our standing by how we deal with one another now.";
+                if(intention.Detail.EndsWith("|intention=Care",StringComparison.Ordinal))
+                    return "I remember that you spoke of valuing our relationship. I have not taken those words as a bargain.";
+            }
             var group=livingPersons.LatestGroupDiscussion(player.StringId,actor.StringId);
             if(group!=null)
             {
@@ -218,6 +226,37 @@ namespace CalradiaUnified
             if(CanDiscussPersonalMatters())
                 livingPersons.RecordConversationChoice(player.StringId,actor.StringId,
                     personalTopicName,disagreed,CurrentHouseholdDay());
+        }
+
+        private bool CanExpressRelationshipIntention(bool repair)
+        {
+            if(!CanFollowPersonalTopic() || personalTopicName!="Standing")return false;
+            var player=Hero.MainHero;
+            var actor=Hero.OneToOneConversationHero;
+            if(!HasPersonalStandingContext(player,actor))return false;
+            int relation=player.GetRelation(actor);
+            return repair?relation<0:relation>=20;
+        }
+
+        private void ExpressRelationshipIntention(bool repair)
+        {
+            personalReply="Let us speak of this another time.";
+            if(!CanExpressRelationshipIntention(repair))return;
+            var player=Hero.MainHero;
+            var actor=Hero.OneToOneConversationHero;
+            string tone=PersonalVoice(actor);
+            int relation=player.GetRelation(actor);
+            livingPersons.RecordRelationshipIntention(player.StringId,actor.StringId,
+                repair?"Repair":"Care",CurrentHouseholdDay());
+            if(repair)
+                personalReply=relation<=-30 || tone=="Guarded"?
+                    "I have heard you. I will not say that trust has returned simply from these words.":
+                    "I am willing to hear you. Let our dealings from this day show what we mean.";
+            else
+                personalReply=actor==player.Spouse && actor.Spouse==player?
+                    "I value our life together, too. Let us make time for each other.":
+                    tone=="Guarded"?"I value deeds more than assurances. Let us keep faith.":
+                    "I value the regard we have for one another. Let us not take it for granted.";
         }
 
         private void SelectPersonalTopic(string topic)
@@ -761,6 +800,10 @@ namespace CalradiaUnified
                     else if(office=="Kingsguard")reply="My first concern is the safety of the sovereign. I mean to be worthy of that trust.";
                     else if(office=="RoyalMinister")reply="I would keep the affairs of the household in good order and preserve its holdings.";
                     else if(office=="Knight")reply="I would prove worthy of the service entrusted to me.";
+                    var changed=livingPersons.Events.LastOrDefault(e=>e.Kind=="ObservedGoalReassessment" &&
+                        e.Actor==actor.StringId && e.Target==player.StringId &&
+                        e.Detail.Split('|').Contains("current="+goal));
+                    if(changed!=null)reply+=" My circumstances have changed, and so have the plans I make.";
                     if(relation<0)reply+=" I am not ready to entrust all my concerns to you.";
                     else if(actor.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor)>0)
                         reply+=" I would rather earn it fairly than take what is not mine.";
@@ -889,6 +932,12 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics","{CU_PERSONAL_FOLLOWUP}",()=>PreparePersonalFollowUp(),null,100);
             starter.AddDialogLine("cu_personal_followup_reply_safe","cu_personal_followup_reply",
                 "close_window","We can speak again another time.",null,null,1);
+            starter.AddPlayerLine("cu_personal_relationship_repair","cu_personal_followup_choices",
+                "cu_personal_followup_reply","I wish to mend matters between us.",
+                ()=>CanExpressRelationshipIntention(true),()=>ExpressRelationshipIntention(true),96);
+            starter.AddPlayerLine("cu_personal_relationship_care","cu_personal_followup_choices",
+                "cu_personal_followup_reply","I value what we share.",
+                ()=>CanExpressRelationshipIntention(false),()=>ExpressRelationshipIntention(false),96);
             starter.AddPlayerLine("cu_personal_followup_back","cu_personal_followup_choices",
                 "cu_personal_followup_back_reply","Let us speak of something else.",null,null,85);
             starter.AddDialogLine("cu_personal_followup_back_reply","cu_personal_followup_back_reply",
