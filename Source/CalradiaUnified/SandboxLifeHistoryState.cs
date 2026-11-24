@@ -133,11 +133,14 @@ namespace CalradiaUnified
                 if(f.Length==11 && f[0]=="P" &&
                     Int32.TryParse(f[4],out age) &&
                     age>=0 && age<=120)
+                {
+                    if(!state.People.Any(p=>p.Id==Dec(f[1])))
                     state.Record(new Person{Id=Dec(f[1]),Name=Dec(f[2]),
                         Culture=Dec(f[3]),Age=age,Station=Dec(f[5]),
                         Occupation=Dec(f[6]),HouseholdId=Dec(f[7]),
                         Origin=Dec(f[8]),Ambition=Dec(f[9]),
                         Biography=Dec(f[10])});
+                }
                 else if(f.Length==5 && f[0]=="B")
                     state.Tie(Dec(f[1]),Dec(f[2]),Dec(f[3]),
                         Dec(f[4]));
