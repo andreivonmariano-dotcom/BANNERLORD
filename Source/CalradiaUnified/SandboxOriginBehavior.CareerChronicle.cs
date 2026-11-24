@@ -334,8 +334,13 @@ namespace CalradiaUnified
                     AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_defend","Strengthen the garrison here",
-                args=>!IsPersonalChargeActive() && SelectedReviewRole()=="Lord",
+                args=>!IsPersonalChargeActive() &&
+                    SandboxCareerChargeState.IsKindForRole(SelectedReviewRole(),"StrengthenGarrison"),
                 args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("StrengthenGarrison")),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_charge_royal_estate","Visit another royal holding",
+                args=>!IsPersonalChargeActive() && SelectedReviewRole()=="King",
+                args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("VisitEstate")),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_withdraw","Set aside my current charge",
                 args=>IsPersonalChargeActive(),
