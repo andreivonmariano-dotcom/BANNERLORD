@@ -3,6 +3,8 @@ using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.GameMenus;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace CalradiaUnified
 {
@@ -33,8 +35,21 @@ namespace CalradiaUnified
             return SpeakingWithSwornPatron() &&
                 knightOath.CanMuster(CurrentOathDay(),true);
         }
+        private string patronReply="";
+        private bool PreparePatronReply()
+        {
+            MBTextManager.SetTextVariable("CU_PATRON_REPLY",new TextObject(patronReply));
+            return true;
+        }
+        private bool PreparePatronGreeting()
+        {
+            MBTextManager.SetTextVariable("CU_PATRON_GREETING",
+                new TextObject(SandboxPetitionVoicePolicy.Greeting(PersonalVoice(Hero.OneToOneConversationHero))));
+            return true;
+        }
         private void RecordNativePatronAudience()
         {
+            patronReply="We cannot hold our muster just now.";
             var patron=KnightOathPatron();
             int day=CurrentOathDay();
             if(patron==null || !KnightConversationMusterAvailable())
@@ -50,12 +65,12 @@ namespace CalradiaUnified
                 "|native_favor_action="+favor+
                 "|completed="+knightOath.CompletedMusters+
                 "|next_review_day="+knightOath.NextMusterDay);
-            Notify("Your personal report to "+patron.Name+
-                " was recorded. Next review day: "+
-                knightOath.NextMusterDay+".");
+            patronReply="I have heard you. Keep your company ready for our next muster. "+
+                SandboxPetitionVoicePolicy.Opinion(PersonalVoice(patron),"Service");
         }
         private void ReleaseByPatronConversation()
         {
+            patronReply="We must settle the matter another time.";
             var patron=KnightOathPatron();
             if(patron==null || !SpeakingWithSwornPatron())return;
             string result=knightOath.Release(true);
@@ -68,7 +83,8 @@ namespace CalradiaUnified
                 "|native_conversation=true"+
                 "|native_favor_action="+favor+
                 "|independent_clan_retained=true");
-            Notify("Your lord has released you from the personal oath.");
+            patronReply="You have my leave. Your house remains your own. "+
+                SandboxPetitionVoicePolicy.DecisionReply(PersonalVoice(patron),true,true);
         }
         private bool SpeakingWithSuccessor()
         {
@@ -81,6 +97,7 @@ namespace CalradiaUnified
         }
         private void RenewOathInConversation()
         {
+            patronReply="Let us settle this before we speak of a renewed oath.";
             var successor=AvailableKnightSuccessor();
             int day=CurrentOathDay();
             if(successor==null || !SpeakingWithSuccessor())return;
@@ -94,6 +111,8 @@ namespace CalradiaUnified
                 "result="+receipt+
                 "|new_patron="+successor.StringId+
                 "|actual_native_conversation=true");
+            patronReply="Your sword is welcome in my service. "+
+                SandboxPetitionVoicePolicy.Opinion(PersonalVoice(successor),"Service");
         }
         private bool CanAcceptKnightEscort()
         {
@@ -107,6 +126,7 @@ namespace CalradiaUnified
         }
         private void AcceptKnightFieldEscort()
         {
+            patronReply="We cannot ride together just now.";
             var patron=KnightOathPatron();
             if(patron==null || !CanAcceptKnightEscort())return;
             string receipt=knightEscort.Begin(patron.StringId,
@@ -118,10 +138,8 @@ namespace CalradiaUnified
                 "|escort_days="+SandboxKnightEscortState.RequiredDays+
                 "|actual_player_party_not_reparented=true");
             if(receipt=="native_patron_field_escort_accepted")
-                Notify("Field service: follow "+patron.Name+
-                    "'s moving party for THREE consecutive in-game days. "+
-                    "Stay close on the campaign map. No reward is given "+
-                    "until the days are verified.");
+                patronReply="Ride near my banner for three days. Keep your own men together. "+
+                    SandboxPetitionVoicePolicy.Opinion(PersonalVoice(patron),"Service");
         }
         private void ObserveKnightEscortDaily()
         {
@@ -244,10 +262,8 @@ namespace CalradiaUnified
                 "cu_knight_patron_first_audience_reply",
                 "cu_knight_patron_first_audience_reply",
                 "hero_main_options",
-                "I have heard your oath. Rise, and keep faith "+
-                "with your household and the people who ride "+
-                "beside you. We shall speak again at muster.",
-                null,null,200);
+                "{CU_PATRON_REPLY}",
+                ()=>PreparePatronReply(),null,200);
             starter.AddPlayerLine(
                 "cu_knight_ceremony_defer","cu_knight_ceremony_choices",
                 "hero_main_options",
@@ -262,8 +278,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_answer","cu_knight_patron_answer",
                 "cu_knight_patron_options",
-                "You are sworn to my house. Speak plainly.",
-                null,null,100);
+                "{CU_PATRON_GREETING}",
+                ()=>PreparePatronGreeting(),null,100);
             starter.AddPlayerLine(
                 "cu_knight_patron_muster","cu_knight_patron_options",
                 "cu_knight_patron_muster_reply",
@@ -273,8 +289,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_muster_reply",
                 "cu_knight_patron_muster_reply","hero_main_options",
-                "Your attendance is witnessed. Return at the appointed time.",
-                null,null,100);
+                "{CU_PATRON_REPLY}",
+                ()=>PreparePatronReply(),null,100);
             starter.AddPlayerLine(
                 "cu_knight_patron_expectations","cu_knight_patron_options",
                 "cu_knight_patron_expectations_reply",
@@ -296,9 +312,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_escort_reply",
                 "cu_knight_patron_escort_reply","hero_main_options",
-                "Then ride near my banner for three days. Your "+
-                "household remains under your own command.",
-                null,null,100);
+                "{CU_PATRON_REPLY}",
+                ()=>PreparePatronReply(),null,100);
             starter.AddPlayerLine(
                 "cu_knight_patron_release","cu_knight_patron_options",
                 "cu_knight_patron_release_reply",
@@ -308,8 +323,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_patron_release_reply",
                 "cu_knight_patron_release_reply","hero_main_options",
-                "You have my leave. Your house remains your own.",
-                null,null,100);
+                "{CU_PATRON_REPLY}",
+                ()=>PreparePatronReply(),null,100);
             starter.AddPlayerLine(
                 "cu_knight_patron_nevermind","cu_knight_patron_options",
                 "hero_main_options","I have nothing further to report.",
@@ -332,8 +347,8 @@ namespace CalradiaUnified
             starter.AddDialogLine(
                 "cu_knight_successor_reply","cu_knight_successor_reply",
                 "hero_main_options",
-                "Your oath is accepted. The household remains yours.",
-                null,null,100);
+                "{CU_PATRON_REPLY}",
+                ()=>PreparePatronReply(),null,100);
             starter.AddPlayerLine(
                 "cu_knight_successor_decline","cu_knight_successor_options",
                 "hero_main_options","Not today.",null,null,100);
