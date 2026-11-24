@@ -137,20 +137,8 @@ namespace CalradiaUnified
 
         private void ReviewRecurringCareer()
         {
-            string role=SelectedReviewRole();
-            string evidence=CanRecordLifetimeRole(role)?ReviewCareerEvidence(role):"";
-            var player=Hero.MainHero;
-            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
-            bool recorded=player!=null &&
-                recurringCareerReviews.Record(player.StringId,role,day,evidence.Length>0);
-            if(recorded)
-                livingPersons.Remember("CareerReviewObserved",player.StringId,"",
-                    "role="+role+"|day="+day+"|current_condition_only=true");
-            ShowNativeDetail("Career | Recurring review",
-                (recorded?evidence:evidence.Length==0?
-                    "Current career conditions could not be verified.":
-                    "Review not recorded: seven-day interval or record limit.")+
-                "\n\n"+RecurringCareerReviewText());
+            ShowNativeDetail("Career | Agreed charge",
+                DiscussChargeProgress()+"\n\n"+RecurringCareerReviewText());
         }
 
         private string CurrentCareerRole()
@@ -301,6 +289,7 @@ namespace CalradiaUnified
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
                 "\nSelected review calling: "+SelectedReviewRole()+
                 "\n"+RecurringCareerReviewText()+
+                "\nAgreed charge: "+ChargeDescription()+
                 "\nPresent charge: "+
                 SandboxCareerChronicleState.ChapterObjective(
                     role,careerChronicle.Chapter)+
@@ -338,6 +327,19 @@ namespace CalradiaUnified
                     ShowNativeDetail("Career | Your next charge",
                         CareerChronicleDescription());
                 },false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_charge_begin","Agree on my next duty",
+                args=>!IsPersonalChargeActive() && SelectedReviewRole().Length>0,
+                args=>ShowNativeDetail("Career | New charge",
+                    AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_charge_defend","Strengthen the garrison here",
+                args=>!IsPersonalChargeActive() && SelectedReviewRole()=="Lord",
+                args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("StrengthenGarrison")),false);
+            starter.AddGameMenuOption("cu_career_chronicle",
+                "cu_career_charge_withdraw","Set aside my current charge",
+                args=>IsPersonalChargeActive(),
+                args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_recurring_review",
                 "Review my recurring career duties",
