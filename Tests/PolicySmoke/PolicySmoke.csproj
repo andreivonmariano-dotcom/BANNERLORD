@@ -62,6 +62,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxStartingLifePolicy.cs" Link="SandboxStartingLifePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxHouseholdLineagePolicy.cs" Link="SandboxHouseholdLineagePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxLifeHistoryState.cs" Link="SandboxLifeHistoryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxPeerSocialState.cs" Link="SandboxPeerSocialState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxServiceCareerState.cs" Link="SandboxServiceCareerState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSocialObservationState.cs" Link="SandboxSocialObservationState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSuccessionInterestState.cs" Link="SandboxSuccessionInterestState.cs" />
