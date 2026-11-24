@@ -578,6 +578,23 @@ internal static class Program
                 "companion_already_has_duty" &&
             offices.Assign("Captain","companion_2")==
                 "personal_duty_recorded");
+        Check("officers cannot silently replace or dismiss another holder",
+            offices.Assign("Steward","companion_3")=="office_occupied" &&
+            !offices.Release("Steward","companion_3") &&
+            offices.AssignedId("Steward")=="companion_1");
+        var releases=new SandboxHouseholdDutyState();
+        releases.Assign("Envoy","companion_4");
+        Check("explicit dismissal frees office and cannot replay old reports",
+            releases.Release("Envoy","companion_4") &&
+            !releases.Release("Envoy","companion_4") &&
+            releases.Assign("Envoy","companion_5")=="personal_duty_recorded" &&
+            !releases.CanReport("Envoy","companion_4",20) &&
+            SandboxHouseholdDutyState.Parse(releases.Serialize()).AssignedId("Envoy")=="companion_5");
+        Check("household appointments respect trust and native traits",
+            !SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(-1,2,0) &&
+            !SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(5,0,2) &&
+            SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(5,1,2) &&
+            SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(20,0,2));
         Check("household report is one native day per office",
             offices.Report("Steward","companion_1",13)==
                 "native_duty_report_recorded" &&
