@@ -34,7 +34,8 @@ assert 'SandboxRoleConsistencyPolicy.NativeType(role)' in native
 assert 'SandboxSaSBridge.HasSupportedProvider()' in native
 assert 'SandboxCustomLifeRolePolicy.NativeLandlessContract(' in guard
 assert 'SandboxCustomLifeRolePolicy.ValidBirth(' in profile
-assert 'SandboxCustomLifeRolePolicy.IsNobleFamilyRole' in world
+assert 'candidate.NormalizeGuidedCareerDraft()' in world
+assert 'choices:SandboxNobleStartPolicy.BirthPositions' not in world
 assert 'SandboxCustomLifeRolePolicy.NeedsKingdomContext(' in world
 assert '"UnlandedDynasticCadet"' in life
 assert '"ProspectiveEnlistedRecruit"' in life
