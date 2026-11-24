@@ -77,8 +77,16 @@ namespace CalradiaUnified
 
         private bool CanDiscussHouseholdDuty()
         {
-            return SpeakingWithHouseholdCompanion() &&
-                EffectiveHouseholdDuty(Hero.OneToOneConversationHero).Length>0;
+            var speaker=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            bool residentMinister=applied && player!=null && speaker!=null &&
+                clan!=null && speaker.IsAlive && speaker.IsActive && !speaker.IsPrisoner &&
+                speaker.Clan==clan && ExistingCourtDuty(speaker)=="Royal Minister" &&
+                SandboxKingNativeMinistry.VerifiedGovernor(speaker) &&
+                speaker.GovernorOf.Settlement==Settlement.CurrentSettlement;
+            return (SpeakingWithHouseholdCompanion() || residentMinister) &&
+                EffectiveHouseholdDuty(speaker).Length>0;
         }
 
         private bool PrepareHouseholdDutyReply()
@@ -203,7 +211,9 @@ namespace CalradiaUnified
                   speaker.Spouse==player) ||
                  (player.Children!=null &&
                   player.Children.Contains(speaker) &&
-                  (speaker.Mother==player || speaker.Father==player)));
+                  (speaker.Mother==player || speaker.Father==player)) ||
+                 (player.Father!=null && player.Mother!=null &&
+                  speaker.Father==player.Father && speaker.Mother==player.Mother));
         }
         private bool PrepareFamilyConversationReply()
         {
