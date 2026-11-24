@@ -2,7 +2,7 @@
 24 November 2026. Mandatory before release or installed-module replacement recommendation. This is an unexecuted test plan; CI or synthetic logs do not count as native evidence.
 
 ## Build and identity (Gate B)
-- [ ] Record PR #99 exact head, checkout SHA (PR merge SHA if applicable), successful workflow ID, artifact ID and DLL SHA-256; require complete workflow success, zero compiler errors, review warnings.
+- [ ] Record PR #100 exact head, checkout SHA (PR merge SHA if applicable), successful workflow ID, artifact ID and DLL SHA-256; require complete workflow success, zero compiler errors, review warnings.
 - [ ] Pass static ownership/reachability gates, PolicySmoke, campaign and audit simulations, package and installer rejection regressions.
 - [ ] Extract exactly one CalradiaUnified module; check SubModule.xml v0.74.0, one CalradiaUnified.dll, no retired pre-MCM/Origin prefabs, no third-party DLL or executable installer. Verify CU-BuildIdentity.json, actual DLL hash and source identity; do not install intermediate failed-workflow output.
 - [ ] Preserve old module and saves separately. No existing save overwritten. Record actual game build 1.5.7.125802, official modules, all four required BUTR versions, enabled order and actual external binary hashes; if different, mark target mismatch.
@@ -39,6 +39,7 @@
 - [ ] Repeat at 1280x720, 1920x1080 and wide resolution, with baseline and full modlist. Verify notifications stay in the native stack, no repeated quest/settlement menus and no UI lock after escape. Native testing remains required even after successful CI.
 
 ## Generated companions (Gate C/D)
+- [ ] Wanderer acceptance must choose the custom companion, Knight the Squire, Outlaw the band lieutenant, Lord both officers and King all three officers. Require same-session per-Hero gear/office/skill receipts and manual post-reload observations. Supply <role>_companion_battle.png, <role>_companion_civilian.png and <role>_companion_skills.png, and companion_* JSON fields required by the audit. Inspect every officer, not just one screenshot; screenshot existence alone is not a pass.
 - [ ] Verify actual age, clean-shaven Squire, native civilian outfit in settlement scenes, office-specific native traits and ambition dialogue. Compare Squire, Knight, Marshal, Minister in inventory and native character screens; inspect gear tier, both outfit slots, and save/reload. No invented veteran battles or prior deeds.
 - [ ] Verify plain cultural names, separate office labels, native skill targets and cultural role-specific battle kits, weapon/ammunition, horse/harness and readback. Check Lord, King, Knight, Outlaw and selected Wanderer specialty individually. Rename a new officer, save/reload, verify same native identity and office. Existing saves retain names/equipment, no automatic retroactive grants. Manual Wanderer stats remain exact.
 

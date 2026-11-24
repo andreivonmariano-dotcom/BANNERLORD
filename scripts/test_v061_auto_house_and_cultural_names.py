@@ -55,7 +55,9 @@ assert "SandboxCulturalNames.Suggest" in auto
 assert "SandboxCulturalNames.Suggest" in family
 assert "SandboxCulturalNames.Suggest(culture,female,index+2" in retinue
 assert "TrainForOffice(officer,offices[i])" in retinue
-assert "EquipFromNativeDonor(officer,sources[i],offices[i])" in retinue
+assert "EquipForStyle(officer,sources[i]," in retinue
+assert "EquipCivilian(officer,sources[i],offices[i])" in retinue
+assert "registry.Register(officer.StringId,offices[i])" in retinue
 assert "AssignNativeDuty(officer,offices[i])" in retinue
 assert "SetPartyQuartermaster" in retinue
 assert "SetPartyScout" in retinue

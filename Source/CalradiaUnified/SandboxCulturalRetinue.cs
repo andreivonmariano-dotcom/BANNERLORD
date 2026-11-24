@@ -207,6 +207,7 @@ namespace CalradiaUnified
                 "hero="+officer.StringId+"|office="+office+
                 "|culture="+culture+
                 "|skills="+String.Join(",",skills)+
+                "|native_skill_readback=true"+
                 "|style="+SandboxRetinueCulturePolicy.GearStyle(
                     culture,office));
         }

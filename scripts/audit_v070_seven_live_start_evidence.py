@@ -40,6 +40,17 @@ NATIVE_UI_FIELDS=(
  "ui_affairs_expired_request_history",
 )
 AFFAIRS_UI_SCREENS=("affairs_journal","affairs_notice","affairs_sender")
+COMPANION_OFFICES={
+ "Outlaw":("SecondInCommand",), "Knight":("Squire",),
+ "Lord":("MasterOfArms","Knight"),
+ "King":("Marshal","Kingsguard","RoyalMinister"),
+}
+COMPANION_UI_FIELDS=("companion_plain_names_and_saved_offices",
+ "companion_age_and_traits_match_profile",
+ "companion_battle_and_civilian_gear_match_office",
+ "companion_native_skills_match_profile",
+ "companion_identity_and_office_after_reload")
+COMPANION_UI_SCREENS=("companion_battle","companion_civilian","companion_skills")
 ROLE_UI_SCREENSHOTS={
  "Knight":("knight_oath_ui.png","knight_household_ui.png",
            "knight_patron_conversation.png",
@@ -258,6 +269,38 @@ def audit_role(role,rows,evidence_root):
     affairs_events=[x for x in group if x.get("context")=="cu_campaign_affairs_open"]
     if not affairs_events or detail(affairs_events[-1]).get("read_only")!="true":
         problems.append("missing_verified_campaign_affairs_open")
+    # Companion receipts must identify the same actual generated Hero in
+    # battle/civilian equipment, training and registered office records.
+    if role in COMPANION_OFFICES or role=="Wanderer":
+        for field in COMPANION_UI_FIELDS:
+            if evidence.get(field) is not True:
+                problems.append("native_companion_unverified_"+field)
+        for screen in COMPANION_UI_SCREENS:
+            filename=role.lower()+"_"+screen+".png"
+            if not screenshot_ok(evidence_root/filename):
+                problems.append("missing_native_ui_"+filename)
+        def receipts(context):
+            return [detail(x) for x in group if x.get("context")==context]
+        battle=receipts("cu_retinue_native_gear")
+        civilian=receipts("cu_retinue_civilian_gear")
+        training=receipts("cu_retinue_cultural_training")
+        officers=receipts("cu_cultural_retinue_officer")
+        if role=="Wanderer":
+            people=[x.get("id","") for x in receipts("cu_wanderer_unique_companion")
+                    if x.get("result")=="PASS"]
+            if not any(id and any(x.get("hero")==id and x.get("native_gear")=="true" for x in battle)
+                    and any(x.get("hero")==id and x.get("native_readback")=="true" for x in civilian)
+                    for id in people):
+                problems.append("missing_verified_wanderer_companion_outfits")
+        else:
+            for office in COMPANION_OFFICES[role]:
+                people=[x.get("id","") for x in officers if x.get("office")==office]
+                if len(set(people))!=1 or not any(id and
+                        any(x.get("hero")==id and x.get("office")==office and x.get("native_gear")=="true" for x in battle)
+                        and any(x.get("hero")==id and x.get("office")==office and x.get("native_readback")=="true" for x in civilian)
+                        and any(x.get("hero")==id and x.get("office")==office and x.get("native_skill_readback")=="true" for x in training)
+                        for id in people):
+                    problems.append("missing_verified_companion_profile_"+office)
     for filename in ROLE_UI_SCREENSHOTS.get(role,()):
         if not screenshot_ok(evidence_root/filename):
             problems.append("missing_native_ui_"+filename)

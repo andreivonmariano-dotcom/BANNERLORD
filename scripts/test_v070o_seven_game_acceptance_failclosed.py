@@ -86,6 +86,15 @@ def fixtures(role):
     events.append(row(role,"sandbox_start_contract",
                       "result=PASS|role="+role))
     events.append(row(role,"cu_campaign_affairs_open","records=1|read_only=true"))
+    for office in module.COMPANION_OFFICES.get(role,("Guard",) if role=="Wanderer" else ()):
+        hero="profile_"+office
+        events.append(row(role,"cu_retinue_native_gear","hero="+hero+"|office="+office+"|native_gear=true"))
+        events.append(row(role,"cu_retinue_civilian_gear","hero="+hero+"|office="+office+"|native_readback=true"))
+        if role=="Wanderer":
+            events.append(row(role,"cu_wanderer_unique_companion","result=PASS|id="+hero))
+        else:
+            events.append(row(role,"cu_cultural_retinue_officer","id="+hero+"|office="+office))
+            events.append(row(role,"cu_retinue_cultural_training","hero="+hero+"|office="+office+"|native_skill_readback=true"))
     if role in module.ROLE_UI_SCREENSHOTS:
         events.append(row(role,"cu_native_household_display_opened",
                           "result=OPENED|role="+role+
@@ -112,6 +121,8 @@ def proof_for(role):
         ui_mcm_mod_options_available=True)
     for field in module.NATIVE_UI_FIELDS:
         if field.startswith("ui_affairs_"):proof[field]=True
+    if role in module.COMPANION_OFFICES or role=="Wanderer":
+        for field in module.COMPANION_UI_FIELDS:proof[field]=True
     if role in ("Lord","King"):
         proof["ui_kingdom_native_extension_after_reload"]=True
     if role in module.ROLE_UI_SCREENSHOTS:
@@ -141,6 +152,9 @@ with tempfile.TemporaryDirectory() as folder:
         (native/(role.lower()+".png")).write_bytes(native_png())
         for screen in module.AFFAIRS_UI_SCREENS:
             (native/(role.lower()+"_"+screen+".png")).write_bytes(native_png())
+        if role in module.COMPANION_OFFICES or role=="Wanderer":
+            for screen in module.COMPANION_UI_SCREENS:
+                (native/(role.lower()+"_"+screen+".png")).write_bytes(native_png())
     (native/"king_kingsguard_battle.png").write_bytes(native_png())
     for role in module.ROLES:
         screens=("clan","party","mcm")
@@ -155,6 +169,12 @@ with tempfile.TemporaryDirectory() as folder:
     cases=[x for role in module.ROLES for x in fixtures(role)]
     good=module.audit_all(cases,native)
     assert len(good)==7 and all(x["result"]=="PASS" for x in good)
+    no_squire=[x for x in cases if not (x["session_id"]=="session_Knight" and
+        x["context"]=="cu_retinue_civilian_gear")]
+    assert "missing_verified_companion_profile_Squire" in module.audit_role("Knight",no_squire,native)["missing"]
+    no_wanderer=[x for x in cases if not (x["session_id"]=="session_Wanderer" and
+        x["context"]=="cu_retinue_native_gear")]
+    assert "missing_verified_wanderer_companion_outfits" in module.audit_role("Wanderer",no_wanderer,native)["missing"]
     letter=native/"wanderer_affairs_sender.png"
     letter.unlink()
     assert "missing_native_ui_wanderer_affairs_sender.png" in module.audit_role("Wanderer",cases,native)["missing"]
