@@ -196,7 +196,7 @@ namespace CalradiaUnified
             switch(role)
             {
                 case "Wanderer":
-                    bool nativeTown=location!=null &&
+                    bool nativeTown=independent && location!=null &&
                         location.IsTown;
                     townId=nativeTown?location.StringId:"";
                     first=nativeTown;
@@ -217,11 +217,14 @@ namespace CalradiaUnified
                     third=first;
                     break;
                 case "Soldier":
-                    first=serviceCareer.VerifiedExternalEnlistment;
-                    second=first && serviceCareer.DaysInService>=7 &&
-                        serviceCareer.ExternalInsideHostParty;
-                    third=first && serviceCareer.DaysInService>=30 &&
-                        serviceCareer.ExternalInsideHostParty;
+                    var liveService=SandboxSaSBridge.Read();
+                    first=serviceCareer.VerifiedExternalEnlistment &&
+                        liveService.Available && liveService.Enlisted &&
+                        liveService.LordId==serviceCareer.ExternalLordId;
+                    second=first && liveService.Days>=7 &&
+                        serviceCareer.ExternalInsideHostParty && liveService.InsideHostParty;
+                    third=first && liveService.Days>=30 &&
+                        serviceCareer.ExternalInsideHostParty && liveService.InsideHostParty;
                     break;
                 case "Knight":
                     first=knightOath.IsConfigured && knightOath.HasCurrentOath &&
@@ -231,7 +234,9 @@ namespace CalradiaUnified
                     third=second && knightEscort.CompletedEscorts>=2;
                     break;
                 case "Lord":
-                    first=lordInheritance.IsRecorded && ownLand;
+                    first=lordInheritance.IsRecorded && ownLand &&
+                        clan.Leader==player && clan.Kingdom!=null &&
+                        clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService;
                     second=first;
                     third=first && clan.Settlements.Count>=2;
                     break;
