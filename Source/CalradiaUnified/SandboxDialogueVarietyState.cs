@@ -21,6 +21,8 @@ namespace CalradiaUnified
         private static bool Topic(string s)
         {
             return s=="Greeting" || s=="Initiative" || s=="Group" ||
+                (s!=null && s.StartsWith("Group:",StringComparison.Ordinal) &&
+                    (SandboxPetitionVoicePolicy.GroupTopic(s.Substring(6)) || SandboxGatheringPlan.ValidOccasion(s.Substring(6)))) ||
                 SandboxLifeHistoryState.IsConversationTopic(s);
         }
         public void Initialize(string seed)
