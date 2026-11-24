@@ -28,16 +28,25 @@ namespace CalradiaUnified
             // temporary random choice does not create or edit a native
             // Hero, marriage, clan or estate.
             if(!TryResolve(profile,player,out birthClan,
-                out father,out mother,out refused))
+                out father,out mother,out refused,true))
                 return refused.Length==0?
                     "native_noble_parents_unavailable":refused;
             // Native noble birth is grounded in the real birth clan.
             // Absent parents stay absent, never invented for the spouse.
             return birthClan!=null?"":"native_noble_birth_clan_unavailable";
         }
+        internal static string PreflightGuidedKing(SandboxOriginProfile profile,Hero player)
+        {
+            if(profile==null || !profile.KingGuidedStart || !profile.SpouseEnabled ||
+                profile.SpouseBackground=="Commoner")return "";
+            Clan birthClan;Hero father,mother;string refused;
+            return TryResolve(profile,player,out birthClan,out father,out mother,out refused,true) &&
+                birthClan!=null?"":(refused.Length==0?"native_royal_spouse_origin_unavailable":refused);
+        }
+
         internal static bool TryResolve(SandboxOriginProfile profile, Hero player,
             out Clan birthClan, out Hero father, out Hero mother,
-            out string refusal)
+            out string refusal,bool preview=false)
         {
             birthClan = Clan.PlayerClan;
             father = null;
@@ -117,10 +126,10 @@ namespace CalradiaUnified
                     refusal = "no_valid_noble_clan_in_selected_kingdom";
                     return false;
                 }
-                birthClan = profile.SpouseBackground == "NobleRandom" ?
+                birthClan = profile.SpouseBackground == "NobleRandom" && !preview ?
                     candidates[MBRandom.RandomInt(candidates.Length)] :
                     candidates[0];
-                DiagnosticJournal.Event("cu_family_noble_origin_selected",
+                if(!preview)DiagnosticJournal.Event("cu_family_noble_origin_selected",
                     "mode=" + profile.SpouseBackground +
                     "|birth_clan=" + birthClan.StringId +
                     "|father=unknown|mother=unknown" +
@@ -130,12 +139,12 @@ namespace CalradiaUnified
                 return true;
             }
 
-            var selected = profile.SpouseBackground == "NobleRandom" ?
+            var selected = profile.SpouseBackground == "NobleRandom" && !preview ?
                 families[MBRandom.RandomInt(families.Length)] : families[0];
             birthClan = selected.Clan;
             father = selected.Father;
             mother = selected.Mother;
-            DiagnosticJournal.Event("cu_family_noble_origin_selected",
+            if(!preview)DiagnosticJournal.Event("cu_family_noble_origin_selected",
                 "mode=" + profile.SpouseBackground +
                 "|birth_clan=" + birthClan.StringId +
                 "|father=" + father.StringId +
