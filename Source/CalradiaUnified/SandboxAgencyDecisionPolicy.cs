@@ -61,6 +61,18 @@ namespace CalradiaUnified
             return baseChoice;
         }
 
+        // A conservative modeled response to verified petition history.
+        // It never changes the native relation, and reconciliation can
+        // reopen requests. Existing quotas and cooldowns still apply.
+        public static bool CanReapproach(SandboxSocialBondState.Bond history,
+            int nativeRelation)
+        {
+            if(history==null)return true;
+            return !(history.Declined>=2 &&
+                history.Declined>history.Supported &&
+                history.Negative<0 && nativeRelation<=-10);
+        }
+
         public static int Amount(string kind)
         {
             if(kind=="HouseholdAid")return 150;

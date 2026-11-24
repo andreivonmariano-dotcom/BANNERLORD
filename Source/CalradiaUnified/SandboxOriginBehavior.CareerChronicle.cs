@@ -125,7 +125,25 @@ namespace CalradiaUnified
             if(careerChronicle.Role!=role)
                 return "The saved career is not the verified "+
                     "current career. No history has been overwritten.";
-            return "Your path: "+role+
+            var clan=Clan.PlayerClan;
+            var player=Hero.MainHero;
+            string standing=clan==null || player==null?
+                "Unverified political status":
+                SandboxStartingLifePolicy.PoliticalStanding(
+                    clan.Leader==player,clan.Kingdom!=null,
+                    clan.Kingdom!=null && clan.Kingdom.RulingClan==clan,
+                    clan.IsUnderMercenaryService);
+            return "Recorded career: "+role+
+                "\nCareer duties (guidance): "+
+                SandboxStartingLifePolicy.CareerContract(role)+
+                "\nCurrent native political standing: "+standing+
+                "\nClan settlements: "+
+                (clan==null || clan.Settlements==null?"unverified":
+                    clan.Settlements.Count.ToString())+
+                "\nRecorded personal oath: "+
+                (knightOath.IsConfigured?knightOath.Status:"none")+
+                "\nLast recorded external service status: "+
+                serviceCareer.Status+
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
                 "\nPresent charge: "+
                 SandboxCareerChronicleState.ChapterObjective(

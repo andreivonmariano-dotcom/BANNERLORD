@@ -19,10 +19,10 @@ namespace CalradiaUnified
             string relation=socialBonds.SocialStanding(
                 person.StringId,Hero.MainHero.GetRelation(person));
             string goal=agenda==null || String.IsNullOrEmpty(agenda.Goal)?
-                "no recorded native-evidence ambition":agenda.Goal;
+                "no recorded modeled ambition":agenda.Goal;
             return "Native relation: "+
                 Hero.MainHero.GetRelation(person)+
-                "\nObserved ambition: "+goal+
+                "\nModeled ambition (native context): "+goal+
                 "\nRecorded trust: "+relation+
                 (bond==null?"":"\nVerified support: "+bond.Supported+
                     " | Refusals: "+bond.Declined+
@@ -34,7 +34,7 @@ namespace CalradiaUnified
         {
             string result="Witnessed career chapters: "+
                 careerChronicle.Chapter+"/3"+
-                "\nCurrent calling: "+CurrentCareerRole();
+                "\nRecorded calling: "+CurrentCareerRole();
             if(knightOath.IsConfigured)
                 result+="\nSworn service: "+
                     knightServiceOrders.CompletedOrders+

@@ -85,7 +85,8 @@ namespace CalradiaUnified
         private Hero RequestedCharacter()
         {
             var target=FindLivingPerson(agencyDecisions.PendingHeroId);
-            return SamePlace(Hero.MainHero,target)?target:null;
+            return target!=null && target.IsActive && !target.IsPrisoner &&
+                target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
         }
         private bool HasRequest()
         {
@@ -116,13 +117,17 @@ namespace CalradiaUnified
             {
                 var hero=FindLivingPerson(record.Id);
                 if(hero==null || hero==player ||
-                    !SamePlace(player,hero) || hero.Age<18f)
+                    !SamePlace(player,hero) || hero.Age<18f ||
+                    !hero.IsActive || hero.IsPrisoner)
                     continue;
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
                     continue;
                 var prior=agencyDecisions.For(hero.StringId);
+                int nativeRelation=player.GetRelation(hero);
+                if(!SandboxAgencyDecisionPolicy.CanReapproach(
+                    socialBonds.For(hero.StringId),nativeRelation))continue;
                 string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
-                    record.Goal,true,true,player.GetRelation(hero),
+                    record.Goal,true,true,nativeRelation,
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
                         agencyDecisions.Day-prior.LastDay,

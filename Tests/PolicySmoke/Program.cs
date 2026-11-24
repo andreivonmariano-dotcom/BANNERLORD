@@ -455,6 +455,40 @@ internal static class Program
             SandboxStartingLifePolicy.SevenPaths.Length==7 &&
             !SandboxStartingLifePolicy.SevenPaths.Contains("Trader") &&
             SandboxOriginProfile.Roles.Contains("Trader"));
+        Check("career roster exact ordered seven with no extra careers",
+            SandboxStartingLifePolicy.SevenPaths.SequenceEqual(new[]{
+                "Wanderer","Outlaw","Mercenary","Soldier","Knight","Lord","King"}) &&
+            SandboxStartingLifePolicy.SevenPaths.All(p=>
+                SandboxStartingLifePolicy.CareerContract(p).Length>0) &&
+            SandboxOriginProfile.Roles.Where(p=>
+                !SandboxStartingLifePolicy.SevenPaths.Contains(p)).All(p=>
+                    SandboxStartingLifePolicy.CareerContract(p)==""));
+        Check("political office independent of recorded career",
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,true,false)=="Native ruler" &&
+            SandboxStartingLifePolicy.PoliticalStanding(false,true,true,false)=="Ruling-clan member" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,false,true)=="Native mercenary clan" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,false,false,false)=="Independent clan" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,false,true,false)=="Unverified political status" &&
+            SandboxStartingLifePolicy.PoliticalStanding(true,true,true,true)=="Unverified political status");
+        var rememberedRefusal=new SandboxSocialBondState();
+        rememberedRefusal.RecordPetition("memory_hero",false,-1,1);
+        Check("one refusal does not block all future petitions",
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                rememberedRefusal.For("memory_hero"),-15));
+        rememberedRefusal.RecordPetition("memory_hero",false,-1,2);
+        var restoredRefusal=SandboxSocialBondState.Parse(rememberedRefusal.Serialize());
+        Check("verified repeated refusals influence future requests after reload",
+            !SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),-15) &&
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),0) &&
+            SandboxAgencyDecisionPolicy.CanReapproach(null,-15));
+        restoredRefusal.RecordPetition("memory_hero",true,2,3);
+        restoredRefusal.RecordPetition("memory_hero",true,2,4);
+        Check("verified support permits reconciliation",
+            SandboxAgencyDecisionPolicy.CanReapproach(
+                restoredRefusal.For("memory_hero"),-15));
+
         var royalCouncil=new SandboxRoyalCouncilState();
         Check("one actual Hero per royal council office",
             royalCouncil.Begin("vlandia","sargot","king",
