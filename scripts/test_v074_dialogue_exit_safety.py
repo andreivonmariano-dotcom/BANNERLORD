@@ -118,3 +118,29 @@ assert 'RecordPersonalFollowUp(false)' in depth and 'RecordPersonalFollowUp(true
 assert 'speaker==player.Father || speaker==player.Mother' in (src/"SandboxOriginBehavior.HouseholdDuties.cs").read_text()
 assert 'if(proof=="confirmed")livingPersons.Remember("FamilyGiftConfirmed"' in (src/"SandboxOriginBehavior.HouseholdDuties.cs").read_text()
 print("PASS exact speaker memory, no reward or forced native dialogue, native parents and confirmed family gifts. SOURCE ONLY.")
+
+# Group conversations are a separate native menu graph, not one-to-one dialogue.
+group=(src/"SandboxOriginBehavior.GroupDiscussions.cs").read_text()
+origin=(src/"SandboxOriginBehavior.cs").read_text()
+assert "RegisterGroupDiscussionMenus(starter);" in origin
+for parent in ("cu_people_lineage","cu_household_camp","cu_native_royal_council"):
+    assert '"'+parent+'"' in group,parent
+for menu in ("cu_group_topics","cu_group_exchange","cu_group_reply"):
+    assert 'starter.AddGameMenu("'+menu+'"' in group,menu
+assert 'groupParticipants.Count<2 || groupParticipants.Count>4' in group
+assert 'groupParticipants.All(person=>available.Contains(person))' in group
+assert 'Hero.MainHero.StringId!=groupPlayerId' in group
+assert 'person.IsPrisoner || person.Age<18f' in group
+assert 'party.MemberRoster.GetTroopCount(person.CharacterObject)==1' in group
+assert 'person.StayingInSettlement==seat && person.PartyBelongedTo==null' in group
+assert 'person.PartyBelongedTo==null && person.CurrentSettlement==seat' in group
+assert 'seat.OwnerClan!=clan' in group and 'seat.IsUnderSiege' in group
+assert 'speaker.GetRelation(previous)' in group
+assert 'livingPersons.RecordGroupDiscussion(groupPlayerId,speaker.StringId' in group
+assert 'LatestGroupDiscussion(player.StringId,actor.StringId)' in depth
+assert 'foreach(var source in new[]{"cu_group_topics","cu_group_exchange","cu_group_reply"})' in group
+assert 'args=>true,args=>LeaveGroupDiscussion(),false' in group
+assert 'if(valid)GameMenu.SwitchToMenu(parent);' in group and 'else GameMenu.ExitToLast();' in group
+for forbidden in ("GiveGoldAction","ChangeRelationAction","AddToCounts","OpenConversation","StartConversation","AddPlayerLine","AddDialogLine","SyncData(","ChangeOwnerOfSettlementAction","SetParty"):
+    assert forbidden not in group,forbidden
+print("PASS group discussion attendance, peer response, bounded memory and unconditional menu exits. SOURCE ONLY.")
