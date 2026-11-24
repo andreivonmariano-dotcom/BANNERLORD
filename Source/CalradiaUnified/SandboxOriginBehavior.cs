@@ -400,6 +400,9 @@ namespace CalradiaUnified
             string peerRecords=peerSocial.Serialize();
             store.SyncData("CU_peer_social_1",ref peerRecords);
             peerSocial=SandboxPeerSocialState.Parse(peerRecords);
+            string plannedGathering=gatheringPlan.Serialize();
+            store.SyncData("CU_gathering_plan_1",ref plannedGathering);
+            gatheringPlan=SandboxGatheringPlan.Parse(plannedGathering);
             string social=socialObservations.Serialize();
             store.SyncData("CU_v065_social_observations",ref social);
             socialObservations=SandboxSocialObservationState.Parse(social);
@@ -679,6 +682,7 @@ namespace CalradiaUnified
                     characterAgendas,player);
                 ObserveAgencyDaily(player);
                 ObservePeerSocialDaily(player);
+                gatheringPlan.Expire(CurrentHouseholdDay());
                 if(serviceCareer.IsConfigured)
                 {
                     // Serve as Soldier owns every actual enlisted-party
