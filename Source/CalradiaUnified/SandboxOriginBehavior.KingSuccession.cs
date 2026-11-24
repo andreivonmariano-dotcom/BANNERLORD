@@ -41,20 +41,22 @@ namespace CalradiaUnified
             return result;
         }
 
-        private void ObserveKingSuccessionDaily()
+        private void ObserveKingSuccessionDaily(){RefreshKingSuccessionObservation();}
+
+        private bool RefreshKingSuccessionObservation()
         {
             if(!applied || !IsStandaloneSandbox() ||
                 !kingSuccession.IsRecorded ||
-                MBObjectManager.Instance==null)return;
+                MBObjectManager.Instance==null)return false;
             int day=CurrentLordInheritanceDay();
-            if(day<0)return;
+            if(day<0)return false;
             var founder=MBObjectManager.Instance.GetObject<Hero>(
                 kingSuccession.FounderId);
             var kingdom=Kingdom.All.FirstOrDefault(k=>k!=null &&
                 k.StringId==kingSuccession.KingdomId);
             if(founder==null || kingdom==null || kingdom.IsEliminated ||
                 kingdom.RulingClan==null ||
-                kingdom.RulingClan.Leader==null)return;
+                kingdom.RulingClan.Leader==null)return false;
             string result=kingSuccession.Observe(
                 day,founder.IsAlive,
                 kingdom.RulingClan.StringId,
@@ -73,6 +75,7 @@ namespace CalradiaUnified
                     "|preferred_child="+kingSuccession.PreferredHeirId+
                     "|ranking="+kingSuccession.RankedHeirIds+
                     "|no_native_kingdom_or_fief_mutation=true");
+            return true;
         }
 
         private void RegisterKingSuccessionMenus(
@@ -99,7 +102,7 @@ namespace CalradiaUnified
                 args=>kingSuccession.IsRecorded,
                 args=>
                 {
-                    ObserveKingSuccessionDaily();
+                    bool current=RefreshKingSuccessionObservation();
                     ShowNativeDetail("Royal household | Succession",
                         "Royal household rule: "+kingSuccession.Rule+
                         ". Preferred verified native child: "+
@@ -108,11 +111,12 @@ namespace CalradiaUnified
                         ". Child claim order: "+
                         NativeHeroDisplayNames(
                             kingSuccession.RankedHeirIds)+
-                        ". Actual native ruler: "+
+                        (current?". Actual native ruler: ":". Last verified native ruler: ")+
                         NativeHeroDisplayName(
                             kingSuccession.ActualRulerId)+
                         ". Kingdom: "+kingSuccession.KingdomId+
-                        ". Native status: "+kingSuccession.Status+
+                        ". "+(current?"Native status: ":"Last recorded status: ")+kingSuccession.Status+
+                        (current?"":". Current kingdom state unavailable; last observation day "+kingSuccession.LastObservedDay)+
                         ". The native kingdom alone decides succession. "+
                         "No automatic underage regency or estate grant.");
                 },false);
