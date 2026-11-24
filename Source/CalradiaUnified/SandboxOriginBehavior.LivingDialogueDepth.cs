@@ -68,6 +68,8 @@ namespace CalradiaUnified
             if(SpeakingWithHouseholdCompanion())return relation>=10?
                 "Of course. Is there something you need my counsel on?":
                 "I am listening. What do you need?";
+            if(relation<=-10)return "We have not always seen eye to eye. Speak plainly.";
+            if(relation>=50)return "I am glad to speak with you away from the business of the day.";
             return SandboxPetitionVoicePolicy.Greeting(tone);
         }
 
@@ -86,6 +88,8 @@ namespace CalradiaUnified
                 clan.Settlements.Any(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege))
                 candidates.Add("Concerns");
             if(player.GetRelation(actor)<0)candidates.Add("Standing");
+            if(player.GetRelation(actor)>=50 && livingPersons.SharedConversationMemory(player.StringId,actor.StringId)!=null)
+                candidates.Add("Standing");
             if(CanCounselCareer() && IsPersonalChargeActive())candidates.Add("Service");
             if(actor==player.Spouse && actor.Spouse==player && player.Children!=null &&
                 player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f &&
@@ -328,6 +332,15 @@ namespace CalradiaUnified
             return true;
         }
 
+        private bool HasPersonalStandingContext(Hero player,Hero actor)
+        {
+            if(player==null || actor==null || player==actor)return false;
+            int relation=player.GetRelation(actor);
+            return relation>=20 || relation<=-10 ||
+                livingPersons.People.Any(p=>p.Id==actor.StringId) ||
+                livingPersons.SharedConversationMemory(player.StringId,actor.StringId)!=null;
+        }
+
         private bool CanDiscussPersonalMatters()
         {
             var actor=Hero.OneToOneConversationHero;
@@ -335,7 +348,7 @@ namespace CalradiaUnified
             if(!CanSpeakSocially())return false;
             if(SpeakingWithAdultFamily() || CanDiscussHouseholdDuty() ||
                 SpeakingWithHouseholdCompanion() ||
-                livingPersons.People.Any(p=>p.Id==actor.StringId))return true;
+                HasPersonalStandingContext(player,actor))return true;
             if(knightOath.PlayerId==player.StringId && knightOath.HasCurrentOath &&
                 actor==KnightOathPatron())return true;
             if(SelectedReviewRole()!="Soldier")return false;
@@ -383,7 +396,7 @@ namespace CalradiaUnified
             if(topic=="Concerns")return SpeakingWithAdultFamily() ||
                 CanDiscussHouseholdDuty() || SpeakingWithPendingPetitioner() || CanCounselCareer();
             if(!CanDiscussPersonalMatters())return false;
-            if(topic=="Standing")return livingPersons.People.Any(p=>p.Id==actor.StringId);
+            if(topic=="Standing")return HasPersonalStandingContext(player,actor);
             if(topic=="Family")return SpeakingWithAdultFamily();
             if(topic=="Finances")return player.GetRelation(actor)>=10 &&
                 (SpeakingWithAdultFamily() || CanDiscussHouseholdDuty());
