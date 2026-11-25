@@ -1565,7 +1565,7 @@ namespace CalradiaUnified
                         case "Knight":return "Swear service to a lord.\nPatron's kingdom: "+kingdom+
                             "\nRetinue: Squire\n30-day muster.\nNo starting fief.";
                         case "Soldier":return "Enlist in a lord's army.\nKingdom: "+kingdom+
-                            "\nStarting rank: Recruit\nRequires Serve as Soldier.";
+                            "\nRank: choose in Serve as Soldier.\nRequires Serve as Soldier.";
                         case "Mercenary":return "Lead a company for hire.\nContract kingdom: "+kingdom+
                             "\nNo noble title or fief.\nWages and troop upkeep apply.";
                         case "Outlaw":return "Lead a band outside the law.\nBand: six low-tier bandits and a lieutenant.\nWages: fourteen days' pay and starting food.";

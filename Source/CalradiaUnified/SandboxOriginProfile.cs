@@ -223,7 +223,7 @@ namespace CalradiaUnified
         {
             if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)return false;
             KnightOrigin="SwornHouse";
-            SoldierEntryRank="Recruit";
+            SoldierEntryRank=Role=="Soldier"?"Native":"Recruit";
             NobleBirthPosition="Independent";
             NobleElderHeroId="";
             if(KnightGuidedStart && Role=="Knight")

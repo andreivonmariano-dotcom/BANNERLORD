@@ -1043,7 +1043,8 @@ namespace CalradiaUnified
                             "|no_native_rank_or_grant_fabricated=true");
                         Notify("Soldier enlistment awaits the real "+
                             "Serve as Soldier enlistment action. "+
-                            "Choose the requested troop grade and "+
+                            (profile.SoldierEntryRank=="Native"?"Choose your troop grade in Serve as Soldier and "+
+                                "the selected ":"Choose the requested troop grade and ")+
                             "commanding kingdom; no Soldier start "+
                             "will be marked successful beforehand.");
                     }

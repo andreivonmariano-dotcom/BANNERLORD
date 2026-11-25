@@ -1230,7 +1230,7 @@ internal static class Program
                 singlePathDraft.NormalizeGuidedCareerDraft() &&
                 singlePathDraft.Role==guidedPath &&
                 singlePathDraft.KnightOrigin=="SwornHouse" &&
-                singlePathDraft.SoldierEntryRank=="Recruit" &&
+                singlePathDraft.SoldierEntryRank==(guidedPath=="Soldier"?"Native":"Recruit") &&
                 singlePathDraft.NobleBirthPosition=="Independent" &&
                 singlePathDraft.NobleElderHeroId=="" &&
                 singlePathDraft.SpouseEnabled && singlePathDraft.ChildCount==1 &&
@@ -2530,7 +2530,14 @@ internal static class Program
                 "mercenary" &&
             SandboxSoldierEnlistmentPolicy
                 .RequestedNativeRank("Sergeant")=="sergeant");
-        Check("guided Soldier has exactly three starting grade choices",
+        Check("new guided Soldier accepts verified provider grade without changing legacy requests",
+            SandboxSoldierEnlistmentPolicy.IsEntryRank("Native") &&
+            SandboxSoldierEnlistmentPolicy.NativeRankIds.All(rank=>
+                SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Native",rank)=="") &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Native","fake")=="native_rank_not_recognized" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Captain","veteran")=="actual_rank_differs_from_selected_entry" &&
+            SandboxOriginProfile.Parse("Role=Soldier\nSoldierEntryRank=Native\n").SoldierEntryRank=="Native");
+        Check("legacy explicit Soldier has exactly three starting grade choices",
             SandboxSoldierEnlistmentPolicy.EntryChoices.SequenceEqual(
                 new[]{"Recruit","Sergeant","Captain"}) &&
             SandboxSoldierEnlistmentPolicy.NativeRankIds.Length==7 &&

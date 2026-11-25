@@ -59,7 +59,7 @@ assert world.count("candidate.NormalizeGuidedCareerDraft()")==2
 assert 'if(key=="Role" && Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,value)<0)return false;' in world
 normalize=profile[profile.index("public bool NormalizeGuidedCareerDraft()"):
                   profile.index("public void ResetForNewCampaign()")]
-for token in ('KnightOrigin="SwornHouse";','SoldierEntryRank="Recruit";',
+for token in ('KnightOrigin="SwornHouse";','SoldierEntryRank=Role=="Soldier"?"Native":"Recruit";',
               'NobleBirthPosition="Independent";','NobleElderHeroId="";'):
     assert token in normalize,token
 assert "if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)return false;" in normalize
