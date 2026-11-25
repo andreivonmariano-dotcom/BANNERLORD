@@ -246,6 +246,11 @@ namespace CalradiaUnified
                 {
                     case "FamilyVisit":return "I remember the last time we made time for our family affairs.";
                     case "FamilyGiftConfirmed":return "I remember the gift you placed in my hands. You owe me nothing further for it.";
+                    case "NativePartyDutyAssigned":
+                    case "NativeGovernorAssigned":
+                        string currentDuty=NativeHouseholdAssignment(actor);
+                        return currentDuty.Length>0?"I remember our appointment. My current duty is "+currentDuty+".":
+                            "I remember that appointment. I no longer hold a confirmed native duty.";
                     case "HouseholdDutyAppointed":return "We spoke of the office you entrusted to me. I know what was asked of me then.";
                     case "HouseholdDutyReleased":return "We spoke when you released me from my former duty.";
                     case "HouseholdDutyReviewed":return "We reviewed my responsibilities together before.";
@@ -389,11 +394,15 @@ namespace CalradiaUnified
                         var g=seat.Town==null?null:seat.Town.GarrisonParty;
                         answer=g!=null && g.MemberRoster!=null?
                             "There are "+g.MemberRoster.TotalManCount+" soldiers in the garrison of "+seat.Name+
-                            ". That is a beginning, not a measure of every threat. Consider what you can spare before moving any men.":
+                            ". That is a beginning, not a measure of every threat. "+
+                            (ImprovedGarrisonsOwnsRecruitment()?"Recruitment and training belong to your garrison management. I cannot issue an independent recruitment order.":
+                                "Use the holding's garrison controls to decide what men you can spare.") :
                             "I would speak to the castellan before committing men we have not counted.";
                     }
                     else if(IsPersonalChargeActive() && CanCounselCareer())answer=
                         ChargeDescription()+" I would finish what we have undertaken before taking on more.";
+                    else if(CanOfferHouseholdResponsibilities())answer="There is a duty we can fill here. Tell me which responsibility you wish me to undertake.";
+                    else if(CanReviewNativeHouseholdAssignment())answer="My present duty is "+NativeHouseholdAssignment(actor)+". We can review it together.";
                     else answer="I have no particular danger to point to. Let us not invent trouble where there is none.";
                     break;
                 case "Finances":
@@ -414,6 +423,8 @@ namespace CalradiaUnified
                         relation<0?"Trust is not restored by asking for it. Give me reason to see matters differently.":
                         relation>=20?"I value our good standing. I would not put it at risk with a promise neither of us can keep.":
                         "We need time and honest dealings before I can speak of deeper trust.";
+                    string memory=PersonalMemoryText();
+                    if(memory.Length>0)answer+=" "+memory;
                     break;
                 case "Memory":
                     answer=PersonalMemoryText();

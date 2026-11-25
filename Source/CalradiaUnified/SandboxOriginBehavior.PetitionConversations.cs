@@ -260,7 +260,7 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_petition_accept_audience","cu_petition_answers",
                 "cu_petition_accept_reply",
-                "You have my ear. Let us remain on good terms.",
+                "I have heard your concern. I make no promise of an order yet.",
                 ()=>SpeakingWithPendingPetitioner() && SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),
                 ()=>AnswerCharacterRequest(true),125);
             starter.AddPlayerLine(

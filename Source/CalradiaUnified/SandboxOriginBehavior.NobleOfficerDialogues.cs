@@ -203,8 +203,8 @@ namespace CalradiaUnified
             var clan=Clan.PlayerClan;
             var seat=Settlement.CurrentSettlement;
             var party=MobileParty.MainParty;
-            return applied && IsStandaloneSandbox() && player!=null && player.IsAlive && !player.IsPrisoner &&
-                clan!=null && clan.Leader==player && actor!=null && actor!=player && actor.Clan==clan &&
+            return applied && IsStandaloneSandbox() && player!=null && player.IsAlive && player.IsActive && !player.IsPrisoner &&
+                HasHouseholdCommandServiceAuthority() && clan!=null && clan.Leader==player && actor!=null && actor!=player && actor.Clan==clan &&
                 actor.IsAlive && actor.IsActive && actor.Age>=18f && !actor.IsPrisoner && !actor.IsTraveling &&
                 !actor.IsFugitive && actor.GovernorOf==null && actor.PartyBelongedTo==null &&
                 actor.PartyBelongedToAsPrisoner==null && actor.GetRelation(player)>=0 &&
@@ -228,7 +228,12 @@ namespace CalradiaUnified
                 DiagnosticJournal.Event("cu_household_native_governor_order",
                     "result="+(confirmed?"PASS":"UNCONFIRMED")+"|actor="+actor.StringId+"|seat="+seat.StringId+
                     "|native_action=true|no_teleport=true|no_incumbent_replaced=true");
-                if(confirmed)reply="I accept. I am now governor of "+seat.Name+". My duties are recorded in the clan screen.";
+                if(confirmed)
+                {
+                    livingPersons.Remember("NativeGovernorAssigned",Hero.MainHero.StringId,actor.StringId,
+                        "seat="+seat.StringId+"|day="+CurrentHouseholdDay());
+                    reply="I am now governor of "+seat.Name+". You can see the appointment in the clan screen.";
+                }
                 else reply="The appointment was not confirmed. Check the native clan screen before trying again.";
             }
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_GOVERNOR_REPLY",new TextObject(reply));
@@ -266,8 +271,7 @@ namespace CalradiaUnified
                     party.MapEvent!=null || party.IsCurrentlyAtSea || party.MemberRoster==null ||
                     !ActualAdultHouseholdMember(player,actor,clan) || actor.GetRelation(player)<0 || actor.GovernorOf!=null ||
                     actor.PartyBelongedTo!=party || party.MemberRoster.GetTroopCount(actor.CharacterObject)!=1)return false;
-                var service=SandboxSaSBridge.Read();
-                if(service.Enlisted || (!service.Available && (serviceCareer.VerifiedExternalEnlistment || serviceCareer.Status=="ExternalStatusUnverified" || CurrentCareerRole()=="Soldier")))return false;
+                if(!HasHouseholdCommandServiceAuthority())return false;
                 var seat=Settlement.CurrentSettlement;
                 if(seat!=null && seat.IsUnderSiege)return false;
                 // GetRoleHolder returns the raw native slot, even for an absent holder.
@@ -286,9 +290,26 @@ namespace CalradiaUnified
             var roles=NativeAssignmentSlots.Where(role=>party.GetRoleHolder(role)==person).Select(role=>role.ToString()).ToArray();
             return roles.Length==0?"":String.Join(", ",roles);
         }
+        private bool HasHouseholdCommandServiceAuthority()
+        {
+            try
+            {
+                var service=SandboxSaSBridge.Read();
+                if(service.Enlisted || (!service.Available && (serviceCareer.VerifiedExternalEnlistment ||
+                    serviceCareer.Status=="ExternalStatusUnverified" || CurrentCareerRole()=="Soldier")))return false;
+                return true;
+            }
+            catch{return false;}
+        }
         private bool CanOfferHouseholdResponsibilities()
         {
-            return HouseholdSpecialties.Any(role=>CanAssignHouseholdSpecialty(role));
+            return CanAskResidentToGovern() || HouseholdSpecialties.Any(role=>CanAssignHouseholdSpecialty(role));
+        }
+        private bool CanReviewNativeHouseholdAssignment()
+        {
+            var person=Hero.OneToOneConversationHero;
+            return CanSpeakSocially() && ActualAdultHouseholdMember(Hero.MainHero,person,Clan.PlayerClan) &&
+                NativeHouseholdAssignment(person).Length>0;
         }
         private void AssignHouseholdSpecialty(PartyRole role)
         {
@@ -307,7 +328,7 @@ namespace CalradiaUnified
                 if(confirmed)
                 {
                     livingPersons.Remember("NativePartyDutyAssigned",Hero.MainHero.StringId,actor.StringId,"role="+role+"|day="+CurrentHouseholdDay());
-                    reply="I accept. I will serve as your "+role.ToString().ToLowerInvariant()+". You can see the appointment in the party screen.";
+                    reply="I now serve as your "+role.ToString().ToLowerInvariant()+". You can see the appointment in the party screen.";
                 }
                 else reply="The appointment was not fully confirmed. Review the native party screen before issuing another duty.";
             }
@@ -318,7 +339,12 @@ namespace CalradiaUnified
         {
             if(starter==null)return;
             starter.AddPlayerLine("cu_native_party_duties_open","hero_main_options","cu_native_party_duties_intro",
-                "I have a responsibility for you in our company.",()=>CanOfferHouseholdResponsibilities(),null,139);
+                "I have a responsibility for you.",()=>CanOfferHouseholdResponsibilities(),null,139);
+            starter.AddPlayerLine("cu_native_party_duties_private","cu_personal_matters_topics","cu_native_party_duties_intro",
+                "Let us arrange your responsibilities.",()=>CanOfferHouseholdResponsibilities(),null,139);
+            starter.AddPlayerLine("cu_native_party_duties_concern","cu_personal_followup_choices","cu_native_party_duties_intro",
+                "Then let us agree on a duty you can carry out.",()=>CanFollowPersonalTopic() &&
+                    (personalTopicName=="Concerns" || personalTopicName=="Family") && CanOfferHouseholdResponsibilities(),null,139);
             starter.AddDialogLine("cu_native_party_duties_intro","cu_native_party_duties_intro","cu_native_party_duties_choices",
                 "What duty do you wish me to undertake?",null,null,139);
             foreach(var specialty in HouseholdSpecialties)
@@ -329,12 +355,8 @@ namespace CalradiaUnified
             }
             starter.AddPlayerLine("cu_native_party_duties_cancel","cu_native_party_duties_choices","close_window","Not now.",null,null,1);
             starter.AddDialogLine("cu_native_party_duty_reply","cu_native_party_duty_reply","close_window","{CU_NATIVE_PARTY_DUTY_REPLY}",null,null,139);
-            starter.AddPlayerLine("cu_household_governor_order","hero_main_options","cu_household_governor_reply",
+            starter.AddPlayerLine("cu_household_governor_order","cu_native_party_duties_choices","cu_household_governor_reply",
                 "Will you govern this holding for our house?",()=>CanAskResidentToGovern(),()=>AskResidentToGovern(),140);
-            starter.AddPlayerLine("cu_household_governor_from_concern","cu_personal_followup_choices","cu_household_governor_reply",
-                "Will you govern this holding for our house?",()=>CanFollowPersonalTopic() &&
-                    (personalTopicName=="Concerns" || personalTopicName=="Family") && CanAskResidentToGovern(),
-                ()=>AskResidentToGovern(),140);
             starter.AddDialogLine("cu_household_governor_reply","cu_household_governor_reply","close_window",
                 "{CU_HOUSEHOLD_GOVERNOR_REPLY}",null,null,140);
             starter.AddPlayerLine("cu_household_defense_order",

@@ -93,3 +93,12 @@ assert 'service.Enlisted || (!service.Available' in s
 assert 'party.Army!=null' in s and 'party.IsCurrentlyAtSea' in s
 assert 'PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer' in s
 assert 'cu_native_party_duties_cancel' in s
+
+# One native responsibilities submenu, accessible from direct dialogue and relevant personal choices.
+assert '"cu_household_governor_order","cu_native_party_duties_choices"' in s
+assert '"cu_native_party_duties_private","cu_personal_matters_topics"' in s
+assert '"cu_native_party_duties_concern","cu_personal_followup_choices"' in s
+assert 'HasHouseholdCommandServiceAuthority() && clan!=null' in s
+assert 'if(!HasHouseholdCommandServiceAuthority())return false;' in s
+assert 'livingPersons.Remember("NativeGovernorAssigned"' in s
+assert 'CanReviewNativeHouseholdAssignment()' in s

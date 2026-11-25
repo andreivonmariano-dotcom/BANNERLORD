@@ -296,3 +296,9 @@ assert 'peerInitiatives.Record(' not in social
 assert 'householdAccounts.Observe(player.StringId,day,player.Gold)' in social
 assert 'candidates.Add("Ambitions")' not in depth and 'candidates.Add("Memory")' not in depth
 assert 'if(CanDiscussStory(topic))reply' not in depth
+
+assert 'case "NativePartyDutyAssigned":' in depth and 'case "NativeGovernorAssigned":' in depth
+assert 'NativeHouseholdAssignment(actor)' in depth
+assert 'e.Kind=="NativePartyDutyAssigned" || e.Kind=="NativeGovernorAssigned"' in history
+assert 'I cannot issue an independent recruitment order' in depth
+assert 'No work or appointment has been ordered' in living

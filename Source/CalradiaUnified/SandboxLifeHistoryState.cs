@@ -100,6 +100,7 @@ namespace CalradiaUnified
                 ((e.Actor==player && e.Target==speaker) ||
                  (e.Actor==speaker && e.Target==player)) &&
                 (e.Kind=="FamilyVisit" || e.Kind=="FamilyGiftConfirmed" ||
+                 e.Kind=="NativePartyDutyAssigned" || e.Kind=="NativeGovernorAssigned" ||
                  e.Kind=="HouseholdDutyAppointed" || e.Kind=="HouseholdDutyReleased" ||
                  e.Kind=="HouseholdDutyReviewed" || e.Kind=="NativeMarriageObserved" ||
                  e.Kind=="VerifiedSiblingComradeship" || e.Kind=="PersonalAudienceAnswered" ||

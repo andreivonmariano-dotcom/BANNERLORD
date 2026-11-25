@@ -231,8 +231,9 @@ namespace CalradiaUnified
                 speaker.Clan==clan && ExistingCourtDuty(speaker)=="Royal Minister" &&
                 SandboxKingNativeMinistry.VerifiedGovernor(speaker) &&
                 speaker.GovernorOf.Settlement==Settlement.CurrentSettlement;
-            return (SpeakingWithHouseholdCompanion() || residentMinister) &&
-                EffectiveHouseholdDuty(speaker).Length>0;
+            return CanReviewNativeHouseholdAssignment() ||
+                ((SpeakingWithHouseholdCompanion() || residentMinister) &&
+                EffectiveHouseholdDuty(speaker).Length>0);
         }
 
         private static string NativeOfficerSkills(Hero officer,string office)
@@ -254,6 +255,13 @@ namespace CalradiaUnified
             var seat=Settlement.CurrentSettlement;
             string office=EffectiveHouseholdDuty(speaker);
             string reply="Let us speak again when we are together.";
+            if(CanReviewNativeHouseholdAssignment())
+            {
+                reply="My current appointment is "+NativeHouseholdAssignment(speaker)+
+                    ". That is my present duty, not a new promise.";
+                MBTextManager.SetTextVariable("CU_HOUSEHOLD_DUTY_REPLY",new TextObject(reply));
+                return true;
+            }
             if(CanDiscussHouseholdDuty() && speaker!=null && party!=null && clan!=null && office.Length>0)
             {
                 int strength=party.MemberRoster==null?-1:party.MemberRoster.TotalManCount;
@@ -310,6 +318,7 @@ namespace CalradiaUnified
             if(!CanDiscussHouseholdDuty())return;
             var person=Hero.OneToOneConversationHero;
             dutyReplySpeaker=person.StringId;dutyReplyPlayer=Hero.MainHero.StringId;
+            if(CanReviewNativeHouseholdAssignment())return; // A live native report, not another custom office receipt.
             dutyReplyVariant=NextDialogueVariant(person,"OfficerDuty",2);
             string recorded=ExistingCourtDuty(person);
             if(recorded.Length>0)
@@ -423,6 +432,9 @@ namespace CalradiaUnified
                     reply+="Our family has "+children+" living children, "+minors+
                         " still young. ";
                 if(home!=null)reply+="I am presently at "+home.Name+". ";
+                // The actual native appointment is useful family context.
+                string assignment=NativeHouseholdAssignment(person);
+                if(assignment.Length>0)reply+="My present duty is "+assignment+". ";
                 // A gift-attempt cooldown is not proof of payment.
                 reply+="Let us talk of our house again whenever you return.";
             }

@@ -356,7 +356,7 @@ namespace CalradiaUnified
                 petitionStories.Resolve(actor.StringId,accept,CurrentHouseholdDay(),false,0);
                 livingPersons.Remember("PersonalAudienceAnswered",actor.StringId,player.StringId,
                     "accepted="+accept+"|face_to_face=true|reward=false");
-                petitionDecisionReply=accept?"Then we understand one another. I thank you for hearing me.":
+                petitionDecisionReply=accept?"I thank you for hearing me. No work or appointment has been ordered.":
                     "Very well. We shall leave the matter there.";
                 return;
             }
