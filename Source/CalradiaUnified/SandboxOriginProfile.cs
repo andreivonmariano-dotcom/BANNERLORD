@@ -307,6 +307,29 @@ namespace CalradiaUnified
             WandererCompanionSpecialty="Guard";
             WandererCompanionSkill=100;
             FamilyScenario="Natural";
+            // Keep visible role/name/gender preferences only. Hidden
+            // appearance, culture, equipment and kinship choices must
+            // not leak from a previous campaign into native creation.
+            StartingCulture="";
+            StartingKingdomId="";
+            StartingScenario="none";
+            SpouseGender="Auto";
+            SpouseCulture="";
+            SpouseBackground="Commoner";
+            SpouseBirthClanId="";
+            SpouseFaceSeed="";
+            SpouseEquipmentKit="Vanilla";
+            foreach(var relative in Children.Concat(Siblings))
+            {
+                relative.Culture="";
+                relative.FaceSeed="";
+                relative.EquipmentKit="Vanilla";
+            }
+            for(int i=0;i<Siblings.Count;i++)
+            {
+                Siblings[i].Age=new OriginRelative("Sibling",i+1).Age;
+                Siblings[i].Upbringing="FamilyTradition";
+            }
             PrepareUnconfirmedWorldFamily();
             ProgressionMode="Native";
             Overrides.Clear();
@@ -707,6 +730,20 @@ namespace CalradiaUnified
             return false;
         }
 
+        // Compact diagnostic evidence; no player or family names or face codes.
+        public string ValidationContext(int actualPlayerAge)
+        {
+            int effective=PlayerAge>=18?PlayerAge:actualPlayerAge;
+            return "role="+Role+"|kingdom="+StartingKingdomId+"|scenario="+StartingScenario+
+                "|founder_actual="+actualPlayerAge+"|founder_requested="+PlayerAge+
+                "|founder_effective="+effective+"|spouse_enabled="+SpouseEnabled+"|spouse_age="+SpouseAge+
+                "|child_count="+ChildCount+"|child_ages="+String.Join(",",Children.Take(Math.Max(0,ChildCount)).Select(x=>x.Age))+
+                "|sibling_count="+SiblingCount+"|sibling_ages="+String.Join(",",Siblings.Take(Math.Max(0,SiblingCount)).Select(x=>x.Age))+
+                "|child_max="+SandboxFamilyAgePolicy.ChildAgeMaximum(effective,SpouseEnabled?SpouseAge:effective)+
+                "|family_prepared="+AutoHouseNamesPrepared+"|family_confirmed="+RealFamilyEnabled+
+                "|retinue="+RetinueMode+"|fief="+StartingFiefMode+"|home="+FamilyHomeMode+
+                "|spouse_background="+SpouseBackground+"|noble_birth="+NobleBirthPosition;
+        }
         public bool IsValid(int actualPlayerAge, out string error)
         {
             error = "";
@@ -916,7 +953,17 @@ namespace CalradiaUnified
             }
             if (SpouseEnabled && !PersonName(SpouseName))
             {
-                error = "Spouse needs a valid name.";
+                error = "SpouseName: enter a valid name using letters, spaces, hyphens or apostrophes.";
+                return false;
+            }
+            if(SpouseEnabled && (SpouseAge<18 || SpouseAge>70))
+            {
+                error="SpouseAge: "+SpouseAge+" is outside 18–70.";
+                return false;
+            }
+            if(ChildCount<0 || ChildCount>Children.Count || SiblingCount<0 || SiblingCount>Siblings.Count)
+            {
+                error="Family counts exceed available child or sibling fields.";
                 return false;
             }
             string familyOriginError = SandboxFamilyOriginPolicy.Validate(
@@ -932,20 +979,23 @@ namespace CalradiaUnified
             for (int i = 0; i < ChildCount; i++)
             {
                 var child = Children[i];
-                if (!SandboxFamilyDevelopmentPolicy.IsUpbringing(
-                        child.Upbringing) ||
-                    !PersonName(child.Name) || child.Age < 0 ||
-                    child.Age > playerAge - 16 ||
-                    (SpouseEnabled && child.Age > SpouseAge - 16))
+                string field="Child."+(i+1);
+                if(!SandboxFamilyDevelopmentPolicy.IsUpbringing(child.Upbringing))
+                {error=field+".Upbringing: unsupported upbringing.";return false;}
+                if(!PersonName(child.Name))
+                {error=field+".Name: enter a valid name.";return false;}
+                int maximum=SandboxFamilyAgePolicy.ChildAgeMaximum(playerAge,SpouseEnabled?SpouseAge:playerAge);
+                if(child.Age<0 || child.Age>maximum)
                 {
-                    error = "Child ages must fit both parents' ages and valid names.";
+                    error=field+".Age: "+child.Age+" is outside 0–"+maximum+
+                        " (founder "+playerAge+(SpouseEnabled?", spouse "+SpouseAge:"")+").";
                     return false;
                 }
             }
             for (int i = 0; i < SiblingCount; i++)
                 if (!PersonName(Siblings[i].Name))
                 {
-                    error = "Sibling needs a valid name.";
+                    error = "Sibling."+(i+1)+".Name: enter a valid name.";
                     return false;
                 }
             string lineageError=SandboxHouseholdLineagePolicy.ValidateHousePlan(

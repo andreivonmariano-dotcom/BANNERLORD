@@ -53,7 +53,7 @@ assert "CUNativeStatsNavigationPolicy.BackToNativeNarrative(pageIndex)" in stats
 assert "CUNativeStatsNavigationPolicy.IsFinal(pageIndex)" in stats
 s=stats[stats.index("public void ExecuteContinue()"):
     stats.index("[DataSourceProperty] public string Title")]
-assert s.index("if(!profile.Save(")<s.index("completed();")
+assert s.index("if(!profile.SaveForPlayer(")<s.index("completed();")
 assert "oldBirthday" in s and "hero.SetBirthDay(oldBirthday)" in s
 
 assert "CUNativeHouseNavigationPolicy.ReviewBackNeedsHouse(" in house

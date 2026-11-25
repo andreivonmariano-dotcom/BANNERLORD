@@ -1389,7 +1389,7 @@ namespace CalradiaUnified
                         throw new InvalidOperationException(
                             "Native hero age does not match requested year");
                 }
-                if(!profile.Save(SandboxOriginProfile.UserPath,out problem))
+                if(!profile.SaveForPlayer(SandboxOriginProfile.UserPath,hero==null?30:(int)hero.Age,out problem))
                     throw new InvalidOperationException(
                         "Could not save starting stats: "+problem);
             }
@@ -1399,6 +1399,8 @@ namespace CalradiaUnified
                 {
                     try{hero.SetBirthDay(oldBirthday);}catch{}
                 }
+                DiagnosticJournal.Event("cu_creator_validation_rejected","stage=Stats|"+
+                    profile.ValidationContext(hero==null?30:(int)hero.Age)+"|reason="+error.Message);
                 status="Starting age or stats were not saved: "+
                     error.Message;
                 Refresh();

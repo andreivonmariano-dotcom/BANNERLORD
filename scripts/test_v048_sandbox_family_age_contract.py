@@ -85,3 +85,9 @@ assert 'child.Age=0;' in profile
 assert 'cu_world_family_placeholder' in world
 assert 'if(!candidate.IsValid(actualAge,out error))' in guided
 assert 'field.Key=="Child."+(conflict+1)+".Age"' in guided
+
+assert 'ValidationContext(int actualPlayerAge)' in profile
+assert 'error=field+".Age: "' in profile
+assert 'stage=World|' in guided and 'stage=House|' in guided
+assert 'stage=Stats|' in stats and 'profile.SaveForPlayer(' in stats
+assert 'StartingScenario="none";' in profile and 'SpouseFaceSeed="";' in profile

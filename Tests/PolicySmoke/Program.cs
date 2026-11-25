@@ -1550,6 +1550,64 @@ internal static class Program
                 !oldHouse.IsValid(30,out _) && !oldHouse.PrepareUnconfirmedWorldFamily() &&
                 oldHouse.Children[0].Age==25);
         }
+        // Pure profile matrix, not a native character-creation run.
+        // Test every age, both founder sexes, and all seven guided paths.
+        int matrixCases=0;
+        foreach(string role in SandboxStartingLifePolicy.SevenPaths)
+        for(int founder=18;founder<=80;founder++)
+        foreach(bool female in new[]{false,true})
+        {
+            var plan=new SandboxOriginProfile{Role=role,StartingScenario="twofactionwar",
+                StartingKingdomId="aserai",ScenarioFaction1="empire",ScenarioFaction2="vlandia",
+                SpouseAge=65,SpouseBirthClanId="old_clan",SpouseBackground="NobleChosen",
+                SpouseFaceSeed="old_face",SpouseEquipmentKit="Royal",PlayerAge=70,
+                SpouseEnabled=true,ChildCount=2,SiblingCount=1,AutoHouseNamesPrepared=true,
+                RealFamilyEnabled=true,Gold=90000,Troops=99,AllowStartingFiefTransfer=true};
+            plan.Children[0].Age=45;plan.Children[0].FaceSeed="old_child_face";
+            plan.Siblings[0].Age=60;plan.Siblings[0].EquipmentKit="Royal";
+            plan.ResetForNewCampaign();
+            Check("fresh creator clears hidden settings "+role+" "+founder+" "+female,
+                plan.StartingScenario=="none" && plan.StartingKingdomId=="" &&
+                plan.ScenarioFaction1=="" && plan.ScenarioFaction2=="" &&
+                plan.SpouseBirthClanId=="" && plan.SpouseBackground=="Commoner" &&
+                plan.SpouseFaceSeed=="" && plan.SpouseEquipmentKit=="Vanilla" &&
+                plan.Children[0].Age==0 && plan.Children[0].FaceSeed=="" &&
+                plan.Siblings[0].Age==25 && plan.Siblings[0].EquipmentKit=="Vanilla" &&
+                plan.Gold==-1 && plan.Troops==0 && !plan.AllowStartingFiefTransfer &&
+                !plan.RealFamilyEnabled && !plan.AutoHouseNamesPrepared);
+            plan.WandererNoHouseStart=role=="Wanderer";plan.OutlawGuidedStart=role=="Outlaw";
+            plan.MercenaryGuidedStart=role=="Mercenary";plan.SoldierGuidedStart=role=="Soldier";
+            plan.KnightGuidedStart=role=="Knight";plan.LordGuidedStart=role=="Lord";plan.KingGuidedStart=role=="King";
+            bool requiredFamily=plan.KnightGuidedStart || plan.LordGuidedStart || plan.KingGuidedStart;
+            plan.StartingKingdomId=role=="Wanderer" || role=="Outlaw"?"":"vlandia";
+            plan.RetinueMode=role=="Wanderer" || role=="Mercenary" || role=="Soldier"?"FamilyOnly":"RoleBased";
+            plan.FamilyHomeMode=role=="Lord" || role=="King" || role=="Wanderer"?"OwnedFief":"None";
+            plan.SpouseEnabled=requiredFamily;plan.ChildCount=requiredFamily?1:0;
+            plan.SpouseBackground=role=="Lord" || role=="King"?"NobleRandom":"Commoner";
+            plan.PlayerAge=founder;
+            Check("World profile age matrix "+role+" "+founder+" "+female,
+                plan.PrepareUnconfirmedWorldFamily() && plan.IsValid(founder,out _));
+            if(role!="Wanderer")
+            {
+                SandboxAutoHousePlan.Prepare(plan,"vlandia",founder,female,"Founder");
+                plan.RealFamilyEnabled=plan.SpouseEnabled;
+            }
+            var roundTrip=SandboxOriginProfile.Parse(plan.Serialize());
+            Check("House profile age matrix and serialized round trip "+role+" "+founder+" "+female,
+                plan.IsValid(founder,out _) && roundTrip.IsValid(founder,out _) &&
+                (!requiredFamily || (plan.ChildCount==1 && plan.SpouseEnabled &&
+                    SandboxFamilyAgePolicy.CanChooseChildAge(plan.Children[0].Age,founder,plan.SpouseAge))));
+            if(requiredFamily)
+            {
+                plan.Children[0].Age=SandboxFamilyAgePolicy.ChildAgeMaximum(founder,plan.SpouseAge)+1;
+                string precise;
+                Check("one-year invalid child boundary "+role+" "+founder+" "+female,
+                    !plan.IsValid(founder,out precise) && precise.StartsWith("Child.1.Age:") &&
+                    plan.ValidationContext(founder).Contains("|child_max="));
+            }
+            matrixCases++;
+        }
+        Check("seven career age matrix contains all 882 founder profiles",matrixCases==882);
         var guidedKing=new SandboxOriginProfile();
         guidedKing.Role="King";
         guidedKing.KingGuidedStart=true;

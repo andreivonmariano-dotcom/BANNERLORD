@@ -1103,11 +1103,13 @@ namespace CalradiaUnified
             if(!SandboxNativeStartOptions.TryPrepare(
                 candidate,out gameOptions,out error))
             {
+                DiagnosticJournal.Event("cu_creator_validation_rejected","stage=NativeStartOptions|"+candidate.ValidationContext(30)+"|reason="+error);
                 Report(error);
                 return;
             }
             if(!candidate.Save(SandboxOriginProfile.UserPath,out error))
             {
+                DiagnosticJournal.Event("cu_creator_validation_rejected","stage=World|"+candidate.ValidationContext(30)+"|reason="+error);
                 Report("World start not saved: "+error);
                 return;
             }
@@ -1241,6 +1243,7 @@ namespace CalradiaUnified
             }
             if(!candidate.IsValid(actualAge,out error))
             {
+                DiagnosticJournal.Event("cu_creator_validation_rejected","stage=House|"+candidate.ValidationContext(actualAge)+"|reason="+error);
                 // Expose the exact conflicting age field, not a generic
                 // error on the last page. Do not overwrite edited ages.
                 int childLimit=SandboxFamilyAgePolicy.ChildAgeMaximum(actualAge,candidate.SpouseAge);
@@ -1298,6 +1301,7 @@ namespace CalradiaUnified
             if(!candidate.SaveForPlayer(
                 SandboxOriginProfile.UserPath,actualAge,out error))
             {
+                DiagnosticJournal.Event("cu_creator_validation_rejected","stage=HouseSave|"+candidate.ValidationContext(actualAge)+"|reason="+error);
                 Report("Household not saved: "+error);
                 return;
             }
