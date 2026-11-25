@@ -37,7 +37,7 @@
 "DUT002-A01","Installed delegated issue skill flags and lifecycle","PASS","Static metadata and selected managed references"
 "D001-P01","Control manifest and current full profile preflight","PASS","11 manifests present; 41 selected active"
 "D001-P02","Stage separate control and backup launcher selection","PASS","Exact backup and semantic selection-only validation; not applied"
-"D001-C01","Launch control and create fresh save","NOT_RUN","Player activation/authorization and new campaign"
+"D001-C01","Launch control and create fresh save","PARTIAL","Player reports fresh playthrough; responding game and 11 selected config verified; named save/runtime module list unverified"
 "D001-D01","Decline no mutation and accept native delegation","NOT_RUN","Native UI and before/after evidence"
 "D001-E01","Active task save quit relaunch reload","NOT_RUN","Same control profile"
 "D001-D02","Resolution and distinct return outcomes","NOT_RUN","Observe actual roster hero and journal"

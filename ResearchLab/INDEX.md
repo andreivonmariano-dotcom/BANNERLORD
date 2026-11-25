@@ -14,3 +14,5 @@ Evidence anchor 29d8233ea33404904df4fc829401c8c6a1106fa8; compiled L001 source f
 - [SAV-002 native save registration](Persistence/NATIVE_SAVE_REGISTRATION.md), [CON-001 native conversations](Engine/NATIVE_CONVERSATIONS.md), [DUT-001 companion duties](Engine/COMPANION_DUTIES.md). Installed static findings; no native test.
 - [DUT-002 delegated issue mechanics](Engine/DELEGATED_ISSUES.md); [D001 control campaign](ControlCampaigns/D001.md). Static trace and staged profile verified; gameplay pending.
 - D001 control selection now activated; [protocol and activation evidence](ControlCampaigns/D001.md). Gameplay NOT_RUN.
+
+D001 playthrough reported; game process and selected profile verified, delegation not run. See D001 record.
