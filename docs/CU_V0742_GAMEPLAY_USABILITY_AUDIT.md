@@ -1,0 +1,17 @@
+# CU v0.74.2 usability audit / stabilization scope (25 November 2026)
+
+## Observed evidence
+Session 20261125T122817_ca382bca, 1085 events, normal shutdown. Tested DLL SHA-256 6726da1024f4754cc65fcca9381fe6b44f642b3c05f53bc147b2fd3b7fd7c656. Lord native start PASS, 3 holdings, spouse and 3 children, two generated officers. Correspondence opened 12 times, household dossier 3 times. StrengthenGarrison charge at castle_V6 baseline 111. DefenseAudience from Master of Arms recorded, no officer transfer or completed charge receipt. No managed exception recorded. No screenshots or saves in supplied archive. Observations do not prove every screen worked.
+
+## Source audit / player-facing ownership
+- Character creator, family generation, retinue generation: preserve verified native objects; do not equate generation with useful gameplay.
+- Personal topics, group discussions, modeled peer interests, career chronicle, livelihood records: mostly informational or memory; move optional records away from decisions. Do not market read-only conversation as orders. Existing actual family gifts, education, petitions, oath and service effects require individual retests.
+- Garrison recommendation created personal charge, not delegation. New garrison charges disabled at both offering and execution; old charges remain readable/withdrawable. Existing manual troop transfers held by freeze. Trial is an explicit player-owned local transfer, not recruitment, NPC AI, money spending or remote delegation.
+- Settlement entry: retain Household, Correspondence, relevant service/court and one records entry. Move livelihood, officer ledger, family portraits, residence, succession, career, diagnostics and group discussion out of main hub. Hide inactive civic administration. Keep saved menu/gathering keys, old state and other mods' native menus.
+- Correspondence fallback is read-only and preserves existing crash isolation. No new graphical claims.
+- Role authority: Wanderer/Outlaw/Mercenary/Soldier/Knight keep personal roles and existing provider ownership. Lord/King should issue real orders where player has native authority. No automated levy, garrison recruitment, patrol, economy or diplomatic duplication. Existing 20 held flags remain held.
+
+## Trial and next gates
+CU_HOUSEHOLD_ORDER_TRIAL=1 on a fresh process only. In an owned non-besieged holding speak to reciprocal adult spouse or actual same-clan companion. Choose "Station five of my local recruits in this garrison." Guard requires player leader, native party, five healthy XP-free local basic recruits, garrison capacity and no battle. Check before/after party and garrison; exact five transfer, zero spawning. Negative tests: too few recruits, wounded/XP roster, full garrison, foreign holding, siege, prisoner, unrelated speaker, repeated deliberate orders and save/reload. Compare with Improved Garrisons enabled and disabled. No claim of an actual NPC recruit mission or remote execution. Keep ordinary launches frozen pending native evidence.
+
+Next design milestone: orders with target, budget, accountable actor, duration, progress, failure/recall and verified native effects; integrate with actual native/third-party owners rather than implementing duplicate AI. No automatic orders or fake receipts. Review every remaining active menu/action for authority and consequence; actual usability test on 41-module profile needed. No stable release.

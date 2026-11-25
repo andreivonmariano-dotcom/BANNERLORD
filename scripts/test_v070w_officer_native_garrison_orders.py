@@ -59,3 +59,15 @@ for role,receipt in (
 print("PASS v0.70w SOURCE: historical officer contracts remain guarded; "+
       "direct transfers are held during acceptance. Historical live "+
       "transfer receipt requirement remains unfulfilled.")
+
+# The new manual trial shares the guarded roster transfer, not the frozen automation.
+assert 'Environment.GetEnvironmentVariable("CU_HOUSEHOLD_ORDER_TRIAL")' in s
+assert 'HouseholdOrderTrialEnabled() && applied && IsStandaloneSandbox()' in s
+assert 'actor==player.Spouse && actor.Spouse==player' in s
+assert 'actor.CompanionOf==clan' in s
+assert 'actor.Clan==clan' in s and 'clan.Leader==player' in s
+assert 'nativeGarrison.Party.PartySizeLimit-nativeGarrison.MemberRoster.TotalManCount<5' in s
+assert 'householdTransferBusy=true;' in s and 'finally{householdTransferBusy=false;}' in s
+assert '"cu_household_garrison_order"' in s
+assert 'party_before='+'' in s and 'garrison_after=' in s
+assert '()=>HouseholdOrderSpeaker(),()=>ExecuteHouseholdDefenseOrder()' in s

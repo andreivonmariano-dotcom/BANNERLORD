@@ -13,9 +13,14 @@ namespace CalradiaUnified
         // A named title never creates troops or political authority.
         private static bool CanNativeOfficerTransfer(Settlement seat)
         {
+            if(!Settings.NativeOfficerTransfersEnabled)return false;
+            return CanTransferExistingRecruits(seat);
+        }
+        // Shared manual-transfer guard; never used by an autonomous observer.
+        private static bool CanTransferExistingRecruits(Settlement seat)
+        {
             var party=MobileParty.MainParty;
             var clan=Clan.PlayerClan;
-            if(!Settings.NativeOfficerTransfersEnabled)return false;
             if(seat==null || party==null || clan==null ||
                seat.OwnerClan!=clan || !seat.IsFortification ||
                seat.IsUnderSiege || seat.Town==null ||
@@ -27,6 +32,10 @@ namespace CalradiaUnified
                (seat.Party!=null && seat.Party.MapEvent!=null) ||
                party.MemberRoster==null ||
                seat.Town.GarrisonParty.MemberRoster==null)return false;
+            var nativeGarrison=seat.Town.GarrisonParty;
+            if(nativeGarrison.Party==null || nativeGarrison.MapEvent!=null ||
+                nativeGarrison.Party.PartySizeLimit-nativeGarrison.MemberRoster.TotalManCount<5)
+                return false;
             var troop=seat.Culture.BasicTroop;
             int i=party.MemberRoster.FindIndexOfTroop(troop);
             if(i<0 || party.MemberRoster.GetTroopCount(troop)<5)
@@ -76,6 +85,20 @@ namespace CalradiaUnified
             if(!permitted)return false;
             var seat=royal?RecordedRoyalSeat():
                 Settlement.CurrentSettlement;
+            var officer=NativeCourtOfficer(royal?"Marshal":"Master of Arms");
+            return TransferExistingRecruits(seat,officer,royal?
+                "cu_king_marshal_native_court_order":"cu_lord_master_native_garrison_order");
+        }
+        private bool householdTransferBusy;
+        private bool TransferExistingRecruits(Settlement seat,Hero officer,string receipt)
+        {
+            if(householdTransferBusy || !CanTransferExistingRecruits(seat))return false;
+            householdTransferBusy=true;
+            try{return TransferExistingRecruitsCore(seat,officer,receipt);}
+            finally{householdTransferBusy=false;}
+        }
+        private bool TransferExistingRecruitsCore(Settlement seat,Hero officer,string receipt)
+        {
             var troop=seat.Culture.BasicTroop;
             var party=MobileParty.MainParty.MemberRoster;
             var garrison=seat.Town.GarrisonParty.MemberRoster;
@@ -102,18 +125,16 @@ namespace CalradiaUnified
                     "cu_noble_officer_garrison_order_failed",error);
                 confirmed=false;
             }
-            var officer=NativeCourtOfficer(royal?
-                "Marshal":"Master of Arms");
-            DiagnosticJournal.Event(royal?
-                "cu_king_marshal_native_court_order":
-                "cu_lord_master_native_garrison_order",
+            DiagnosticJournal.Event(receipt,
                 "result="+(confirmed?"PASS":"FAIL")+
                 "|actual_officer="+(officer==null?
                     "none":officer.StringId)+
                 "|native_fief="+seat.StringId+
                 "|troops_transferred="+(confirmed?5:0)+
                 "|troops_spawned=0"+
-                "|real_garrison="+confirmed);
+                "|real_garrison="+confirmed+
+                "|party_before="+oldParty+"|party_after="+party.GetTroopCount(troop)+
+                "|garrison_before="+oldGarrison+"|garrison_after="+garrison.GetTroopCount(troop));
             MBTextManager.SetTextVariable("CU_OFFICER_TRANSFER_REPLY",new TextObject(
                 confirmed?"Five of your recruits now serve in "+seat.Name+"’s garrison. The men have been accounted for.":
                 "I cannot confirm that the order was carried out. We should check the rolls before attempting it again."));
@@ -124,10 +145,52 @@ namespace CalradiaUnified
                     "Check both rosters before issuing another order.");
             return confirmed;
         }
+        // Explicit opt-in for a native full-stack playtest. Normal launches
+        // retain the existing freeze until roster conservation is witnessed.
+        private static bool HouseholdOrderTrialEnabled()
+        {
+            return String.Equals(Environment.GetEnvironmentVariable("CU_HOUSEHOLD_ORDER_TRIAL"),
+                "1",StringComparison.Ordinal);
+        }
+        private bool HouseholdOrderSpeaker()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            var seat=Settlement.CurrentSettlement;
+            var party=MobileParty.MainParty;
+            return HouseholdOrderTrialEnabled() && applied && IsStandaloneSandbox() &&
+                actor!=null && player!=null && actor!=player &&
+                player.IsAlive && !player.IsPrisoner && clan!=null && clan.Leader==player &&
+                actor.IsAlive && actor.IsActive && !actor.IsPrisoner && actor.Age>=18f &&
+                actor.Clan==clan && (actor==player.Spouse && actor.Spouse==player ||
+                    actor.CompanionOf==clan) &&
+                seat!=null && seat.IsFortification && seat.OwnerClan==clan && !seat.IsUnderSiege &&
+                party!=null && (actor.CurrentSettlement==seat || actor.PartyBelongedTo==party);
+        }
+        private void ExecuteHouseholdDefenseOrder()
+        {
+            string reply="I cannot carry that out here. We need five unwounded, untrained local recruits in your party and room in our garrison. No transfer was confirmed.";
+            if(HouseholdOrderSpeaker() && CanTransferExistingRecruits(Settlement.CurrentSettlement))
+            {
+                if(TransferExistingRecruits(Settlement.CurrentSettlement,Hero.OneToOneConversationHero,
+                    "cu_household_garrison_order"))
+                    reply="Done. Five recruits left your party and joined this holding's garrison.";
+                else reply="The transfer could not be confirmed. Check both rosters before giving another order.";
+            }
+            MBTextManager.SetTextVariable("CU_HOUSEHOLD_ORDER_REPLY",new TextObject(reply));
+        }
         private void RegisterNobleOfficerConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            starter.AddPlayerLine("cu_household_defense_order",
+                "hero_main_options","cu_household_defense_order_reply",
+                "Station five of my local recruits in this garrison.",
+                ()=>HouseholdOrderSpeaker(),()=>ExecuteHouseholdDefenseOrder(),145);
+            starter.AddDialogLine("cu_household_defense_order_reply",
+                "cu_household_defense_order_reply","close_window",
+                "{CU_HOUSEHOLD_ORDER_REPLY}",null,null,145);
             starter.AddPlayerLine("cu_lord_master_order",
                 "hero_main_options","cu_lord_master_order_reply",
                 "Master of Arms, station five of my recruits in this holding.",
