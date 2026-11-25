@@ -15,25 +15,27 @@ param(
 $ErrorActionPreference = "Stop"
 
 # This pinned candidate was verified by the Windows pipeline. It was NOT
-# play-tested in Bannerlord. Keep the historic module manifest version
-# separate from this source-development version for save compatibility.
-$latestLabel = "Seven-career foundation (pre-consolidation)"
+# play-tested in Bannerlord. Pin the exact artifact and compiled checkout,
+# which for this PR workflow is the synthetic merge of the indicated head.
+$latestLabel = "v0.74.0 family and personal memories (c2a4f25f)"
 $latestStatus = "CI compiled and simulated; not tested inside Bannerlord"
-$latestRun = "45355054393"
-$latestCommit = "1f71b00a72d71717135d3c55e4e6da50a8bfae3f"
-$latestManifest = "v0.38.0"
-$latestDllSha256 = "becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615"
-$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45355054393/artifacts/14901409008"
+$latestRun = "45637611622"
+$latestCommit = "68a6f24fbd94e780279ee375d340c2c400fbac0a"
+$latestDevelopmentHead = "c2a4f25fca25a61d5ca44357d678cc4d1c240c0d"
+$latestManifest = "v0.74.0"
+$latestDllSha256 = "e6bcbde295ecf0527ec97b0c4805d11916a28bd92ee099f18d838da68e6d0bba"
+$latestArtifactPage = "https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45637611622/artifacts/15035145061"
 
 function Write-LatestBuild {
     Write-Output "========== CALRADIA UNIFIED: LATEST VERIFIED INSTALL CANDIDATE =========="
     Write-Output ("Development version: " + $latestLabel)
     Write-Output ("Verification: " + $latestStatus)
     Write-Output ("Windows CI run: " + $latestRun)
+    Write-Output ("Development branch head: " + $latestDevelopmentHead)
     Write-Output ("Compiled source commit: " + $latestCommit)
     Write-Output ("Download artifact page: " + $latestArtifactPage)
     Write-Output ("Expected DLL SHA256: " + $latestDllSha256)
-    Write-Output ("Internal Bannerlord manifest version: " + $latestManifest + " (historical)")
+    Write-Output ("Internal Bannerlord manifest version: " + $latestManifest)
     Write-Output "Download the ZIP from the Actions artifact page, then run this installer:"
     Write-Output '  .\Install-CU-From-Artifact.ps1 -GameRoot "C:\Path\To\Bannerlord" -ArtifactZip "C:\Path\To\Downloaded.zip" -LatestVerified -ReplaceExisting'
     Write-Output "The latest candidate is not a released or game-tested build."
@@ -175,6 +177,10 @@ try {
             $identity.dll_sha256 -ne $sourceHash -or
             $identity.acceptance -ne 'COMPILED_UNTESTED') {
             throw 'Artifact rejected BEFORE installation: inconsistent build identity.'
+        }
+        if ($LatestVerified -and ($identity.source_commit -ne $latestCommit -or
+            [string]$identity.ci_run_id -ne $latestRun)) {
+            throw 'Artifact rejected BEFORE installation: pinned source or workflow identity mismatch.'
         }
     }
     if (Test-Path -LiteralPath $destination) {

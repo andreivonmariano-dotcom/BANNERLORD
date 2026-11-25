@@ -612,11 +612,13 @@ jobs:
         run: |
           $listing = @(./scripts/Install-CU-From-Artifact.ps1 -ShowLatest) -join "`n"
           foreach ($required in @(
-            'Development version: Seven-career foundation (pre-consolidation)',
-            'Windows CI run: 45355054393',
-            '1f71b00a72d71717135d3c55e4e6da50a8bfae3f',
-            'becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615',
-            'Internal Bannerlord manifest version: v0.38.0',
+            'Development version: v0.74.0 family and personal memories (c2a4f25f)',
+            'Windows CI run: 45637611622',
+            '68a6f24fbd94e780279ee375d340c2c400fbac0a',
+            'c2a4f25fca25a61d5ca44357d678cc4d1c240c0d',
+            'https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45637611622/artifacts/15035145061',
+            'e6bcbde295ecf0527ec97b0c4805d11916a28bd92ee099f18d838da68e6d0bba',
+            'Internal Bannerlord manifest version: v0.74.0',
             'game-tested build')) {
             if (-not $listing.Contains($required)) {
               throw "Latest installer listing did not include $required"
@@ -642,7 +644,7 @@ jobs:
               @(Get-ChildItem -LiteralPath $fake -Directory -Filter 'CalradiaUnified_Backup_*').Count -ne $beforeBackups) {
             throw 'Conflicting latest selection changed an installed DLL or backup.'
           }
-          if ($beforeHash -ne 'becf8046622242743373c3b04ddea24e2ea6f3da919ca2ea01772c750925b615') {
+          if ($beforeHash -ne 'e6bcbde295ecf0527ec97b0c4805d11916a28bd92ee099f18d838da68e6d0bba') {
             $wrongBuildBlocked = $false
             try {
               ./scripts/Install-CU-From-Artifact.ps1 -GameRoot $fake -ArtifactZip $outer -LatestVerified -ReplaceExisting
@@ -655,7 +657,7 @@ jobs:
               throw 'Wrong latest artifact changed an installed DLL or backup.'
             }
           }
-          Write-Output 'PASS: Earlier pinned foundation candidate visible, pinned identity and no-modification guard'
+          Write-Output 'PASS: Pinned family candidate visible, pinned identity and no-modification guard'
       - name: Test pinned CI SHA-256 before install and latest-session playthrough report
         shell: pwsh
         run: |
