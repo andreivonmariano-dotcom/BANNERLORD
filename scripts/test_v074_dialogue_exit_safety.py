@@ -286,8 +286,9 @@ assert '"cu_group_entry_"+parent' not in group and '"cu_group_schedule_"+occasio
 assert 'CU_gathering_plan_1' in origin and 'CU_career_charge_1' in origin
 
 assert '"cu_family_education_child_"+slot' not in depth
-assert '"cu_household_governor_order","hero_main_options","cu_household_governor_reply"' in officer
-assert '"cu_household_governor_from_concern","cu_personal_followup_choices"' in officer
+assert '"cu_household_governor_order","cu_native_party_duties_choices","cu_household_governor_reply"' in officer
+assert '"cu_native_party_duties_private","cu_personal_matters_topics"' in officer
+assert '"cu_native_party_duties_concern","cu_personal_followup_choices"' in officer
 assert 'this, AdvanceFamilyUpbringing);' not in origin
 
 # Keep actual personal observations; retire speculative peer and story generation.
