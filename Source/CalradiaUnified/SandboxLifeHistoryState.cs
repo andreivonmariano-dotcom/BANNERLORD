@@ -125,6 +125,31 @@ namespace CalradiaUnified
             if(track=="Presence" && fields[0]=="state=Apart" && fields[2]=="change=Separated")return "Separated";
             return "";
         }
+        // A native event receipt is separate from daily state observations.
+        // Both remain descriptive and carry no reward or action.
+        public bool RecordNativeFamilyMilestone(string player,string child,string milestone,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(child) ||
+                player==child || player.Length>80 || child.Length>80 ||
+                day<0 || day>2000000 || (milestone!="Birth" && milestone!="Adulthood"))return false;
+            string kind="NativeFamily"+milestone+"Confirmed";
+            if(Events.Any(e=>e.Kind==kind && e.Actor==player && e.Target==child))return false;
+            return Remember(kind,player,child,"day="+day.ToString(
+                System.Globalization.CultureInfo.InvariantCulture)+"|native_callback=true");
+        }
+        public bool HasRecentNativeFamilyMilestone(string player,string child,string milestone,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(child) ||
+                player==child || (milestone!="Birth" && milestone!="Adulthood") || day<0)return false;
+            var receipt=Events.LastOrDefault(e=>e.Kind=="NativeFamily"+milestone+"Confirmed" &&
+                e.Actor==player && e.Target==child);
+            if(receipt==null)return false;
+            var fields=receipt.Detail.Split('|');
+            int recorded;
+            return fields.Length==2 && fields[0].StartsWith("day=",StringComparison.Ordinal) &&
+                fields[1]=="native_callback=true" && Int32.TryParse(fields[0].Substring(4),out recorded) &&
+                recorded>=0 && (long)day-recorded>=0 && (long)day-recorded<7;
+        }
         public Event[] RecentFor(string hero,int limit)
         {
             if(String.IsNullOrWhiteSpace(hero) || limit<=0)return new Event[0];

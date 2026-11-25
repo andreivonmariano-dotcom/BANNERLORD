@@ -24,6 +24,22 @@ internal static class Program
     }
     private static void Main()
     {
+        var nativeFamilyEvents=new SandboxLifeHistoryState();
+        Check("native family receipts require valid owner child and event",
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","parent","Birth",1) &&
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Wedding",1) &&
+            nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Birth",1) &&
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Birth",2));
+        Check("native family event receipts remain owner scoped and expire",
+            nativeFamilyEvents.HasRecentNativeFamilyMilestone("parent","child","Birth",1) &&
+            !nativeFamilyEvents.HasRecentNativeFamilyMilestone("other","child","Birth",1) &&
+            !nativeFamilyEvents.HasRecentNativeFamilyMilestone("parent","child","Birth",8) &&
+            nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Adulthood",100));
+        var nativeFamilyRoundTrip=SandboxLifeHistoryState.Parse(nativeFamilyEvents.Serialize());
+        Check("native family birth and adulthood persist independently",
+            nativeFamilyRoundTrip.HasRecentNativeFamilyMilestone("parent","child","Adulthood",100) &&
+            !nativeFamilyRoundTrip.HasRecentNativeFamilyMilestone("parent","child","Birth",100) &&
+            !nativeFamilyRoundTrip.RecordNativeFamilyMilestone("parent","child","Adulthood",101));
         var familyTransitions=new SandboxLifeHistoryState();
         Check("family maturity baseline is not a birth or adulthood event",
             familyTransitions.ObserveFamilyState("parent","child","Age","Minor",10) &&

@@ -161,6 +161,10 @@ namespace CalradiaUnified
                 this, ObserveNativeMilitaryAppointmentsDaily);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(
                 this, ObserveCompletedBattle);
+            CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(
+                this, ObserveNativeFamilyBirth);
+            CampaignEvents.HeroComesOfAgeEvent.AddNonSerializedListener(
+                this, ObserveNativeFamilyAdulthood);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
@@ -171,6 +175,35 @@ namespace CalradiaUnified
                 this, CharacterCreationCompleted);
             CampaignEvents.OnCharacterCreationInitializedEvent.AddNonSerializedListener(
                 this, ObserveNativeCharacterCreation);
+        }
+
+        private void ObserveNativeFamilyBirth(Hero mother,List<Hero> newborns,int unusedCount)
+        {
+            if(mother==null || newborns==null)return;
+            try
+            {
+                foreach(var child in newborns)
+                    if(child!=null && child.IsAlive && child.Mother==mother)
+                        RecordNativeFamilyMilestone(child,"Birth");
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_family_birth_observer_failed",error);}
+        }
+        private void ObserveNativeFamilyAdulthood(Hero child)
+        {
+            try{RecordNativeFamilyMilestone(child,"Adulthood");}
+            catch(Exception error){DiagnosticJournal.Exception("cu_family_adulthood_observer_failed",error);}
+        }
+        private void RecordNativeFamilyMilestone(Hero child,string milestone)
+        {
+            var player=Hero.MainHero;
+            if(!applied || !IsStandaloneSandbox() || livingPersons==null ||
+                player==null || child==null || child==player || !child.IsAlive ||
+                (child.Father!=player && child.Mother!=player))return;
+            int day=CurrentHouseholdDay();
+            if(livingPersons.RecordNativeFamilyMilestone(player.StringId,child.StringId,milestone,day))
+                DiagnosticJournal.Event("cu_native_family_milestone",
+                    "player="+player.StringId+"|child="+child.StringId+"|kind="+milestone+
+                    "|day="+day+"|native_callback=true|reward=false");
         }
 
         // The engine initializes the native narrative graph after receiving

@@ -175,7 +175,7 @@ namespace CalradiaUnified
                     return shift>0?" There is something about our improved standing I would like to discuss.":
                         shift<0?" I would rather speak of the strain between us.":" I would rather not leave matters between us unspoken.";
                 case "Service":return " There is the duty we agreed upon, too.";
-                case "Family":return " I have been thinking about the children.";
+                case "Family":return " There is a family matter I would like to speak of.";
                 case "Ambitions":return " There is something I wish to tell you about my own plans.";
                 case "Memory":return " There is something from our earlier dealings I would like to revisit.";
                 default:return "";
@@ -820,6 +820,12 @@ namespace CalradiaUnified
             if(player.Children==null)return "";
             var children=player.Children.Where(h=>h!=null && h.IsAlive &&
                 (h.Father==player || h.Mother==player) && (h.Father==actor || h.Mother==actor)).ToArray();
+            foreach(var child in children)
+                if(livingPersons.HasRecentNativeFamilyMilestone(player.StringId,child.StringId,"Birth",day))
+                    return child.Name+" was born. Let us make time for the little one.";
+            foreach(var child in children)
+                if(livingPersons.HasRecentNativeFamilyMilestone(player.StringId,child.StringId,"Adulthood",day))
+                    return child.Name+" has come of age. Let us hear what they wish for their future.";
             foreach(var child in children)
                 if(child.Age>=18f && livingPersons.RecentFamilyChange(player.StringId,child.StringId,"Age",day)=="Matured")
                     return child.Name+" has grown to adulthood. Let us hear what they want for their own future.";
