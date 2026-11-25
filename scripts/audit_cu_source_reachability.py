@@ -51,8 +51,16 @@ for name,p in prefabs.items():
     refs=[f for f,s in texts.items() if '"'+name+'"' in s]
     prefab_report.append({"name":name,"literal_source_references":refs,
         "commands":commands,"retired":name in ("CUOriginPanel","CUSettingsPanel")})
-retired={"SandboxOriginPanel.cs","NativeSettingsBehavior.cs","NativeSettingsPanel.cs"}
-assert retired<=excluded, "retired UI source is compiled"
+retired={"SandboxOriginPanel.cs","NativeSettingsBehavior.cs","NativeSettingsPanel.cs",
+    "CivicBehavior.cs",
+    "CivicBehavior.CastleManagement.cs",
+    "CivicBehavior.Convoys.cs",
+    "CivicBehavior.Feudal.cs",
+    "CivicBehavior.Garrisons.cs",
+    "CivicBehavior.Kingdom.cs",
+    "CivicBehavior.Trade.cs",
+    "KingdomAutonomyBehavior.cs"}
+assert retired<=excluded, "retired UI or gameplay adapter is compiled"
 for symbol in ("SandboxOriginPanel","SandboxOriginPanelVM","NativeSettingsBehavior","NativeSettingsPanel","NativeSettingsPanelVM"):
     assert not re.search(r'\b'+symbol+r'\b',blob), "retired UI referenced by live source: "+symbol
 for name in ("CUOriginPanel","CUSettingsPanel"):

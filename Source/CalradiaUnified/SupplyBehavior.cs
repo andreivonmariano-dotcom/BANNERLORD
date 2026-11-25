@@ -9,8 +9,7 @@ namespace CalradiaUnified
 {
     /// <summary>
     /// No settlement departure hooks. Observes the player's food and army.
-    /// An opt-in, save-safe forage effect adds a limited amount of vanilla grain
-    /// to the player's roster after a cooldown. Never orders NPC parties.
+    /// Retired foraging cooldown remains serialized; no inventory or NPC mutations.
     /// </summary>
     public sealed class SupplyBehavior : CampaignBehaviorBase
     {
@@ -47,22 +46,7 @@ namespace CalradiaUnified
                     Show("[Calradia Unified] Low supplies: about " + days + " day(s) remain.");
                 }
                 if (_settings.EnableArmyWarnings) ReportArmyFood(party);
-                bool inSettlement = Read(party, "CurrentSettlement") != null;
-                bool inArmy = Read(party, "Army") != null;
-                bool inEvent = Read(party, "MapEvent") != null;
-                bool besieged = Read(party, "BesiegedSettlement") != null ||
-                    Read(party, "SiegeEvent") != null;
-                if (!SupplyPolicy.ShouldForage(_settings.EnablePlayerForaging, days,
-                    _settings.ForageWhenDaysAtMost, inSettlement, inArmy, inEvent, besieged,
-                    _daysSinceForage, _settings.ForageEveryDays)) return;
-
-                // A verified vanilla item and roster entry point, guarded for nulls.
-                var grain = DefaultItems.Grain;
-                if (grain == null || party.ItemRoster == null) return;
-                party.ItemRoster.AddToCounts(grain, _settings.GrainPerForage);
-                _daysSinceForage = 0;
-                Show("[Calradia Unified] Foraging gathered " + _settings.GrainPerForage + " grain.");
-                Log.Write("Player-only foraging added grain=" + _settings.GrainPerForage);
+                // Foraging is retired; keep only the legacy cooldown and read-only warnings.
             }
             catch (Exception ex)
             {

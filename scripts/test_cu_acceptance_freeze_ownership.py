@@ -39,7 +39,8 @@ for path,count in (("CU_Feature_Compatibility_Audit.csv",55),("CU_Module_Ownersh
 print("PASS SOURCE ONLY: 20 held flags, native payroll, guarded dormant logistics, inactive legacy settings, preserved save key and ownership inventories.")
 
 # Runtime ownership is enforced at registration rather than only through config flags.
-autonomy=read("KingdomAutonomyBehavior.cs")
+autonomy=read("KingdomAutonomyMigrationBehavior.cs")
+civic=read("CivicMigrationBehavior.cs")
 living=read("SandboxOriginBehavior.LivingMenus.cs")
 civic_registration=civic[civic.index("public override void RegisterEvents()"):civic.index("public override void SyncData(")]
 autonomy_registration=autonomy[autonomy.index("public override void RegisterEvents()"):autonomy.index("public override void SyncData(")]

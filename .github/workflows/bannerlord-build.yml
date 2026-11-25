@@ -47,7 +47,9 @@ jobs:
         run: python scripts/audit_cu_source_reachability.py
       - name: Audit ownership freeze and retired feature paths
         if: ${{ !cancelled() }}
-        run: python scripts/test_cu_acceptance_freeze_ownership.py
+        run: |
+          python scripts/test_cu_acceptance_freeze_ownership.py
+          python scripts/test_cu_retired_runtime_migration.py
       - name: Audit stabilization pass 2 existing role and creator wiring
         if: ${{ !cancelled() }}
         run: python scripts/test_cu_stabilization_pass_2.py
