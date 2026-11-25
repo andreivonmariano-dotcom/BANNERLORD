@@ -167,11 +167,7 @@ namespace CalradiaUnified
                     " ("+deed.Outcome+")";
             }
             return result+
-                "\n\n"+SocietyDigestText()+
-                "\n\n"+LifetimeCareerText(player)+
-                "\n\n"+BattleHistoryDescription()+
-                "\n\n"+HouseholdAccountText(player)+
-                "\n\n"+PersonalHistoryText(player)+
+                "\n\n"+PersonalChronicleText()+
                 "\nNative game records remain authoritative.";
         }
     }

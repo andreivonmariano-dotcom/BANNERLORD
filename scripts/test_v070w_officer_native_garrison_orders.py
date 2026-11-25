@@ -82,11 +82,13 @@ assert 'no_teleport=true|no_incumbent_replaced=true' in s
 
 # Direct native party duties, no invented officer roster or new role simulation.
 assert 'party.SetHeroPartyRole(actor,role)' in s
-assert 'party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor' in s
+assert 'party.GetRoleHolder(role)==actor && party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor' in s
 assert 'other_specialists_unchanged=' in s
 assert 'actor.PartyBelongedTo!=party' in s and 'party.MemberRoster.GetTroopCount(actor.CharacterObject)!=1' in s
-assert 'party.GetHeroPartyRoles(member).Contains(role)' in s
-assert 'party.GetHeroPartyRoles(player).Contains(role)' in s
+assert 'party.GetRoleHolder(role)==null && party.CanAssignMoreRolesToHero(actor)' in s
+assert 'party.GetHeroPartyRoles(actor).Count==0' in s
+assert 'PartyRole.FirstMate,PartyRole.Navigator' in s
+assert 'party.GetRoleHolder(x)==previous[i]' in s
 assert 'service.Enlisted || (!service.Available' in s
 assert 'party.Army!=null' in s and 'party.IsCurrentlyAtSea' in s
 assert 'PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer' in s

@@ -232,6 +232,8 @@ namespace CalradiaUnified
             else if(companion && person.PartyBelongedTo!=null)
                 duty="Current field assignment: "+
                     person.PartyBelongedTo.Name+".";
+            string nativeAssignment=NativeHouseholdAssignment(person);
+            if(nativeAssignment.Length>0)duty=nativeAssignment;
             string title=ContextualHouseholdTitle(person);
             ShowNativeDetail(person.Name+" | "+(title.Length>0?title:relationship),
                 "Age "+(int)person.Age+" | "+relationship+" | "+parentage+
@@ -247,9 +249,6 @@ namespace CalradiaUnified
                 (person.Spouse!=null && person.Spouse.Spouse==person?
                     NativePersonName(person.Spouse):"not verified")+
                 (person==player?"":"\n"+SocialBondDescription(person))+
-                "\n\n"+CulturalSocietyText(person)+
-                "\n\n"+HouseholdAccountText(person)+
-                "\n\n"+LifetimeCareerText(person)+
                 "\n\n"+PersonalHistoryText(person));
         }
 
@@ -326,6 +325,8 @@ namespace CalradiaUnified
         private string DossierOfficerLabel(Hero hero)
         {
             if(hero==null || !hero.IsAlive)return "UNAVAILABLE";
+            string nativeAssignment=NativeHouseholdAssignment(hero);
+            if(nativeAssignment.Length>0)return nativeAssignment;
             string office=EffectiveHouseholdDuty(hero);
             if(office.Length>0)return office.ToUpperInvariant();
             if(NativeCourtOfficer("Master of Arms")==hero)
@@ -342,7 +343,7 @@ namespace CalradiaUnified
         {
             ObserveCareerChronicleDaily();
             ShowNativeDetail("Career history",
-                CareerChronicleDescription());
+                PersonalChronicleText());
         }
 
         private void RegisterStartDiagnosticMenus(CampaignGameStarter starter)

@@ -105,7 +105,7 @@ namespace CalradiaUnified
             var party=MobileParty.MainParty;
             if(clan==null || party==null)return "No current company.";
             return String.Join("\n",HouseholdSpecialties.Select(role=>role+": "+
-                NativePersonName(EffectiveSpecialist(party,role))))+
+                (party.GetRoleHolder(role)==null?"Vacant (leader covers duty)":NativePersonName(party.GetRoleHolder(role)))))+
                 "\nSpeak with a present adult family member or companion to fill a vacant native duty. Existing appointments remain in the native party screen.";
         }
         private string CampServiceText()

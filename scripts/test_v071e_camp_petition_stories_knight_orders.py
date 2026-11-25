@@ -30,8 +30,8 @@ assert 'CU_v071e_personal_petition_stories' in origin
 assert 'CU_v071e_native_knight_orders' in origin
 
 assert '[PrefabExtension("Party",' in native
-assert 'ExecuteCUCamp()' in native
-assert 'Command.Click=\\\"ExecuteCUCamp' in native
+assert 'ExecuteCUCamp()' not in native
+assert 'Command.Click=\\\"ExecuteCUCamp' not in native
 assert 'GameMenu.ActivateGameMenu("cu_household_camp")' in camp
 assert 'ScreenManager.PopScreen();' in camp
 assert 'MobileParty.MainParty' in camp

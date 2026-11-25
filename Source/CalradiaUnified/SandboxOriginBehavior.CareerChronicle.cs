@@ -316,6 +316,14 @@ namespace CalradiaUnified
                 "game rank, salary, troops, land or kingdom office.";
         }
 
+        private string PersonalChronicleText()
+        {
+            var player=Hero.MainHero;
+            if(player==null)return "No current character.";
+            return CareerChronicleDescription()+"\n\n"+LifetimeCareerText(player)+
+                "\n\n"+(roleEconomy.Started && player.StringId==startAuditOwner?roleEconomy.Describe():"Current livelihood: native economy")+
+                "\n\n"+BattleHistoryDescription()+"\n\n"+PersonalHistoryText(player);
+        }
         private void RegisterCareerChronicleMenus(
             CampaignGameStarter starter)
         {
@@ -325,9 +333,9 @@ namespace CalradiaUnified
                 "recorded from the real campaign. "+
                 "No title is granted without the game's own authority.",
                 args=>{ObserveCareerChronicleDaily();});
-            starter.AddGameMenuOption("cu_household_records",
+            starter.AddGameMenuOption("cu_people_lineage",
                 "cu_career_chronicle_entry",
-                "Career history",
+                "My chronicle",
                 args=>roleEconomy.Started &&
                     CurrentCareerRole().Length>0,
                 args=>GameMenu.SwitchToMenu(
@@ -339,26 +347,18 @@ namespace CalradiaUnified
                 args=>{
                     ObserveCareerChronicleDaily();
                     ShowNativeDetail("Career history",
-                        CareerChronicleDescription());
+                        PersonalChronicleText());
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_withdraw","Set aside my current charge",
                 args=>IsPersonalChargeActive(),
                 args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
             starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_lifetime_history","Read my lifetime career history",
-                args=>true,args=>ShowNativeDetail("Lifetime career",
-                    LifetimeCareerText(Hero.MainHero)),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_battle_history","Review witnessed campaign battles",
-                args=>true,args=>ShowNativeDetail("Career | Battle history",
-                    BattleHistoryDescription()),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
-                "Back to records",
+                "Back",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(
-                    "cu_household_records"),false);
+                    "cu_people_lineage"),false);
         }
     }
 }

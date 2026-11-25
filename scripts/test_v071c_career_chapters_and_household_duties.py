@@ -65,10 +65,10 @@ assert 'householdDuties.RecordAudience' in duties
 assert 'householdDuties.RecordGiftAttempt' in duties
 assert 'HouseholdOfficeFor(person.StringId)' in house
 assert 'officerLabelAction(officer)' in screen
-assert '"cu_household_duty_ledger"' in menu
+assert '"cu_household_duty_ledger"' not in menu
 assert '"cu_family_native_audiences"' not in menu
 assert 'RegisterLocalAdministrationEntry(starter)' not in menu
-assert 'CareerChronicleDescription()' in house
+assert 'PersonalChronicleText()' in house
 assert 'ReviewDossierCalling' in house
 print("PASS v0.71c STATIC: officer appointments, real family meetings, "+
       "save-backed seven-role chapters, native campaign evidence and "+
@@ -84,3 +84,9 @@ assert 'CU_FAMILY_CONVERSATION_REPLY' in duties
 assert 'CU_HOUSEHOLD_DUTY_REPLY' in duties
 assert 'garrison.MemberRoster.TotalManCount' in duties
 print("PASS: repeatable family and officer dialogue is independent of reward eligibility; actual scene behavior remains a live test.")
+
+assert '"cu_lifetime_record_"+role' not in chapter
+assert '"cu_lifetime_history"' not in chapter and '"cu_battle_history"' not in chapter
+assert 'ObserveLifetimeCareerAutomatically();' in chapter
+assert 'Hero.MainHero.StringId!=startAuditOwner' in chapter
+assert 'PersonalChronicleText()' in chapter

@@ -41,8 +41,8 @@ assert 'starter.AddGameMenu("cu_origin_main"' in origin
 assert '"cu_origin_entry_" + sourceMenu' not in origin
 assert '"CU: Design my NEXT Sandbox starting life"' not in origin
 # Every private/family/royal office action is behind one hub.
-for marker in ('"cu_family_portraits"','"cu_family_residence_here"'):
-    assert marker in origin,marker
+assert '"cu_family_portraits"' not in origin # shared household dossier owns the portrait gallery
+assert '"cu_family_residence_here"' in origin
 assert '"cu_partial_family_review"' in living
 assert '"cu_partial_family_review_"+from' not in living
 for code,marker in (
@@ -69,7 +69,11 @@ print("PASS v0.70v STATIC: estate/household hubs and contextual native "+
 
 # Primary menu is for immediate decisions; preserve old records behind one secondary entry.
 assert 'starter.AddGameMenu("cu_household_records"' in living
-for marker in ("cu_partial_family_review","cu_role_economy_observed","cu_household_duty_ledger","cu_people_open_household","cu_people_open_claim"):
+for marker in ("cu_partial_family_review","cu_people_open_claim"):
     assert 'starter.AddGameMenuOption("cu_household_records",\n                "'+marker+'"' in living,marker
 assert 'settings.EnableManualGarrisonTransfers ||' in civic[civic.index("internal void RegisterLocalAdministrationEntry"):]
 assert 'Personal chores are retired' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+
+for marker in ("cu_role_economy_observed","cu_household_duty_ledger","cu_people_open_household"):
+    assert '"'+marker+'"' not in living
+assert 'starter.AddGameMenuOption("cu_people_lineage",\n                "cu_career_chronicle_entry"' in read("SandboxOriginBehavior.CareerChronicle.cs")

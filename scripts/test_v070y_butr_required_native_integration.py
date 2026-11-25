@@ -33,17 +33,16 @@ assert 'try\n            {\n                Extender.Register' not in core
 adapter=(source/"CUBUTRNativeScreens.cs").read_text()
 for movie,vm,prop in (
     ("Clan","ClanManagementVM","CUClanSummary"),
-    ("Party","PartyVM","CUPartySummary"),
-    ("Kingdom","KingdomManagementVM","CUKingdomSummary")):
+    ("Party","PartyVM","CUPartySummary")):
     assert '[PrefabExtension("'+movie+'", "descendant::Window/Children")]' in adapter
     assert 'BaseViewModelMixin<'+vm+'>' in adapter
     assert '[DataSourceProperty]' in adapter
     assert prop in adapter
-assert adapter.count('[ViewModelMixin(handleDerived: true)]')==3
-assert adapter.count('PrefabExtensionText')==4
-assert 'ExecuteCUCamp()' in adapter
-assert 'Command.Click=\\\"ExecuteCUCamp' in adapter
-assert adapter.count('ExecuteCUDossier()')==3
+assert adapter.count('[ViewModelMixin(handleDerived: true)]')==2
+assert adapter.count('PrefabExtensionText')==2
+assert 'ExecuteCUCamp()' not in adapter
+assert 'Command.Click=\\\"ExecuteCUCamp' not in adapter
+assert adapter.count('ExecuteCUDossier()')==2
 assert 'Command.Click=\\\"ExecuteCUDossier' in adapter
 assert '"ButtonBrush"' in adapter or 'Brush=\\\"ButtonBrush' in adapter
 native=(source/"SandboxOriginBehavior.NativeHouseholdUI.cs").read_text()
@@ -63,7 +62,8 @@ for title in ('Household and career dossier',
     assert title in native,title
 assert 'NativeBUTRStatus("Clan")' in adapter
 assert 'NativeBUTRStatus("Party")' in adapter
-assert 'NativeBUTRStatus("Kingdom")' in adapter
+assert 'NativeBUTRStatus("Kingdom")' not in adapter
+assert '[PrefabExtension("Kingdom",' not in adapter
 assert 'ChangeKingdomAction' not in adapter
 assert 'HeroCreator.Create' not in adapter
 affairs=(source/"CUMapAffairsNative.cs").read_text()

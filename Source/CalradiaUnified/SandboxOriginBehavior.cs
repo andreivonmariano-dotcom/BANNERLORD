@@ -606,40 +606,6 @@ namespace CalradiaUnified
             // Pre-campaign character design is already available through
             // the guided creator. Never advertise a NEXT GAME editor in
             // every active town/castle.
-            starter.AddGameMenuOption("cu_household_records",
-                "cu_family_portraits",
-                "View my household portraits",
-                    args => Hero.MainHero != null &&
-                        (Hero.MainHero.Spouse != null ||
-                         (Hero.MainHero.Children != null &&
-                          Hero.MainHero.Children.Count > 0)),
-                    args =>
-                    {
-                        try
-                        {
-                            ScreenManager.PushScreen(
-                                new CUFamilyPortraitScreen());
-                        }
-                        catch (Exception error)
-                        {
-                            DiagnosticJournal.Exception(
-                                "cu_family_portrait_screen_failed",error);
-                            try
-                            {
-                                if (ScreenManager.TopScreen is
-                                    CUFamilyPortraitScreen)
-                                    ScreenManager.PopScreen();
-                            }
-                            catch (Exception secondary)
-                            {
-                                DiagnosticJournal.Exception(
-                                    "cu_family_portrait_screen_recovery",
-                                    secondary);
-                            }
-                            Notify("Household gallery could not open; " +
-                                "native Clan screen remains available.");
-                        }
-                    },false);
                 // Explicit repair for existing saves. The player must stand
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to

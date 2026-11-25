@@ -832,7 +832,7 @@ namespace CalradiaUnified
             starter.AddGameMenu("cu_household_records",
                 "Family, history and optional records. Speak to people directly for decisions.",args=>{});
             starter.AddGameMenuOption("cu_people_lineage","cu_household_records_entry",
-                "Family and records",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return true;},
+                "Records and recovery",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return true;},
                 args=>GameMenu.SwitchToMenu("cu_household_records"),false);
             starter.AddGameMenuOption("cu_household_records","cu_household_archived_letters",
                 "Archived letters",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()==this;},
@@ -846,7 +846,7 @@ namespace CalradiaUnified
                 "Petitions awaiting your answer.",
                 args=>{});
             starter.AddGameMenu("cu_people_claim",
-                "Hear claims and settle family disputes.",
+                "Historical family claims. Native ownership remains authoritative.",
                 args=>{});
             foreach(string location in new[]{"town","castle"})
             {
@@ -900,13 +900,6 @@ namespace CalradiaUnified
                 args=>ShowNativeDetail(
                     "Starting Life | Native family review",
                     familyRecovery.Describe()),false);
-            starter.AddGameMenuOption("cu_household_records",
-                "cu_role_economy_observed",
-                "Livelihood",
-                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return roleEconomy.Started;},
-                args=>ShowNativeDetail(
-                    "Starting Role | Verified livelihood record",
-                    roleEconomy.Describe()),false);
             // This is a real, read-only native inquiry. Its spouse,
             // child, companion and service status comes from live Heroes
             // and saved campaign records, not an old creator .ini file.
@@ -919,24 +912,10 @@ namespace CalradiaUnified
                      kingSuccession.IsRecorded ||
                      roleEconomy.Started);},
                 args=>ShowStartingHouseholdStatus(),false);
-            starter.AddGameMenuOption("cu_household_records",
-                "cu_household_duty_ledger",
-                "Officer assignments (read only)",
-                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null &&
-                    Clan.PlayerClan!=null &&
-                    Clan.PlayerClan.Companions!=null &&
-                    Clan.PlayerClan.Companions.Count>0;},
-                args=>ShowHouseholdDutyLedger(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_affairs_journal","Correspondence and requests",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenCampaignAffairs(),false);
-            // The second, untested selection-list entry is held until live UI acceptance.
-            starter.AddGameMenuOption("cu_household_records",
-                "cu_people_open_household",
-                "Personal records",
-                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return livingPersons.People.Count>0;},
-                args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_household_records",
                 "cu_people_open_claim",
                 "Historical family claim",

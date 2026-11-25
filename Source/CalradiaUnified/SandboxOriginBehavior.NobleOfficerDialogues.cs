@@ -208,10 +208,11 @@ namespace CalradiaUnified
                 actor.IsAlive && actor.IsActive && actor.Age>=18f && !actor.IsPrisoner && !actor.IsTraveling &&
                 !actor.IsFugitive && actor.GovernorOf==null && actor.PartyBelongedTo==null &&
                 actor.PartyBelongedToAsPrisoner==null && actor.GetRelation(player)>=0 &&
-                (actor==player.Spouse && actor.Spouse==player || actor.CompanionOf==clan) &&
+                ActualAdultHouseholdMember(player,actor,clan) &&
                 seat!=null && seat.OwnerClan==clan && seat.IsFortification && !seat.IsUnderSiege &&
                 seat.Town!=null && seat.Town.Governor==null && actor.CurrentSettlement==seat &&
-                player.CurrentSettlement==seat && party!=null && party.MapEvent==null &&
+                player.CurrentSettlement==seat && party!=null && party.LeaderHero==player && party.ActualClan==clan &&
+                party.Army==null && !party.IsCurrentlyAtSea && party.MapEvent==null &&
                 (seat.Party==null || seat.Party.MapEvent==null);
         }
         private void AskResidentToGovern()
@@ -233,6 +234,7 @@ namespace CalradiaUnified
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_GOVERNOR_REPLY",new TextObject(reply));
         }
         private static readonly PartyRole[] HouseholdSpecialties={PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer};
+        private static readonly PartyRole[] NativeAssignmentSlots={PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer,PartyRole.FirstMate,PartyRole.Navigator};
         private static Hero EffectiveSpecialist(MobileParty party,PartyRole role)
         {
             switch(role)
@@ -268,18 +270,21 @@ namespace CalradiaUnified
                 if(service.Enlisted || (!service.Available && (serviceCareer.VerifiedExternalEnlistment || serviceCareer.Status=="ExternalStatusUnverified" || CurrentCareerRole()=="Soldier")))return false;
                 var seat=Settlement.CurrentSettlement;
                 if(seat!=null && seat.IsUnderSiege)return false;
-                // Effective roles can fall back to the player. Never replace an explicitly assigned specialist.
-                var effective=EffectiveSpecialist(party,role);
-                if(effective!=null && effective!=player)return false;
-                if(party.GetHeroPartyRoles(actor).Any(x=>HouseholdSpecialties.Contains(x)))return false;
-                foreach(var entry in party.MemberRoster.GetTroopRoster())
-                {
-                    var member=entry.Character==null?null:entry.Character.HeroObject;
-                    if(entry.Number>0 && member!=null && party.GetHeroPartyRoles(member).Contains(role))return false;
-                }
-                return !party.GetHeroPartyRoles(player).Contains(role);
+                // GetRoleHolder returns the raw native slot, even for an absent holder.
+                // The native setter can remove another duty at the role limit.
+                return party.GetRoleHolder(role)==null && party.CanAssignMoreRolesToHero(actor) &&
+                    party.GetHeroPartyRoles(actor).Count==0;
             }
             catch{return false;}
+        }
+        private static string NativeHouseholdAssignment(Hero person)
+        {
+            if(person==null)return "";
+            if(person.GovernorOf!=null)return "Governor of "+person.GovernorOf.Settlement.Name;
+            var party=person.PartyBelongedTo;
+            if(party==null)return "";
+            var roles=NativeAssignmentSlots.Where(role=>party.GetRoleHolder(role)==person).Select(role=>role.ToString()).ToArray();
+            return roles.Length==0?"":String.Join(", ",roles);
         }
         private bool CanOfferHouseholdResponsibilities()
         {
@@ -291,11 +296,11 @@ namespace CalradiaUnified
             if(CanAssignHouseholdSpecialty(role))
             {
                 var actor=Hero.OneToOneConversationHero;var party=MobileParty.MainParty;
-                var previous=HouseholdSpecialties.Select(x=>EffectiveSpecialist(party,x)).ToArray();
+                var previous=NativeAssignmentSlots.Select(x=>party.GetRoleHolder(x)).ToArray();
                 try{party.SetHeroPartyRole(actor,role);}
                 catch(Exception error){DiagnosticJournal.Exception("cu_native_party_duty_failed",error);}
-                bool assigned=party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor;
-                bool othersUnchanged=HouseholdSpecialties.Select((x,i)=>x==role || EffectiveSpecialist(party,x)==previous[i]).All(x=>x);
+                bool assigned=party.GetRoleHolder(role)==actor && party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor;
+                bool othersUnchanged=NativeAssignmentSlots.Select((x,i)=>x==role || party.GetRoleHolder(x)==previous[i]).All(x=>x);
                 bool confirmed=assigned && othersUnchanged;
                 DiagnosticJournal.Event("cu_household_native_party_duty","result="+(confirmed?"PASS":"UNCONFIRMED")+
                     "|actor="+actor.StringId+"|party="+party.StringId+"|role="+role+"|native_role_confirmed="+assigned+"|other_specialists_unchanged="+othersUnchanged);
