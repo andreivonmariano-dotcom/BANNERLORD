@@ -221,3 +221,8 @@ For internal unlisted crash logs, source archives, developer notes, and working 
 Record goal, exact changed source paths and commit, test pass/fail counts and execution type, workflow URL, artifact identity and hash, highest gate, limitations, next blocker and owner. For release include game/DLC versions, manifest, profile, defaults, known compatibility and save risks, permissions and installation/removal. Maintain this handbook, CHATGPT_PROJECT_INSTRUCTIONS.txt, AGENTS.md, master roadmap and cross-chat handoff together when controlling decisions change. The canonical live document is https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit. Historical v1.0 text and earlier project records remain accessible, but old development priorities are superseded.
 
 Revision: v1.0 18 Nov 2026 established engineering policy; v2.0 25 Nov 2026 consolidates six systems, seven careers, 41-module compatibility, 143-row feature review, native assignment ownership and current evidence-gated roadmap. Review after major changes, not every minor commit.
+
+
+## Six-system design and permanent tracking
+
+Read [design library](docs/CU_GAME_DESIGN_DOCUMENTS.md), [feature audit](docs/CU_FEATURE_SOURCE_AUDIT_V2.md) and [development tracker](docs/CU_DEVELOPMENT_TRACKER.md) before implementation. Keep feature, milestone, native execution, compatibility, bug and release evidence ledgers current. Separate source and native proof, keep historical candidate rows, and record actual observed state. The retired civic/autonomy mutation adapters are compile-excluded; their same-type migration shims preserve keys and exit menus. Do not remove old serialization, speculative state classes or assets without targeted reference and migration review.

@@ -140,3 +140,7 @@ Use [CU_Six_System_Native_Test_Matrix.csv](../Data/CU_Six_System_Native_Test_Mat
 ## Source-of-truth links
 
 [Canonical handbook](https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit), [PROJECT_INSTRUCTIONS.md](../PROJECT_INSTRUCTIONS.md), [CHATGPT_PROJECT_INSTRUCTIONS.txt](../CHATGPT_PROJECT_INSTRUCTIONS.txt), [AGENTS.md](../AGENTS.md), [six-system review](CU_SIX_SYSTEM_CONSOLIDATION.md), [feature review](../Data/CU_Core_System_Review.csv), [historical feature registry](../Data/Feature_Registry.csv), [ownership freeze](CU_ACCEPTANCE_FREEZE_OWNERSHIP_AUDIT.md), [PowerShell standard](POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). Active runtime draft PR #100 (feature/cu-v074-living-dialogue-depth), base PR #99 (integration/cu-living-society-acceptance), not main. Verify current heads and CI each session. Never independently merge stacked provenance PRs.
+
+## Design library and living tracker
+
+[Six detailed GDDs](CU_GAME_DESIGN_DOCUMENTS.md) define player loops, controls, native ownership, data contracts, negative cases and scoped next steps. [Permanent tracker](CU_DEVELOPMENT_TRACKER.md) holds all implementation, compatibility, native test, bug and candidate records. [Source retirement audit](CU_FEATURE_SOURCE_AUDIT_V2.md) documents compile exclusions and migration limits. Use these for actual current status rather than the dated baseline paragraph.

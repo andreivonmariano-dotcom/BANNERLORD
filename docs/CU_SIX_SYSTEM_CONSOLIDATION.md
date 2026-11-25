@@ -17,3 +17,8 @@ Keep one shared household dossier accessible through Clan and Party, corresponde
 
 ## Limits and acceptance
 No literal deletion of serialized historical classes or broad source-file removal in this pass. The register is a feature/subfeature review, not every C# line or third-party method. Background peer initiatives, peer social sampling and adaptive story generation disconnected; ordinary letters and native observation remain. Native governor and party specialist interactions need positive/negative tests, exact real role slot before/after, other specialists unchanged, duplicate/absent/occupied role refusal, SaS and naval negative tests, save/reload. Check all seven starts, household dossier, correspondence, actual petitions, oath service and 60-minute full-stack session. No fabricated action evidence, no unattended installation, no stable release or merge. Improved Garrisons autonomous recruitment/patrol bridge remains deferred.
+
+
+## Follow-up source cleanup (25 November)
+
+See [CU_FEATURE_SOURCE_AUDIT_V2.md](CU_FEATURE_SOURCE_AUDIT_V2.md): eight historical civic/autonomy adapters compile-excluded, same runtime migration classes and keys retained, supply foraging mutator removed. Native old-save acceptance still required. Detailed GDD and tracker links are in [CU_DEVELOPMENT_TRACKER.md](CU_DEVELOPMENT_TRACKER.md).
