@@ -123,3 +123,8 @@ for key in ("IsChoice","IsNumber","IsText","IsBoolean"):
         for node in xml.iter("ButtonWidget")),key
 assert 'Begin Campaign' not in ET.tostring(xml,encoding="unicode")
 print("PASS: active World -> native identity/story/stats/banner/clan -> guided House/Fortune -> native review/difficulty; one shared CU layout (STATIC ONLY)")
+
+# CU-only household review does not substitute the native review stage.
+assert '"HouseholdPreview"' in flow and 'profile.HouseholdPreview(ActualFounderAge)' in flow
+assert 'ExecuteHouseholdPreview' in [x.get("Command.Click") for x in xml.iter("ButtonWidget")]
+assert 'Proposed household only' in profile

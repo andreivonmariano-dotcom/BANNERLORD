@@ -386,9 +386,12 @@ namespace CalradiaUnified
                     "Exact family residence",
                     "Specify your owned town or castle's settlement ID.",
                     "text",advanced:true));
-                // The next real Bannerlord Review/Options stage already
-                // displays the final character. Do not insert a duplicate
-                // CU review page before that genuine native step.
+                // Review the CU-only household plan, not a replacement
+                // for the game's native final character review.
+                list.Add(new Field("CHAPTER IV | YOUR FORTUNE","HouseholdPreview",
+                    "Review your household plan",
+                    "Inspect all proposed family members, their ages, residence, officers and requested resources. Nothing has been created yet.",
+                    "review"));
             }
             return list;
         }
@@ -852,6 +855,22 @@ namespace CalradiaUnified
             if(field.Key=="WorldSeed" || field.Key=="Gold" ||
                 field.Key=="Influence")
                 TryWrite(field.Key,"-1");
+        }
+        public void ExecuteHouseholdPreview()
+        {
+            if(preCampaign || Current==null || Current.Key!="HouseholdPreview")return;
+            try
+            {
+                InformationManager.ShowInquiry(new InquiryData("Proposed household",
+                    profile.HouseholdPreview(ActualFounderAge),true,false,"Return to editor",null,()=>{},null),true);
+                DiagnosticJournal.Event("cu_household_preview_opened","role="+profile.Role+
+                    "|children="+profile.ChildCount+"|siblings="+profile.SiblingCount+"|native_grants=false");
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception("cu_household_preview_failed",error);
+                Report("Preview could not be opened. Your draft remains editable.");
+            }
         }
         public void ExecuteAdvanced()
         {
@@ -1482,8 +1501,8 @@ namespace CalradiaUnified
             {
                 if(Current==null)return "";
                 if(Current.Kind=="review")
-                    return "Your house and estate are ready. Confirm to " +
-                        "continue to the game's final review and difficulty.";
+                    return (profile.SpouseEnabled?"Spouse":"No spouse")+" | "+profile.ChildCount+
+                        " children | "+profile.SiblingCount+" siblings";
                 string raw=Raw(Current.Key);
                 return Current.Kind=="boolean" ?
                     (raw=="true"?"Yes":"No"):

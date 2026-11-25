@@ -2216,6 +2216,19 @@ internal static class Program
                 "vassal","",false,false,0) &&
             !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "king","",false,false,0));
+        Check("native family proof rejects one-sided marriage or missing reciprocal links",
+            SandboxStartContract.FamilyIdentityGate(true,false,true,true,true,true)=="native_marriage_not_reciprocal" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,false,true,true)=="native_child_identity_or_parentage_missing" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,true,true,false)=="native_sibling_identity_or_parentage_missing" &&
+            SandboxStartContract.FamilyIdentityGate(false,false,false,false,false,false)=="" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,true,true,true)=="");
+        var previewPlan=new SandboxOriginProfile{Role="King",SpouseEnabled=true,ChildCount=1,SpouseAge=32};
+        previewPlan.Children[0].Age=10;
+        string originalPreviewPlan=previewPlan.Serialize();
+        string proposedPreview=previewPlan.HouseholdPreview(30);
+        Check("household preview is read only and identifies spouse child age and native authority",
+            previewPlan.Serialize()==originalPreviewPlan && proposedPreview.Contains("age 10") &&
+            proposedPreview.Contains("maximum age: 14") && proposedPreview.Contains("Proposed household only"));
         Check("native status validation accepts empty default only if landless",
             SandboxStartContract.Validate("default","",
                 "vlandia","",false,0,false,false,0,0).Length==0 &&

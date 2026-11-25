@@ -731,6 +731,28 @@ namespace CalradiaUnified
         }
 
         // Compact diagnostic evidence; no player or family names or face codes.
+        public string HouseholdPreview(int founderAge)
+        {
+            var lines=new List<string>{"Career: "+Role+" | Founder age: "+founderAge,
+                "Kingdom: "+(StartingKingdomId.Length==0?"none":StartingKingdomId),
+                "Spouse: "+(SpouseEnabled?SpouseName+" | age "+SpouseAge+" | "+SpouseGender+" | "+SpouseBackground:"not requested"),
+                "Children: "+ChildCount+" | maximum age: "+SandboxFamilyAgePolicy.ChildAgeMaximum(founderAge,SpouseEnabled?SpouseAge:founderAge)};
+            foreach(var child in Children.Take(Math.Max(0,ChildCount)))
+                lines.Add("  "+child.Name+" | "+child.Gender+" | age "+child.Age+" | "+child.Upbringing);
+            lines.Add("Siblings: "+SiblingCount);
+            foreach(var sibling in Siblings.Take(Math.Max(0,SiblingCount)))
+                lines.Add("  "+sibling.Name+" | "+sibling.Gender+" | age "+sibling.Age);
+            lines.Add("Residence: "+FamilyHomeMode+" | Retinue: "+RetinueMode);
+            lines.Add("Holding: "+StartingFiefMode+" | Gold: "+(Gold<0?"native":Gold.ToString())+
+                " | Influence: "+(Influence<0?"native":Influence.ToString())+" | Extra troops: "+Troops);
+            if(LordGuidedStart || KingGuidedStart)
+                lines.Add("House claim custom: "+(KingGuidedStart?KingSuccessionRule:LordSuccessionRule)+
+                    " | Native succession retains authority");
+            string error;
+            lines.Add(IsValid(founderAge,out error)?"Profile checks: valid":"Profile checks: "+error);
+            lines.Add("Proposed household only. No native marriage, Hero, fief or office is granted by this preview.");
+            return String.Join("\n",lines);
+        }
         public string ValidationContext(int actualPlayerAge)
         {
             int effective=PlayerAge>=18?PlayerAge:actualPlayerAge;

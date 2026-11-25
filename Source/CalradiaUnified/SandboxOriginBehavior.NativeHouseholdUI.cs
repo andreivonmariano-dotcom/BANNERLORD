@@ -249,6 +249,44 @@ namespace CalradiaUnified
                 CareerChronicleDescription());
         }
 
+        private void RegisterStartDiagnosticMenus(CampaignGameStarter starter)
+        {
+            foreach(var menu in new[]{"town","castle"})
+                starter.AddGameMenuOption(menu,"cu_start_diagnostic_"+menu,"Review CU initialization",
+                    args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
+                        return Hero.MainHero!=null && !Hero.MainHero.IsPrisoner && Clan.PlayerClan!=null;},
+                    args=>ShowStartDiagnostics(),false);
+        }
+        private void ShowStartDiagnostics()
+        {
+            var player=Hero.MainHero;var clan=Clan.PlayerClan;
+            if(player==null || clan==null)return;
+            var spouse=player.Spouse;
+            bool marriage=spouse!=null && spouse.Spouse==player;
+            int children=player.Children==null?0:player.Children.Count(h=>h!=null &&
+                (h.Father==player || h.Mother==player));
+            int holdings=clan.Settlements==null?0:clan.Settlements.Count;
+            string historic=String.IsNullOrEmpty(startAuditOwner)?"No historical startup receipt (older save or native-only start).":
+                "Starting career: "+startAuditRole+" | Result: "+startAuditStatus+
+                "\nOriginal founder: "+(startAuditOwner==player.StringId?"current player":"previous player")+
+                "\nReason: "+(String.IsNullOrEmpty(startAuditReason)?"none recorded":startAuditReason);
+            string current="Current native state (not historical proof)\nKingdom: "+
+                (clan.Kingdom==null?"none":clan.Kingdom.Name.ToString())+
+                " | Native ruling clan: "+(clan.Kingdom!=null && clan.Kingdom.RulingClan==clan)+
+                " | Native mercenary: "+clan.IsUnderMercenaryService+
+                "\nHoldings: "+holdings+" | Reciprocal marriage: "+marriage+" | Linked children: "+children+
+                " | Full siblings: "+CountNativeFullSiblings(player)+
+                "\nKnight oath recorded: "+knightOath.IsConfigured+" | Lord claim recorded: "+lordInheritance.IsRecorded+
+                " | King claim recorded: "+kingSuccession.IsRecorded+
+                "\nSupported Serve as Soldier public API: "+SandboxSaSBridge.HasSupportedProvider()+
+                " (required only for Soldier). Other mod conflicts cannot be inferred from presence alone.";
+            DiagnosticJournal.Event("cu_start_diagnostic_open","historic="+(startAuditStatus??"")+
+                "|current_owner="+(startAuditOwner==player.StringId)+"|native_read_only=true");
+            ShowNativeDetail("Calradia Unified | Initialization review",historic+"\n\n"+current+
+                "\n\n"+(familyRecovery.NeedsReview && familyRecovery.PlayerId==player.StringId?familyRecovery.Describe()+"\n\n":"")+
+                "Original requested settings:\n"+(String.IsNullOrEmpty(startAuditRequest)?"not recorded":startAuditRequest.Replace("|","\n"))+
+                "\nNo grants or family actions are replayed.");
+        }
         private void ShowStartingHouseholdStatus()
         {
             var player=Hero.MainHero;
