@@ -2261,6 +2261,12 @@ internal static class Program
             service.RecordPayAttempt("lord","guard",164) &&
             !SandboxRetainerServiceState.Parse(service.Serialize()).PayDue("lord","guard",164) &&
             SandboxRetainerServiceState.Wage("Knight")==200);
+        Check("military retainer profiles distinguish rank and cultural infantry equipment",
+            SandboxRetinueOfficePolicy.StartingLevel("ManAtArms")<SandboxRetinueOfficePolicy.StartingLevel("Sergeant") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("ManAtArms",0)<SandboxRetinueOfficePolicy.TrainingTarget("Sergeant",0) &&
+            SandboxRetinueCulturePolicy.GearStyle("vlandia","ManAtArms")=="Infantry" &&
+            SandboxRetinueCulturePolicy.GearStyle("sturgia","ManAtArms")=="Axeguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("battania","ManAtArms")=="Longbow");
         Check("noble family occupations are separate from landless careers",
             new[]{"King","Lord","Knight","HouseholdKnight","NobleCadet"}.All(SandboxFamilyPolicy.NobleFamilyOccupation) &&
             new[]{"Wanderer","Outlaw","Mercenary","Soldier",""}.All(x=>!SandboxFamilyPolicy.NobleFamilyOccupation(x)));

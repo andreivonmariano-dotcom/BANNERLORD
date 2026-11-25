@@ -126,6 +126,7 @@ namespace CalradiaUnified
         public static int StartingLevel(string office)
         {
             if(office=="Squire")return 10;
+            if(office=="ManAtArms")return 14;
             if(office=="Marshal" || office=="MasterOfArms" || office=="RoyalMinister")return 24;
             if(office=="Sergeant" || office=="SecondInCommand")return 17;
             return 20;
@@ -179,6 +180,7 @@ namespace CalradiaUnified
         {
             if(rank<0)return 0;
             if(office=="Squire")return rank==0?100:rank==1?85:rank==2?75:55;
+            if(office=="ManAtArms")return rank==0?110:rank==1?95:rank==2?85:55;
             if(office=="Marshal" || office=="MasterOfArms" || office=="RoyalMinister")
                 return rank==0?175:rank==1?150:rank==2?125:80;
             if(office=="Sergeant" || office=="SecondInCommand")return rank==0?125:rank==1?110:rank==2?90:65;

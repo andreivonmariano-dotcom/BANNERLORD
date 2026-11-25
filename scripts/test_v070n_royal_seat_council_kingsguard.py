@@ -86,7 +86,12 @@ assert 'Clan.PlayerClan.Kingdom.StringId==royalCouncil.KingdomId' in council
 assert 'royalCouncil.Rebind(Clan.PlayerClan.Kingdom.StringId,' in council
 assert 'if(!present)' in council
 assert 'incumbent!=null && (!incumbent.IsAlive ||' in council
-assert 'retinueOffices.HasIdentity(person.StringId) || EffectiveHouseholdDuty(person).Length>0' in council
+assert 'retinueOffices.HasIdentity(person.StringId)' in council
+assert '(EffectiveHouseholdDuty(person).Length>0 && !(office=="Marshal" && ReadyRetainerMarshal(person)))' in council
+assert 'if(VacantRecordedRoyalOffice(office).Length==0)return false;' in council
+assert 'if(office=="Marshal" && ActiveRetainerService(person))' in council
+assert 'householdDuties.Release("ManAtArms",person.StringId)' in council
+assert 'retainerService.Clear();' in council
 assert 'if(!CanReplaceRoyalOfficer(office))return;' in council
 assert 'retinueOffices.Replace(prior,person.StringId,office)' in council
 assert 'RegisterRoyalOfficerReplacement(starter);' in council

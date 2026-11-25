@@ -18,8 +18,8 @@ namespace CalradiaUnified
         {
             var player=Hero.MainHero;var clan=Clan.PlayerClan;
             return person!=null && player!=null && clan!=null && person.IsAlive &&
-                person.Clan==clan && person.CompanionOf==clan &&
-                householdDuties.AssignedId("ManAtArms")==person.StringId &&
+                person.Clan==clan && person.CompanionOf==clan && clan.Companions!=null &&
+                clan.Companions.Contains(person) && householdDuties.AssignedId("ManAtArms")==person.StringId &&
                 retainerService.Matches(player.StringId,person.StringId);
         }
         private static int RetainerSkill(Hero h,string name)
@@ -105,7 +105,7 @@ namespace CalradiaUnified
                 " | Reports: "+retainerService.Reports+" | Days in rank: "+
                 Math.Max(0,CurrentHouseholdDay()-retainerService.Since)+
                 " | Weekly pay: "+SandboxRetainerServiceState.Wage(retainerService.Rank)+
-                " denars (voluntary)"+(ReadyRetainerMarshal(h)?" | Eligible for vacant Marshal office":"");
+                " denars (voluntary)"+(ReadyRetainerMarshal(h)?" | Qualified for Marshal":"");
         }
 
 
@@ -288,7 +288,7 @@ namespace CalradiaUnified
                 }
                 int variant=dutyReplySpeaker==speaker.StringId && dutyReplyPlayer==Hero.MainHero.StringId?
                     dutyReplyVariant:0;
-                string focus=SandboxRetinueOfficePolicy.DutyFocus(office,owned,
+                string focus=SandboxRetinueOfficePolicy.DutyFocus(ActiveRetainerService(speaker)?retainerService.Rank:office,owned,
                     owned && seat.IsUnderSiege,SandboxKingNativeMinistry.VerifiedGovernor(speaker),variant);
                 if(focus.Length>0)reply+=" "+focus;
                 // Skill numbers belong in the character record, not spoken dialogue.
@@ -574,8 +574,14 @@ namespace CalradiaUnified
                     "I would have you serve as "+SandboxRetinueOfficePolicy.Profession(rank)+".",
                     ()=>CanPromoteRetainer(rank),()=>PromoteRetainer(rank),110);
             }
-            starter.AddPlayerLine("cu_retainer_pay","cu_personal_matters_topics","cu_retainer_reply",
-                "Here is your week's pay.",()=>CanPayRetainer(),()=>PayRetainer(),109);
+            foreach(var wageRank in new[]{"ManAtArms","Sergeant","Squire","Knight"})
+            {
+                string payRank=wageRank;
+                starter.AddPlayerLine("cu_retainer_pay_"+payRank.ToLowerInvariant(),"cu_personal_matters_topics","cu_retainer_reply",
+                    "Here is your week's pay ("+SandboxRetainerServiceState.Wage(payRank)+" denars).",
+                    ()=>CanPayRetainer() && retainerService.Rank==payRank,
+                    ()=>{if(retainerService.Rank==payRank)PayRetainer();},109);
+            }
             starter.AddDialogLine("cu_retainer_reply","cu_retainer_reply","cu_personal_matters_topics",
                 "{CU_APPOINTMENT_REPLY}",()=>PrepareAppointmentReply(),null,100);
             starter.AddDialogLine("cu_retainer_reply_cu_safe_exit","cu_retainer_reply",

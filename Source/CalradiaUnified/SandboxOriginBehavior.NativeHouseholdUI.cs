@@ -236,7 +236,9 @@ namespace CalradiaUnified
             ShowNativeDetail(person.Name+" | "+(title.Length>0?title:relationship),
                 "Age "+(int)person.Age+" | "+relationship+" | "+parentage+
                 "\n"+location+
-                (ActiveRetainerService(person)?"\n"+RetainerServiceSummary(person):"")+
+                (ActiveRetainerService(person)?"\n"+RetainerServiceSummary(person)+
+                    "\nSpecialties: "+String.Join(", ",SandboxRetinueCulturePolicy.Training(
+                        person.Culture==null?"":person.Culture.StringId,retainerService.Rank)):"")+
                 "\n"+(assignedOffice.Length>0?"Household office: "+assignedOffice+"\n":"")+duty+
                 "\nStanding with you: "+
                 (person==player?"your own character":
