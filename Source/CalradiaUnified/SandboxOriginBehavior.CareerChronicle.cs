@@ -311,9 +311,9 @@ namespace CalradiaUnified
                 "recorded from the real campaign. "+
                 "No title is granted without the game's own authority.",
                 args=>{ObserveCareerChronicleDaily();});
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_career_chronicle_entry",
-                "My career chronicle and next charge",
+                "Career history and personal goals",
                 args=>roleEconomy.Started &&
                     CurrentCareerRole().Length>0,
                 args=>GameMenu.SwitchToMenu(
@@ -367,10 +367,10 @@ namespace CalradiaUnified
                     BattleHistoryDescription()),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
-                "Return to household affairs",
+                "Back to records",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(
-                    "cu_people_lineage"),false);
+                    "cu_household_records"),false);
         }
     }
 }

@@ -520,7 +520,7 @@ namespace CalradiaUnified
             // The sworn patron already owns knight service orders and musters.
             // Keep old saved muster charges readable, but offer no parallel task.
             string target;int baseline;
-            return kind!="Muster" && !IsPersonalChargeActive() &&
+            return kind!="Muster" && kind!="StrengthenGarrison" && !IsPersonalChargeActive() &&
                 TryChargeStartEvidence(kind,out target,out baseline);
         }
         private bool CanDiscussPersonalTopic(string topic)
@@ -627,8 +627,8 @@ namespace CalradiaUnified
                 case "Muster":return "We must attend the next muster of "+target+".";
                 case "VisitEstate":return "We have been meaning to visit "+target+
                     ". Let us see the holding for ourselves.";
-                case "StrengthenGarrison":return "Let us bring the garrison of "+target+
-                    " to at least "+(careerCharge.Baseline+5)+" soldiers.";
+                case "StrengthenGarrison":return "Your existing personal goal is to bring the garrison of "+target+
+                    " to at least "+(careerCharge.Baseline+5)+" soldiers. No one has been ordered to transfer troops.";
                 case "Council":return "We should gather the council at "+target+" on another day.";
                 default:return "There is nothing further to arrange.";
             }
@@ -638,6 +638,7 @@ namespace CalradiaUnified
         {
             string target;int baseline;
             if(kind=="Muster")return "Speak with your sworn lord about your next service.";
+            if(kind=="StrengthenGarrison")return "Use the native garrison controls. This is not a personal quest.";
             if(!TryChargeStartEvidence(kind,out target,out baseline))return
                 "We cannot undertake that duty in our present circumstances.";
             var player=Hero.MainHero;
@@ -1088,7 +1089,7 @@ namespace CalradiaUnified
                 ()=>CanOfferCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
                 ()=>chargeReply=AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),100);
             starter.AddPlayerLine("cu_personal_charge_defend","cu_personal_matters_topics",
-                "cu_personal_charge_reply","Let us strengthen the garrison here.",
+                "cu_personal_charge_reply","Set a personal garrison goal (retired)",
                 ()=>CanDiscussEstateTopic() && CanOfferCharge("StrengthenGarrison"),
                 ()=>chargeReply=AgreeCareerCharge("StrengthenGarrison"),100);
             starter.AddPlayerLine("cu_personal_charge_royal_estate","cu_personal_matters_topics",

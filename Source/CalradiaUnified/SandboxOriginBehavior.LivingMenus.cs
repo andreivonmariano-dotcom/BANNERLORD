@@ -834,8 +834,15 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "Your household awaits. Hear petitions, consult your officers or review family affairs.",
+                "Manage your household, read correspondence or attend to your current duties.",
                 args=>{});
+            starter.AddGameMenu("cu_household_records",
+                "Family, history and optional records. Speak to people directly for decisions.",args=>{});
+            starter.AddGameMenuOption("cu_people_lineage","cu_household_records_entry",
+                "Family and records",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return true;},
+                args=>GameMenu.SwitchToMenu("cu_household_records"),false);
+            starter.AddGameMenuOption("cu_household_records","cu_household_records_back",
+                "Back",args=>true,args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
             starter.AddGameMenu("cu_people_household",
                 "Members of your household.",
                 args=>{});
@@ -891,7 +898,7 @@ namespace CalradiaUnified
             if(civic!=null)civic.RegisterLocalAdministrationEntry(starter);
             // Recoverable failures are still accessible, but never
             // occupy a separate top-level settlement option.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_partial_family_review",
                 "Incomplete household",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return familyRecovery.NeedsReview &&
@@ -899,7 +906,7 @@ namespace CalradiaUnified
                 args=>ShowNativeDetail(
                     "Starting Life | Native family review",
                     familyRecovery.Describe()),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_role_economy_observed",
                 "Livelihood",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return roleEconomy.Started;},
@@ -918,9 +925,9 @@ namespace CalradiaUnified
                      kingSuccession.IsRecorded ||
                      roleEconomy.Started);},
                 args=>ShowStartingHouseholdStatus(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_household_duty_ledger",
-                "Officers and duties",
+                "Officer assignments (read only)",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null &&
                     Clan.PlayerClan!=null &&
                     Clan.PlayerClan.Companions!=null &&
@@ -931,17 +938,17 @@ namespace CalradiaUnified
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenCampaignAffairs(),false);
             // The second, untested selection-list entry is held until live UI acceptance.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_people_open_household",
-                "People of my household",
+                "Personal records",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return livingPersons.People.Count>0;},
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_people_open_claim",
                 "Family council and inheritance",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return successionInterest.IsRecorded;},
                 args=>{
-                    claimReturnMenu="cu_people_lineage";
+                    claimReturnMenu="cu_household_records";
                     GameMenu.SwitchToMenu("cu_people_claim");
                 },false);
             starter.AddGameMenuOption("cu_people_lineage",
@@ -962,9 +969,9 @@ namespace CalradiaUnified
                     DescribeSelectedPerson();
                 },false);
             starter.AddGameMenuOption("cu_people_household",
-                "cu_household_back","Return to People & Lineage",
+                "cu_household_back","Back to records",
                 args=>true,
-                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
+                args=>GameMenu.SwitchToMenu("cu_household_records"),false);
 
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_request","Read the pending correspondence",

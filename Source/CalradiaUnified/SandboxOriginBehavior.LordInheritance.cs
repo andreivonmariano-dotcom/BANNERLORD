@@ -144,13 +144,13 @@ namespace CalradiaUnified
                 "ranks proven biological children. Native clan "+
                 "leadership, elections, fiefs and regency remain "+
                 "under game authority.",args=>{});
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_lord_inheritance_entry",
                 "My household inheritance",
                 args=>lordInheritance.IsRecorded,
                 args=>
                 {
-                    lordInheritanceReturnMenu="cu_people_lineage";
+                    lordInheritanceReturnMenu="cu_household_records";
                     GameMenu.SwitchToMenu("cu_lord_inheritance");
                 },false);
             starter.AddGameMenuOption("cu_lord_inheritance",

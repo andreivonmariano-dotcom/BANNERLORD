@@ -347,8 +347,7 @@ namespace CalradiaUnified
 
         private void RegisterStartDiagnosticMenus(CampaignGameStarter starter)
         {
-            foreach(var menu in new[]{"town","castle"})
-                starter.AddGameMenuOption(menu,"cu_start_diagnostic_"+menu,"CU diagnostics",
+            starter.AddGameMenuOption("cu_household_records","cu_start_diagnostic_records","Troubleshooting",
                     args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
                         return CanReviewStartDiagnostics();},
                     args=>ShowStartDiagnostics(),false);

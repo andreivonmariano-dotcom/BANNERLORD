@@ -606,7 +606,7 @@ namespace CalradiaUnified
             // Pre-campaign character design is already available through
             // the guided creator. Never advertise a NEXT GAME editor in
             // every active town/castle.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_family_portraits",
                 "View my household portraits",
                     args => Hero.MainHero != null &&
@@ -644,7 +644,7 @@ namespace CalradiaUnified
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to
                 // a party. It is not an automatic retroactive save migration.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_family_residence_here",
                 "Make this owned holding my family's home",
                     args => Hero.MainHero != null &&

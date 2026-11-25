@@ -134,7 +134,11 @@ namespace CalradiaUnified
                 "cu_civic_admin_entry_local","Manage local administration",
                 x=>{x.optionLeaveType=GameMenuOption.LeaveType.Submenu;
                     return CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle &&
-                    !Settlement.CurrentSettlement.IsUnderSiege;},
+                    !Settlement.CurrentSettlement.IsUnderSiege &&
+                    (settings.EnableCivicSystems || settings.EnableEconomy || settings.EnableRecruitment ||
+                     settings.EnableAbstractShipments || settings.EnablePhysicalConvoys || settings.EnableDepotTrade ||
+                     settings.EnableLocalDiplomacy || settings.EnableGarrisonTraining || settings.EnableManualGarrisonTransfers ||
+                     settings.EnableManualGarrisonWageCaps || settings.EnableKingdomLevies || settings.EnableKingdomDiplomacy);},
                 x=>{civicReturnMenu="cu_people_lineage";
                     GameMenu.SwitchToMenu("cu_civic_administration");},false);
         }

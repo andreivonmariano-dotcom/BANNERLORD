@@ -76,7 +76,7 @@ assert 'FamilyOccupationRepairs().Where(h=>ids.Contains(h.StringId))' in view
 assert 'h.SetNewOccupation(Occupation.Lord)' in view
 
 # Diagnostics have one entry per settlement; repair must be a second confirmation.
-assert '"cu_start_diagnostic_"+menu,"CU diagnostics"' in view
+assert '"cu_household_records","cu_start_diagnostic_records","Troubleshooting"' in view
 assert '"cu_family_occupation_repair_"+menu' not in view
 assert 'CanReviewStartDiagnostics() && Hero.MainHero.StringId==owner' in view
 assert 'if(!CanReviewStartDiagnostics() || Hero.MainHero.StringId!=owner)return;' in view

@@ -499,7 +499,7 @@ namespace CalradiaUnified
             foreach(var source in new[]{"cu_people_lineage","cu_household_camp","cu_native_royal_council"})
             {
                 string parent=source;
-                starter.AddGameMenuOption(parent,"cu_group_entry_"+parent,
+                starter.AddGameMenuOption(parent=="cu_people_lineage"?"cu_household_records":parent,"cu_group_entry_"+parent,
                     parent=="cu_native_royal_council"?"Hear the council's advice":"Gather for a discussion",
                     args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
                         return AvailableGroupParticipants(parent).Count>=2;},
@@ -507,7 +507,7 @@ namespace CalradiaUnified
                 if(parent!="cu_household_camp")
                 {
                     starter.AddGameMenuOption(parent,"cu_group_plan_view_"+parent,"Gathering plans",
-                        args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent;},
+                        args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent && gatheringPlan.Status=="Pending";},
                         args=>ShowGatheringPlan(),false);
                     starter.AddGameMenuOption(parent,"cu_group_plan_attend_"+parent,"Attend gathering",
                         args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;return PlannedAttendees(parent).Count>=2;},
