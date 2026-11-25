@@ -22,10 +22,14 @@ byid={x["feature_id"]:x for x in core}
 assert all(x["disposition"]==byid[x["feature_id"]]["disposition"] and (root/x["source_path"]).is_file() and x["next_action"] for x in feature)
 testids={x["test_id"] for x in tests}
 assert len(testids)==56 and {x["test_id"] for x in runs}==testids
+assert len({(x["candidate_commit"],x["profile"],x["test_id"]) for x in runs})==len(runs)
+assert all(x["candidate_commit"] for x in runs)
 assert all(set(x["test_group"].split(";"))<=testids for x in feature)
 assert {x["milestone"] for x in milestones}=={x["milestone"] for x in road} and len(milestones)==9
 assert len(compat)==len(owners)==41
 assert len({x["module_id"] for x in compat})==41
+owner_byid={x["module_id"]:x for x in owners}
+assert all(x["owner_boundary"]==owner_byid[x["module_id"]]["CU_boundary"] for x in compat)
 assert all(x["native_result"] in ("PENDING","PASS","FAIL","BLOCKED","NOT_APPLICABLE") for x in compat)
 assert len({x["bug_id"] for x in bugs})==len(bugs)
 assert all(x["priority"] in ("P0","P1","P2") and x["next_action"] for x in bugs)

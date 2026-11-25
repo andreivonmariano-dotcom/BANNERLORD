@@ -1,6 +1,6 @@
 # BANNERLORD | Living project direction and cross-chat handoff
 
-> Current 25 November handoff: [six design documents](CU_GAME_DESIGN_DOCUMENTS.md), [source audit](CU_FEATURE_SOURCE_AUDIT_V2.md), [permanent tracker](CU_DEVELOPMENT_TRACKER.md). Baseline 9e5aaf18e17afa767c42e3b7245db6f7620fd9df complete CI and byte-verified Gate B; cleanup 47cfd78f4f512a7027f49530bb7150fbcc769c62 source only pending CI/native tests. Maintain all six CSV records. Older directives below are history.
+> Current 25 November handoff: [six design documents](CU_GAME_DESIGN_DOCUMENTS.md), [source audit](CU_FEATURE_SOURCE_AUDIT_V2.md), [permanent tracker](CU_DEVELOPMENT_TRACKER.md). Baseline 9e5aaf18e17afa767c42e3b7245db6f7620fd9df complete CI and byte-verified Gate B; cleanup 47cfd78f4f512a7027f49530bb7150fbcc769c62 both CI runs green, artifact 15031393532 verified, native tests pending. Maintain all six CSV records. Older directives below are history.
 
 > **Historical record, superseded 25 November 2026.** Current controlling direction is v2.0, [CU_MASTER_ROADMAP.md](CU_MASTER_ROADMAP.md). Six systems, seven new-game careers, no parallel provider-owned features. Current source baseline e0f94b48dc05e3e92e44afce8cfbce1faf7ca3eb, both CI runs green, byte-verified COMPILED_UNTESTED artifact 15029171592. Prior decisions below are chronological historical evidence, not active priorities. Current native acceptance is Data/CU_Six_System_Native_Test_Matrix.csv, all live cases pending.
 

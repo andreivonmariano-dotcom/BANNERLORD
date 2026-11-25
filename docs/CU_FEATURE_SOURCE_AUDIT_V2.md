@@ -27,3 +27,7 @@ Rows count subfeatures, not independent systems or tests. Source status and nati
 ## References
 
 [All 143 tracked entries](../Data/CU_Feature_Development_Tracker.csv), [design library](CU_GAME_DESIGN_DOCUMENTS.md), [test matrix](../Data/CU_Six_System_Native_Test_Matrix.csv), [native execution ledger](../Data/CU_Native_Test_Execution_Tracker.csv), [bug tracker](../Data/CU_Bug_Tracker.csv), [release evidence](../Data/CU_Release_Evidence_Tracker.csv).
+
+## Verified cleanup candidate update
+
+Source 47cfd78f4f512a7027f49530bb7150fbcc769c62, [CI 45632715404](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45632715404), [artifact 15031393532](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45632715404/artifacts/15031393532). Both workflows passed; 138 steps and 4,359 independent policy checks, zero compiler warnings/errors. Source inventory: 193 files, 182 compiled candidates, 22 prefabs, 65 settings, 18 literal campaign listeners and 58 literal save keys. Before cleanup: 191 files, 188 compiled candidates, same 58 keys. DLL 1,139,712 bytes (39,936 bytes smaller), SHA-256 166b7843d99baf7853cd2a5d6a4961116d326e94172ee24b2221da2679d19ad9. Runtime ZIP 448,474 bytes, SHA-256 349e36af8280fada0c351876395b2aa6a4c9ab4df3a6279c72833360c8e62487. Both archive CRCs, one module, one DLL, v0.74.0 manifest and embedded build identity verified. Gate B only. No native career, old-save migration or performance certification. Candidate-specific execution rows now cover both verified binaries; each retains separate evidence.
