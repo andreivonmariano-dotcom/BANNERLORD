@@ -98,27 +98,27 @@ namespace CalradiaUnified
                 },false);
             starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_succession_review",
-                "Review native ruler and ranked children",
+                "Royal succession",
                 args=>kingSuccession.IsRecorded,
                 args=>
                 {
                     bool current=RefreshKingSuccessionObservation();
                     ShowNativeDetail("Royal household | Succession",
                         "Royal household rule: "+kingSuccession.Rule+
-                        (current?". Preferred verified native child: ":". Last recorded preferred child: ")+
+                        (current?". Preferred heir: ":". Last recorded preferred child: ")+
                         NativeHeroDisplayName(
                             kingSuccession.PreferredHeirId)+
                         (current?". Child claim order: ":". Last recorded child claim order: ")+
                         NativeHeroDisplayNames(
                             kingSuccession.RankedHeirIds)+
-                        (current?". Actual native ruler: ":". Last verified native ruler: ")+
+                        (current?". Current ruler: ":". Last known ruler: ")+
                         NativeHeroDisplayName(
                             kingSuccession.ActualRulerId)+
                         ". Kingdom: "+kingSuccession.KingdomId+
-                        ". "+(current?"Native status: ":"Last recorded status: ")+kingSuccession.Status+
+                        ". "+(current?"Status: ":"Last recorded status: ")+kingSuccession.Status+
                         (current?"":". Current kingdom state unavailable; last observation day "+kingSuccession.LastObservedDay)+
-                        ". The native kingdom alone decides succession. "+
-                        "No automatic underage regency or estate grant.");
+                        ". Succession follows the kingdom's laws. "+
+                        "Minor heirs receive no automatic regency.");
                 },false);
             starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_dynastic_branches","Review descendants and collateral kin",

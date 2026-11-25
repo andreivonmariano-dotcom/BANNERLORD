@@ -45,7 +45,7 @@ namespace CalradiaUnified
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
             bool recorded=lifetimeCareers.Record(player.StringId,role,day,true,true);
             ShowNativeDetail("Lifetime career",
-                (recorded?"Chosen career observation recorded.":
+                (recorded?"Career recorded.":
                     "No new receipt: same/earlier day or history limit.")+
                 "\n\n"+LifetimeCareerText(player));
         }
@@ -87,7 +87,7 @@ namespace CalradiaUnified
                         "Independent party of at least five confirmed. Review supplies and band security; criminal status not inferred.":"";
                 case "Mercenary":
                     return clan.Kingdom!=null && clan.IsUnderMercenaryService?
-                        "Native mercenary contract confirmed. Review company obligations and resources.":"";
+                        "Mercenary contract confirmed.":"";
                 case "Soldier":
                     var service=SandboxSaSBridge.Read();
                     return service.Available && service.Enlisted &&
@@ -106,11 +106,11 @@ namespace CalradiaUnified
                     return clan.Leader==player && clan.Kingdom!=null &&
                         clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService &&
                         clan.Settlements!=null && clan.Settlements.Count>0?
-                        "Native non-ruling landed clan leadership confirmed. Review estate and household affairs.":"";
+                        "Vassalage confirmed.":"";
                 case "King":
                     return clan.Leader==player && clan.Kingdom!=null &&
                         clan.Kingdom.RulingClan==clan && !clan.IsUnderMercenaryService?
-                        "Native rulership confirmed. Review royal obligations and council records.":"";
+                        "Crown confirmed.":"";
                 default: return "";
             }
         }
@@ -278,13 +278,13 @@ namespace CalradiaUnified
             return "Recorded career: "+role+
                 "\nCareer duties (guidance): "+
                 SandboxStartingLifePolicy.CareerContract(role)+
-                "\nCurrent native political standing: "+standing+
+                "\nPolitical standing: "+standing+
                 "\nClan settlements: "+
                 (clan==null || clan.Settlements==null?"unverified":
                     clan.Settlements.Count.ToString())+
-                "\nRecorded personal oath: "+
+                "\nPersonal oath: "+
                 (knightOath.IsConfigured?knightOath.Status:"none")+
-                "\nLast recorded external service status: "+
+                "\nLast service status: "+
                 serviceCareer.Status+
                 "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
                 "\nSelected review calling: "+SelectedReviewRole()+

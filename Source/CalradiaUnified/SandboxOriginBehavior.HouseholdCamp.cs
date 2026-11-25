@@ -79,7 +79,7 @@ namespace CalradiaUnified
         {
             if(!agencyDecisions.HasPending)
                 return "No one has a pending private petition. "+
-                    "Speak to your actual companions and grown family "+
+                    "Speak to companions and adult family "+
                     "members to learn what matters to them.";
             var person=ResolveCampaignHero(
                 agencyDecisions.PendingHeroId);
@@ -91,7 +91,7 @@ namespace CalradiaUnified
             string where=place!=null?place.Name.ToString():
                 person.PartyBelongedTo!=null?
                     person.PartyBelongedTo.Name.ToString():
-                    "location not verified";
+                    "location unknown";
             var story=petitionStories.For(person.StringId);
             return person.Name+": "+PetitionConcern(agencyDecisions.PendingKind)+
                 "\nLast known location: "+where+
@@ -147,7 +147,7 @@ namespace CalradiaUnified
             ShowNativeDetail(person.Name+" | Traveling household",
                 "Age "+(int)person.Age+
                 "\nCurrent duty: "+DossierOfficerLabel(person)+
-                "\nNative party: "+MobileParty.MainParty.Name+
+                "\nParty: "+MobileParty.MainParty.Name+
                 "\nStanding with you: "+
                 Hero.MainHero.GetRelation(person)+
                 "\n"+SocialBondDescription(person)+

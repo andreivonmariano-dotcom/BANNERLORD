@@ -195,7 +195,7 @@ namespace CalradiaUnified
                     owned && seat.IsUnderSiege,SandboxKingNativeMinistry.VerifiedGovernor(speaker),variant);
                 if(focus.Length>0)reply+=" "+focus;
                 string skills=NativeOfficerSkills(speaker,office);
-                if(skills.Length>0)reply+=" Current native level: "+speaker.Level+". Office skills: "+skills+". ";
+                if(skills.Length>0)reply+=" Level: "+speaker.Level+". Skills: "+skills+". ";
                 if(ExistingCourtDuty(speaker).Length==0)
                 {
                     int reports=householdDuties.ReportCount(office);
@@ -509,9 +509,9 @@ namespace CalradiaUnified
                     int consultations=livingPersons.Events.Count(e=>e.Kind=="CourtDutyConsulted" &&
                         e.Actor==officer.StringId && e.Target==Hero.MainHero.StringId &&
                         e.Detail.StartsWith("office="+title+"|day=",StringComparison.Ordinal));
-                    text+="\n"+title+": "+officer.Name+" | recent recorded consultations: "+consultations;
+                    text+="\n"+title+": "+officer.Name+" | recent consultations: "+consultations;
                 }
-            text+="\nSpeak with one of your actual companions "+
+            text+="\nSpeak to a companion "+
                 "in person to appoint an officer. Existing court officers retain their own titles. "+
                 "Reports can be discussed repeatedly; formal receipts are limited by day. "+
                 "The Steward reports from a real owned "+

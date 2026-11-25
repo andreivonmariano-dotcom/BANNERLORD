@@ -256,7 +256,7 @@ namespace CalradiaUnified
                     case "NativeMarriageObserved":
                         if(actor==player.Spouse && actor.Spouse==player)return "We are married, and I value the chance to speak without ceremony.";
                         break;
-                    case "VerifiedSiblingComradeship":return "We spent time in the same company. Those days are part of our history.";
+                    case "VerifiedSiblingComradeship":return "We have marched together.";
                     case "PersonalAudienceAnswered":return "We have had a private audience before. We need not settle everything in one sitting.";
                     case "PersonalDialogueChoice":
                         var fields=sharedEvent.Detail.Split('|');
@@ -408,7 +408,7 @@ namespace CalradiaUnified
                     break;
                 case "Service":
                     answer=IsPersonalChargeActive()?ChargeDescription()+
-                        " I would judge our progress by what we have actually done.":
+                        " Judge us by our deeds.":
                         "We have agreed no particular charge. I would rather choose a duty we can carry out than make a grand promise.";
                     break;
                 case "Standing":
@@ -429,7 +429,7 @@ namespace CalradiaUnified
                     var ambition=characterAgendas.Get(actor.StringId);
                     string goal=ambition==null?"":ambition.Goal;
                     answer=office=="MasterOfArms" || office=="Marshal" || office=="Kingsguard"?
-                        "Judge my service by the duties I actually carry out. I would rather earn your confidence than be praised for my title.":
+                        "Let my deeds speak for me, not my title.":
                         goal=="BuildTradingContacts" || goal=="EstablishLivelihood"?
                         "I want to build a livelihood of my own. I would start with a modest undertaking, not put our whole household's silver at risk.":
                         goal=="GainMilitaryTraining"?
@@ -439,7 +439,7 @@ namespace CalradiaUnified
                         goal=="DefendClanStanding" || goal=="PreserveFamilyPosition"?
                         "I want our house to be respected for keeping its word. I would not purchase a reputation with empty promises.":
                         goal=="MapSafePassages"?
-                        "I would learn which roads are safe through actual travel, not trust every rumor of danger.":
+                        "I would see the roads for myself before trusting rumor.":
                         goal=="KeepCompanyTogether"?
                         "I want our company to remain together. I would rather hear what our people need than demand blind obedience.":
                         tone=="Prudent"?"I would take a small step I can sustain rather than make a promise beyond my means.":

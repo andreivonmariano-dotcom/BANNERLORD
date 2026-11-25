@@ -42,7 +42,7 @@ namespace CalradiaUnified
             var founder=manager==null?null:manager.GetObject<Hero>(founderId);
             var clan=Clan.All.FirstOrDefault(c=>c!=null && c.StringId==clanId);
             if(founder==null || clan==null || clan.IsEliminated)
-            {ShowNativeDetail("Dynastic branches","The founding household cannot currently be verified.");return;}
+            {ShowNativeDetail("Dynastic branches","The founding household is unknown.");return;}
             var siblings=new SandboxLordSuccessionPolicy.Candidate[0];
             if(founder.Father!=null && founder.Mother!=null &&
                 founder.Father.Children!=null && founder.Mother.Children!=null &&
@@ -58,7 +58,7 @@ namespace CalradiaUnified
                 NativeHeroDisplayName(x.Person.Id)+(x.Person.Minor?" (minor)":"")).ToArray();
             ShowNativeDetail("Dynastic branches",
                 (lines.Length==0?"No verified living same-clan relatives found.":String.Join("\n",lines))+
-                "\nBounded native family review, not a legal succession order. "+
+                "\nFamily claims, not a succession decree. "+
                 "Direct-child inheritance preference remains separate. No crown, fief or regency is assigned.");
         }
 
@@ -163,15 +163,15 @@ namespace CalradiaUnified
                     ShowNativeDetail("Lord household | Inheritance",
                         "Lord household custom: "+
                         lordInheritance.Rule+
-                        (current?". First living verified child: ":". Last recorded first child: ")+
+                        (current?". First living child: ":". Last recorded first child: ")+
                         NativeHeroDisplayName(
                             lordInheritance.PrimaryHeirId)+
-                        (current?". Current clan leader: ":". Last verified clan leader: ")+
+                        (current?". Current clan leader: ":". Last known clan leader: ")+
                         NativeHeroDisplayName(
                             lordInheritance.NativeLeaderId)+
-                        ". "+(current?"Native status: ":"Last recorded status: ")+lordInheritance.Status+
+                        ". "+(current?"Status: ":"Last recorded status: ")+lordInheritance.Status+
                         (current?"":". Current clan state unavailable; last observation day "+lordInheritance.LastObservedDay)+
-                        (current?". Ranked living children: ":". Last recorded child order: ")+
+                        (current?". Living heirs: ":". Last recorded child order: ")+
                         NativeHeroDisplayNames(
                             lordInheritance.RankedHeirIds)+
                         ". A minor has no automatic regent. "+

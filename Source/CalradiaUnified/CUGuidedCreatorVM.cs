@@ -176,7 +176,7 @@ namespace CalradiaUnified
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","ScenarioVariant",
                     "World variation",
-                    "Choose the native Alternate Calradia variant.",
+                    "Choose a world variation.",
                     choices:new[]{"alternativecalradiadefault",
                         "alternativecalradiafractured",
                         "alternativecalradiashattered"}));
@@ -185,19 +185,19 @@ namespace CalradiaUnified
                     "Use -1 for a random seed. Exact changes require world restart.",
                     "number",min:-1,max:2000000000,advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartFastMode",
-                    "Fast campaign mode","Optional native world modifier.",
+                    "Fast campaign mode","",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartBanditSurge",
-                    "Bandit surge","Optional native world modifier.",
+                    "Bandit surge","",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartCivilUnrest",
-                    "Civil unrest","Optional native world modifier.",
+                    "Civil unrest","",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartRecruitShortage",
-                    "Recruit shortage","Optional native world modifier.",
+                    "Recruit shortage","",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartSwiftTravel",
-                    "Swift travel","Optional native world modifier.",
+                    "Swift travel","",
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
@@ -213,7 +213,7 @@ namespace CalradiaUnified
                     "Native wages apply; CU adds no separate reimbursement.", "boolean"));
                 list.Add(new Field("CHAPTER II | YOUR COMPANION",
                     "WandererCompanionName","Companion name",
-                    "A unique named native Hero, not a random hired wanderer.",
+                    "Name your companion.",
                     "text"));
                 list.Add(new Field("CHAPTER II | YOUR COMPANION",
                     "WandererCompanionAge","Companion age",
@@ -268,7 +268,7 @@ namespace CalradiaUnified
                     "Spouse age","Ages must permit the selected children.",
                     "number",min:18,max:70,advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseGender",
-                    "Spouse gender","Auto chooses the opposite of the player's sex. Native marriage rules apply.",
+                    "Spouse gender","Auto selects the opposite sex.",
                     choices:(profile.LordGuidedStart || profile.KingGuidedStart)?
                         (Hero.MainHero==null?new[]{"Auto"}:
                             new[]{"Auto",Hero.MainHero.IsFemale?"Male":"Female"}):
@@ -285,7 +285,7 @@ namespace CalradiaUnified
                     "text",advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","SpouseCulture",
                     "Spouse's culture",
-                    "Leave blank to inherit the player's actual culture.",
+                    "Leave blank to share your culture.",
                     choices:new[]{"","vlandia","sturgia","battania",
                         "empire","aserai","khuzait"},advanced:true));
                 list.Add(new Field("CHAPTER III | YOUR HOUSE","ChildCount",
@@ -389,7 +389,7 @@ namespace CalradiaUnified
                 // Review the CU-only household plan, not a replacement
                 // for the game's native final character review.
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","HouseholdPreview",
-                    "Review your household plan",
+                    "Household review",
                     "Review your family, retinue and starting possessions.",
                     "review"));
             }
@@ -861,8 +861,8 @@ namespace CalradiaUnified
             if(preCampaign || Current==null || Current.Key!="HouseholdPreview")return;
             try
             {
-                InformationManager.ShowInquiry(new InquiryData("Proposed household",
-                    profile.HouseholdPreview(ActualFounderAge),true,false,"Return to editor",null,()=>{},null),true);
+                InformationManager.ShowInquiry(new InquiryData("Household plan",
+                    profile.HouseholdPreview(ActualFounderAge),true,false,"Back",null,()=>{},null),true);
                 DiagnosticJournal.Event("cu_household_preview_opened","role="+profile.Role+
                     "|children="+profile.ChildCount+"|siblings="+profile.SiblingCount+"|native_grants=false");
             }
@@ -1563,7 +1563,7 @@ namespace CalradiaUnified
                         case "Lord":return "Serve as a landed vassal.\nRealm: "+kingdom+
                             "\nRetinue: Master of Arms and Knight\nFamily: spouse and at least one child";
                         case "Knight":return "Swear service to a lord.\nPatron's kingdom: "+kingdom+
-                            "\nRetinue: Squire\nMuster every 30 days.\nNo starting fief.";
+                            "\nRetinue: Squire\n30-day muster.\nNo starting fief.";
                         case "Soldier":return "Enlist in a lord's army.\nKingdom: "+kingdom+
                             "\nStarting rank: Recruit\nRequires Serve as Soldier.";
                         case "Mercenary":return "Lead a company for hire.\nContract kingdom: "+kingdom+

@@ -17,7 +17,7 @@ namespace CalradiaUnified
             var player=Hero.MainHero;
             var clan=Clan.PlayerClan;
             if(patron==null || player==null || clan==null)
-                return "Unverified sworn service";
+                return "Oath unconfirmed";
             return SandboxKnightStandingPolicy.Standing(
                 player.GetRelation(patron),clan.Renown,
                 knightServiceOrders.PatronId==patron.StringId?knightServiceOrders.CompletedOrders:0,
@@ -280,7 +280,7 @@ namespace CalradiaUnified
                 "cu_knight_order_scout_reply",
                 "cu_knight_order_scout_reply",
                 "close_window",
-                "Report what you actually find. I have "+
+                "Tell me what you find. I have "+
                 "no need of tales you cannot witness.",
                 null,null,100);
             starter.AddPlayerLine(
