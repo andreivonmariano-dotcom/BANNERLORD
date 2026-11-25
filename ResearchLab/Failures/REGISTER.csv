@@ -5,3 +5,4 @@ F003,execution,CORRECTED,Local execution policy blocked Probe-Native.ps1,Reviewe
 F004,gameplay,OPEN,Repetitive dialogue and nominal titles lack practical decisions,Require situation choice action consequence and player critique,MOD_IMPLEMENTATION_STUDIES.md,Useful native-tested prototype pending
 F005,interface,OPEN,Debug receipts and redundant reports visible in ordinary play,Separate diagnostics and player-facing actions,MOD_IMPLEMENTATION_STUDIES.md,Actual visual repair pending
 F006,evidence,OPEN,Native receipts do not establish useful gameplay,Separate native readback and repeated player acceptance,MOD_IMPLEMENTATION_STUDIES.md,No accepted production improvement
+F007,design,OPEN,Market gold transfer is not native construction reserve funding,Hold L001 and use native reserve controls; verify actual downstream effect,Engine/MARKET_AND_GOVERNOR_MODELS.md,No player-facing treasury feature approved

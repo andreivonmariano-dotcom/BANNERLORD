@@ -5,3 +5,5 @@
 2026-11-25 | R003 | Lord critique F004-F006: shallow dialogue, nominal offices, debug receipts. Research-first freeze.
 2026-11-25 | R004 | Indexed knowledge system, domain records, failure register, handoff and templates. No new engine observation or gameplay test.
 Append exact evidence anchor, lesson, applicability and unresolved question after every milestone.
+2026-11-25 | ENG-002 | Installed static scan 31,592 bodies; market gold vs separate native construction reserve; default governor perk presence checks and real model paths. F007 open; hold L001. See Engine/MARKET_AND_GOVERNOR_MODELS.md.
+2026-11-25 | L002 | Read-only governor/market/reserve/project observer compiled locally, exact source 1f973e2054459b3cc60610c4bc6280cfc50df8be. Native NOT_RUN. No production edits.
