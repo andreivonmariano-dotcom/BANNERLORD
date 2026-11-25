@@ -151,6 +151,7 @@ namespace CalradiaUnified
             if(player.GetRelation(actor)<0 || ObservedStandingShift(player,actor)!=0)candidates.Add("Standing");
             if(player.GetRelation(actor)>=50 && livingPersons.SharedConversationMemory(player.StringId,actor.StringId)!=null)
                 candidates.Add("Standing");
+            if(actor==player.Spouse && actor.Spouse==player && RecentFamilyNews(player,actor).Length>0)candidates.Add("Family");
             if(actor==player.Spouse && actor.Spouse==player && player.Children!=null &&
                 player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f &&
                     (h.Father==actor || h.Mother==actor)))candidates.Add("Family");
@@ -806,6 +807,28 @@ namespace CalradiaUnified
             MBTextManager.SetTextVariable("CU_EDUCATION_REPLY",new TextObject(educationReply));
             return true;
         }
+        // Use actual co-parent identity, not the household roster or an
+        // invented birth date. The observer records transitions, not ceremonies.
+        private string RecentFamilyNews(Hero player,Hero actor)
+        {
+            if(player==null || actor==null || actor!=player.Spouse || actor.Spouse!=player)return "";
+            int day=CurrentHouseholdDay();
+            if(SandboxLivingPersons.ObservedFamilyPresence(player,actor)=="Together" &&
+                livingPersons.RecentFamilyChange(player.StringId,actor.StringId,"Presence",day)=="Reunited")
+                return player.GetRelation(actor)<0?"We are together again, though we still have matters to settle.":
+                    "It is good to be together again after our time apart.";
+            if(player.Children==null)return "";
+            var children=player.Children.Where(h=>h!=null && h.IsAlive &&
+                (h.Father==player || h.Mother==player) && (h.Father==actor || h.Mother==actor)).ToArray();
+            foreach(var child in children)
+                if(child.Age>=18f && livingPersons.RecentFamilyChange(player.StringId,child.StringId,"Age",day)=="Matured")
+                    return child.Name+" has grown to adulthood. Let us hear what they want for their own future.";
+            foreach(var child in children)
+                if(child.Age>=0f && child.Age<1f && livingPersons.Events.Any(e=>
+                    e.Kind=="NativeHouseholdMemberObserved" && e.Actor==child.StringId && e.Target==player.StringId))
+                    return child.Name+" is still an infant. We have much to arrange for the years ahead.";
+            return "";
+        }
         private bool PreparePersonalTopic(string topic)
         {
             var actor=Hero.OneToOneConversationHero;
@@ -837,6 +860,9 @@ namespace CalradiaUnified
                         player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f))
                         reply="The young ones are growing. "+
                             SandboxPetitionVoicePolicy.Opinion(tone,"Family");
+                    else if(CanDiscussHouseholdDuty() && NativeHouseholdAssignment(actor).Length>0)
+                        reply="My current duty is "+NativeHouseholdAssignment(actor)+". "+
+                            SandboxPetitionVoicePolicy.Opinion(tone,"Service");
                     else reply="There is nothing urgent I can tell you just now.";
                 }
                 else if(topic=="Standing")
@@ -915,6 +941,8 @@ namespace CalradiaUnified
                         "We have no living children of our own.":"You have no living children of your own."):
                         (actor==player.Spouse?"Our family":"Your family")+" has "+children+
                         " children living. "+(young>0?"The younger ones still need care.":"They have their own lives to lead.");
+                    string familyNews=RecentFamilyNews(player,actor);
+                    if(familyNews.Length>0)reply=familyNews+" "+reply;
                     if(actor==player.Spouse && children>0)reply+=" Let us discuss how we provide for them.";
                     if(player.Children!=null)
                     {

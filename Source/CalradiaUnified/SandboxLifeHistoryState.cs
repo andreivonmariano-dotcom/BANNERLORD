@@ -84,6 +84,47 @@ namespace CalradiaUnified
             return Remember("NativeMarriageObserved",hero,spouse,
                 "native_marriage_seen=true|date_not_established");
         }
+        // A saved native observation, not a reconstructed event date. If an
+        // old sample is evicted, the next observation is only a new baseline.
+        public bool ObserveFamilyState(string player,string relative,string track,string value,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(relative) ||
+                player==relative || player.Length>80 || relative.Length>80 ||
+                day<0 || day>2000000 ||
+                !(track=="Age" && (value=="Minor" || value=="Adult") ||
+                  track=="Presence" && (value=="Together" || value=="Apart")))return false;
+            string kind="NativeFamily"+track+"Observed";
+            var previous=Events.LastOrDefault(e=>e.Kind==kind && e.Actor==player && e.Target==relative);
+            var fields=previous==null?new string[0]:previous.Detail.Split('|');
+            int priorDay;
+            bool known=fields.Length==3 && fields[0].StartsWith("state=",StringComparison.Ordinal) &&
+                fields[1].StartsWith("day=",StringComparison.Ordinal) &&
+                Int32.TryParse(fields[1].Substring(4),out priorDay) && priorDay<=day;
+            if(previous!=null && !known)return false;
+            if(known && fields[0]=="state="+value)return false;
+            // An adult never becomes a minor in this observational history.
+            if(known && track=="Age" && fields[0]=="state=Adult")return false;
+            string change=!known?"Baseline":track=="Age"?"Matured":value=="Together"?"Reunited":"Separated";
+            return Remember(kind,player,relative,"state="+value+"|day="+day.ToString(
+                System.Globalization.CultureInfo.InvariantCulture)+"|change="+change);
+        }
+        public string RecentFamilyChange(string player,string relative,string track,int day)
+        {
+            if(String.IsNullOrWhiteSpace(player) || String.IsNullOrWhiteSpace(relative) ||
+                player==relative || (track!="Age" && track!="Presence") || day<0)return "";
+            var last=Events.LastOrDefault(e=>e.Kind=="NativeFamily"+track+"Observed" &&
+                e.Actor==player && e.Target==relative);
+            if(last==null)return "";
+            var fields=last.Detail.Split('|');
+            int observed;
+            if(fields.Length!=3 || !fields[1].StartsWith("day=",StringComparison.Ordinal) ||
+                !Int32.TryParse(fields[1].Substring(4),out observed) || observed<0 ||
+                (long)day-observed<0 || (long)day-observed>=7)return "";
+            if(track=="Age" && fields[0]=="state=Adult" && fields[2]=="change=Matured")return "Matured";
+            if(track=="Presence" && fields[0]=="state=Together" && fields[2]=="change=Reunited")return "Reunited";
+            if(track=="Presence" && fields[0]=="state=Apart" && fields[2]=="change=Separated")return "Separated";
+            return "";
+        }
         public Event[] RecentFor(string hero,int limit)
         {
             if(String.IsNullOrWhiteSpace(hero) || limit<=0)return new Event[0];

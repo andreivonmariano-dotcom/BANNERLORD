@@ -24,6 +24,38 @@ internal static class Program
     }
     private static void Main()
     {
+        var familyTransitions=new SandboxLifeHistoryState();
+        Check("family maturity baseline is not a birth or adulthood event",
+            familyTransitions.ObserveFamilyState("parent","child","Age","Minor",10) &&
+            familyTransitions.RecentFamilyChange("parent","child","Age",10)=="" &&
+            !familyTransitions.ObserveFamilyState("parent","child","Age","Minor",11));
+        Check("family adulthood requires prior minor observation and stays owner scoped",
+            familyTransitions.ObserveFamilyState("parent","child","Age","Adult",20) &&
+            familyTransitions.RecentFamilyChange("parent","child","Age",20)=="Matured" &&
+            familyTransitions.RecentFamilyChange("successor","child","Age",20)=="" &&
+            !familyTransitions.ObserveFamilyState("parent","child","Age","Minor",21));
+        Check("family presence requires known states and distinguishes baseline and reunion",
+            !familyTransitions.ObserveFamilyState("parent","spouse","Presence","Unknown",10) &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Together",10) &&
+            familyTransitions.RecentFamilyChange("parent","spouse","Presence",10)=="" &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Apart",11) &&
+            familyTransitions.RecentFamilyChange("parent","spouse","Presence",11)=="Separated" &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Together",15));
+        var familyRoundTrip=SandboxLifeHistoryState.Parse(familyTransitions.Serialize());
+        Check("family transition survives existing schema and expires without replay",
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",15)=="Reunited" &&
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",22)=="" &&
+            !familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Together",22) &&
+            !familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Apart",14));
+        var oldFamily=new SandboxLifeHistoryState();
+        Check("first observed adult is not a new adulthood event",
+            oldFamily.ObserveFamilyState("parent","adult","Age","Adult",25) &&
+            oldFamily.RecentFamilyChange("parent","adult","Age",25)=="");
+        for(int familyNoise=0;familyNoise<SandboxLifeHistoryState.MaxEvents;familyNoise++)
+            familyRoundTrip.Remember("Unrelated","other","","");
+        Check("evicted family sample starts a new baseline without invented reunion",
+            familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Together",30) &&
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",30)=="");
         Check("distant letters require known adult trusted contact and a known place",
             SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,10) &&
             !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,false,true,90) &&

@@ -277,7 +277,19 @@ namespace CalradiaUnified
                     life.Remember("NativeHouseholdMemberObserved",person.StringId,
                         player.StringId,"station="+station+"|date_of_joining_not_assumed=true");
                 }
-                if(spouse)life.ObserveMarriage(player.StringId,person.StringId,true);
+                int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+                if(spouse)
+                {
+                    life.ObserveMarriage(player.StringId,person.StringId,true);
+                    string presence=ObservedFamilyPresence(player,person);
+                    if(presence.Length>0 && life.ObserveFamilyState(player.StringId,person.StringId,"Presence",presence,day))
+                        DiagnosticJournal.Event("cu_family_presence_observed",
+                            "player="+player.StringId+"|relative="+person.StringId+"|state="+presence+"|day="+day+"|sample_not_event_date=true");
+                }
+                if(child && life.ObserveFamilyState(player.StringId,person.StringId,"Age",
+                    person.Age<18f?"Minor":"Adult",day))
+                    DiagnosticJournal.Event("cu_family_age_observed",
+                        "player="+player.StringId+"|relative="+person.StringId+"|adult="+(person.Age>=18f)+"|day="+day+"|sample_not_event_date=true");
                 if(child)
                 {
                     if(person.Father==player)
@@ -295,6 +307,18 @@ namespace CalradiaUnified
                         occupation,culture,clanId);
                 }
             }
+        }
+
+        // Party co-membership or actual current settlements only. A missing
+        // location, home assignment or last-known settlement is not separation.
+        internal static string ObservedFamilyPresence(Hero player,Hero relative)
+        {
+            if(player==null || relative==null || player==relative || !player.IsAlive ||
+                !relative.IsAlive || !player.IsActive || !relative.IsActive ||
+                player.IsPrisoner || relative.IsPrisoner)return "";
+            if(player.PartyBelongedTo!=null && player.PartyBelongedTo==relative.PartyBelongedTo)return "Together";
+            if(player.CurrentSettlement==null || relative.CurrentSettlement==null)return "";
+            return player.CurrentSettlement==relative.CurrentSettlement?"Together":"Apart";
         }
 
         internal static void ObserveAgenda(SandboxLifeHistoryState life,
