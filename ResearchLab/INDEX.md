@@ -12,3 +12,4 @@ Evidence anchor 29d8233ea33404904df4fc829401c8c6a1106fa8; compiled L001 source f
 - [AI-001 character motivations and decision ownership](Engine/NPC_DECISIONS.md), [QST-001 quests and personal obligations](Engine/QUESTS_AND_OBLIGATIONS.md). External/production source studied; installed verification pending.
 - [AI-002 installed AI and persuasion](Engine/NATIVE_AI_MODELS.md), [QST-002 installed quest lifecycle](Engine/NATIVE_QUEST_LIFECYCLE.md). Static installed verification completed; native gameplay NOT_RUN.
 - [SAV-002 native save registration](Persistence/NATIVE_SAVE_REGISTRATION.md), [CON-001 native conversations](Engine/NATIVE_CONVERSATIONS.md), [DUT-001 companion duties](Engine/COMPANION_DUTIES.md). Installed static findings; no native test.
+- [DUT-002 delegated issue mechanics](Engine/DELEGATED_ISSUES.md); [D001 control campaign](ControlCampaigns/D001.md). Static trace and staged profile verified; gameplay pending.
