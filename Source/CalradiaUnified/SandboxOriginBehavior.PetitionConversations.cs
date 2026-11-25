@@ -153,6 +153,9 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            starter.AddPlayerLine("cu_petition_hear_concern","cu_personal_followup_choices",
+                "cu_petition_open","Tell me the request you wished to make.",
+                ()=>CanFollowPersonalTopic() && personalTopicName=="Concerns" && SpeakingWithPendingPetitioner(),null,116);
             starter.AddPlayerLine(
                 "cu_petition_hear_pending","cu_personal_matters_topics",
                 "cu_petition_open",

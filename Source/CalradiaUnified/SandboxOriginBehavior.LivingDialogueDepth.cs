@@ -55,7 +55,7 @@ namespace CalradiaUnified
             if(!CanSpeakSocially())return;
             var actor=Hero.OneToOneConversationHero;
             personalOpeningActor=actor.StringId;personalOpeningPlayer=Hero.MainHero.StringId;
-            personalTopicActorId="";personalTopicName="";personalReply="";personalTopicVariant=0;
+            personalTopicActorId="";personalTopicPlayerId="";personalTopicName="";personalReply="";personalTopicVariant=0;
             personalOpeningVariant=NextDialogueVariant(actor,"Greeting",3);
             personalInitiative=PersonalInitiativeTopic();
             if(personalInitiative.Length>0)NextDialogueVariant(actor,"Initiative",3);
@@ -80,7 +80,7 @@ namespace CalradiaUnified
             return true;
         }
         // Transient conversation context only. Never saved or used for rewards.
-        private string personalTopicActorId="";
+        private string personalTopicActorId="",personalTopicPlayerId="";
         private string personalTopicName="";
         private string personalReply="";
 
@@ -341,6 +341,7 @@ namespace CalradiaUnified
         {
             var actor=Hero.OneToOneConversationHero;
             personalTopicActorId=actor==null?"":actor.StringId;
+            personalTopicPlayerId=Hero.MainHero==null?"":Hero.MainHero.StringId;
             personalTopicName=topic;
             personalTopicVariant=actor!=null && CanDiscussPersonalTopic(topic)?NextDialogueVariant(actor,topic,3):0;
             personalReply="";
@@ -349,8 +350,9 @@ namespace CalradiaUnified
         private bool CanFollowPersonalTopic()
         {
             var actor=Hero.OneToOneConversationHero;
-            return actor!=null && personalTopicActorId==actor.StringId &&
-                personalTopicName.Length>0 && CanDiscussPersonalTopic(personalTopicName);
+            return actor!=null && Hero.MainHero!=null && personalTopicActorId==actor.StringId &&
+                personalTopicPlayerId==Hero.MainHero.StringId && personalTopicName.Length>0 &&
+                CanDiscussPersonalTopic(personalTopicName);
         }
 
         private string PersonalFollowUpText(bool disagree)

@@ -476,7 +476,8 @@ namespace CalradiaUnified
         }
         private bool CanFamilyGift()
         {
-            return SpeakingWithAdultFamily() &&
+            return SpeakingWithAdultFamily() && IsStandaloneSandbox() &&
+                Hero.MainHero.IsAlive && Hero.MainHero.IsActive && !Hero.MainHero.IsPrisoner &&
                 Hero.MainHero.Gold>=100 &&
                 householdDuties.CanGift(
                     Hero.OneToOneConversationHero.StringId,
@@ -513,7 +514,9 @@ namespace CalradiaUnified
                 payerBefore,player.Gold,
                 recipientBefore,recipient.Gold,100);
             DiagnosticJournal.Event("cu_family_native_household_gift",
-                "recipient="+recipient.StringId+
+                "payer="+player.StringId+"|recipient="+recipient.StringId+"|day="+day+
+                "|payer_before="+payerBefore+"|payer_after="+player.Gold+
+                "|recipient_before="+recipientBefore+"|recipient_after="+recipient.Gold+
                 "|amount_requested=100"+
                 "|native_result="+proof+
                 "|no_automatic_salary_or_free_gold=true");
@@ -540,6 +543,14 @@ namespace CalradiaUnified
                 ()=>PrepareFamilyConversationReply(),null,110);
             starter.AddDialogLine("cu_family_house_audience_reply_cu_safe_exit","cu_family_house_audience_reply",
                 "close_window","We can speak again another time.",null,null,1);
+            starter.AddPlayerLine("cu_family_visit_from_topic","cu_personal_followup_choices",
+                "cu_family_house_audience_reply","Let us spend some time together.",
+                ()=>CanFollowPersonalTopic() && personalTopicName=="Family" && SpeakingWithAdultFamily(),
+                ()=>DiscussFamilyAffairs(),115);
+            starter.AddPlayerLine("cu_family_gift_from_topic","cu_personal_followup_choices",
+                "cu_family_house_gift_reply","I can spare 100 denars for your household.",
+                ()=>CanFollowPersonalTopic() && personalTopicName=="Family" && CanFamilyGift(),
+                ()=>GiveFamilyGift(),110);
             starter.AddPlayerLine(
                 "cu_family_house_gift","cu_personal_matters_topics",
                 "cu_family_house_gift_reply",
