@@ -893,9 +893,7 @@ namespace CalradiaUnified
                         GameMenu.SwitchToMenu("cu_people_claim");
                     },false);
             }
-            // Civic actions now share this one owned-holding entry.
-            var civic=Campaign.Current==null?null:Campaign.Current.GetCampaignBehavior<CivicBehavior>();
-            if(civic!=null)civic.RegisterLocalAdministrationEntry(starter);
+            // Retired civic subsystem has no player entry in new gameplay.
             // Recoverable failures are still accessible, but never
             // occupy a separate top-level settlement option.
             starter.AddGameMenuOption("cu_household_records",

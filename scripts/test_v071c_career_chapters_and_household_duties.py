@@ -67,7 +67,7 @@ assert 'HouseholdOfficeFor(person.StringId)' in house
 assert 'officerLabelAction(officer)' in screen
 assert '"cu_household_duty_ledger"' in menu
 assert '"cu_family_native_audiences"' not in menu
-assert 'RegisterLocalAdministrationEntry(starter)' in menu
+assert 'RegisterLocalAdministrationEntry(starter)' not in menu
 assert 'CareerChronicleDescription()' in house
 assert 'ReviewDossierCalling' in house
 print("PASS v0.71c STATIC: officer appointments, real family meetings, "+

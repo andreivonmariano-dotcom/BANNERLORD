@@ -211,7 +211,7 @@ assert 'Capacity=96' in variety and 'Entries.RemoveAt(0)' in variety
 assert 'Seed+"|"+player+"|"+speaker+"|"+topic' in variety
 assert 'e.Player==player && e.Speaker==speaker && e.Topic==topic' in variety
 assert 'store.SyncData("CU_dialogue_variety_1",ref variety);' in origin
-assert '()=>CanSpeakSocially(),()=>BeginPersonalConversation(),105' in depth
+assert '()=>CanDiscussPersonalMatters() || SpeakingWithPendingPetitioner(),()=>BeginPersonalConversation(),105' in depth
 assert 'personalOpeningVariant=NextDialogueVariant(actor,"Greeting",3);' in depth
 assert 'NextDialogueVariant(actor,topic,3)' in depth
 assert 'personalInitiative=PersonalInitiativeTopic();' in depth
@@ -239,7 +239,7 @@ assert 'observed.Target==player.StringId' in director and 'observed.Actor==playe
 assert 'characterAgendas.Get(actor)==null' in director
 assert 'storyDirector.CanDiscuss(player.StringId,actor.StringId,CurrentHouseholdDay())' in director
 assert 'CanFollowPersonalTopic() && CanDiscussStory(personalTopicName)' in director
-assert '()=>AnswerStory(response),110' in depth
+assert '()=>AnswerStory(response),110' not in depth # repetitive narrative reply choices retired
 assert 'MotiveWords(goal,tone,relation' in depth
 assert 'PeerInterval(storyDirector.Detail)' in peer and 'day%interval!=0' in peer
 assert 'MaxReceipts=24' in directorstate

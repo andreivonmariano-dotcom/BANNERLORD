@@ -24,9 +24,8 @@ namespace CalradiaUnified
 
         public override void RegisterEvents()
         {
-            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, DailyTick);
-            CampaignEvents.DailyTickPartyEvent.AddNonSerializedListener(this, OnPartyTick);
+            // Save migration only. No daily mutations, advisory scans or active civic UI.
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RegisterRetiredCivicExits);
         }
         public override void SyncData(IDataStore store)
         {
@@ -38,6 +37,22 @@ namespace CalradiaUnified
                 + " shipments=" + state.Shipments.Count + ". Review a real save/reload for persistence.");
         }
 
+        private void RegisterRetiredCivicExits(CampaignGameStarter starter)
+        {
+            if(starter==null)return;
+            // Preserve a way out of a menu referenced by an older save.
+            // Do not expose these menus from new gameplay or register old transactions.
+            foreach(string menu in new[]{"cu_civic_administration","cu_civic_stores","cu_civic_garrison","cu_civic_correspondence"})
+            {
+                string id=menu;
+                starter.AddGameMenu(id,"This old CU administration menu has been retired. Use the settlement's existing management systems.",args=>{});
+                starter.AddGameMenuOption(id,"cu_retired_exit_"+id,"Return to settlement",
+                    args=>true,args=>GameMenu.ExitToLast(),true);
+            }
+        }
+
+        // Historical implementation retained as source for save-state inspection only.
+        // Not subscribed to any event in the complementary build.
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             if (starter == null) return;

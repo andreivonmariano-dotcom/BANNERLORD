@@ -43,7 +43,8 @@ assert 'party.MemberRoster.GetTroopRoster()' in camp
 assert 'person.PartyBelongedTo!=party' in camp
 assert 'person.Age<18f' in camp
 assert 'GameMenu.ExitToLast()' in camp
-assert 'ShowHouseholdDutyLedger()' in camp
+assert 'ShowHouseholdDutyLedger()' not in camp # duplicate menu removed; illustrated roster retains officer tab
+assert 'CampOfficerText()' in camp
 assert 'CareerChronicleDescription()' in camp
 assert 'OpenCampaignAffairs()' in camp
 assert not (source/"CUHouseholdCampMissionLogic.cs").exists()

@@ -65,16 +65,6 @@ namespace CalradiaUnified
 
 
 
-        [SettingPropertyBool("Player-clan advisory",Order=5,
-            RequireRestart=true,
-            HintText="Display read-only clan and settlement advice.")]
-        [SettingPropertyGroup("Campaign")]
-        public bool EnableNpcAdvisory
-        {
-            get=>Read("EnableNpcAdvisory");
-            set=>Set("EnableNpcAdvisory",value);
-        }
-
 
     }
 }

@@ -16,7 +16,8 @@ lord=read("SandboxOriginBehavior.LordInheritance.cs")
 king=read("SandboxOriginBehavior.KingSuccession.cs")
 council=read("SandboxOriginBehavior.KingCouncil.cs")
 assert '"cu_civic_admin_entry_local"' in civic
-assert 'RegisterLocalAdministrationEntry(starter)' in living
+assert 'RegisterLocalAdministrationEntry(starter)' not in living
+assert 'AddNonSerializedListener(this, RegisterRetiredCivicExits)' in civic
 assert 'starter.AddGameMenuOption("cu_people_lineage",' in civic
 assert '"cu_civic_admin_entry_"+source' not in civic
 assert '"cu_people_lineage_entry_"+from' in living
