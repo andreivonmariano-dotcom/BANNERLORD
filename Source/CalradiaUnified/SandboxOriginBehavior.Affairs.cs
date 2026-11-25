@@ -73,7 +73,6 @@ namespace CalradiaUnified
             int count=PetitionsBelongToCurrentPlayer()?agencyDecisions.PendingCount:0;
             count+=petitionStories.Stories.Count(s=>petitionStories.CanFollowUp(s.HeroId,day) &&
                 LivingFollowUp(s.HeroId,day));
-            if(IsPersonalChargeActive())count++;
             bool oath=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId;
             if(oath && knightServiceOrders.Active &&
                 knightServiceOrders.PatronId==knightOath.PatronId)count++;
@@ -280,9 +279,9 @@ namespace CalradiaUnified
             }
             if(IsPersonalChargeActive())
                 rows.Add(new SandboxAffair{Id="charge",Category="Service",Title="Your agreed duty",
-                    Status=SelectedReviewRole()!=careerCharge.Role?"Calling changed":"Open",Pending=true,
+                    Status="Legacy personal goal",Pending=false,
                     Day=careerCharge.StartedDay,Detail=ChargeDescription()+
-                        "\nDiscuss the result with a suitable adviser, or set the plan aside in your career chronicle."});
+                        "\nOptional old goal. Set it aside in Family and records > Career history."});
             bool oath=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId;
             if(oath)
             {

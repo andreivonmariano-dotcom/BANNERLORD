@@ -71,3 +71,11 @@ assert 'householdTransferBusy=true;' in s and 'finally{householdTransferBusy=fal
 assert '"cu_household_garrison_order"' in s
 assert 'party_before='+'' in s and 'garrison_after=' in s
 assert '()=>HouseholdOrderSpeaker(),()=>ExecuteHouseholdDefenseOrder()' in s
+
+assert '!ImprovedGarrisonsOwnsRecruitment() &&' in s
+assert 'AppDomain.CurrentDomain.GetAssemblies()' in s
+assert 'ChangeGovernorAction.Apply(seat.Town,actor)' in s
+assert 'seat.Town.Governor==actor && actor.GovernorOf==seat.Town' in s
+assert 'actor.PartyBelongedTo==null' in s and 'seat.Town.Governor==null' in s
+assert 'actor.CurrentSettlement==seat' in s and 'actor.GovernorOf==null' in s
+assert 'no_teleport=true|no_incumbent_replaced=true' in s

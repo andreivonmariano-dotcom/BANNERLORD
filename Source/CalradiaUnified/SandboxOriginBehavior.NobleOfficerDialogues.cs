@@ -1,6 +1,7 @@
 using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
+using TaleWorlds.CampaignSystem.Actions;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
@@ -149,8 +150,21 @@ namespace CalradiaUnified
         // retain the existing freeze until roster conservation is witnessed.
         private static bool HouseholdOrderTrialEnabled()
         {
-            return String.Equals(Environment.GetEnvironmentVariable("CU_HOUSEHOLD_ORDER_TRIAL"),
+            // No raw CU roster edits in a process with the external garrison owner.
+            return !ImprovedGarrisonsOwnsRecruitment() &&
+                String.Equals(Environment.GetEnvironmentVariable("CU_HOUSEHOLD_ORDER_TRIAL"),
                 "1",StringComparison.Ordinal);
+        }
+        private static bool ImprovedGarrisonsOwnsRecruitment()
+        {
+            // Inspect only loaded assembly identities; no private hooks or invocation.
+            try
+            {
+                foreach(var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                    if(assembly.GetName().Name.IndexOf("ImprovedGarrisons",StringComparison.OrdinalIgnoreCase)>=0)return true;
+                return false;
+            }
+            catch{return true;}
         }
         private bool HouseholdOrderSpeaker()
         {
@@ -180,10 +194,51 @@ namespace CalradiaUnified
             }
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_ORDER_REPLY",new TextObject(reply));
         }
+        // A conversational shortcut to the native governor action, not a second governor simulation.
+        private bool CanAskResidentToGovern()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            var clan=Clan.PlayerClan;
+            var seat=Settlement.CurrentSettlement;
+            var party=MobileParty.MainParty;
+            return applied && IsStandaloneSandbox() && player!=null && player.IsAlive && !player.IsPrisoner &&
+                clan!=null && clan.Leader==player && actor!=null && actor!=player && actor.Clan==clan &&
+                actor.IsAlive && actor.IsActive && actor.Age>=18f && !actor.IsPrisoner && !actor.IsTraveling &&
+                !actor.IsFugitive && actor.GovernorOf==null && actor.PartyBelongedTo==null &&
+                actor.PartyBelongedToAsPrisoner==null && actor.GetRelation(player)>=0 &&
+                (actor==player.Spouse && actor.Spouse==player || actor.CompanionOf==clan) &&
+                seat!=null && seat.OwnerClan==clan && seat.IsFortification && !seat.IsUnderSiege &&
+                seat.Town!=null && seat.Town.Governor==null && actor.CurrentSettlement==seat &&
+                player.CurrentSettlement==seat && party!=null && party.MapEvent==null &&
+                (seat.Party==null || seat.Party.MapEvent==null);
+        }
+        private void AskResidentToGovern()
+        {
+            string reply="I cannot take that appointment just now. No change was confirmed.";
+            if(CanAskResidentToGovern())
+            {
+                var actor=Hero.OneToOneConversationHero;
+                var seat=Settlement.CurrentSettlement;
+                try{ChangeGovernorAction.Apply(seat.Town,actor);}
+                catch(Exception error){DiagnosticJournal.Exception("cu_household_governor_action_failed",error);}
+                bool confirmed=seat.Town.Governor==actor && actor.GovernorOf==seat.Town;
+                DiagnosticJournal.Event("cu_household_native_governor_order",
+                    "result="+(confirmed?"PASS":"UNCONFIRMED")+"|actor="+actor.StringId+"|seat="+seat.StringId+
+                    "|native_action=true|no_teleport=true|no_incumbent_replaced=true");
+                if(confirmed)reply="I accept. I am now governor of "+seat.Name+". My duties are recorded in the clan screen.";
+                else reply="The appointment was not confirmed. Check the native clan screen before trying again.";
+            }
+            MBTextManager.SetTextVariable("CU_HOUSEHOLD_GOVERNOR_REPLY",new TextObject(reply));
+        }
         private void RegisterNobleOfficerConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            starter.AddPlayerLine("cu_household_governor_order","cu_personal_matters_topics","cu_household_governor_reply",
+                "Will you govern this holding for our house?",()=>CanAskResidentToGovern(),()=>AskResidentToGovern(),140);
+            starter.AddDialogLine("cu_household_governor_reply","cu_household_governor_reply","close_window",
+                "{CU_HOUSEHOLD_GOVERNOR_REPLY}",null,null,140);
             starter.AddPlayerLine("cu_household_defense_order",
                 "hero_main_options","cu_household_defense_order_reply",
                 "Station five of my local recruits in this garrison.",

@@ -541,51 +541,6 @@ namespace CalradiaUnified
             starter.AddDialogLine("cu_family_house_gift_reply_cu_safe_exit","cu_family_house_gift_reply",
                 "close_window","We can speak again another time.",null,null,1);
 
-            foreach(var officeName in new[]{"Steward","Captain","Envoy","ManAtArms"})
-            {
-                string office=officeName;
-                starter.AddPlayerLine(
-                    "cu_household_appoint_"+office.ToLowerInvariant(),
-                    "cu_personal_matters_topics","cu_household_appoint_reply_"+
-                    office.ToLowerInvariant(),
-                    "I would have you serve as "+(office=="ManAtArms"?"a man-at-arms":office)+
-                    " in my household.",
-                    ()=>CanAppointHouseholdCompanion(office),
-                    ()=>AppointHouseholdCompanion(office),100);
-                starter.AddDialogLine(
-                    "cu_household_appoint_reply_"+
-                        office.ToLowerInvariant(),
-                    "cu_household_appoint_reply_"+
-                        office.ToLowerInvariant(),
-                    "cu_personal_matters_topics",
-                    "{CU_APPOINTMENT_REPLY}",
-                    ()=>PrepareAppointmentReply(),null,100);
-            starter.AddDialogLine("cu_household_appoint_reply__cu_safe_exit"+
-                        office.ToLowerInvariant(),"cu_household_appoint_reply_"+
-                        office.ToLowerInvariant(),
-                "close_window","We can speak again another time.",null,null,1);
-            }
-            starter.AddPlayerLine("cu_retainer_enroll","cu_personal_matters_topics","cu_retainer_reply",
-                "Let us put your service on record.",()=>CanEnrollRetainer(),()=>EnrollRetainer(),108);
-            foreach(var rankName in new[]{"Sergeant","Squire","Knight"})
-            {
-                string rank=rankName;
-                starter.AddPlayerLine("cu_retainer_promote_"+rank.ToLowerInvariant(),"cu_personal_matters_topics","cu_retainer_reply",
-                    "I would have you serve as "+SandboxRetinueOfficePolicy.Profession(rank)+".",
-                    ()=>CanPromoteRetainer(rank),()=>PromoteRetainer(rank),110);
-            }
-            foreach(var wageRank in new[]{"ManAtArms","Sergeant","Squire","Knight"})
-            {
-                string payRank=wageRank;
-                starter.AddPlayerLine("cu_retainer_pay_"+payRank.ToLowerInvariant(),"cu_personal_matters_topics","cu_retainer_reply",
-                    "Here is your week's pay ("+SandboxRetainerServiceState.Wage(payRank)+" denars).",
-                    ()=>CanPayRetainer() && retainerService.Rank==payRank,
-                    ()=>{if(retainerService.Rank==payRank)PayRetainer();},109);
-            }
-            starter.AddDialogLine("cu_retainer_reply","cu_retainer_reply","cu_personal_matters_topics",
-                "{CU_APPOINTMENT_REPLY}",()=>PrepareAppointmentReply(),null,100);
-            starter.AddDialogLine("cu_retainer_reply_cu_safe_exit","cu_retainer_reply",
-                "close_window","Until next time.",null,null,1);
             starter.AddPlayerLine("cu_household_duty_release","cu_personal_matters_topics",
                 "cu_household_duty_release_reply","I release you from your household duty.",
                 ()=>CanReleaseHouseholdDuty(),()=>ReleaseHouseholdDuty(),100);
@@ -596,7 +551,7 @@ namespace CalradiaUnified
             starter.AddPlayerLine(
                 "cu_household_duty_report","cu_personal_matters_topics",
                 "cu_household_duty_report_reply",
-                "How fare your duties to our house?",
+                "Report your current assignment.",
                 ()=>CanDiscussHouseholdDuty(),
                 ()=>DiscussHouseholdDuty(),110);
             starter.AddDialogLine(

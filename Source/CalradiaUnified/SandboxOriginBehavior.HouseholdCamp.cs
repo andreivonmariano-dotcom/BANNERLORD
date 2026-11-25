@@ -186,10 +186,7 @@ namespace CalradiaUnified
         {
             if(starter==null)return;
             starter.AddGameMenu("cu_household_camp",
-                "At camp, your company gathers around its own banner. "+
-                "Consult the traveling roll, consider your service "+
-                "and make plans. Meet individual people through "+
-                "the game's real conversations.",
+                "Review your traveling household and correspondence. Speak directly with people to make decisions.",
                 args=>{});
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_roll",
@@ -197,32 +194,9 @@ namespace CalradiaUnified
                 args=>CanSetUpNativeCamp(),
                 args=>OpenIllustratedHouseholdCamp(),false);
             starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_officers",
-                "Review the duties of my companions",
-                args=>CanSetUpNativeCamp(),
-                args=>ShowHouseholdDutyLedger(),false);
-            starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_service",
-                "Consider my next duty and service",
-                args=>CanSetUpNativeCamp() &&
-                    CurrentCareerRole().Length>0,
-                args=>ShowNativeDetail("Camp | Present duties",
-                    CareerChronicleDescription()),false);
-            starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_agree_charge","Agree on my next duty",
-                args=>CanSetUpNativeCamp() &&
-                    CanBeginCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
-                args=>ShowNativeDetail("Career | New charge",
-                    AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
-            starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_withdraw_charge","Set aside my current charge",
                 args=>CanSetUpNativeCamp() && IsPersonalChargeActive(),
                 args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
-            starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_recurring_review",
-                "Review recurring career duties",
-                args=>CanSetUpNativeCamp() && SelectedReviewRole().Length>0,
-                args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_petitions",
                 "Read private correspondence",

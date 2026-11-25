@@ -499,11 +499,6 @@ namespace CalradiaUnified
             foreach(var source in new[]{"cu_people_lineage","cu_household_camp","cu_native_royal_council"})
             {
                 string parent=source;
-                starter.AddGameMenuOption(parent=="cu_people_lineage"?"cu_household_records":parent,"cu_group_entry_"+parent,
-                    parent=="cu_native_royal_council"?"Hear the council's advice":"Gather for a discussion",
-                    args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
-                        return AvailableGroupParticipants(parent).Count>=2;},
-                    args=>OpenGroupDiscussion(parent),false);
                 if(parent!="cu_household_camp")
                 {
                     starter.AddGameMenuOption(parent,"cu_group_plan_view_"+parent,"Gathering plans",
@@ -540,9 +535,6 @@ namespace CalradiaUnified
                     args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
                         return GroupOccasionAllowed(occasion);},
                     args=>BeginGroupOccasion(occasion),false);
-                starter.AddGameMenuOption("cu_group_topics","cu_group_schedule_"+occasion,"Arrange: "+words+" (in two days)",
-                    args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;return CanScheduleGathering(occasion);},
-                    args=>ScheduleGathering(occasion),false);
             }
             foreach(var subject in new[]{"Family","Defense","Livelihood","Relations"})
             {

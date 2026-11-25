@@ -580,7 +580,7 @@ namespace CalradiaUnified
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
             RegisterGroupDiscussionMenus(starter);
-            RegisterStoryDetailMenus(starter);
+            // Retired player-facing simulation-detail switch; saved story data remains readable.
             ProbeNativeGroupConversationApi();
             starter.AddGameMenu("cu_origin_main",
                 "This legacy editor is retired. Start a new Sandbox to use the guided creator.",

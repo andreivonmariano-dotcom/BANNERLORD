@@ -519,9 +519,8 @@ namespace CalradiaUnified
         {
             // The sworn patron already owns knight service orders and musters.
             // Keep old saved muster charges readable, but offer no parallel task.
-            string target;int baseline;
-            return kind!="Muster" && kind!="StrengthenGarrison" && !IsPersonalChargeActive() &&
-                TryChargeStartEvidence(kind,out target,out baseline);
+            // Personal chores are retired. Existing saves can still close their old charge.
+            return false;
         }
         private bool CanDiscussPersonalTopic(string topic)
         {
@@ -637,8 +636,7 @@ namespace CalradiaUnified
         private string AgreeCareerCharge(string kind)
         {
             string target;int baseline;
-            if(kind=="Muster")return "Speak with your sworn lord about your next service.";
-            if(kind=="StrengthenGarrison")return "Use the native garrison controls. This is not a personal quest.";
+            if(!CanBeginCareerCharge(kind))return "Personal chores are retired. Follow your actual career and existing native objectives.";
             if(!TryChargeStartEvidence(kind,out target,out baseline))return
                 "We cannot undertake that duty in our present circumstances.";
             var player=Hero.MainHero;
@@ -979,12 +977,12 @@ namespace CalradiaUnified
         {
             starter.AddPlayerLine("cu_personal_matters_open","hero_main_options",
                 "cu_personal_matters_intro","Let us speak privately for a moment.",
-                ()=>CanSpeakSocially(),()=>BeginPersonalConversation(),105);
+                ()=>CanDiscussPersonalMatters() || SpeakingWithPendingPetitioner(),()=>BeginPersonalConversation(),105);
             starter.AddDialogLine("cu_personal_matters_intro","cu_personal_matters_intro",
                 "cu_personal_matters_topics","{CU_PERSONAL_GREETING}",()=>PreparePersonalGreeting(),null,105);
             starter.AddDialogLine("cu_personal_matters_intro_cu_safe_exit","cu_personal_matters_intro",
                 "close_window","We can speak again another time.",null,null,1);
-            foreach(string topicName in new[]{"Opinions","Concerns","Ambitions","Family","Finances","Estate","Service","Standing","Memory"})
+            foreach(string topicName in new[]{"Concerns","Family","Standing"})
             {
                 string topic=topicName;
                 string question=topic=="Opinions"?"What matters most to you in life?":
@@ -1028,16 +1026,6 @@ namespace CalradiaUnified
             starter.AddPlayerLine("cu_personal_relationship_care","cu_personal_followup_choices",
                 "cu_personal_followup_reply","I value what we share.",
                 ()=>CanExpressRelationshipIntention(false),()=>ExpressRelationshipIntention(false),96);
-            foreach(string choice in new[]{"Listen","Caution","Defer","Finish"})
-            {
-                string response=choice;
-                string words=response=="Listen"?"Tell me more. I would hear your concerns.":
-                    response=="Caution"?"Take care before deciding what to do.":
-                    response=="Defer"?"Let us leave this matter here.":"How do you see the matter now?";
-                starter.AddPlayerLine("cu_personal_story_"+response,"cu_personal_followup_choices",
-                    "cu_personal_followup_reply",words,()=>CanAnswerStory(response=="Finish"),
-                    ()=>AnswerStory(response),110);
-            }
             starter.AddPlayerLine("cu_personal_followup_back","cu_personal_followup_choices",
                 "cu_personal_followup_back_reply","Let us speak of something else.",null,null,85);
             starter.AddDialogLine("cu_personal_followup_back_reply","cu_personal_followup_back_reply",
@@ -1084,18 +1072,6 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics","Very well. What else is on your mind?",null,null,80);
             starter.AddPlayerLine("cu_family_education_end","cu_family_education_choices",
                 "close_window","That is all for now.",null,null,70);
-            starter.AddPlayerLine("cu_personal_charge_agree","cu_personal_matters_topics",
-                "cu_personal_charge_reply","Let us agree on our next duty.",
-                ()=>CanOfferCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
-                ()=>chargeReply=AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),100);
-            starter.AddPlayerLine("cu_personal_charge_defend","cu_personal_matters_topics",
-                "cu_personal_charge_reply","Set a personal garrison goal (retired)",
-                ()=>CanDiscussEstateTopic() && CanOfferCharge("StrengthenGarrison"),
-                ()=>chargeReply=AgreeCareerCharge("StrengthenGarrison"),100);
-            starter.AddPlayerLine("cu_personal_charge_royal_estate","cu_personal_matters_topics",
-                "cu_personal_charge_reply","Let us visit another royal holding.",
-                ()=>CanDiscussEstateTopic() && SelectedReviewRole()=="King" && CanOfferCharge("VisitEstate"),
-                ()=>chargeReply=AgreeCareerCharge("VisitEstate"),100);
             starter.AddPlayerLine("cu_personal_charge_progress","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us review what we have accomplished.",
                 ()=>CanCounselCareer() && IsPersonalChargeActive(),

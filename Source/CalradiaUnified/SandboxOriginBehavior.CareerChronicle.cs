@@ -313,7 +313,7 @@ namespace CalradiaUnified
                 args=>{ObserveCareerChronicleDaily();});
             starter.AddGameMenuOption("cu_household_records",
                 "cu_career_chronicle_entry",
-                "Career history and personal goals",
+                "Career history",
                 args=>roleEconomy.Started &&
                     CurrentCareerRole().Length>0,
                 args=>GameMenu.SwitchToMenu(
@@ -328,27 +328,9 @@ namespace CalradiaUnified
                         CareerChronicleDescription());
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_career_charge_begin","Agree on my next duty",
-                args=>CanBeginCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole())),
-                args=>ShowNativeDetail("Career | New charge",
-                    AgreeCareerCharge(SandboxCareerChargeState.DefaultKind(SelectedReviewRole()))),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_career_charge_defend","Strengthen the garrison here",
-                args=>CanBeginCareerCharge("StrengthenGarrison"),
-                args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("StrengthenGarrison")),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_career_charge_royal_estate","Visit another royal holding",
-                args=>SelectedReviewRole()=="King" && CanBeginCareerCharge("VisitEstate"),
-                args=>ShowNativeDetail("Career | New charge",AgreeCareerCharge("VisitEstate")),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_charge_withdraw","Set aside my current charge",
                 args=>IsPersonalChargeActive(),
                 args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_career_recurring_review",
-                "Review my recurring career duties",
-                args=>SelectedReviewRole().Length>0,
-                args=>ReviewRecurringCareer(),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_lifetime_history","Read my lifetime career history",
                 args=>true,args=>ShowNativeDetail("Lifetime career",

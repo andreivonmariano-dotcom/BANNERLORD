@@ -243,7 +243,7 @@ assert '()=>AnswerStory(response),110' in depth
 assert 'MotiveWords(goal,tone,relation' in depth
 assert 'PeerInterval(storyDirector.Detail)' in peer and 'day%interval!=0' in peer
 assert 'MaxReceipts=24' in directorstate
-assert 'RegisterStoryDetailMenus(starter);' in origin
+assert 'RegisterStoryDetailMenus(starter);' not in origin
 assert 'Hero.AllAliveHeroes' not in director
 for forbidden in ("GiveGoldAction","ChangeRelationAction","MarriageAction","KillCharacterAction","DeclareWarAction","MakePeaceAction","AddToCounts","OpenConversation","StartConversation(",".Invoke("):
     assert forbidden not in director,forbidden
@@ -274,3 +274,13 @@ assert 'SandboxNativeEffectProof.GiftResult(' in negotiation and 'SandboxNativeE
 assert 'petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed")' in negotiation
 assert 'visitingParty.CurrentSettlement==seat' in group and 'person.Clan.Kingdom!=clan.Kingdom' in group
 assert 'All(h=>people.Contains(h))' in group
+
+# Complementary redesign: no new artificial ranks, chores, or read-only gatherings.
+house=(src/"SandboxOriginBehavior.HouseholdDuties.cs").read_text()
+assert '"cu_household_appoint_"+office.ToLowerInvariant()' not in house
+assert '"cu_retainer_enroll"' not in house and '"cu_retainer_pay_"+payRank.ToLowerInvariant()' not in house
+assert '"cu_personal_charge_agree"' not in depth and '"cu_personal_charge_defend"' not in depth
+assert 'new[]{"Concerns","Family","Standing"}' in depth
+assert '()=>CanDiscussPersonalMatters() || SpeakingWithPendingPetitioner()' in depth
+assert '"cu_group_entry_"+parent' not in group and '"cu_group_schedule_"+occasion' not in group
+assert 'CU_gathering_plan_1' in origin and 'CU_career_charge_1' in origin

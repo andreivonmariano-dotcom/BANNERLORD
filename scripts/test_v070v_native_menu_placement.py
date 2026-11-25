@@ -71,4 +71,4 @@ assert 'starter.AddGameMenu("cu_household_records"' in living
 for marker in ("cu_partial_family_review","cu_role_economy_observed","cu_household_duty_ledger","cu_people_open_household","cu_people_open_claim"):
     assert 'starter.AddGameMenuOption("cu_household_records",\n                "'+marker+'"' in living,marker
 assert 'settings.EnableManualGarrisonTransfers ||' in civic[civic.index("internal void RegisterLocalAdministrationEntry"):]
-assert 'kind!="StrengthenGarrison"' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+assert 'Personal chores are retired' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
