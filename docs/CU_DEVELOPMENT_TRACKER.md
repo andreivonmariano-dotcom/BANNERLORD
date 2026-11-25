@@ -32,3 +32,8 @@ Source 47cfd78f4f512a7027f49530bb7150fbcc769c62, [CI 45632715404](https://github
 ## Current playtest campaign and second cleanup
 
 [Moment-to-moment scenarios](CU_MOMENT_TO_MOMENT_GAMEPLAY.md), [seven-career campaign](CU_SEVEN_CAREER_PLAYTEST_CAMPAIGN.md), [second retirement pass](CU_SECOND_CLEANUP_PASS.md). Source f49e9242 CI/native status pending at creation. Current evidence intake script audits separate exact-hash native archives and manual observations, returning REVIEW_READY, not native PASS. No live tests executed. Prior Lord session remains historical. All seven career routes and enjoyment fields start pending.
+
+
+## Verified second cleanup candidate
+
+Source f49e924240a67ff0be0fe26b302c9a80faf78955; [CI 45634616203](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45634616203), [artifact 15031528871](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45634616203/artifacts/15031528871). Both workflows succeeded. 138 CI steps, 4,361 independent policy checks, zero warnings/errors. Conversation graph 147 registrations, 52 states, static exits pass. Inventory 194 source files, 179 compiled candidates, 58 literal save keys, same 18 literal listeners. DLL 1,115,648 bytes SHA256 c14cdaa16a65c1def2c0e5ccfd96f5f2ae427cf3aa148e848765ac6ec98bb4c3; runtime ZIP 439,392 bytes SHA256 7dafe05f4be79c245bee2ff06bf8e3168a4126166dc3023a0e8c2e149c511690. Verified actual bytes, one module, one DLL, manifest/embedded source, both CRCs and retired camp prefab absent. Gate B, not installed or native-certified. 56 additional candidate-specific rows; all native cases PENDING. Earlier records remain immutable.

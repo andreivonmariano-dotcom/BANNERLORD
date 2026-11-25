@@ -41,3 +41,23 @@ with tempfile.TemporaryDirectory() as d:
     assert a.audit(root,role,SHA,"fixture")["status"]=="BLOCKED"
     proof["start_archive"]="../start.zip";save();assert a.audit(root,role,SHA,"fixture")["status"]=="BLOCKED"
 print("PASS SYNTHETIC ONLY: current evidence intake rejects missing/mismatched DLL, reused session, changed identity, later FAIL, missing native inbox and path escape; readiness is not native PASS.")
+
+# Exercise the expected current contract for every career; the fixtures are never written to acceptance ledgers.
+with tempfile.TemporaryDirectory() as d:
+    root=Path(d)
+    for role in a.ROLES:
+        lower=role.lower()
+        rows=[("sandbox_start_contract","result=PASS|role="+role),("cu_starting_life_preflight","result=PASS"),("cu_campaign_affairs_native_open","custom_movie=false")]
+        rows.extend((ctx,"|".join(k+"="+v for k,v in req.items())) for ctx,req in a.ROLE_RECEIPTS[role])
+        if role=="Soldier":rows.append(("cu_sas_service_observed","result=external_rank_changed_observed|party_confirmed=True"))
+        if role in ("Lord","King"):rows.append(("cu_household_native_party_duty","result=PASS|native_role_confirmed=True|other_specialists_unchanged=True"))
+        make_zip(root,lower+"-start.zip",lower+"-start","20",rows)
+        make_zip(root,lower+"-reload.zip",lower+"-reload","21",[("sync_data_invoked","not_proof_of_save")])
+        for suffix in ("-before.png","-after.png"):(root/(lower+suffix)).write_bytes(b"\x89PNG\r\n\x1a\n"+b"\0\0\0\rIHDR"+struct.pack(">II",1280,720)+b"x"*1024)
+        proof={"career":role,"profile":"fixture","candidate_dll_sha256":SHA,"start_archive":lower+"-start.zip","reload_archive":lower+"-reload.zip","start_screenshot":lower+"-before.png","reload_screenshot":lower+"-after.png","save_label":"synthetic","player_id_before":lower,"player_id_after":lower,"clan_id_before":"c","clan_id_after":"c","reviewer":"fixture","actual_reload_after_quit":True,"observations":{k:"synthetic" for k in ("native_start","role_action","native_ui","post_reload","negative_case")}}
+        (root/(lower+".json")).write_text(json.dumps(proof))
+    assert all(x["status"]=="REVIEW_READY" for x in a.evaluate(root,SHA,"fixture"))
+    proof=json.loads((root/"lord.json").read_text());proof["reload_archive"]="king-reload.zip";(root/"lord.json").write_text(json.dumps(proof))
+    results={x["career"]:x for x in a.evaluate(root,SHA,"fixture")}
+    assert results["Lord"]["status"]==results["King"]["status"]=="BLOCKED"
+print("PASS SYNTHETIC ONLY: all seven role evidence contracts, verified Soldier rank transition, duplicate session rejection.")

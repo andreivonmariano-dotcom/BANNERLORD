@@ -91,7 +91,13 @@ def audit(root,role,sha,profile):
             errors.append("same-session role start contract missing or contradictory")
         if not receipt(events,"cu_starting_life_preflight",{"result":"PASS"}):errors.append("missing valid preflight")
         for ctx,expected in ROLE_RECEIPTS[role]:
-            if not receipt(events,ctx,expected):errors.append("missing/unconfirmed "+ctx)
+            if role=="Soldier" and ctx=="cu_sas_service_observed":
+                history=[fields(e["detail"]) for e in events if e["context"]==ctx]
+                initial=any(x.get("result")=="external_enlistment_verified" and x.get("party_confirmed")=="True" for x in history)
+                current=history[-1] if history else {}
+                if not initial or current.get("party_confirmed")!="True" or current.get("result") not in ("external_enlistment_verified","external_rank_changed_observed","external_duty_changed_observed"):
+                    errors.append("missing or no longer verified SaS service")
+            elif not receipt(events,ctx,expected):errors.append("missing/unconfirmed "+ctx)
         # The current acceptance UI is native InquiryData, not the retired graphical probe.
         if not any(receipt(group,"cu_campaign_affairs_native_open",{"custom_movie":"false"}) for group in (events,revents)):
             errors.append("missing current native correspondence receipt")
