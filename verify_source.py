@@ -31,7 +31,9 @@ for flag in ('EnableAutonomousClanResupply','EnableAutonomousClanRecruitTrips','
 assert 's.Culture.BasicTroop' in (src/'CivicBehavior.cs').read_text()
 behavior=(src/'KingdomAutonomyBehavior.cs').read_text()
 policy=(src/'KingdomAutonomyPolicy.cs').read_text()
-assert 'DailyTickPartyEvent' in behavior and 'SyncData' in behavior
+registration=behavior[behavior.index('public override void RegisterEvents()'):behavior.index('public override void SyncData(')]
+assert 'AddNonSerializedListener' not in registration, 'Retired autonomous AI must not subscribe to campaign events'
+assert 'CU_v060_kingdom_orders' in behavior and 'CU_v060_kingdom_day' in behavior and 'SyncData' in behavior
 assert 'party.Army != null' in behavior and 'party.MapEvent != null' in behavior
 assert 'party.CurrentSettlement != null' in behavior
 assert 'place.SiegeEvent != null' in behavior
