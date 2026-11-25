@@ -52,6 +52,7 @@ jobs:
           python scripts/test_cu_retired_runtime_migration.py
           python scripts/test_cu_development_tracker.py
           python scripts/test_cu_second_cleanup.py
+          python scripts/test_cu_current_playtest.py
       - name: Audit stabilization pass 2 existing role and creator wiring
         if: ${{ !cancelled() }}
         run: python scripts/test_cu_stabilization_pass_2.py

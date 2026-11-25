@@ -144,3 +144,6 @@ Use [CU_Six_System_Native_Test_Matrix.csv](../Data/CU_Six_System_Native_Test_Mat
 ## Design library and living tracker
 
 [Six detailed GDDs](CU_GAME_DESIGN_DOCUMENTS.md) define player loops, controls, native ownership, data contracts, negative cases and scoped next steps. [Permanent tracker](CU_DEVELOPMENT_TRACKER.md) holds all implementation, compatibility, native test, bug and candidate records. [Source retirement audit](CU_FEATURE_SOURCE_AUDIT_V2.md) documents compile exclusions and migration limits. Use these for actual current status rather than the dated baseline paragraph.
+
+
+[Practical gameplay scenarios](CU_MOMENT_TO_MOMENT_GAMEPLAY.md) and [native playtest campaign](CU_SEVEN_CAREER_PLAYTEST_CAMPAIGN.md) now define R1/R2 execution and subsequent feature gates. No new expansion before relevant native acceptance.

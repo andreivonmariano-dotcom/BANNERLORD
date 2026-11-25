@@ -1,0 +1,30 @@
+{
+  "career": "",
+  "profile": "",
+  "candidate_dll_sha256": "",
+  "start_archive": "",
+  "reload_archive": "",
+  "start_screenshot": "",
+  "reload_screenshot": "",
+  "save_label": "",
+  "player_id_before": "",
+  "player_id_after": "",
+  "clan_id_before": "",
+  "clan_id_after": "",
+  "actual_reload_after_quit": false,
+  "observations": {
+    "native_start": "",
+    "role_action": "",
+    "native_ui": "",
+    "post_reload": "",
+    "negative_case": ""
+  },
+  "reviewer": "",
+  "enjoyment": {
+    "clarity": null,
+    "agency": null,
+    "immersion": null,
+    "low_repetition": null,
+    "enjoyment": null
+  }
+}

@@ -22,3 +22,7 @@ Test ID, profile, exact game and DLC version, enabled module IDs/order and hashe
 ## Latest result
 
 Gate B compiled candidate and byte-verified ZIP only. Zero of seven current exact-binary career paths certified. Actual installed module hash must be checked separately. No install, launch, save modification or native test performed as part of this documentation revision.
+
+## Current native evidence intake
+
+Use [seven-career manual campaign](CU_SEVEN_CAREER_PLAYTEST_CAMPAIGN.md) and scripts/audit_cu_current_playtest.py for exact candidate/profile, separate start/reload diagnostic archives, actual screenshots and observations. REVIEW_READY is not PASS; manual review and all required matrix evidence still apply. Historical old parser remains archival; no retired transfer or graphical screen mandatory.

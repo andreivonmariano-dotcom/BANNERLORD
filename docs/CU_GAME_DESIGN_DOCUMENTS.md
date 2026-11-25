@@ -10,3 +10,6 @@
 - [S6 Personal Chronicle](design/S6_PERSONAL_CHRONICLE.md): 8 mapped feature/subfeature rows.
 
 Integration: S1 establishes the actual native person and starting state. S2 maintains real kinship context. S3 exposes feasible native responsibilities. S4 surfaces relevant concerns and explicit choices. S5 witnesses obligations and native career changes. S6 reads confirmed facts, not instructions to mutate the campaign. The six systems share four access points, no independent menu for every feature. External owners remain authoritative. Design changes require traceable source and acceptance updates. R1/R2 precede further expansion except narrow authorized fixes. No calendar promises.
+
+
+See [moment-to-moment scenarios](CU_MOMENT_TO_MOMENT_GAMEPLAY.md) and [seven-career playtest campaign](CU_SEVEN_CAREER_PLAYTEST_CAMPAIGN.md) for practical player loops and evidence routes.
