@@ -19,6 +19,20 @@ namespace CalradiaUnified
         private GauntletLayer layer;
         private CUAffairsVM data;
         private bool firstFrame;
+        // One deliberate map-only trial per process. No saved or default
+        // setting can activate this crash-isolation path.
+        private static bool diagnosticProbeConsumed;
+        internal static bool TryOpenDiagnosticProbe(List<SandboxAffair> items)
+        {
+            if(diagnosticProbeConsumed ||
+                !String.Equals(Environment.GetEnvironmentVariable("CU_AFFAIRS_GRAPHICAL_PROBE"),
+                    "1",StringComparison.Ordinal) ||
+                !(ScreenManager.TopScreen is MapScreen))return false;
+            diagnosticProbeConsumed=true;
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=map_trial_requested");
+            ScreenManager.PushScreen(new CUAffairsScreen(items));
+            return true;
+        }
         public CUAffairsScreen(List<SandboxAffair> items){records=items??new List<SandboxAffair>();}
         protected override void OnInitialize()
         {

@@ -103,10 +103,12 @@ namespace CalradiaUnified
             try
             {
                 // Live War Sails log terminated after CUAffairsScreen resumed.
-                // Keep the custom movie unreachable until native UI acceptance.
+                // Keep the normal route on native inquiries. Only a deliberate
+                // process-local map trial may open the diagnostic movie.
                 var all=b.BuildAffairs().Where(x=>x!=null).GroupBy(x=>x.Id,StringComparer.Ordinal)
                     .Select(g=>g.First()).OrderByDescending(x=>x.Pending)
                     .ThenByDescending(x=>x.Unread).ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
+                if(CUAffairsScreen.TryOpenDiagnosticProbe(all.ToList()))return true;
                 DiagnosticJournal.Event("cu_campaign_affairs_native_open","records="+all.Length+
                     "|pending="+all.Count(x=>x.Pending)+"|custom_movie=false");
                 b.ShowAffairsNativePage(all,0);

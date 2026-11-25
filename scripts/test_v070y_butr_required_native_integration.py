@@ -79,6 +79,17 @@ journal=(source/"SandboxOriginBehavior.Affairs.cs").read_text()
 assert 'petitionStories.CanFollowUp(' in journal
 assert 'agencyDecisions.PendingCount' in journal
 assert 'ScreenManager.PushScreen(new CUAffairsScreen(' not in journal
+assert 'if(CUAffairsScreen.TryOpenDiagnosticProbe(all.ToList()))return true;' in journal
+probe=(source/"CUAffairsScreen.cs").read_text()
+start=probe.index("internal static bool TryOpenDiagnosticProbe(")
+end=probe.index("public CUAffairsScreen(",start)
+guard=probe[start:end]
+for token in ('diagnosticProbeConsumed ||','Environment.GetEnvironmentVariable("CU_AFFAIRS_GRAPHICAL_PROBE")',
+              '"1",StringComparison.Ordinal','!(ScreenManager.TopScreen is MapScreen)',
+              'diagnosticProbeConsumed=true;','phase=map_trial_requested'):
+    assert token in guard,token
+assert guard.index("diagnosticProbeConsumed=true;") < guard.index("ScreenManager.PushScreen(")
+assert probe.count("ScreenManager.PushScreen(")==1
 assert 'b.ShowAffairsNativePage(all,0)' in journal
 assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,' in journal
 for forbidden in ('GiveGoldAction','ChangeRelationAction','ChangeOwnerOfSettlementAction','AnswerCharacterRequest(','GameMenu.ActivateGameMenu'):
