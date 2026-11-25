@@ -297,9 +297,12 @@ namespace CalradiaUnified
                     clan.Leader==player,clan.Kingdom!=null,
                     clan.Kingdom!=null && clan.Kingdom.RulingClan==clan,
                     clan.IsUnderMercenaryService);
-            return "Recorded career: "+role+
+            var episode=player==null?null:lifetimeCareers.For(player.StringId).LastOrDefault();
+            bool founder=player!=null && player.StringId==startAuditOwner;
+            return "Starting career (historical): "+role+
+                "\nLast confirmed personal calling: "+(episode==null?"not yet observed":episode.Role+" (day "+episode.LastDay+")")+
                 "\nCareer duties (guidance): "+
-                SandboxStartingLifePolicy.CareerContract(role)+
+                SandboxStartingLifePolicy.CareerContract(episode==null?role:episode.Role)+
                 "\nPolitical standing: "+standing+
                 "\nClan settlements: "+
                 (clan==null || clan.Settlements==null?"unverified":
@@ -308,7 +311,7 @@ namespace CalradiaUnified
                 (knightOath.IsConfigured?knightOath.Status:"none")+
                 "\nLast service status: "+
                 serviceCareer.Status+
-                "\nHistorical starting milestones: "+careerChronicle.Chapter+"/3"+
+                "\nHistorical starting milestones: "+(founder?careerChronicle.Chapter+"/3":"founder's record, not yours")+
                 (IsPersonalChargeActive()?"\nA legacy personal goal remains. You can set it aside.":"")+
                 "\nThese chapters record actual Bannerlord "+
                 "actions, real parties, native contracts and "+

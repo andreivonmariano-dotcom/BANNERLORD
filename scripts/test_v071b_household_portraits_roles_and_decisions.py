@@ -56,7 +56,9 @@ assert 'ShowNativeDetail(' in house
 assert 'GiveGoldAction.ApplyBetweenCharacters(' in menu
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in menu
 assert 'roleEconomy.Started' in menu
-assert '"cu_people_open_household"' in menu
+assert '"cu_people_open_household"' not in menu
+assert '"cu_starting_household_native_status"' in menu
+assert 'PersonalHistoryText(person)' in house
 assert '"cu_people_lineage"' in menu
 for role in ("Wanderer","Outlaw","Mercenary",
              "Soldier","Knight","Lord","King"):

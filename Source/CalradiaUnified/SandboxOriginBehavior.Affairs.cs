@@ -283,7 +283,7 @@ namespace CalradiaUnified
                 rows.Add(new SandboxAffair{Id="charge",Category="Service",Title="Your agreed duty",
                     Status="Legacy personal goal",Pending=false,
                     Day=careerCharge.StartedDay,Detail=ChargeDescription()+
-                        "\nOptional old goal. Set it aside in Family and records > Career history."});
+                        "\nOptional old goal. Set it aside in My chronicle."});
             bool oath=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId;
             if(oath)
             {
