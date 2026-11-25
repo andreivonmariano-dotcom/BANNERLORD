@@ -27,3 +27,6 @@ The latter lists a versioned integration API article. Full source implementation
 
 ## Practical first design review
 Observed CU Lord playtest shows technically valid family/gift and relation receipts, but repetitive dialogue, raw technical receipts in player-facing dossier, nominal household titles, and advice without a distinct practical decision. Prioritize removal of debug prose and genuinely useful native/provider-supported actions. The first lab transaction tests a specific native mechanism, not a proposed finished feature. Next study: identify how settlement treasury is consumed, what a governor actually changes in native models, and how to offer a practical household choice without competing with Improved Garrisons. Do not implement a new economy or invent success.
+
+## Follow-up comparative studies | 26 November PHT
+[AI-001](Engine/NPC_DECISIONS.md): Banner Kings marriage/decision models pinned to earlier revision; TAOM 1.4.5 party AI documentation. [QST-001](Engine/QUESTS_AND_OBLIGATIONS.md): TAOM career quest implementation, behavior, save type and lifecycle references pinned f9a1acba72b5364982caa6ca7d910ae87bf2fab8, MIT license inspected. No code copied; no installed compatibility or native proof.

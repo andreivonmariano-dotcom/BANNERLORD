@@ -7,3 +7,4 @@
 Append exact evidence anchor, lesson, applicability and unresolved question after every milestone.
 2026-11-25 | ENG-002 | Installed static scan 31,592 bodies; market gold vs separate native construction reserve; default governor perk presence checks and real model paths. F007 open; hold L001. See Engine/MARKET_AND_GOVERNOR_MODELS.md.
 2026-11-25 | L002 | Read-only governor/market/reserve/project observer compiled locally, exact source 1f973e2054459b3cc60610c4bc6280cfc50df8be. Native NOT_RUN. No production edits.
+2026-11-26 PHT | AI-001/QST-001 | Current CU code and pinned external decision/quest source studied. Native quest and AI docs older versions; pending laptop inspection. Standalone quest load cancellation is version-specific reported risk, not 1.5.7 proof. See Engine/NPC_DECISIONS.md and QUESTS_AND_OBLIGATIONS.md. No new gameplay or compilation.
