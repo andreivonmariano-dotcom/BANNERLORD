@@ -28,8 +28,7 @@ namespace CalradiaUnified
 
         public override void RegisterEvents()
         {
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, OnDay);
-            CampaignEvents.DailyTickPartyEvent.AddNonSerializedListener(this, OnParty);
+            // Compatibility serialization only. Do not compete with native or external party AI.
         }
 
         public override void SyncData(IDataStore store)

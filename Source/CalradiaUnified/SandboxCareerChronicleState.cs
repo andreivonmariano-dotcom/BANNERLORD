@@ -336,4 +336,118 @@ namespace CalradiaUnified
             return state;
         }
     }
+    // One voluntary charge at a time. Existing campaign systems supply
+    // evidence and the existing recurring review ledger owns completion.
+    public sealed class SandboxCareerChargeState
+    {
+        public const string Version="CU_CAREER_CHARGE_1";
+        public string HeroId {get;private set;}="";
+        public string Role {get;private set;}="";
+        public string Kind {get;private set;}="";
+        public string TargetId {get;private set;}="";
+        public int StartedDay {get;private set;}=-1;
+        public int Baseline {get;private set;}
+        public int ClosedDay {get;private set;}=-1;
+        public bool Active {get{return HeroId.Length>0 && ClosedDay<0;}}
+        private static bool Id(string id)
+        {
+            return !String.IsNullOrWhiteSpace(id) && id.Length<=80 &&
+                id.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-');
+        }
+        public static string DefaultKind(string role)
+        {
+            switch(role)
+            {
+                case "Wanderer":return "VisitTown";
+                case "Outlaw":return "BuildBand";
+                case "Mercenary":return "CompanyBattle";
+                case "Soldier":return "ServeWeek";
+                case "Knight":return "Muster";
+                case "Lord":return "VisitEstate";
+                case "King":return "Council";
+                default:return "";
+            }
+        }
+        public static bool IsKindForRole(string role,string kind)
+        {
+            return DefaultKind(role).Length>0 &&
+                (kind==DefaultKind(role) ||
+                 ((role=="Lord" || role=="King") &&
+                  (kind=="VisitEstate" || kind=="StrengthenGarrison")));
+        }
+        public static string Label(string kind)
+        {
+            switch(kind)
+            {
+                case "VisitTown":return "Seek livelihood in another town";
+                case "BuildBand":return "Strengthen the band by three members";
+                case "CompanyBattle":return "Win a witnessed campaign battle";
+                case "ServeWeek":return "Serve seven further days under the same lord";
+                case "Muster":return "Attend a fresh verified muster";
+                case "VisitEstate":return "Visit a named holding of our house";
+                case "StrengthenGarrison":return "Add five soldiers to this holding's native garrison";
+                case "Council":return "Convene the actual royal council on a later day";
+                default:return "";
+            }
+        }
+        private static bool Valid(string hero,string role,string kind,string target,int day,int baseline)
+        {
+            return Id(hero) && DefaultKind(role).Length>0 &&
+                IsKindForRole(role,kind) &&
+                Id(target) && day>=0 && day<=2000000 && baseline>=-1 && baseline<=2000000;
+        }
+        public bool Start(string hero,string role,string kind,string target,int day,int baseline,bool verified)
+        {
+            if(!verified || !Valid(hero,role,kind,target,day,baseline) ||
+                (HeroId==hero && (Active || day<=ClosedDay)))return false;
+            HeroId=hero;Role=role;Kind=kind;TargetId=target;StartedDay=day;
+            Baseline=baseline;ClosedDay=-1;return true;
+        }
+        public bool CanComplete(string hero,string role,int day,string observedTarget,int observedValue,bool verified)
+        {
+            if(!Active || !verified || hero!=HeroId || role!=Role ||
+                day<=StartedDay || day>2000000)return false;
+            if(Kind=="VisitTown")return Id(observedTarget) && observedTarget!=TargetId;
+            if(observedTarget!=TargetId)return false;
+            switch(Kind)
+            {
+                case "VisitEstate":return observedValue==1;
+                case "BuildBand":return (long)observedValue>=Baseline+3L;
+                case "StrengthenGarrison":return (long)observedValue>=Baseline+5L;
+                case "ServeWeek":return (long)observedValue>=Baseline+7L;
+                case "CompanyBattle":
+                case "Muster":
+                case "Council":return observedValue>StartedDay && observedValue>Baseline && observedValue<=day;
+                default:return false;
+            }
+        }
+        public bool Close(string hero,int day)
+        {
+            if(!Active || hero!=HeroId || day<StartedDay || day>2000000)return false;
+            ClosedDay=day;return true;
+        }
+        public string Serialize()
+        {
+            return HeroId.Length==0?Version:Version+"\n"+
+                String.Join("|",new[]{HeroId,Role,Kind,TargetId,
+                    StartedDay.ToString(CultureInfo.InvariantCulture),
+                    Baseline.ToString(CultureInfo.InvariantCulture),
+                    ClosedDay.ToString(CultureInfo.InvariantCulture)});
+        }
+        public static SandboxCareerChargeState Parse(string packed)
+        {
+            var state=new SandboxCareerChargeState();
+            if(String.IsNullOrEmpty(packed)||packed.Length>512)return state;
+            var rows=packed.Replace("\r","").Split('\n');
+            if(rows.Length!=2||rows[0]!=Version)return state;
+            var f=rows[1].Split('|');
+            int day,baseline,closed;
+            if(f.Length!=7||!Int32.TryParse(f[4],out day)||
+                !Int32.TryParse(f[5],out baseline)||!Int32.TryParse(f[6],out closed)||
+                closed< -1 || (closed>=0 && (closed<day || closed>2000000)) ||
+                !state.Start(f[0],f[1],f[2],f[3],day,baseline,true))return new SandboxCareerChargeState();
+            state.ClosedDay=closed;return state;
+        }
+    }
+
 }

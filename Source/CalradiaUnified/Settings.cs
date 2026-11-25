@@ -288,6 +288,11 @@ namespace CalradiaUnified
                 error="Held during compatibility acceptance.";
                 return false;
             }
+            if(!SettingsCatalog.IsRuntimeEditable(key))
+            {
+                error="This legacy setting is retained for compatibility, not gameplay.";
+                return false;
+            }
             try
             {
                 SettingsMenuPolicy.WriteOverride(path, key, normalized);

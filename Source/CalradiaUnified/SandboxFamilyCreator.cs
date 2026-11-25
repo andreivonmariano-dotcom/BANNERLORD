@@ -208,6 +208,8 @@ namespace CalradiaUnified
                     if (spouseHero.Clan != Clan.PlayerClan)
                         throw new InvalidOperationException(
                             "Spouse was not moved into the player's clan");
+                    if(SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role))
+                        VerifyFamilyOccupation(spouseHero,Occupation.Lord,"spouse");
                     // The new Hero now belongs to the real married
                     // family. Train native skills, set a distinct
                     // personality and establish actual starting relations.
@@ -301,6 +303,10 @@ namespace CalradiaUnified
                             "|native_facegen=true|beard=clean_shaven"+
                             "|inherited_face_kept=true");
                     }
+                    // Minor nobles need the same occupation as adult nobles.
+                    // Occupation and activation are independent; never activate a child.
+                    if(SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role))
+                        VerifyFamilyOccupation(child,Occupation.Lord,"child");
                     // An adult is a usable native clan Hero even if there is
                     // no valid family-owned castle to assign as a residence.
                     // Never activate an underage native Hero.
@@ -344,6 +350,8 @@ namespace CalradiaUnified
                             "Child was created without complete native family links");
                     SandboxFamilyDevelopment.Child(
                         profile,player,spouseHero,child,childProfile,i);
+                    if(SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role))
+                        VerifyFamilyOccupation(child,Occupation.Lord,"child_final");
                     madeChildren++;
                     DiagnosticJournal.Event("cu_family_child_created",
                         "id=" + child.StringId + "|age=" + childProfile.Age);
@@ -378,11 +386,9 @@ namespace CalradiaUnified
                     // Merchant, soldier and wandering families do not
                     // automatically become titled lords. Native spouse
                     // marriage setup separately retains game requirements.
-                    if(!birthHouseholdHeir &&
-                        profile.Role!="King" &&
-                        profile.Role!="Lord" &&
-                        profile.Role!="Knight" &&
-                        profile.Role!="NobleCadet")
+                    if(birthHouseholdHeir || SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role))
+                        VerifyFamilyOccupation(sibling,Occupation.Lord,"sibling");
+                    else
                         sibling.SetNewOccupation(Occupation.Wanderer);
                     if (sibling.Father != null &&
                         !sibling.Father.Children.Contains(sibling))
@@ -504,6 +510,37 @@ namespace CalradiaUnified
                     ":children=" + madeChildren + "/" + profile.ChildCount;
             }
 
+            bool noble=SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role);
+            // Verify again after marriage, placement, development and native party actions.
+            // Only newly created family identities from this invocation are touched.
+            if(noble)
+            {
+                try
+                {
+                    if(spouseHero!=null && player.Spouse==spouseHero && spouseHero.Spouse==player)
+                        VerifyFamilyOccupation(spouseHero,Occupation.Lord,"spouse_final");
+                    foreach(var child in allocatedChildren.Where(h=>h!=null && h.Clan==Clan.PlayerClan &&
+                        (h.Father==player || h.Mother==player)))
+                        VerifyFamilyOccupation(child,Occupation.Lord,"child_final_check");
+                    foreach(var sibling in provisionalSiblings.Where(h=>h!=null && player.Father!=null &&
+                        player.Mother!=null && h.Father==player.Father && h.Mother==player.Mother))
+                        VerifyFamilyOccupation(sibling,Occupation.Lord,"sibling_final");
+                }
+                catch(Exception error)
+                {
+                    DiagnosticJournal.Exception("cu_family_occupation_failed",error);
+                    return "failed:family_occupation_mismatch";
+                }
+            }
+            // Fresh generated people receive concise encyclopedia entries.
+            // Never replace an existing native character's biography.
+            if(spouseHero!=null && player.Spouse==spouseHero && spouseHero.Spouse==player)
+                spouseHero.EncyclopediaText=new TextObject(spouseHero.Name+" is the spouse of "+player.Name+".");
+            foreach(var child in allocatedChildren.Where(h=>h!=null && h.Father!=null && h.Mother!=null))
+                child.EncyclopediaText=new TextObject(child.Name+" is the "+(child.IsFemale?"daughter":"son")+
+                    " of "+child.Father.Name+" and "+child.Mother.Name+".");
+            foreach(var sibling in provisionalSiblings.Where(h=>h!=null && h.Father==player.Father && h.Mother==player.Mother))
+                sibling.EncyclopediaText=new TextObject(sibling.Name+" is the "+(sibling.IsFemale?"sister":"brother")+" of "+player.Name+".");
             bool verified = (!profile.SpouseEnabled ||
                     (player.Spouse == spouseHero && spouseHero != null &&
                      spouseHero.Clan == Clan.PlayerClan)) &&
@@ -662,6 +699,20 @@ namespace CalradiaUnified
             }
         }
 
+        private static void VerifyFamilyOccupation(Hero person,Occupation expected,string relation)
+        {
+            if(person==null || person.CharacterObject==null)
+                throw new InvalidOperationException("Missing generated family hero");
+            var before=person.Occupation;
+            if(before!=expected)person.SetNewOccupation(expected);
+            DiagnosticJournal.Event("cu_family_occupation",
+                "hero="+person.StringId+"|relation="+relation+"|before="+before+
+                "|expected="+expected+"|hero_occupation="+person.Occupation+
+                "|character_occupation="+person.CharacterObject.Occupation+
+                "|minor="+person.IsChild+"|state="+person.HeroState);
+            if(person.Occupation!=expected || person.CharacterObject.Occupation!=expected)
+                throw new InvalidOperationException("Generated family occupation not confirmed: "+relation);
+        }
         private static Hero Create(CharacterObject source,string name,int age,
             Clan originClan=null,bool activate=true)
         {

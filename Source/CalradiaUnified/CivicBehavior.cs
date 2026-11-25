@@ -24,9 +24,8 @@ namespace CalradiaUnified
 
         public override void RegisterEvents()
         {
-            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, OnSessionLaunched);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(this, DailyTick);
-            CampaignEvents.DailyTickPartyEvent.AddNonSerializedListener(this, OnPartyTick);
+            // Save migration only. No daily mutations, advisory scans or active civic UI.
+            CampaignEvents.OnSessionLaunchedEvent.AddNonSerializedListener(this, RegisterRetiredCivicExits);
         }
         public override void SyncData(IDataStore store)
         {
@@ -38,6 +37,22 @@ namespace CalradiaUnified
                 + " shipments=" + state.Shipments.Count + ". Review a real save/reload for persistence.");
         }
 
+        private void RegisterRetiredCivicExits(CampaignGameStarter starter)
+        {
+            if(starter==null)return;
+            // Preserve a way out of a menu referenced by an older save.
+            // Do not expose these menus from new gameplay or register old transactions.
+            foreach(string menu in new[]{"cu_civic_administration","cu_civic_stores","cu_civic_garrison","cu_civic_correspondence"})
+            {
+                string id=menu;
+                starter.AddGameMenu(id,"This old CU administration menu has been retired. Use the settlement's existing management systems.",args=>{});
+                starter.AddGameMenuOption(id,"cu_retired_exit_"+id,"Return to settlement",
+                    args=>true,args=>GameMenu.ExitToLast(),true);
+            }
+        }
+
+        // Historical implementation retained as source for save-state inspection only.
+        // Not subscribed to any event in the complementary build.
         private void OnSessionLaunched(CampaignGameStarter starter)
         {
             if (starter == null) return;
@@ -46,9 +61,8 @@ namespace CalradiaUnified
             // remain executable behind native-style administrative groups.
             Log.Write("Civic actions grouped behind the local-administration menu.");
             starter.AddGameMenu("cu_civic_administration",
-                "The castellan's ledgers provide read-only estate "+
-                "and garrison reports during compatibility acceptance. "+
-                "Legacy transactions are held.", args=>{});
+                "The castellan awaits your instructions. "+
+                "Consult the ledgers, stores and defenses of this holding.", args=>{});
             starter.AddGameMenu("cu_civic_stores",
                 "Stores, supplies and physical trade at this settlement.",
                 args=>{});
@@ -56,36 +70,26 @@ namespace CalradiaUnified
                 "Local troops, fortification and recruitment.",
                 args=>{});
             starter.AddGameMenu("cu_civic_correspondence",
-                "Correspondence and levies under existing kingdom "+
-                "authority. This does not replace kingdom decisions.",
+                "Review correspondence and obligations to the kingdom.",
                 args=>{});
-            foreach (var source in new[] { "town", "castle" })
-            {
-                string from=source;
-                starter.AddGameMenuOption(source,
-                    "cu_civic_admin_entry_"+source,
-                    "Manage local administration",
-                    x=>CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle,
-                    x=>
-                    {
-                        civicReturnMenu=from;
-                        GameMenu.SwitchToMenu("cu_civic_administration");
-                    },false);
-            }
+            // The owned-holding hub registers the single contextual entry
+            // after both menu groups exist. No separate castle root button.
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_stores","Stores and trade",
-                x=>Owned() && (settings.EnableCivicSystems || settings.EnableEconomy ||
+                x=>{x.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                    return Owned() && (settings.EnableCivicSystems || settings.EnableEconomy ||
                     settings.EnableAbstractShipments || settings.EnablePhysicalConvoys ||
-                    settings.EnableDepotTrade || settings.EnableLocalDiplomacy),
+                    settings.EnableDepotTrade || settings.EnableLocalDiplomacy);},
                 x=>GameMenu.SwitchToMenu("cu_civic_stores"),false);
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_garrison","Recruitment and defenses",
-                x=>Owned(),
+                x=>{x.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Owned();},
                 x=>GameMenu.SwitchToMenu("cu_civic_garrison"),false);
             starter.AddGameMenuOption("cu_civic_administration",
                 "cu_civic_to_correspondence","Kingdom correspondence",
-                x=>CurrentSettlementInKingdom() &&
-                    (settings.EnableKingdomLevies || settings.EnableKingdomDiplomacy),
+                x=>{x.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                    return CurrentSettlementInKingdom() &&
+                    (settings.EnableKingdomLevies || settings.EnableKingdomDiplomacy);},
                 x=>GameMenu.SwitchToMenu(
                     "cu_civic_correspondence"),false);
             starter.AddGameMenuOption("cu_civic_administration",
@@ -138,6 +142,20 @@ namespace CalradiaUnified
                     "cu_civic_correspondence");
                 RegisterDepotTradeMenu(starter, menu);
             }
+        }
+        internal void RegisterLocalAdministrationEntry(CampaignGameStarter starter)
+        {
+            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_civic_admin_entry_local","Manage local administration",
+                x=>{x.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                    return CanVisit() && Owned() && Settlement.CurrentSettlement.IsCastle &&
+                    !Settlement.CurrentSettlement.IsUnderSiege &&
+                    (settings.EnableCivicSystems || settings.EnableEconomy || settings.EnableRecruitment ||
+                     settings.EnableAbstractShipments || settings.EnablePhysicalConvoys || settings.EnableDepotTrade ||
+                     settings.EnableLocalDiplomacy || settings.EnableGarrisonTraining || settings.EnableManualGarrisonTransfers ||
+                     settings.EnableManualGarrisonWageCaps || settings.EnableKingdomLevies || settings.EnableKingdomDiplomacy);},
+                x=>{civicReturnMenu="cu_people_lineage";
+                    GameMenu.SwitchToMenu("cu_civic_administration");},false);
         }
         private static bool CanVisit()
         {

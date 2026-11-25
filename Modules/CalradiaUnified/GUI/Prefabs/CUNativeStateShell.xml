@@ -19,7 +19,7 @@
                 IsVisible="@IsNativeChromeVisible"
                 DoNotPassEventsToChildren="false">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#172536A8"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#261C14A8"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="Fixed" SuggestedHeight="91"
                     VerticalAlignment="Top"/>
@@ -31,7 +31,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="280"
                     HeightSizePolicy="Fixed" SuggestedHeight="35"
                     PositionXOffset="27" PositionYOffset="20"/>
-            <TextWidget Text="@ChapterPosition" Color="#B6C4D1FF"
+            <TextWidget Text="@ChapterPosition" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="275"
                     HeightSizePolicy="Fixed" SuggestedHeight="26"
                     PositionXOffset="28" PositionYOffset="57"/>
@@ -39,7 +39,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="455"
                     HeightSizePolicy="Fixed" SuggestedHeight="37"
                     PositionXOffset="320" PositionYOffset="19"/>
-            <TextWidget Text="@StepProgress" Color="#D7E1EBFF"
+            <TextWidget Text="@StepProgress" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="446"
                     HeightSizePolicy="Fixed" SuggestedHeight="26"
                     PositionXOffset="324" PositionYOffset="57"/>
@@ -63,11 +63,11 @@
                 IsVisible="@IsRailVisible"
                 DoNotPassEventsToChildren="false">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#0C1928C0"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#261C14C0"
                     WidthSizePolicy="Fixed" SuggestedWidth="226"
                     HeightSizePolicy="Fixed" SuggestedHeight="386"
                     PositionXOffset="20" PositionYOffset="117"/>
-            <TextWidget Text="YOUR LEGACY | FIVE CHAPTERS"
+            <TextWidget Text="Character creation"
                     Color="#DDBB83FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="209" HeightSizePolicy="Fixed"
                     SuggestedHeight="36" PositionXOffset="29"
@@ -89,7 +89,7 @@
                             WidthSizePolicy="Fixed" SuggestedWidth="196"
                             HeightSizePolicy="Fixed" SuggestedHeight="27"
                             PositionXOffset="10" PositionYOffset="2"/>
-                    <TextWidget Text="@Status" Color="#B6C4D1FF"
+                    <TextWidget Text="@Status" Color="#D4C2AAFF"
                             WidthSizePolicy="Fixed" SuggestedWidth="196"
                             HeightSizePolicy="Fixed" SuggestedHeight="22"
                             PositionXOffset="10" PositionYOffset="29"/>
@@ -97,7 +97,7 @@
                 </Widget>
               </ItemTemplate>
             </ListPanel>
-            <TextWidget Text="NATIVE CONTROLS REMAIN ACTIVE"
+            <TextWidget Text=""
                     Color="#DDBB83FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="214" HeightSizePolicy="Fixed"
                     SuggestedHeight="29" PositionXOffset="27"
@@ -106,7 +106,7 @@
             <!-- A concise read-only context pane on wide screens.
                  No panel is shown on compact screens or during FaceGen.
                  No duplicate banner/name/story/difficulty inputs exist. -->
-            <Widget Sprite="BlankWhiteSquare_9" Color="#152432C0"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#261C14C0"
                     WidthSizePolicy="Fixed" SuggestedWidth="338"
                     HeightSizePolicy="Fixed" SuggestedHeight="240"
                     HorizontalAlignment="Right"
@@ -116,7 +116,7 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="33"
                     HorizontalAlignment="Right"
                     PositionXOffset="-35" PositionYOffset="128"/>
-            <TextWidget Text="@StageGuidance" Color="#D5E0E9FF"
+            <TextWidget Text="@StageGuidance" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="302"
                     HeightSizePolicy="Fixed" SuggestedHeight="91"
                     HorizontalAlignment="Right"
@@ -126,17 +126,17 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="24"
                     HorizontalAlignment="Right"
                     PositionXOffset="-34" PositionYOffset="265"/>
-            <TextWidget Text="@Role" Color="#B6C4D1FF"
+            <TextWidget Text="@Role" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="304"
                     HeightSizePolicy="Fixed" SuggestedHeight="24"
                     HorizontalAlignment="Right"
                     PositionXOffset="-34" PositionYOffset="289"/>
-            <TextWidget Text="@Household" Color="#D5E0E9FF"
+            <TextWidget Text="@Household" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="304"
                     HeightSizePolicy="Fixed" SuggestedHeight="27"
                     HorizontalAlignment="Right"
                     PositionXOffset="-34" PositionYOffset="314"/>
-            <TextWidget Text="@Notice" Color="#B6C4D1FF"
+            <TextWidget Text="@Notice" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="320"
                     HeightSizePolicy="Fixed" SuggestedHeight="58"
                     HorizontalAlignment="Right"
@@ -148,7 +148,7 @@
              sliders. The compact badge provides CU identity without hiding
              the editable agent. The native face right dock remains F9
              reversible and cannot be treated as a persistent 3D viewport. -->
-        <Widget Sprite="BlankWhiteSquare_9" Color="#172536C0"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#261C14C0"
                 IsVisible="@IsFaceDebugVisible"
                 WidthSizePolicy="Fixed" SuggestedWidth="465"
                 HeightSizePolicy="Fixed" SuggestedHeight="91"
@@ -158,19 +158,19 @@
                 WidthSizePolicy="Fixed" SuggestedWidth="465"
                 HeightSizePolicy="Fixed" SuggestedHeight="2"
                 PositionXOffset="18" PositionYOffset="15"/>
-        <TextWidget Text="CALRADIA UNIFIED | APPEARANCE"
+        <TextWidget Text="Appearance"
                 IsVisible="@IsFaceDebugVisible" Color="#F6D7A5FF"
                 WidthSizePolicy="Fixed" SuggestedWidth="442"
                 HeightSizePolicy="Fixed" SuggestedHeight="29"
                 PositionXOffset="29" PositionYOffset="25"/>
         <TextWidget Text="@FaceStatus"
-                IsVisible="@IsFaceDebugVisible" Color="#D7E1EBFF"
+                IsVisible="@IsFaceDebugVisible" Color="#D4C2AAFF"
                 WidthSizePolicy="Fixed" SuggestedWidth="442"
                 HeightSizePolicy="Fixed" SuggestedHeight="44"
                 PositionXOffset="29" PositionYOffset="54"/>
         <TextWidget Text="@ViewportCapability"
                 IsVisible="@IsFaceDebugVisible"
-                Color="#B6C4D1FF" WidthSizePolicy="Fixed"
+                Color="#D4C2AAFF" WidthSizePolicy="Fixed"
                 SuggestedWidth="446" HeightSizePolicy="Fixed"
                 SuggestedHeight="43" PositionXOffset="21"
                 PositionYOffset="117"/>

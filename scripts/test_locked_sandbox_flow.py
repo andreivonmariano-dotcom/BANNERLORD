@@ -43,8 +43,8 @@ labels=[n.get("Text","") for n in prefab.iter("TextWidget")]
 for label in ("01   Starting life","02   Bloodline","03   Fortune",
               "04   Land & home","05   Review your house"):
     assert label in labels,label
-assert "PART 1 OF 2: STARTING CONDITIONS" in labels
-assert "NEXT: NATIVE CREATOR" in labels
+assert "Starting conditions" in labels
+assert "Create character" in labels
 assert "Begin Campaign" not in labels, "native wizard still follows in this candidate"
 assert "ExecuteApplyAndContinue" in all_buttons
 assert all_buttons.count("ExecuteApplyAndContinue")==1

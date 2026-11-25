@@ -103,14 +103,14 @@ for name,doc in (("guided",world),("stats",stat),("native_chrome",ui)):
         assert "CUNativeStateShell" not in text or doc.tag=="Prefab"
     assert doc.tag=="Prefab"
 assert 'CALRADIA UNIFIED' in culture
-assert 'CHAPTER 02 OF 05 | YOUR CHARACTER | CULTURE' in culture
-assert 'CHAPTER 02 OF 05 | STARTING STATS & TRAITS' in stats
+assert 'Culture' in culture
+assert 'Age and skills' in stats
 culture_buttons=[w.get("Command.Click") for w in cult.iter("ButtonWidget")]
 assert set(culture_buttons)=={"ExecuteSelect","ExecuteBack",
                              "ExecuteContinue","ExecuteUseNativeControls"}
 assert any(w.get("Text")=="Back" for w in cult.iter("TextWidget"))
 assert any(w.get("Text")=="Continue" for w in cult.iter("TextWidget"))
-assert any(w.get("Text")=="Original culture screen"
+assert any(w.get("Text")=="Original screen"
            for w in cult.iter("TextWidget"))
 assert 'nextLayer.IsFocusLayer=true;' in culture
 assert 'controller.SelectCulture(id)' in culture

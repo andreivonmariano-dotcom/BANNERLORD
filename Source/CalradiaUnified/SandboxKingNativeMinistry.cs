@@ -32,7 +32,7 @@ namespace CalradiaUnified
             var owned=clan.Settlements.Where(s=>s!=null &&
                 s.OwnerClan==clan &&
                 s.IsFortification && s.Town!=null &&
-                !s.IsUnderSiege).ToArray();
+                !s.IsUnderSiege && (s.Party==null || s.Party.MapEvent==null)).ToArray();
             // The native capital name varies across supported versions.
             // Reflection is read-only and never assumes that a fictional
             // property exists. A found initial home is not silently
@@ -73,11 +73,11 @@ namespace CalradiaUnified
             // another REAL unbesieged player-owned vacant seat. Do not
             // fire a governor to make a ceremonial capital.
             var clan=Clan.PlayerClan;
-            return clan==null || clan.Settlements==null?
+            return clan==null || clan.Kingdom==null || clan.Kingdom.RulingClan!=clan || clan.Settlements==null?
                 null:clan.Settlements.Where(s=>s!=null &&
                     s.OwnerClan==clan && s.IsFortification &&
                     s.Town!=null && !s.IsUnderSiege &&
-                    s.Town.Governor==null)
+                    (s.Party==null || s.Party.MapEvent==null) && s.Town.Governor==null)
                     .OrderBy(s=>s.IsTown?0:1)
                     .ThenBy(s=>s.StringId,StringComparer.Ordinal)
                     .FirstOrDefault();
@@ -124,6 +124,14 @@ namespace CalradiaUnified
                 return "native_minister_not_at_royal_seat";
             // The native governor action now has an officer at its
             // actual seat and can perform immediate assignment.
+            // Native settlement arrival can trigger other mod callbacks.
+            // Do not displace a governor appointed during that action.
+            if(seat.OwnerClan!=Clan.PlayerClan || seat.IsUnderSiege ||
+                (seat.Party!=null && seat.Party.MapEvent!=null) ||
+                seat.Town.Governor!=null || minister.GovernorOf!=null ||
+                minister.Clan!=Clan.PlayerClan || minister.CompanionOf!=Clan.PlayerClan ||
+                minister.PartyBelongedTo!=null || minister.IsPrisoner)
+                return "native_governorship_changed_during_arrival";
             ChangeGovernorAction.Apply(seat.Town,minister);
             bool accepted=seat.Town.Governor==minister &&
                 minister.GovernorOf==seat.Town &&
@@ -151,7 +159,8 @@ namespace CalradiaUnified
 
         internal static bool VerifiedGovernor(Hero minister)
         {
-            if(minister==null || minister.GovernorOf==null ||
+            if(minister==null || !minister.IsAlive || !minister.IsActive || minister.IsPrisoner ||
+               minister.GovernorOf==null ||
                minister.Clan!=Clan.PlayerClan ||
                minister.CompanionOf!=Clan.PlayerClan)
                 return false;

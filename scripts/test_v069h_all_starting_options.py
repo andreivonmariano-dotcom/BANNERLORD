@@ -43,6 +43,41 @@ def exact_array(body, name, expected):
     return values
 
 exact_array(profile, "Roles", roles)
+# The compatibility parser is broader than the actual guided selector.
+life = read("SandboxStartingLifePolicy.cs")
+exact_array(life, "SevenPaths", ("Wanderer", "Outlaw", "Mercenary",
+    "Soldier", "Knight", "Lord", "King"))
+fields = world[world.index("private List<Field> BuildFields()"):
+               world.index("private bool Available(")]
+assert fields.count("choices:SandboxStartingLifePolicy.SevenPaths")==1
+for retired in ("KnightOrigin","SoldierEntryRank","NobleBirthPosition","NobleElderHeroId"):
+    assert not re.search(r'new Field\([^)]*?"'+retired+r'"',fields,re.S), retired
+assert "choices:SandboxKnightStartPolicy.Origins" not in fields
+assert "choices:SandboxSoldierEnlistmentPolicy.EntryChoices" not in fields
+assert "choices:SandboxNobleStartPolicy.BirthPositions" not in fields
+assert world.count("candidate.NormalizeGuidedCareerDraft()")==2
+assert 'if(key=="Role" && Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,value)<0)return false;' in world
+normalize=profile[profile.index("public bool NormalizeGuidedCareerDraft()"):
+                  profile.index("public void ResetForNewCampaign()")]
+for token in ('KnightOrigin="SwornHouse";','SoldierEntryRank=Role=="Soldier"?"Native":"Recruit";',
+              'NobleBirthPosition="Independent";','NobleElderHeroId="";'):
+    assert token in normalize,token
+assert "if(Array.IndexOf(SandboxStartingLifePolicy.SevenPaths,Role)<0)return false;" in normalize
+assert "profile.NormalizeGuidedCareerDraft();" in world
+assert "profile.NormalizeGuidedCareerDraft()" not in behavior
+assert 'profile.SoldierGuidedStart &&' in native
+assert 'profile.KnightGuidedStart && profile.Role=="Knight"' in native
+assert '"default":StartTypeForRole(profile.Role)' in native
+assert world.count("profile.IsFixedGuidedKnightField(key)") == 2
+assert 'RetinueMode="RoleBased";' in normalize
+assert 'FamilyHomeMode="None";' in normalize
+assert 'Gold=-1;Influence=-1;Troops=0;' in normalize
+assert 'SandboxKnightStartPolicy.ValidateNativeSwornHouse(' in preflight
+assert 'SandboxSoldierEnlistmentPolicy.ValidateIndependentStart(' in preflight
+assert 'SandboxKingStartPolicy.ValidateNativeCrown(' in preflight
+assert 'SandboxLordStartPolicy.ValidateNativeHouse(' in preflight
+assert 'SandboxMercenaryStartPolicy.Validate(' in preflight
+
 exact_array(profile, "Scenarios", scenarios)
 exact_array(noble, "BirthPositions", births)
 exact_array(fief, "Modes", ("Native", "Castle", "Town", "Specific"))
@@ -113,5 +148,5 @@ assert "creator_source =" in reporter
 assert "$null -eq $contract" in reporter
 
 print("PASS v0.69h starting options source audit: "
-      "13 compatible roles, 6 scenarios, 9 noble births, 4 fief modes, "
+      "7 single guided careers, 13 legacy-compatible roles, 6 scenarios, 9 legacy noble births, 4 fief modes, "
       "native grants and guarded defaults. GAME STATUS UNTESTED.")

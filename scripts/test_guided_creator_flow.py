@@ -40,10 +40,13 @@ creator_fields=flow.split('private List<Field> BuildFields()',1)[1]
 front=creator_fields.split('if(preCampaign)\n            {',1)[1].split('\n            else\n            {',1)[0]
 tail=creator_fields.split('            else\n            {',1)[1].split('\n            return list;',1)[0]
 for key in ("StartingScenario","Role","StartingKingdomId",
-            "NobleBirthPosition","NobleElderHeroId",
             "ScenarioFaction1","ScenarioFaction2","ScenarioVariant",
             "WorldSeed"):
     assert '"'+key+'"' in front,key
+for retired in ("KnightOrigin","SoldierEntryRank","NobleBirthPosition","NobleElderHeroId"):
+    assert '"'+retired+'"' not in front and '"'+retired+'"' not in tail,retired
+assert "choices:SandboxStartingLifePolicy.SevenPaths" in front
+assert flow.count("candidate.NormalizeGuidedCareerDraft()")==2
 for key in ("SpouseEnabled","SpouseAge","ChildCount","Gold","Influence",
             "Troops","StartingFiefMode","AllowStartingFiefTransfer",
             "FamilyHomeMode","FamilyHomeId"):
@@ -120,3 +123,8 @@ for key in ("IsChoice","IsNumber","IsText","IsBoolean"):
         for node in xml.iter("ButtonWidget")),key
 assert 'Begin Campaign' not in ET.tostring(xml,encoding="unicode")
 print("PASS: active World -> native identity/story/stats/banner/clan -> guided House/Fortune -> native review/difficulty; one shared CU layout (STATIC ONLY)")
+
+# CU-only household review does not substitute the native review stage.
+assert '"HouseholdPreview"' in flow and 'profile.HouseholdPreview(ActualFounderAge)' in flow
+assert 'ExecuteHouseholdPreview' in [x.get("Command.Click") for x in xml.iter("ButtonWidget")]
+assert 'Proposed household only' in profile

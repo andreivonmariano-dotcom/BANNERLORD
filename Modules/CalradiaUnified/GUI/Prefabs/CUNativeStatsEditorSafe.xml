@@ -49,20 +49,20 @@
               WidthSizePolicy="Fixed" SuggestedWidth="700"
               HeightSizePolicy="Fixed" SuggestedHeight="30"
               PositionXOffset="28" PositionYOffset="59"/>
-            <TextWidget Brush.FontSize="21" Text="YOUR PROGRESSION" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="21" Text="Skills and attributes" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="220"
               HeightSizePolicy="Fixed" SuggestedHeight="36"
               PositionXOffset="22" PositionYOffset="121"/>
-            <TextWidget Brush.FontSize="16" Text="Native attributes, skills and focus."
+            <TextWidget Brush.FontSize="16" Text="Attributes, skills and focus"
               Color="#E8D7BFFF" WidthSizePolicy="Fixed"
               SuggestedWidth="198" HeightSizePolicy="Fixed"
               SuggestedHeight="50" PositionXOffset="24" PositionYOffset="171"/>
-            <TextWidget Brush.FontSize="18" Text="Choose Native, Balanced or Unrestricted on the next page."
+            <TextWidget Brush.FontSize="18" Text="Choose a progression mode."
               IsVisible="@IsAgePage" Color="#CFBBA1FF" WidthSizePolicy="Fixed"
               SuggestedWidth="198" HeightSizePolicy="Fixed"
               SuggestedHeight="110" PositionXOffset="24" PositionYOffset="231"/>
             <TextWidget Brush.FontSize="17"
-              Text="Review native values and change only what matters."
+              Text="Review or adjust starting values."
               IsVisible="@IsStatsPage" Color="#CFBBA1FF"
               WidthSizePolicy="Fixed" SuggestedWidth="198"
               HeightSizePolicy="Fixed" SuggestedHeight="103"
@@ -86,7 +86,7 @@
               IsSelected="@IsPlayerTarget"
               IsVisible="@IsStatsPage">
               <Children><TextWidget Brush.FontSize="15"
-                Text="Edit your character"
+                Text="Character"
                 Color="#F6E4C4FF"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"
@@ -132,7 +132,7 @@
  UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="215"
  HeightSizePolicy="Fixed" SuggestedHeight="45" PositionXOffset="254"
  PositionYOffset="148" Command.Click="ExecuteNative" IsSelected="@IsNativeMode" IsVisible="@IsStatsPage">
- <Children><TextWidget Brush.FontSize="17" Text="Use native stats" Color="#F6E4C4FF"
+ <Children><TextWidget Brush.FontSize="17" Text="Native" Color="#F6E4C4FF"
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
@@ -180,18 +180,18 @@
                   HeightSizePolicy="Fixed" SuggestedHeight="103"
                   PositionXOffset="26" PositionYOffset="21"/>
                 <TextWidget Brush.FontSize="15"
-                  Text="18 YEARS" Color="#B9996EFF"
+                  Text="18" Color="#B9996EFF"
                   WidthSizePolicy="Fixed" SuggestedWidth="120"
                   HeightSizePolicy="Fixed" SuggestedHeight="27"
                   PositionXOffset="81" PositionYOffset="131"/>
                 <TextWidget Brush.FontSize="15"
-                  Text="80 YEARS" Color="#B9996EFF"
+                  Text="80" Color="#B9996EFF"
                   Brush.TextHorizontalAlignment="Right"
                   WidthSizePolicy="Fixed" SuggestedWidth="120"
                   HeightSizePolicy="Fixed" SuggestedHeight="27"
                   PositionXOffset="485" PositionYOffset="131"/>
                 <TextWidget Brush.FontSize="15"
-                  Text="Use the 1-year buttons below to choose your exact age."
+                  Text="Choose age in years."
                   Color="#DFC7A3FF"
                   WidthSizePolicy="Fixed" SuggestedWidth="600"
                   HeightSizePolicy="Fixed" SuggestedHeight="50"
@@ -199,17 +199,17 @@
 
               </Children>
             </Widget>
-            <TextWidget Brush.FontSize="16" Text="STAT / NATIVE"
+            <TextWidget Brush.FontSize="16" Text="Stat / Base"
               Color="#D6AA69FF" IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="285"
               HeightSizePolicy="Fixed" SuggestedHeight="24"
               PositionXOffset="270" PositionYOffset="288"/>
-            <TextWidget Brush.FontSize="16" Text="CURRENT VALUE"
+            <TextWidget Brush.FontSize="16" Text="Current"
               Color="#D6AA69FF" IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="250"
               HeightSizePolicy="Fixed" SuggestedHeight="24"
               PositionXOffset="570" PositionYOffset="288"/>
-            <TextWidget Brush.FontSize="16" Text="ADJUST"
+            <TextWidget Brush.FontSize="16" Text="Adjust"
               Color="#D6AA69FF" IsVisible="@IsStatsPage"
               WidthSizePolicy="Fixed" SuggestedWidth="200"
               HeightSizePolicy="Fixed" SuggestedHeight="24"
@@ -690,7 +690,7 @@
  WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
  HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
  </ButtonWidget>
-            <TextWidget Brush.FontSize="21" Text="YOUR NATIVE BACKGROUND" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="21" Text="Background bonuses" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="315"
               HeightSizePolicy="Fixed" SuggestedHeight="38"
               HorizontalAlignment="Right" PositionXOffset="-24"
@@ -722,7 +722,7 @@
                 HeightSizePolicy="StretchToParent"
                 HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
             </ButtonWidget>
-            <TextWidget Brush.FontSize="15" Text="Your original story choices and native bonuses are preserved."
+            <TextWidget Brush.FontSize="15" Text=""
               Color="#D4C1A6FF" WidthSizePolicy="Fixed"
               SuggestedWidth="298" HeightSizePolicy="Fixed"
               SuggestedHeight="76" HorizontalAlignment="Right"
@@ -790,7 +790,7 @@
                   PositionXOffset="254" PositionYOffset="232"
                   Command.Click="ExecuteEnterExactAge">
                   <Children><TextWidget Brush.FontSize="16"
-                    Text="Enter exact age" Color="#F6E4C4FF"
+                    Text="Enter age" Color="#F6E4C4FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"
                     HorizontalAlignment="Center"
@@ -818,7 +818,7 @@
                   PositionXOffset="220" PositionYOffset="299"
                   Command.Click="ExecuteKeepNativeAge">
                   <Children><TextWidget Brush.FontSize="16"
-                    Text="Keep native age"
+                    Text="Default age"
                     Color="#F6E4C4FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

@@ -18,6 +18,8 @@ namespace CalradiaUnified
             if(!adult || !present || relation< -35 ||
                 priorRequests>=MaxRequestsPerHero ||
                 daysFromLast<CooldownDays)return "";
+            // A known noble asks for a conversation, never a fictitious reward.
+            if(goal=="DefendClanStanding")return relation>=10?"Audience":"";
             if(goal=="ProtectSharedHousehold" ||
                goal=="SupportHousehold" ||
                goal=="MaintainHousehold")
@@ -73,15 +75,69 @@ namespace CalradiaUnified
                 history.Negative<0 && nativeRelation<=-10);
         }
 
+        public static bool CanSendDistantLetter(bool adult,bool active,bool prisoner,
+            bool establishedContact,bool knownSettlement,int relation)
+        {
+            return adult && active && !prisoner && establishedContact && knownSettlement && relation>=10;
+        }
+        public static bool IsAudience(string kind)
+        {
+            return kind=="Audience" || kind=="DefenseAudience" || kind=="EstateAudience" ||
+                kind=="FamilyAudience" || kind=="DiplomaticAudience";
+        }
+        // Keep the old financial request policy; only specialize a valid
+        // existing invitation, with current authority and native role evidence.
+        public static string Specialize(string kind,bool noble,string office,bool kin,bool visitingLord)
+        {
+            if(kind!="Audience" && kind!="Recognition")return kind;
+            if(!noble)return kind;
+            if(office=="Marshal" || office=="Kingsguard" || office=="MasterOfArms" || office=="Master of Arms" || office=="Captain")return "DefenseAudience";
+            if(office=="RoyalMinister" || office=="Royal Minister" || office=="Steward" || office=="HouseholdSteward" || office=="Household Steward")return "EstateAudience";
+            if(kin)return "FamilyAudience";
+            if(visitingLord)return "DiplomaticAudience";
+            return kind;
+        }
+        public static string AudienceConcern(string kind)
+        {
+            switch(kind)
+            {
+                case "DefenseAudience":return "I request an audience to discuss the defenses of our holdings and readiness of our men.";
+                case "EstateAudience":return "I request an audience to discuss our estates, their revenues and the needs of those who live there.";
+                case "FamilyAudience":return "I request an audience to discuss the future of our family and the duties we owe one another.";
+                case "DiplomaticAudience":return "I request an audience to discuss the relations between our houses.";
+                default:return "I ask for a private audience concerning the standing of our houses.";
+            }
+        }
+        public static string Category(string kind)
+        {
+            switch(kind)
+            {
+                case "DefenseAudience":return "Military";
+                case "EstateAudience":case "LivelihoodAid":return "Economic";
+                case "FamilyAudience":case "HouseholdAid":return "Family";
+                case "DiplomaticAudience":return "Diplomatic";
+                case "Audience":return "Political";
+                default:return "Personal";
+            }
+        }
+        public const int EstatePersonalStipend=200;
+        public static bool NegotiatedTermAllowed(string kind,string term,bool currentNoble,bool relevantSpeaker,
+            int gold,bool nativeGarrisonOrderAvailable)
+        {
+            if(!currentNoble || !relevantSpeaker)return false;
+            return (kind=="DiplomaticAudience" || kind=="Audience") && term=="Goodwill" ||
+                kind=="EstateAudience" && term=="Stipend" && gold>=EstatePersonalStipend ||
+                kind=="DefenseAudience" && term=="Garrison" && nativeGarrisonOrderAvailable;
+        }
         public static int Amount(string kind)
         {
             if(kind=="HouseholdAid")return 150;
             if(kind=="LivelihoodAid")return 200;
-            return kind=="Recognition"?0:-1;
+            return kind=="Recognition" || IsAudience(kind)?0:-1;
         }
         public static int RelationDelta(string kind,bool accepted)
         {
-            if(Amount(kind)<0)return 0;
+            if(Amount(kind)<0 || IsAudience(kind))return 0;
             return accepted?(kind=="Recognition"?1:2):
                 (kind=="Recognition"?0:-1);
         }

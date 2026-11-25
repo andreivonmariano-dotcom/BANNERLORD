@@ -12,7 +12,7 @@ files=sorted(ui.glob("*.xml"))
 assert len(files)>=18
 results=[]
 active={"CUFamilyPortraits.xml","CUNobleDossier.xml",
-        "CUHouseholdCamp.xml"}
+        "CUHouseholdCamp.xml","CUAffairs.xml"}
 for path in files:
     x=ET.parse(path).getroot()
     assert x.tag=="Prefab",path
@@ -48,15 +48,15 @@ for path in files:
 source=(root/"Source"/"CalradiaUnified"/"CUBUTRNativeScreens.cs").read_text()
 fragments=re.findall(
     r'public string Content\s*=>\s*("(?:[^"\\]|\\.)*");',source)
-assert len(fragments)==4,len(fragments)
-for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
+assert len(fragments)==2,len(fragments)
+for movie,fragment in zip(("Clan","Party"),fragments):
     widget=ET.fromstring(ast.literal_eval(fragment))
     assert widget.tag=="ButtonWidget"
     label=widget.find("./Children/TextWidget")
     assert label is not None
     if movie=="PartyCamp":
         assert widget.get("Command.Click")=="ExecuteCUCamp"
-        assert label.get("Text")=="Visit traveling household camp"
+        assert label.get("Text")=="Household camp"
         bindings=[]
         commands=["ExecuteCUCamp"]
     else:
@@ -69,6 +69,50 @@ for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
       max_fixed_height=int(widget.get("SuggestedHeight")),
       bindings=bindings,commands=commands,
       duplicate_widget_ids=[],flags=[]))
+affairs=(root/"Source"/"CalradiaUnified"/"CUMapAffairsNative.cs").read_text()
+map_fragments=re.findall(r'public string Content\s*=>\s*("(?:[^"\\]|\\.)*");',affairs)
+assert len(map_fragments)==2
+for movie,fragment,command in zip(("MapBar","MapNotificationUI"),map_fragments,
+        ("ExecuteCUAffairs","ExecuteCUAffairsNotice")):
+    widget=ET.fromstring(ast.literal_eval(fragment))
+    assert widget.tag=="ButtonWidget" and widget.get("Command.Click")==command
+    results.append(dict(movie=movie+"_BUTR",category="native_patch_live_unverified",
+      max_fixed_width=int(widget.get("SuggestedWidth")),max_fixed_height=int(widget.get("SuggestedHeight")),
+      bindings=[v[1:] for e in widget.iter() for v in e.attrib.values() if v.startswith("@")],
+      commands=[command],duplicate_widget_ids=[],flags=[]))
+journal=ET.parse(ui/"CUAffairs.xml").getroot()
+journal_vm=(root/"Source"/"CalradiaUnified"/"CUAffairsScreen.cs").read_text()
+for e in journal.iter():
+    for k,v in e.attrib.items():
+        if k.startswith("Command."):assert "void "+v+"(" in journal_vm,v
+        if v.startswith("@") and e.tag!="ImageIdentifierWidget":assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
+assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{Portrait}" for e in journal.iter())
+assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{SenderBanner}" for e in journal.iter())
+# Do not bind absent images through hidden widgets. Empty slots create no image item.
+for slot,field in (("PortraitSlots","Portrait"),("BannerSlots","SenderBanner")):
+    panel=next(e for e in journal.iter("ListPanel") if e.get("DataSource")=="{"+slot+"}")
+    assert any(e.get("DataSource")=="{"+field+"}" for e in panel.iter("ImageIdentifierWidget"))
+    assert slot+".Clear()" in journal_vm
+    assert slot+".Add(" in journal_vm
+assert "new BannerImageIdentifierVM(senderClan.Banner)" in journal_vm
+assert "if(senderClan!=null && senderClan.Banner!=null)" in journal_vm
+assert "new CharacterImageIdentifierVM(CharacterCode.CreateFrom(hero.CharacterObject))" in journal_vm
+assert "new CharacterImageIdentifierVM(null)" not in journal_vm
+assert "new BannerImageIdentifierVM(null)" not in journal_vm
+for phase in ("initialize","view_model_ready","before_movie_load","movie_loaded","activated","first_frame"):
+    assert "phase="+phase in journal_vm
+for name in active:
+    movie=ET.parse(ui/name).getroot()
+    sprites={e.get("Sprite") for e in movie.iter()}
+    assert "StdAssets\\Popup\\canvas" in sprites,name
+    assert "frame_9" in sprites,name
+    assert "Popup.Done.Button.NineGrid" in (ui/name).read_text(),name
+assert any(e.get("Sprite")=="Quest\\header left" for e in journal.iter())
+assert any(e.get("Sprite")=="SPGeneral\\MapNotification\\kingdom_banner_frame_2" for e in journal.iter())
+assert "Map.Notification.More.Panel" in affairs
+assert any(e.get("Brush")=="Popup.SelectionElement.Tuple" and e.get("IsSelected")=="@Selected" for e in journal.iter())
+assert any(e.get("Brush")=="Quest.Tuple.Notification" and e.get("IsVisible")=="@Pending" for e in journal.iter())
+assert any(e.get("Sprite")=="General\\Icons\\icon_quest_done_checkmark" and e.get("IsVisible")=="@Completed" for e in journal.iter())
 output=root/"BuildResults"/"v070y-all-gauntlet-layouts.json"
 output.parent.mkdir(exist_ok=True)
 output.write_text(json.dumps(dict(target="Bannerlord v1.5.7.125802",

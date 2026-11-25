@@ -43,9 +43,9 @@ for step in ("ExecuteIdentity","ExecuteHousehold","ExecuteResources",
 assert "ExecuteApplyAndContinue" in buttons
 assert len(buttons)>=18
 assert any(w.get("Text")=="@ChildPreview" for w in xml.iter("TextWidget"))
-assert any(w.get("Text")=="PART 1 OF 2: STARTING CONDITIONS"
+assert any(w.get("Text")=="Starting conditions"
            for w in xml.iter("TextWidget"))
-assert any(w.get("Text")=="NEXT: NATIVE CREATOR"
+assert any(w.get("Text")=="Create character"
            for w in xml.iter("TextWidget"))
 assert 'candidate.NativeStageEnabled=false;' in ui
 stage=(source/"CUNativeOriginReviewStage.cs").read_text()

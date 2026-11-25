@@ -4,25 +4,23 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#110D0999"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#100D0A99"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="1080"
                 HeightSizePolicy="Fixed" SuggestedHeight="650"
                 HorizontalAlignment="Center" VerticalAlignment="Center">
           <Children>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+            <Widget Sprite="StdAssets\Popup\canvas"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#231910FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1074"
-                    HeightSizePolicy="Fixed" SuggestedHeight="644"
-                    PositionXOffset="3" PositionYOffset="3"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#403024FF"
+            
+            <Widget Sprite="frame_9" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
+            <Widget Sprite="Clan\clan_header"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="86"
                     PositionXOffset="15" PositionYOffset="15"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#BD9661FF"
+            <Widget Sprite="StdAssets\Popup\divider"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionXOffset="15" PositionYOffset="107"/>
@@ -30,8 +28,8 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="5"
                     HeightSizePolicy="Fixed" SuggestedHeight="86"
                     PositionXOffset="15" PositionYOffset="15"/>
-            <TextWidget Brush.FontSize="27" Text="@Heading" Color="#FFE6B8FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="700"
+            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="26" Text="@Heading" Color="#FFE6B8FF"
+                    WidthSizePolicy="Fixed" SuggestedWidth="670"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="34" PositionYOffset="28"/>
             <TextWidget Brush.FontSize="17" Text="@Description" Color="#E8E1D4FF"
@@ -39,9 +37,24 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="40"
                     PositionXOffset="34" PositionYOffset="66"/>
             <TextWidget Brush.FontSize="16" Text="@MemberCount" Color="#D9B77EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="400"
+                    WidthSizePolicy="Fixed" SuggestedWidth="326"
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
-                    PositionXOffset="36" PositionYOffset="121"/>
+                    PositionXOffset="718" PositionYOffset="28"/>
+            <TextWidget Brush.FontSize="15" Text="Name" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="194" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="86" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Standing" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="145" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="280" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Age" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="111" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="425" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Residence" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="213" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="536" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Location" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="290" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="749" PositionYOffset="125"/>
             <ListPanel DataSource="{Members}"
                     WidthSizePolicy="Fixed" SuggestedWidth="1005"
                     HeightSizePolicy="Fixed" SuggestedHeight="432"
@@ -62,7 +75,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="194"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="16" Text="@Relationship"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#D7B377FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="102"
+                        WidthSizePolicy="Fixed" SuggestedWidth="145"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="16" Text="@Age"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#E9E3D6FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="111"
@@ -71,22 +84,22 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="213"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="15" Text="@Presence"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#D5BC91FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="333"
+                        WidthSizePolicy="Fixed" SuggestedWidth="290"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                   </Children>
                 </ListPanel>
               </ItemTemplate>
             </ListPanel>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#B4935DFF"
+            <Widget Sprite="StdAssets\Popup\divider"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionXOffset="15" PositionYOffset="589"/>
-            <TextWidget Brush.FontSize="16" Text="CHILDREN STAY AT THEIR RECORDED HOME UNTIL THEY COME OF AGE."
+            <TextWidget Brush.FontSize="16" Text="Children remain at home until adulthood."
                     Color="#D4BC9AFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="763"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="35" PositionYOffset="601"/>
-            <ButtonWidget Brush="ButtonBrush"
+            <ButtonWidget Brush="Popup.Done.Button.NineGrid"
                     DoNotPassEventsToChildren="true"
                     UpdateChildrenStates="true"
                     WidthSizePolicy="Fixed" SuggestedWidth="192"
@@ -94,7 +107,7 @@
                     PositionXOffset="846" PositionYOffset="597"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Brush.FontSize="16" Text="Close gallery"
+                <TextWidget Brush="Popup.Button.Text" Brush.FontSize="16" Text="Close"
                     Color="#FFEED6FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

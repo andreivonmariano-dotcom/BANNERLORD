@@ -20,42 +20,29 @@ family = read("SandboxFamilyCreator.cs")
 house_fields = vm[vm.index("private List<Field> BuildFields()"):
                   vm.index("private bool Available(")]
 house_only = house_fields[house_fields.index("            else\n            {"):]
-assert '"NobleBirthPosition","Confirm your noble birth"' in house_only
-assert '"NobleElderHeroId","Native elder Hero ID (optional)"' in house_only
-assert house_only.index('"NobleBirthPosition","Confirm your noble birth"') < (
-    house_only.index('"SpouseEnabled"'))
-assert "choices:SandboxNobleStartPolicy.BirthPositions" in house_only
-
+# The old unavailable lineage selector is retired from all guided starts.
+assert '"NobleBirthPosition","Confirm your noble birth"' not in house_only
+assert '"NobleElderHeroId","Native elder Hero ID (optional)"' not in house_only
+assert "choices:SandboxNobleStartPolicy.BirthPositions" not in house_fields
 visible = vm[vm.index("private bool Available("):
              vm.index("private Field[] Visible")]
-assert 'if(key=="NobleBirthPosition")' in visible
-assert 'return SandboxCustomLifeRolePolicy.IsNobleFamilyRole(' in visible
-assert 'if(key=="NobleElderHeroId")' in visible
-assert 'profile.NobleBirthPosition!="Independent"' in visible
-
+assert 'key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;' in visible
 write = vm[vm.index("private bool TryWrite("):
            vm.index("public void ExecutePreviousChoice()")]
+assert 'key=="NobleBirthPosition" || key=="NobleElderHeroId")return false;' in write
 assert "houseDraft=SandboxOriginProfile.Parse(profile.Serialize());" in write
-assert 'if(key=="NobleBirthPosition" ||' in write
-assert ".PreviewElderName(profile,Hero.MainHero)" in write
 assert "string currentKey=Current==null ? key : Current.Key;" in write
-
 hint = vm[vm.index("[DataSourceProperty] public string Hint"):
           vm.index("private static string DisplayChoice")]
-assert 'Current.Key=="NobleBirthPosition"' in hint
-assert '"Eligible native family: "+projectedElderName+' in hint
-assert '". An older sibling created in House cannot "' in hint
-assert '"replace an existing native lord. If no lord "' in hint
-assert '"qualifies, choose Independent here."' in hint
-
 # Names and ages added to the House sibling list do not make a new
 # clan leader or an existing titled noble for YoungerBrotherOfLord.
 assert '". None automatically becomes your clan leader. "' in hint
 assert 'An older brother created here does not become an existing lord,' in vm
-assert '"native clan-leading lord. Creating an older sibling "' in vm
+assert "profile.NormalizeGuidedCareerDraft();" in vm
 
 house = vm[vm.index("private void CommitHouse()"):
            vm.index("[DataSourceProperty] public bool IsWorldSetup")]
+assert "candidate.NormalizeGuidedCareerDraft()" in house
 assert "candidate.RealFamilyEnabled=candidate.SpouseEnabled ||" in house
 assert "SandboxNobleStartPolicy.RequiresNobleElder(" in house
 assert "HasEligibleProjectedNoble(candidate)" in house
@@ -127,4 +114,4 @@ assert 'An older sister is allowed, but a ' in vm
 assert 'Independent Lord starts cannot include an older brother.' in vm
 assert 'Independent Lord requires you to be the eldest ' in vm
 
-print("PASS v0.69g: unresolvable native nobility blocked at House with editable family draft; strict phase-9 gate intact (source only)")
+print("PASS v0.69g: unsupported noble origins removed from guided selection with family draft preserved; strict phase-9 gate intact (source only)")

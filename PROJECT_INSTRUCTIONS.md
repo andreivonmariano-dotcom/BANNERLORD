@@ -1,28 +1,117 @@
 # BANNERLORD
-## Comprehensive project source instructions
+## Comprehensive project source instructions | v2.0
 
-**Project focus:** Mount & Blade II: Bannerlord modding, development, debugging, testing, and release engineering  
-**Primary development project:** Calradia Unified  
-**Document version:** 1.0  
-**Prepared:** 18 November 2026  
-**Scope:** Dedicated ChatGPT project and companion GitHub repository  
-**Canonical repository:** https://github.com/andreivonmariano-dotcom/BANNERLORD
+25 November 2026. Canonical repository: https://github.com/andreivonmariano-dotcom/BANNERLORD. This handbook governs the dedicated project, repository and companion source document. Current trajectory supersedes previous broad reconstruction, 12/13-role and obsolete UI directives. Retain the historical archive and all previous commits as evidence, not live instructions.
 
-> **Latest priority override, 21 November 2026: AUDIT FIRST.** The user has paused all new gameplay and UI feature expansion. Before resuming Q1/Q2/Q3, review the current v0.69d code and the exact compiled runtime in the actual Bannerlord game, including every existing creator screen, settlement menu, real native state, UI scaling, input, 30-day campaign and save/quit/reload. See [v0.69e current feature and in-game UI acceptance](docs/V069E_CURRENT_FEATURES_GAME_UI_AUDIT_GATE.md) and the [cross-chat handoff](docs/PROJECT_DECISIONS_AND_CHAT_HANDOFF.md). CI and synthetic screenshot tests remain Gate B only. Repair only reproduced P0/P1 defects during the audit. Preserve the 12-role and NPC directions as a later priority.
+## Project charter
 
-> **Current priority addendum, 21 November 2026:** The user directs Q1 → Q2 → Q3 in order: first native Starting Life integrity, transaction safety, and game-verified acceptance (v0.69), then believable medieval social roles and obligations (v0.70+), then persistent NPC personality, independent choices, relationships and memory (v0.71+). Read [the living project decisions and chat handoff](docs/PROJECT_DECISIONS_AND_CHAT_HANDOFF.md) and the CURRENT MASTER PRIORITY section of the [canonical source Google Doc](https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit). This priority temporarily supersedes the historical suggested development order. Continue from the most recent verified branch, CI and test record rather than assuming main is current.
+25 November 2026 | Bannerlord PC 1.5.7.125802 | War Sails 1.3.7.125802 | CU v0.74.0 | 41 selected modules | Gate B, COMPILED_UNTESTED.
 
-> **Purpose.** This document governs work conducted inside the BANNERLORD project. Its aim is to turn requests into functioning, verified Bannerlord mods and reliable technical records. It takes the source-and-evidence discipline and editorial principles of the user's reference document, *ChatGPT_Comprehensive_Source_Instructions_Updated_2026-11-11*, and applies them to game mod engineering. A short companion file supplies text suitable for the ChatGPT Project Instructions field.
+Runtime source: `e0f94b48dc05e3e92e44afce8cfbce1faf7ca3eb`. Windows CI [45627703971](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45627703971) and [45627718762](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45627718762) succeeded. The exact runtime artifact [15029171592](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45627703971/artifacts/15029171592) was independently opened: outer and inner ZIP CRC pass, one Modules/CalradiaUnified directory, one CalradiaUnified.dll, manifest v0.74.0 and matching CU-BuildIdentity.json. DLL SHA-256 `495beb3fe7a62ca40df354c4fa918cb71e1a6ca6a1f5d9d7825043908a0357c5`. Inner runtime ZIP SHA-256 `bf9077bc0fde06eb3eaf655040dbc34408bc7edc7250891fa231f48409ac5551`, 463780 bytes. Outer artifact SHA-256 `11cc78cbaa44151851bc135d5e0ca375a16304311d0ef5fe6281190dceac1a86`. The package contains the pre-existing read-only Export-CU-Diagnostics.ps1 under ModuleData, not an installer; retain its known purpose or move it to source-only distribution in a later verified packaging change. No live installation, gameplay or save/reload claim. Prior playtest session 20261125T122817_ca382bca used a different DLL, 6726da1024f4754cc65fcca9381fe6b44f642b3c05f53bc147b2fd3b7fd7c656, and is historical evidence only.
 
-## Project charter and scope
+Work on Bannerlord modding, C#, XML, native game and War Sails integration, testing, debugging and packaging. Calradia Unified's mission is meaningful medieval personal life, household, dynasty, character relationships, sworn service and a single chronicle. Develop only complementary features. Keep single-module distribution, no bundled installer or external DLL, four required BUTR frameworks, native official dependencies, optional provider integrations with verified contracts. The actual 41-module stack is the primary compatibility test profile. The 78 historical mods are provenance, not a target to replace. Deliver real code and evidence, not fabricated functionality. Read the current branch, source and logs before action.
 
-The BANNERLORD project is dedicated to **Mount & Blade II: Bannerlord**, its official modules and expansions, and related modding tools. Work includes C# campaign and mission behaviors, XML item and troop data, module manifests, save-state design, campaign AI, combat, economy, recruitment, diplomacy, War Sails integration, UI, scene and asset workflows, third-party mod compatibility studies, reverse engineering for interoperability, load-order analysis, build pipelines, GitHub Actions, troubleshooting, testing, and packaging.
+## Current controlling decisions
 
-**Calradia Unified** is the primary long-term mod. The intended product is a single installable `CalradiaUnified` module directory. Separate frameworks or obsolete mod DLLs are not part of the intended player-facing dependency list. Official TaleWorlds modules remain dependencies. Add other requirements only after explicit engineering justification and agreement.
+The active development branch is feature/cu-v074-living-dialogue-depth, draft PR #100 stacked on integration/cu-living-society-acceptance PR #99. Default main is not the active acceptance head. Do not merge, release, force-push or independently merge historical stacked PRs without completed evidence gates and authorization. Inspect live branch/CI before relying on any dated snapshot. User shorthand q1q2q3 means execute the three immediately preceding follow-up questions, reporting what was actually done. Prefer small complete improvements to adding mechanics. The audit-first gate remains: test current baseline, repair P0/P1 defects, then deepen systems incrementally. User-authorized narrow refinements and documentation are allowed without pretending live acceptance.
 
-Preserve the user's decisions across turns. The user has requested an actual finished mod, a paste-ready folder, no installer, and as much original functionality as can be re-created responsibly from the historical 78-mod inventory. Advance that product with each development task. Avoid repetitive source-kit repackaging that does not address the current blocker.
+### S1 | Starting Life
 
-Treat unrelated topics as outside this project's standing focus. Briefly identify the topic as outside BANNERLORD and suggest using another chat or project, except where the user explicitly changes the scope. Do not make Bannerlord analogies to unrelated tasks merely to maintain the theme.
+**Retain:** One guided creator, real native culture/face/identity/attributes, seven starting paths, resources and family preflight. Native affiliations, fiefs and registrations verified after actual actions.
+
+**Next approved design:** Verify each start, no unsupported subtype; improve confusing steps only from live evidence. Keep creator native controls and existing safeguards.
+
+**Done when:** Seven separate starts on full stack, actual kin/party/clan/fief/contract/identity, no duplicate grants after load.
+
+### S2 | Family and Dynasty
+
+**Retain:** Reciprocal spouse, children, siblings, initial traits/skills, cultural names, actual residence, portraits, genealogy, succession history. Native lifecycle, education and inheritance remain authoritative.
+
+**Next approved design:** Event-led family interactions around actual births, marriage, adulthood, loss and residence. Distinct consented activities and requests with real available outcomes. Do not make minor children active agents or restore automatic education bonuses.
+
+**Done when:** Exact native family links, location, age and death transitions; one event per witnessed occurrence; no false parentage or property; copied save/reload.
+
+### S3 | Household and Retainers
+
+**Retain:** Real native companions and personal offices. Governor plus four native specialist commands (Quartermaster, Scout, Surgeon, Engineer). Direct native effects not autonomous missions.
+
+**Next approved design:** Unify context-sensitive assignment and current-duty report. Offer only feasible real responsibilities, disclose blocked reasons, verify before/after. Provider-approved remote jobs only after contract proof. No rival recruitment, patrol, salary or progression.
+
+**Done when:** Vacant native slots only; raw and effective holder confirmed, other land/naval slots unchanged, correct roster and authority; negative cases, save/reload, actual gameplay benefit.
+
+### S4 | Living Relationships
+
+**Retain:** Private Concerns, Family, Standing, native-trait voice, exact-pair memory, real gold/relationship petitions, family gift, bounded correspondence. Routine family visit/affection/repair are memory-only.
+
+**Next approved design:** Connect actual events to specific choices, contextual responsibility shortcuts, honest refusal and outcome memory. No arbitrary relation farming or fake completed tasks. Ordinary news nonactionable, speculative peers/stories off.
+
+**Done when:** Exact speaker and owner, valid request and cost, actual gold debit/credit/relation before/after, no replay; safe exits and meaningful choice feedback.
+
+### S5 | Career and Sworn Service
+
+**Retain:** Wanderer, Outlaw, Mercenary, Soldier, Knight, Lord, King. Knight has personal oath, muster, scouting, escort, report, recognition, recommendation and release/renewal. All native/provider ranks and political actions remain authoritative.
+
+**Next approved design:** Verify actual role-specific obligations first; improve Knight service only where action is distinct. No mandatory career ladder or eighth role. Native transitions are witnessed, not invented.
+
+**Done when:** Each career's native/provider start contract and one genuine role action; service loss, changed authority, oath identity, death/capture/reload and no duplicate pay.
+
+### S6 | Personal Chronicle
+
+**Retain:** One history access point for witnessed career, personal history, battle, livelihood and lifetime observations. Founder chapters historical; no manual career chores.
+
+**Next approved design:** Event evidence tied to actor IDs and dates, clearer current vs historical titles, merge family/service receipts, reduce repeated account/record UI. Keep legacy records readable without assigning them to heirs.
+
+**Done when:** Read-only views agree with actual native state; no mutation; observed role change and successor identity remain distinct, no fictional victories or income.
+
+## Player experience and interface budget
+
+One guided creator. Four primary campaign access points: My Household (same shared dossier from Clan and Party), Correspondence (map and local affairs, native InquiryData default, pending/unread only), My Chronicle (merged career/livelihood/battle/personal history), and personal face-to-face conversations. A role-specific Knight oath, royal court or succession view may remain where it is actually relevant. Archive history and troubleshooting away from immediate decisions. Do not create a new top-level menu for an existing report. The removed Kingdom and illustrated camp entries, separate portraits entry, duplicate ledger and manual career actions stay retired. Preserve old exit-only routes and saved state. Native correspondence graphical probe is explicit one-shot diagnostic only; no requirement to enable it in ordinary acceptance. Royal hall preparation is opt-in diagnostic only.
+
+Interaction design: display what is happening, who is involved, what can be done and the actual outcome. A player should reach a relevant action with no unnecessary report browsing. Hide actions that cannot execute, give concise reasons on request and keep an unconditional native close/return. Prioritize useful choices over additional dialogue volume. No technical receipt text, artificial chores or unearned rank/relationship claims in normal player interface.
+
+## Household command contract
+
+A command is not a menu click, a report or a promise. It names the acting Hero, actual target, owner, native/provider authority, eligible state, explicit player instruction, resource budget (zero for current appointments), current status and observable completion. Use native ownership as the sole source of actual assignment. Do not introduce a second office roster, salary system or simulated party controller.
+
+Current local commands: governor via ChangeGovernorAction.Apply(Town,Hero), and Quartermaster, Scout, Surgeon and Engineer via MobileParty.SetHeroPartyRole. The actual raw slot must be vacant, including absent incumbents. Check actor adult, alive/active, reciprocal spouse or adult child or actual companion, same clan, local presence, correct party roster, relation >= 0, authority, no siege/battle/army/sea or incompatible SaS service. Use CanAssignMoreRolesToHero and no existing specialist assignments. Confirm raw holder and effective holder plus all other land/naval slots unchanged. For governor verify Town.Governor and Hero.GovernorOf. Never claim genuine NPC consent merely from successful assignment; the dialogue acknowledgement is CU-authored.
+
+Proposed reusable command state for genuinely asynchronous provider tasks: Offered -> Rejected or Accepted -> In progress -> Completed, Failed or Cancelled. Persist exact player, actor, provider, target, agreed budget, deadline, unique command ID and verified receipt. Never charge, spawn, move or mark complete twice. Fail closed on provider absent, role change, dead/captive actor, lost settlement, unavailable target, unconfirmed post-state or save mismatch. No guessed private API calls. Direct local assignments do not need an invented asynchronous task ledger.
+
+Example: a Master of Arms notes a weak garrison. CU must show the real concern and the native/Improved Garrisons owner. If an approved provider API is available, the future command specifies actual holding, target roster, budget, ETA and evidence. Otherwise use the existing provider/native screen and state plainly that CU cannot issue that order. CU must never falsely say recruits were obtained or silently run its own recruiter. Direct manual five-recruit transfer trial remains disabled when Improved Garrisons is loaded; normal launches keep legacy officer transfers off.
+
+## Relationship and event contract
+
+Use actual Hero IDs and native relationship, kinship, age, residence, office and personal history. Native events (birth, adulthood, death, marriage, verified appointment, battle loss, completed service, actual gift or petition response) trigger relevant optional encounters. Deduplicate by event identity and participant, store bounded memory, prefer local/contact-specific eligibility and use cooldowns. Distinguish observed fact, CU-authored dialogue and modeled inference. No invented world event, autonomous romance, secret conspiracy or global pairwise simulation. An interaction earns its place through a real choice, verified native effect, useful information or a distinctly personal memory. Ordinary conversation is not a relationship reward loop. Do not claim full independent NPC agency until native execution is proven.
+
+## Compatibility and ownership
+
+The curated 41 selected modules are the full-stack integration profile, not 41 hard dependencies. Minimal control profile: Native, SandBoxCore, Sandbox, four required frameworks (Harmony 2.4.2.248, ButterLib 2.12.0.0, UIExtenderEx 3.0.3.0, MCM 5.13.1.0) and CU. Add official BirthAndDeath/NavalDLC for their specific tests and ServeAsSoldier 1.5.7.4 for Soldier. Current stack includes ImprovedGarrisons 4.3.1.0, Diplomacy 1.5.7.0, Fourberie 1.5.7.0, RBM/RBM_WS 4.8.2.0, RTS Camera, equipment and visual mods. Use the recorded exact launcher order and validate installed versions/hashes at each test. Current module boundary record: [Data/CU_Module_Ownership_Audit.csv](Data/CU_Module_Ownership_Audit.csv), [Data/Current_Modlist_Baseline.json](Data/Current_Modlist_Baseline.json), and [docs/CURRENT_MODLIST_COMPATIBILITY_BASELINE.md](docs/CURRENT_MODLIST_COMPATIBILITY_BASELINE.md). Prior launcher selection proves configuration only.
+
+Native and BirthAndDeath own aging, education and life-cycle. Diplomacy/native own politics, vassalage, war and settlement transfer. Improved Garrisons owns recruitment, garrison training, guards and patrols. SaS owns enlisted status, grade, duty, wage and release. Fourberie owns its crime and intrigue mechanics. RBM, RTS Camera, troop/equipment mods, Nobles Buy Stuff and War Sails retain their respective combat, troop, gear, command and naval systems. CustomisableUI and existing native screen layout retain their scope. No copying external DLLs, inventing API contracts or changing other mods without explicit authorization. EBA/OSA/ZZZ culture gear patch remains separate.
+
+The 78-mod inventory is research and migration provenance, not a replacement target. The current reviewed scope is Data/CU_Core_System_Review.csv: 143 review rows (70 canonical + 73 supplemental). 67 KEEP, 43 RETIRE, 12 MERGE, 10 DEFER, 8 IMPROVE, 2 ARCHIVE, 1 OPTIONAL. Rows are subfeatures and engineering contracts, not 143 playable independent systems. Preserve the original registry and historical evidence statuses. Retired means inactive or inaccessible in normal gameplay, not necessarily physically deleted. Remove dead code only after save/serialized-key and cross-reference audit. No resurrection of depots, levies, convoys, custom economy, automated patrols, fake offices/wages, duplicate education or speculative peer/story observers.
+
+## Delivery roadmap
+
+**R0 | Freeze and establish exact runtime identity:** Gate A/B, candidate ZIP and DLL verified; full-stack actual install baseline recorded; prior source stale checks resolved, no old DLL assumed. State: COMPILED_UNTESTED; package verified; live preflight pending.
+
+**R1 | Native acceptance of existing systems:** All seven starts, native dialogue exits, one actual action per applicable system, full 41-module profile; save/reload; record all failures. State: BLOCKED_PENDING_GAME.
+
+**R2 | Usability and compatibility repair:** One household dossier, correspondence native fallback, chronicle, one direct conversation hub; no crash or duplicate mutations; verify fixes using real evidence. State: SOURCE_CONSOLIDATED; live acceptance pending.
+
+**R3 | Living family and relationship depth:** Actual native family events feed bounded personal interactions, explicit choice and verified outcome, no fake education/kinship/relationships; no generic dialogue grinding. State: PLANNED; gated.
+
+**R4 | Practical household commands:** Local native governor and party assignments pass; single command lifecycle and reports. Authority/availability checks, target, cost, result and cancellation. External job support only with verified contract. State: LOCAL_SOURCE_EXISTS; remote deferred.
+
+**R5 | Sworn service and career continuity:** Knight oath, actual duty completion, renewal and native transition evidence; no overlapping progression or payroll; founder vs successor verified. State: EXISTING_SOURCE; native tests pending.
+
+**R6 | Unified personal chronicle and dynasty continuity:** One accessible read-only history, actor/date/source receipts, real kinship and succession, no fabricated causality; old saves preserved. State: SOURCE_CONSOLIDATED; integration pending.
+
+**R7 | Compatibility, cleanup and performance:** Remove unreachable code/assets only after dependency and old-save migration tests. 30 campaign days, 60-minute live session, sea/siege/battle/settlement transitions, save size and CPU/frame measurements, no unresolved blocking defects. State: BLOCKED_PENDING_GAME.
+
+**R8 | Candidate and stable distribution:** Exact tested ZIP, version, hashes, changelog, tested profile, known issues, clean install/removal and permissions; publish only after Gate G approval. State: NOT_RELEASED.
+
+Detailed milestone dependencies and risk register: [docs/CU_MASTER_ROADMAP.md](docs/CU_MASTER_ROADMAP.md). Current acceptance matrix: [Data/CU_Six_System_Native_Test_Matrix.csv](Data/CU_Six_System_Native_Test_Matrix.csv). Every row requires actual evidence and has no implied pass. Historical retired mechanics do not count as missing current features. A legacy parser with obsolete mandatory graphical/garrison conditions cannot certify the new scope.
 
 ## Instruction hierarchy and source integrity
 
@@ -40,45 +129,12 @@ Read exact files before making claims about their contents. Search or open the l
 
 State whether a claim is **observed**, **source-reported**, **inferred**, **planned**, or **verified by execution**. Keep those distinctions in technical reports and release notes. Never invent file access, build output, compiler success, game testing, save compatibility, download URLs, or working features.
 
-## Development baseline as of this document
 
-**Target base game:** Bannerlord PC v1.5.7, verified for the project on 18 November 2026. Recheck official notes before updating the target. War Sails support is a distinct integration track. Keep its tested version explicit, and never infer naval compatibility from a base-game compile.
+## Expert method and product delivery
 
-**Repository:** `andreivonmariano-dotcom/BANNERLORD`, default branch `main`, public. The source tree currently includes `Source/CalradiaUnified/`, `Tests/PolicySmoke/`, `Modules/CalradiaUnified/`, `scripts/`, and `.github/workflows/bannerlord-build.yml`.
+Work as a Bannerlord systems designer, C# engineer, QA investigator and build maintainer, without invented credentials. Inspect exact files, choose a coherent blocker or feature, implement narrow source, add tests, inspect CI, repair real failures, verify artifact bytes and update the evidence ledger. Explain what is source-reported, compiled, actually observed, inferred or planned. Do not weaken regression tests merely for a green badge. Source assertions and modeled simulations cannot establish gameplay.
 
-**First confirmed hosted compilation:** GitHub Actions run 44134919335 completed successfully following a test-project fix. It generated a `CalradiaUnified.dll` and the artifact `CalradiaUnified-v0.8.0-compiled-untested`. The related build commit was `3add81157e4a936cf6e82c5689b8bcf932da2b38`; a later README update followed. The successful compile establishes that source and references built at that revision. **It does not establish successful launch, campaign operation, save/load behavior, or feature completeness.**
-
-**Historical mod inventory:** 78 original mod folders are tracked in `Data/Migration_78.csv` and `Data/CalradiaUnified_78_Mod_Acceptance_Checklist.csv`. Historical feature names are development references, not claims of finished replacements. Status remains unverified until a named feature has a tested implementation.
-
-**Historical crash evidence:** Prior v1.4.8 logs showed `LivingPersonasAI` failing on `Mission.SpawnAgent`, plus a settlement-departure patch collision involving `LeaveSettlementAction.ApplyForParty` owners. `LargePartyVisuals` and `SiegeCommandMenu` carried differing declared game versions. Preserve the original log interpretation and do not generalize these results to v1.5.7 without new evidence.
-
-## Expert method and working relationship
-
-Work as a Bannerlord mod architect, experienced C# engineer, technical game designer, build maintainer, and QA investigator. Prefer clear engineering judgment over ceremonial role claims. Translate short follow-ups such as “q1q2q3” into the actual three questions immediately above them. Carry out the stated work without asking for information already available in the project.
-
-For a new development task, inspect the relevant source and determine the smallest coherent end-to-end change. Implement files, run accessible checks, commit authorized repository changes, inspect CI, collect error logs, and fix identified defects. If a test requires the user's own game installation, provide a precise test case and expected observation. Do not fabricate a passing result or stop at a plan when accessible steps remain.
-
-Offer competing technical designs only when the tradeoff matters. Make one recommendation with the conditions that support it. Prefer a smaller functioning feature over a broad untested menu of options. Keep changes traceable to the stated gameplay objective.
-
-## Product requirements and module structure
-
-The player-facing release should be a ZIP containing one `CalradiaUnified` directory suitable for direct placement under the game's `Modules` directory. It should contain only runtime assets:
-
-```text
-Modules/
-└── CalradiaUnified/
-    ├── SubModule.xml
-    ├── ModuleData/
-    │   └── calradia-config.ini
-    ├── GUI/                         # only if the feature uses it
-    └── bin/
-        └── Win64_Shipping_Client/
-            └── CalradiaUnified.dll
-```
-
-Use the exact runtime file set required by the built feature. Keep sources, tests, old DLLs, `.pdb` files unless explicitly needed, NuGet packages, installer scripts, cache files, and development notes out of the player-facing ZIP. No bundled MSI, registry changes, or executable bootstrapper should be required. The user's preferred source-side PowerShell 5.1 installer and audit scripts are approved for artifact verification and log inspection, but stay outside the runtime ZIP. A source repository can include build scripts and test data without placing them in the distributed module.
-
-Keep the module ID and save data keys stable across compatible releases. Record intentional migrations and changed defaults. Avoid replacing an existing user installation without a backup instruction. Never call an uncompiled `SubModule.xml` package a working compiled release.
+One runtime ZIP contains Modules/CalradiaUnified/SubModule.xml, ModuleData/calradia-config.ini and CU-BuildIdentity.json, bin/Win64_Shipping_Client/CalradiaUnified.dll and necessary GUI/data assets. No third-party binaries, source code, old DLLs, caches, executable installer or PDB by default. The current candidate includes the pre-existing read-only Export-CU-Diagnostics.ps1; record that exception explicitly, and consider moving it out during a later verified packaging pass. Keep source-side installation helpers separate. Verify CRC, actual DLL nonzero size, SHA-256, manifest/assembly versions, CI provenance and expected module layout. Preserve module ID and stable save keys, back up prior module and saves. No silent local install or save modification.
 
 ## C# engineering standard
 
@@ -98,29 +154,10 @@ Use the engine's documented module-data registration and XML merging behavior fo
 
 Keep changes surgical. Avoid copying whole official tables when a small targeted override exists. Compare the actual v1.5.7 base definitions with the patch. Test item values and troop upgrade paths in-game. Record before/after values and avoid pretending a weight or price adjustment creates new trade systems, consumption rules, or recruitment behavior.
 
-## Game-system engineering rules
 
-### Logistics, trade, and settlements
+## Engine and feature boundaries
 
-Track real grain, gold, party inventories, depot stock, transfer timing, ownership, and delivery events. Enforce stock and currency conservation except at documented production, consumption, purchase, or taxation points. Make a failed trade atomic: either all resources move or none do. Reject negative balances, fractional item duplication, invalid settlements, and incompatible owners.
-
-A **physical convoy** is an actual map party with a roster, inventory, movement, encounters, destruction handling, and persistent identity. An abstract ledger transfer must be labeled as simulated transport. Do not describe a timer-based transfer as a traversable convoy. Handle convoy defeat, loss, arrival, route changes, captured settlements, and load/reload recovery.
-
-### Recruitment and troop progression
-
-Use the settlement's cultural identity for native recruit selection unless the design explicitly specifies ruler-controlled recruitment. Check culture, available troop type, ownership, influence, gold, daily cap, existing party size, troop limit, and save persistence. Record and test exact recruitment cost and refund behavior. Keep original troop IDs and upgrade trees stable when that preserves compatibility.
-
-### Kingdom AI, diplomacy, and party orders
-
-Use the vanilla army system as the controlling authority. For initial automation, issue orders only to eligible independent NPC parties belonging to the player clan. Never hijack the player party, a party inside an army, a combatant, a besieging party, or a party entering or leaving a settlement. Exclude sea travel until War Sails handling is implemented and tested.
-
-Prioritize immediate defense and survival over routine patrols. Check food, manpower, destination ownership, siege state, route availability, army membership, peace/war state, and a per-party cooldown. Do not send a party to a hostile or besieged “resupply” destination. Verify the order was accepted by the engine. Use a bounded decision interval to avoid order thrashing.
-
-Separate advisory policy from command execution. A decision score alone is not working autonomous AI. If the feature issues movement orders, the implementation and release notes must name those orders. Keep experimental automation disabled by default until it passes a supervised gameplay matrix. Full kingdom military coordination, war votes, peace treaties, and siege control require distinct designs and tests. Never claim those systems exist on the strength of a resupply order controller.
-
-### Combat, equipment, UI, scenes, and War Sails
-
-Treat mission AI, combat balance, troop equipment, simulation, siege scenes, animations, UI hooks, and naval systems as distinct integration tracks. Test battle entry and exit, agent spawning, damage events, retreat, formations, siege transitions, scene loading, and ship-related transitions for any feature touching those systems. Check FPS and long-session behavior. Do not import artwork, audio, or compiled mod components without permission or an applicable license.
+Use the native owner for every real economy, recruitment, party movement, diplomacy, combat, inheritance, education and equipment operation. The prior detailed economic and military engineering rules remain historical guardrails for approved future integrations, not a mandate to rebuild those features. If a provider-approved transaction is introduced, require exact authority, resource conservation, before/after verification, failure containment, stable identity, cooldown and reload safety. A physical convoy is a real map party, not a ledger timer. Avoid duplicate combat or naval models. Verify actual version-specific API method signatures and behavior before implementation. No speculative patching or private third-party invocation. Do not write to a party in army, battle, siege, unsupported sea state or external service. Test native transition points, UI events and controls at supported resolutions.
 
 ## GitHub workflow and change management
 
@@ -131,6 +168,7 @@ The current CI workflow is `.github/workflows/bannerlord-build.yml`. Its configu
 For an error: capture the failing run, job, step, compiler message and exact file/line. Reproduce or reason from the exact error. Fix the smallest root cause. Trigger CI, wait for its actual result within the current task when possible, and inspect the artifact. Avoid suppressing errors or weakening tests simply to create a green badge.
 
 Before calling a binary candidate “compiled,” verify that the DLL exists and has a nonzero size. Before calling a ZIP “paste-ready,” verify that it contains the intended module layout and runtime files. Record at least the run URL, commit SHA, artifact name, target game version, and build result. When feasible, record DLL SHA-256 and ZIP integrity results.
+
 
 ## Test ladder and release gates
 
@@ -158,21 +196,14 @@ Start with the exact game version, module list and load order, launcher module v
 
 Keep a regression record for `Mission.SpawnAgent`, `LeaveSettlementAction.ApplyForParty`, party movement, settlement entry/exit, campaign persistence, and other previously implicated transition points. Historical evidence identifies priority tests, not automatic blame. Avoid blind “delete all mods” advice when the available logs point to a narrower issue.
 
-## The 78-mod reconstruction program
 
-Track the 78 original mods in the repository's migration CSV and acceptance checklist. Preserve original IDs, display names, historical versions, associated feature areas, chosen reconstruction scope, and rights notes. A module can inspire several distinct functions. A single feature can partially replace functions from multiple original modules. Document both mappings.
+## Current native acceptance and release
 
-Use this status vocabulary for individual features: `IDENTIFIED`, `SCOPED`, `IMPLEMENTED_SOURCE`, `STATIC_CHECKED`, `COMPILED`, `GAME_TESTED`, `REGRESSION_TESTED`, `RELEASED`, or `BLOCKED`. Never convert a module to “replaced” based on a similar name or a partial feature. Record percent or count completion only against explicit accepted requirements and tested evidence.
+Use the new six-system test matrix and checklist. Run control profile and actual 41-module profile. Seven fresh careers, actual native family/party/contract state, explicit positive and negative actions, UI at three resolutions, save/quit/reload, death/capture/siege/authority changes, 30 campaign days and 60-minute session. For graphical correspondence, use native inquiry fallback for normal acceptance; diagnostic probe is separate. Held garrison mutations must remain inactive on full stack. Do not require or fabricate a retired mutation receipt as evidence of a working retained system. Native game-only tests require actual observed evidence and may remain PENDING/BLOCKED. Release exact tested artifact only at Gate G. Never infer success from historical compiled or user-reported different DLL.
 
-Suggested development order: foundation and save reliability; economy and logistics; culturally grounded recruitment; independent-clan NPC orders; deeper kingdom behavior and diplomacy; garrisons and sieges; combat and troop equipment; characters and UI; visuals, scenes, heraldry, and War Sails-specific work. Reorder only for a clear dependency or user priority.
+## Windows installation and diagnostic standard
 
-## Packaging, release, and player experience
-
-**Preferred distribution:** one ZIP containing `Modules/CalradiaUnified/...` that the player extracts into the Bannerlord installation folder. No installer. No third-party framework dependency without an explicit design decision. Explain official module dependencies and the tested load order. Include concise release notes and a feature list that matches actual runtime behavior.
-
-Do not ship `NOT_COMPILED.txt`, source-only code, build caches, unrelated old modules, unauthorized mod DLLs, or a fake DLL as a playable product. If a release is only compiled, name it `COMPILED_UNTESTED` or an equivalent clear label. If it passes the relevant gameplay gates, use a release-candidate or release tag with the test record.
-
-Do not silently overwrite the player's previous module or saves. Recommend a clean test profile and backed-up saves for breaking or unverified changes. State known feature toggles and defaults. Keep the installation procedure short and direct.
+PowerShell 5.1 source-side workflow remains the approved optional installation and read-only verification method. Read docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md before providing commands. Pin exact successful run, artifact, script commit, manifest version and DLL hash via -ExpectedDllSha256; reject wrong hashes before overwriting anything, preserve backup and use copies of saves. Game root recorded D:\\Steam\\steamapps\\common\\Mount & Blade II Bannerlord, reconfirm if changed. Use Test-CU-Playthrough.ps1 and Export-CU-Diagnostics.ps1 to inspect exact latest session and actual native spouse/children/role receipts, not old mixed logs. PowerShell pass is not gameplay, visual or reload proof. Do not run local installer or alter live saves without explicit permission and safe test profile.
 
 ## Response and documentation standard
 
@@ -184,64 +215,14 @@ Use a list for steps and multiple distinct records. Prefer connected paragraphs 
 
 For internal unlisted crash logs, source archives, developer notes, and working files, maintain provenance in project records. Public technical statements should link to a real applicable source or specific GitHub run as needed. Treat private data and game installation paths carefully. Do not include secrets, credentials, personal saves, or proprietary binaries in the public repository.
 
-## Required deliverables by request type
 
-**New mod feature:** Implementation files; updated config defaults; tests for policy and edge cases; successful CI or exact failure log; named in-game test procedure; updated feature status; compiled candidate if the build succeeds.
+## Milestone handoff and revision control
 
-**Bug or crash fix:** Reproduction notes; exact error evidence; scoped patch; regression test; CI result; impact on save compatibility; downloadable corrected candidate if build succeeds.
+Record goal, exact changed source paths and commit, test pass/fail counts and execution type, workflow URL, artifact identity and hash, highest gate, limitations, next blocker and owner. For release include game/DLC versions, manifest, profile, defaults, known compatibility and save risks, permissions and installation/removal. Maintain this handbook, CHATGPT_PROJECT_INSTRUCTIONS.txt, AGENTS.md, master roadmap and cross-chat handoff together when controlling decisions change. The canonical live document is https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit. Historical v1.0 text and earlier project records remain accessible, but old development priorities are superseded.
 
-**Game version update:** Official patch notes and DLL/package check; compilation changes; gameplay regression list; save-risk assessment; update of pinned references only after verification.
+Revision: v1.0 18 Nov 2026 established engineering policy; v2.0 25 Nov 2026 consolidates six systems, seven careers, 41-module compatibility, 143-row feature review, native assignment ownership and current evidence-gated roadmap. Review after major changes, not every minor commit.
 
-**Performance change:** Baseline scenario, measurement method, before/after numbers where run, allocation or tick-load assessment, and no fabricated benchmarks.
 
-**Final mod release:** One tested `CalradiaUnified` module ZIP; build provenance; version-specific test evidence; release notes; prerequisites; installation and removal notes; clear feature coverage; link to exact published artifact.
+## Six-system design and permanent tracking
 
-**Short “Q1/Q2/Q3” request:** Recover the actual preceding questions, complete the feasible work for each, and report results separately. Keep progress cumulative in the repository.
-
-## Reusable task briefs
-
-**Implement a feature:** “Inspect the current `main` branch and implement [mechanic] in Calradia Unified. Specify player-visible behavior, costs, restrictions, and persistence. Add independent tests, compile through GitHub Actions, and package the binary candidate. State which in-game tests remain.”
-
-**Debug a crash:** “Review this Bannerlord crash report and my active load order. Identify the earliest supported cause, give the exact stack evidence, repair the implicated project code when available, run CI, and provide the corrected build candidate.”
-
-**Extend NPC AI:** “Add [behavior] without overriding vanilla armies. Define legal party states, destination selection, cooldowns, rejection handling, persistence, and supervision logs. Keep the feature disabled by default until game-tested.”
-
-**Make a release:** “Inspect the latest successful workflow, verify the compiled DLL and module ZIP, review the feature and test matrix, and publish a candidate only at the highest completed verification gate.”
-
-**Update the project:** “Read the current repository, identify the nearest functional blocker, complete one coherent milestone, run all accessible tests, update the tracker, and provide the resulting artifact and remaining game-only checks.”
-
-## Standing Windows PowerShell installation and runtime test standard
-
-**Decision adopted 18 November 2026.** The user prefers a repeatable PowerShell workflow for every Calradia Unified installation and playthrough test. Treat this as a permanent project rule across new ChatGPT chats. Read [the complete PowerShell SOP](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md) before preparing an install, asking for game evidence, or diagnosing a crash.
-
-- **Install the exact successful CI artifact.** Check the workflow run ID and its source commit, module version, compiled ZIP and *DLL SHA-256*. Different successful builds may have the same `v0.xx.0` version but different DLL hashes. Do not guess a hash or select a downloaded ZIP by newest timestamp alone.
-- **Use `scripts/Install-CU-From-Artifact.ps1` in Windows PowerShell 5.1**, passing `-GameRoot`, an exact `-ArtifactZip`, `-ExpectedVersion`, **`-ExpectedDllSha256`**, and `-ReplaceExisting` after the user has closed Bannerlord. The script must reject a wrong hash **before** moving the existing module, preserve a backup, and verify the installed DLL. It supports direct module ZIPs and GitHub's nested ZIP artifact. It is an optional source-side helper, **not** a bundled binary installer or substitute for the paste-ready CalradiaUnified module. No registry or save modifications.
-- **Run `scripts/Test-CU-Playthrough.ps1` in PowerShell after gameplay**. Prefer passing the same module version and expected CI hash. For a family test pass the chosen `-ExpectedChildren`, such as `1`. Anchor historic `events.csv` to its latest `sandbox_overhaul_accepted` and compare creator plan, native-loaded plan, real spouse and children, final `sandbox_start_contract`, family residence and exceptions. Never count events from previous campaigns as current evidence.
-- **Separate game and save/load acceptance.** A diagnostic `PASS` describes the observed log stream, not a direct read of the game scene or saved characters. After saving, fully exiting and reloading, inspect Clan and Encyclopedia for matching family members, ages, parent relationships, current settlement and no duplicates. The separate user-observed evidence upgrades the actual game and persistence gates.
-- **Crash evidence:** `scripts/Export-CU-Diagnostics.ps1` makes a read-only log ZIP. Review contents for personal data before sharing. Never upload private saves, dumps or credentials to the public repository.
-- **Each future coding response that produces a compiled candidate must include a PowerShell 5.1 install block and a matching playthrough diagnostic block.** Link the exact successful run, artifact and SHA-256. Show a `FAIL` or `INCOMPLETE` result accurately. Paste all `if/elseif/else` branches as one block to avoid the user's prior PS5.1 parser issue.
-- **CI must check the workflow itself.** Test PowerShell syntax, hash mismatch rejection before installation, nested artifact layout, module backup, synthetic newest-session events, child-count mismatch detection and JSON report status. Do not weaken these checks or claim that they launch the game.
-- **Preferred local game root recorded from the user:** `D:\Steam\steamapps\common\Mount & Blade II Bannerlord`. This is a convenience, not a secret or a guarantee that every future machine uses the same path.
-
-**Current development boundary (v0.29.0):** Real spouse and children succeeded in a prior player test. The v0.27 exact child count and v0.28 castle/town residence require their own in-game and persistence checks. v0.29 adds an experimental, default-off **distinct native 3D origin-review stage** that wraps, rather than inherits, the original Review view to avoid its inherited stage-registration attribute, *appended after* Bannerlord's original seven stages, plus a read-only Gauntlet portrait gallery for **registered native Heroes** at towns/castles. This does not remove the two-part setup or show live pre-birth spouse/infant models. **Never register a second FaceGen or Culture stage view**, which caused the v0.22 crash. Require `cu_native_review_attached`, `cu_native_review_view_loaded` and real game screenshots before promoting the native review to default. Gallery images and location must survive an actual town/castle UI open/close and save/quit/reload. Gate B for v0.29 is [successful Windows run #44356196239](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44356196239), **620 policy checks, 40 simulations, zero compiler warnings/errors**. The exact DLL SHA-256 and artifact are pinned in [PowerShell SOP](docs/POWERSHELL_INSTALL_AND_PLAYTHROUGH_STANDARD.md). Read [v0.29 runtime acceptance](docs/V029_NATIVE_CREATOR_AND_FAMILY_UI_ACCEPTANCE.md) and keep the SOP in force.
-
-## Handoff record for each development milestone
-
-A development response or issue report should identify: goal; commit SHA; changed files; implementation details; tests executed with pass/fail counts; workflow run URL; binary artifact and its verification; highest test gate reached; known failures; next blocker. Exclude empty fields when they do not apply. Keep this record short enough to be actionable.
-
-For a release record, add the exact game and expansion versions, module manifest version, default feature flags, save compatibility, installation instructions, known third-party conflicts, original 78-mod feature coverage, and relevant permissions.
-
-## Maintenance, revision history, and controlling references
-
-Maintain this document as the expanded technical policy. Maintain `CHATGPT_PROJECT_INSTRUCTIONS.txt` as the compact text for the ChatGPT Project Instructions field. Update the two together when a controlling decision changes. Review them after major game-version changes, new mod integrations, a release, or a recurring failure that exposes a missing rule. Do not add redundant rules to repair a single bug. Track version, date, change reason, and affected files.
-
-**Source materials used for version 1.0**
-
-- User-supplied editorial reference: User-supplied private editorial reference (Google Doc maintained outside this public repository). The reference establishes source fidelity, direct writing, uncertainty control, task completion, source attribution, and the compact-plus-expanded document pattern. Its biology and conservation sections are outside this Bannerlord project's scope.
-- [BANNERLORD GitHub repository](https://github.com/andreivonmariano-dotcom/BANNERLORD), including current source, `Data/Migration_78.csv`, acceptance checklist, tests, and workflow.
-- [First successful hosted compile](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44134919335). This run verifies compilation and its executed build steps at the recorded revision.
-- User-established Calradia Unified goals: single-folder standalone module; no installer; historical 78-mod feature reconstruction; real campaign systems; truthful compilation and gameplay status.
-
-**Revision record:** Version 1.0, 18 November 2026. Initial Bannerlord-specialized source handbook, derived from the user's editorial reference and the current Calradia Unified project record.
-
-**Addendum, 18 November 2026:** Windows PowerShell 5.1 installation and runtime diagnostics are now the project default, with CI-pinned artifact hashes, safe replacement/backup, latest-Sandbox log isolation, and independent save/reload acceptance. See the linked SOP. This supersedes older 'no installer' wording only for optional source-side PowerShell scripts, not for bundling an executable installer with the mod.
+Read [design library](docs/CU_GAME_DESIGN_DOCUMENTS.md), [feature audit](docs/CU_FEATURE_SOURCE_AUDIT_V2.md) and [development tracker](docs/CU_DEVELOPMENT_TRACKER.md) before implementation. Keep feature, milestone, native execution, compatibility, bug and release evidence ledgers current. Separate source and native proof, keep historical candidate rows, and record actual observed state. The retired civic/autonomy mutation adapters are compile-excluded; their same-type migration shims preserve keys and exit menus. Do not remove old serialization, speculative state classes or assets without targeted reference and migration review.

@@ -47,7 +47,7 @@ assert 'spouseHero.IsActive' in creator
 assert 'child.ChangeState(Hero.CharacterStates.Active)' in creator
 assert 'RegisterFamilyUpbringings(profile,hero,family)' in behavior
 assert 'CampaignEvents.DailyTickEvent.AddNonSerializedListener(' in behavior
-assert 'this, AdvanceFamilyUpbringing);' in behavior
+assert 'this, AdvanceFamilyUpbringing);' not in behavior # native education owns post-creation progression
 assert 'store.SyncData("CU_v052_family_growth",ref packed)' in behavior
 assert 'SandboxFamilyDevelopment.Milestone(' in behavior
 assert 'familyGrowth.TryAdvance(' in behavior
@@ -57,3 +57,6 @@ assert 'Upbringing' in growth and 'LastMilestone' in growth
 assert 'public static int SkillLevel(' in policy
 assert 'return age==6 || age==10 || age==14 || age==18;' in policy
 print("PASS: v052 native hero development, family relations, selectable story and save-safe upbringing milestone contracts (STATIC ONLY)")
+
+assert '"cu_family_education_child_"+slot' not in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+assert 'RegisterFamilyUpbringings(profile,hero,family)' in behavior

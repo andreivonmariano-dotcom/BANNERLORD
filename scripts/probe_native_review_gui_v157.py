@@ -58,6 +58,61 @@ def main():
                  "charactercreationgenericstage" in n.lower() or
                  "charactercreationculturestage" in n.lower() or
                  "charactercreationfamily" in n.lower())]
+            map_candidates=[n for n in names if n.lower().endswith(".json") and
+                ("mapbar" in n.lower() or "mapnotification" in n.lower())]
+            report["map_hud_candidate_paths"]=map_candidates
+            map_details={}
+            for name in map_candidates[:24]:
+                data=json.loads(z.read(name).decode("utf-8"))
+                nodes=([data["root"]] if isinstance(data,dict) and
+                       isinstance(data.get("root"),dict) else
+                       (data if isinstance(data,list) else [data]))
+                def roots(node,depth=0):
+                    if not isinstance(node,dict) or depth>3:return []
+                    tag=node.get("n") or node.get("name") or ""
+                    attrs=node.get("a") or node.get("attributes") or {}
+                    kids=node.get("c") or node.get("children") or []
+                    return [{"depth":depth,"tag":tag,"id":attrs.get("Id",""),
+                             "datasource":attrs.get("DataSource",""),
+                             "width":attrs.get("WidthSizePolicy",""),
+                             "height":attrs.get("HeightSizePolicy",""),
+                             "child_tags":[k.get("n") or k.get("name") or "" for k in kids if isinstance(k,dict)]}]+[
+                                 row for k in kids for row in roots(k,depth+1)]
+                map_details[name]=[row for node in nodes for row in roots(node)][:80]
+            # Record actual native campaign brush/sprite references for future
+            # layout and atlas checks; never extract or redistribute textures.
+            campaign_movies=[n for n in names if n.lower().endswith(".json")
+                and "/prefabs/" in n.lower() and
+                any(k in n.lower().rsplit("/prefabs/",1)[-1] for k in
+                    ("mapbar","mapnotification","clan","kingdom","party","quest","encyclopedia","popup"))]
+            def all_assets(node):
+                if not isinstance(node,dict):return
+                attrs=node.get("a") or node.get("attributes") or {}
+                for key in ("Brush","Sprite"):
+                    if key in attrs and not str(attrs[key]).startswith(("@","!","$","*")):
+                        yield key,str(attrs[key])
+                for child in node.get("c") or node.get("children") or []:
+                    yield from all_assets(child)
+            campaign_assets={}
+            for name in campaign_movies:
+                data=json.loads(z.read(name).decode("utf-8"))
+                nodes=([data["root"]] if isinstance(data,dict) and
+                       isinstance(data.get("root"),dict) else
+                       (data if isinstance(data,list) else [data]))
+                rows=[r for node in nodes for r in all_assets(node)]
+                campaign_assets[name]={key:sorted(set(value for k,value in rows if k==key))
+                    for key in ("Brush","Sprite")}
+            report["campaign_native_asset_references"]=campaign_assets
+            for name,assets in campaign_assets.items():
+                if any(assets.values()) and any(k in name.lower() for k in
+                    ("mapbar","mapnotification","quest","clanmanagement","popup","encyclopediahero")):
+                    print("NATIVE CAMPAIGN ASSETS",name,json.dumps(assets,ensure_ascii=False))
+            print("NATIVE CAMPAIGN ASSET COVERAGE",len(campaign_assets),
+                sum(1 for a in campaign_assets.values() if any(a.values())))
+            report["map_hud_root_metadata"]=map_details
+            print("NATIVE MAP HUD CANDIDATES",map_candidates)
+            for name,rows in map_details.items():
+                print("NATIVE MAP HUD ROOT",name,json.dumps(rows,ensure_ascii=False))
             report["package_sha256"]=hashlib.sha256(blob).hexdigest()
             report["candidate_paths"]=candidates
             report["status"]="FOUND" if candidates else "PACKAGE_NO_REVIEW"

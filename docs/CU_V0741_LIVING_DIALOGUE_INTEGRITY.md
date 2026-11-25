@@ -1,0 +1,24 @@
+# v0.74.1 development milestone: living dialogue and integrity
+24 November 2026. Runtime manifest/build remains v0.74.0 until new CI and acceptance; no public release. Exact corrective source head 67339b4b018c4a16c138f7f794620bc2a43546d9.
+
+## Implemented source
+- Speaker-bound transient private-topic follow-up for all nine existing topics, advice or disagreement, native close and back. Context is cleared at greeting and revalidated before reply. No rewards, relationship changes, new persistence, autonomous world simulation or external AI.
+- Spouse/kin/companion/patron greetings use actual native relationships; spouse discussion counts shared living children, not unrelated offspring. Advice uses actual recorded goal, native relationship and available household/service/estate/petition evidence. This is authored branching, not freeform generation.
+- Petition amount drawn from existing policy (150 household, 200 livelihood, recognition costs zero); stale speaker/pending check at consequence, choice consumed before supplemental receipt logging. Existing native transfer proof and cooldowns remain.
+- Officer response reports native verified transfer, rejects inactive/dead/prisoner speaker and does not claim rollback success if unconfirmed.
+- Four civic and ten household/correspondence submenu icon assignments, castellan wording. Existing native settlement entry icons and removed diagnostics retained. Native actual rendering, remaining action icons and custom Gauntlet layouts still need live inspection.
+- Static graph independently inspected on ce7db877891aacad9cd9dcc2347e70a8b06a87bc: 135 registration declaration patterns, 49 custom input states, zero unresolved or same-speaker transitions, no native main-menu reentry, no missing unconditional player exit/NPC fallback. Subsequent changes only petition text/amount and officer eligibility/reply. Extended existing CI regression, not yet executed by confirmed workflow. No new save keys.
+
+## 41-module compatibility screen
+Reference: main docs/CURRENT_MODLIST_COMPATIBILITY_BASELINE.md at 05686b76a6e45311985bc7ce43bf3b951fba29a6, user screenshot evidence 24 November. This is role-based risk triage, not third-party code/patch audit.
+- Frameworks (4): Harmony, ButterLib, UIExtenderEx, MCM. Keep pinned requirements; verify native screen lifecycle/focus.
+- Official content (7): Native, SandBoxCore, Sandbox, CustomBattle, StoryMode, BirthAndDeath, NavalDLC. Keep existing APIs and native family/aging/ship ownership. No new battle or naval behavior.
+- Service (1): ServeAsSoldier. Existing bridge only; test enlistment and conversation return, no parallel career reward.
+- Combat/presentation (11): RTSCamera, RTSCamera.CommandSystem, RBM, RBM_WS, ImmersiveBattlefields, BannerFix, Vexillum, RaiseYourBanner, RealisticBlood, RaiseYourTorch, BreakablePolearms. No new mission patches, stats or art overrides; test return to campaign after battle.
+- Politics/garrisons/crime (4): Diplomacy, ImprovedGarrisons, Fourberie, KingdomBorders. High overlap potential in transfers, crime and diplomacy; leave legacy CU economy/recruitment/automatic and manual garrison switches disabled. Improved Garrisons exception unassigned, need actual ErrorLog.xml/stack and enabled flags; no removal or load-order change.
+- Items/troops (11): OpenSourceArmory, OpenSourceWeaponry, OpenSourceSaddlery, all three corresponding RBM patches, ExpandedArmouryBL, ExpandedArmouryBL.FullFixRBM, ZZZ_troop_overhaul, NoblesBuyStuff, EBA_OSA_ZZZ_CultureGear. No change to XML, gear or roster templates in this pass; test generated officers, item resolution and troop culture.
+- Other (3): ArenaOverhaulRedux, CustomisableUI, CalradiaUnified. Keep arena progression separate; HUD/map notices and modal focus need runtime test. CU's hash must match tested candidate, not launcher label.
+No external DLL inspection, runtime Harmony ownership, actual crash analysis, exhaustive campaign transaction audit, all-menu rendering or full-stack tests completed. Legacy civic deposit/invest/recruit/aid native effect proof is incomplete, remains held by defaults. Next audit should verify flags, costs, atomic rollback, party constraints and exact native readback before enabling.
+
+## Acceptance
+Use existing v0.74.0 hotfix for private gameplay until new exact-head compile is confirmed. Test friendly and estranged spouse, mixed parentage, each topic and both follow-up choices, different NPC after previous speaker, cancelled petitions and insufficient funds, successful gift exactly once, officer success/failure, native close from every branch, owned and foreign settlement menus, save/reload and minimal/full 41-module profiles. Confirm no relation/gold/troop/skill changes from read-only talk. Keep PR draft.

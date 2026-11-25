@@ -34,7 +34,7 @@ assert 'return "NOT AVAILABLE IN THIS BUILD";' in overlay
 assert 'public bool IsUnavailable' in overlay
 assert 'OnPropertyChangedWithValue(IsUnavailable,"IsUnavailable")' in overlay
 assert 'IsVisible="@IsUnavailable"' in ET.tostring(xml,encoding="unicode")
-assert any(n.get("Text")=="UNAVAILABLE IN THIS BUILD" and
+assert any(n.get("Text")=="Unavailable" and
            n.get("IsVisible")=="@IsUnavailable"
            for n in xml.iter("TextWidget"))
 # An unavailable field has none of these editable widget types.
@@ -61,7 +61,7 @@ assert '"PlayerAge"' not in native_default_section, "do not offer native-default
 assert '"Identity", "Household", "Resources", "Location", "Review"' in overlay
 assert 'SandboxCreatorOverlay.Accept();' in overlay
 assert 'MBGameManager.StartNewGame(new CUSandboxNoIntroGameManager(' in overlay
-assert 'NEXT: NATIVE CREATOR' in ET.tostring(xml,encoding="unicode")
+assert 'Create character' in ET.tostring(xml,encoding="unicode")
 assert 'new BodyGeneratorView(' not in overlay
 assert 'CharacterCreationState' in doc
 assert "still uses the separate native character creation" in doc

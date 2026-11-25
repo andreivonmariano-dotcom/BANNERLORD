@@ -93,8 +93,8 @@ namespace CalradiaUnified
                 ", actual garrison wages " + actualGarrisonWages +
                 ", other-expense allowance " + settings.EstateOtherCostsReserve +
                 ", projected balance " + net + ", proposed garrison wage cap " +
-                cap + ", minimum modeled income required " + required +
-                ", modeled shortfall " + shortfall +
+                cap + ", minimum estimated income " + required +
+                ", estimated shortfall " + shortfall +
                 ". This is NOT the game's exact tax or clan balance.");
             Log.Write("M1 fiscal forecast estate=" + castle.StringId +
                 " modeledIncome=" + income + " fieldShare=" + fieldShare +
@@ -134,7 +134,7 @@ namespace CalradiaUnified
                     castle.SetGarrisonWagePaymentLimit(cap);
                     Log.Write("M4 opt-in castle wage cap " + castle.StringId +
                         ": " + previous + " -> " + cap +
-                        ". Actual troop wages may change later; verify in game.");
+                        " Wages may change.");
                 }
 
                 var depot = state.Get(castle.StringId);

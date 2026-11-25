@@ -148,14 +148,17 @@ namespace CalradiaUnified
 
             // Do not take a living, named native Wanderer from the world
             // or clone a living lord's actual clan position.
-            var source=CharacterObject.All.Where(c=>c!=null &&
+            var random=new Random(Guid.NewGuid().GetHashCode());
+            var candidates=CharacterObject.All.Where(c=>c!=null &&
                 c.IsTemplate && !c.IsBasicTroop &&
                 c.Culture==player.Culture && c.IsFemale==female &&
                 (c.Occupation==Occupation.Wanderer ||
                  c.Occupation==Occupation.Lord))
                 .OrderBy(c=>c.Occupation==Occupation.Wanderer?0:1)
+                .ThenByDescending(c=>c.GetSkillValue(skill))
                 .ThenBy(c=>c.StringId,StringComparer.Ordinal)
-                .FirstOrDefault();
+                .Take(6).ToArray();
+            var source=candidates.Length==0?null:candidates[random.Next(candidates.Length)];
             if(source==null)
                 source=Hero.AllAliveHeroes.Where(h=>h!=null &&
                     h!=player && h.IsActive && h.IsLord &&
@@ -200,18 +203,24 @@ namespace CalradiaUnified
                         "Exact companion specialty skill not established");
                 // The same editor used for the player's own native stats
                 // now edits this independent companion override dictionary.
+                foreach(string supporting in SandboxRetinueOfficePolicy.WandererSupportSkills(profile.WandererCompanionSpecialty))
+                {
+                    var support=SandboxNativeSkillCatalog.Find(supporting);
+                    if(support!=null && support!=skill)
+                    {
+                        int desired=Math.Max(provisional.GetSkillValue(support),
+                            Math.Min(80,profile.WandererCompanionSkill*2/3));
+                        provisional.HeroDeveloper.SetInitialSkillLevel(support,desired);
+                        if(provisional.GetSkillValue(support)!=desired)
+                            throw new InvalidOperationException("Companion support skill not established");
+                    }
+                }
                 ApplyCustomStats(profile,provisional);
 
-                // Native same-culture equipment from the donor template.
-                if(provisional.BattleEquipment!=null &&
-                   source.BattleEquipments!=null)
-                {
-                    var gear=source.BattleEquipments.FirstOrDefault();
-                    if(gear!=null)
-                        for(int slot=0;slot<
-                            (int)EquipmentIndex.NumEquipmentSetSlots;slot++)
-                            provisional.BattleEquipment[slot]=gear[slot];
-                }
+                string specialty=profile.WandererCompanionSpecialty;
+                string style=specialty=="Guard"?"Shieldguard":specialty=="Scout"?"Scout":"Court";
+                SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty,random);
+                SandboxCulturalRetinue.EquipCivilian(provisional,source,specialty,random);
 
                 AddCompanionAction.Apply(Clan.PlayerClan,provisional);
                 registered=Clan.PlayerClan.Companions.Contains(provisional) ||
@@ -247,6 +256,8 @@ namespace CalradiaUnified
                        provisional.CharacterObject)!=1)
                     throw new InvalidOperationException(
                         "Native companion party/relationship not confirmed");
+                provisional.EncyclopediaText=new TextObject(provisional.Name+" travels with "+player.Name+
+                    " as a "+SandboxRetinueOfficePolicy.CompanionProfession(profile.WandererCompanionSpecialty).ToLowerInvariant()+".");
                 created=provisional;
                 DiagnosticJournal.Event("cu_wanderer_unique_companion",
                     "result=PASS|id="+created.StringId+

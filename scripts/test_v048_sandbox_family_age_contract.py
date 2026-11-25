@@ -17,7 +17,7 @@ age_policy=read("SandboxFamilyAgePolicy.cs")
 home=read("SandboxFamilyHome.cs")
 shell=read("CUNativeStateShell.cs")
 
-assert 'birthClan = profile.SpouseBackground == "NobleRandom" ?' in noble
+assert 'birthClan = profile.SpouseBackground == "NobleRandom" && !preview ?' in noble
 assert '"|ancestry=unrecorded"' in noble
 assert 'father=unknown|mother=unknown' in noble
 assert '"no_valid_noble_clan_in_selected_kingdom"' in noble
@@ -74,3 +74,20 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
     assert "ExecuteKeepNativeAge" in cmds
 
 print("PASS: v048 noble ancestry fallback, exact Hero birthdays, six-adult/minor family contract, no silent child age change and exact age input (STATIC)")
+
+# Regression for reported pre-campaign noble age deadlock.
+profile=read("SandboxOriginProfile.cs")
+world=guided[guided.index("private void CommitWorld()"):guided.index("private void CommitHouse()")]
+assert 'candidate.PrepareUnconfirmedWorldFamily()' in world
+assert world.index('candidate.PrepareUnconfirmedWorldFamily()')<world.index('candidate.Save(')
+assert 'if(AutoHouseNamesPrepared || RealFamilyEnabled)return false;' in profile
+assert 'child.Age=0;' in profile
+assert 'cu_world_family_placeholder' in world
+assert 'if(!candidate.IsValid(actualAge,out error))' in guided
+assert 'field.Key=="Child."+(conflict+1)+".Age"' in guided
+
+assert 'ValidationContext(int actualPlayerAge)' in profile
+assert 'error=field+".Age: "' in profile
+assert 'stage=World|' in guided and 'stage=House|' in guided
+assert 'stage=Stats|' in stats and 'profile.SaveForPlayer(' in stats
+assert 'StartingScenario="none";' in profile and 'SpouseFaceSeed="";' in profile

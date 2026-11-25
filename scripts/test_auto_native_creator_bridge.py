@@ -69,7 +69,7 @@ assert 'new CharacterCreationScreen(' not in face
 
 # This is a deployable source milestone, NOT a falsely labelled final screen.
 prefab = (root / "Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
-assert 'NEXT: NATIVE CREATOR' in prefab
+assert 'Create character' in prefab
 assert 'Begin Campaign' not in prefab
 assert 'RemoveStage<' not in creator
 print("PASS: automatic CU native bridge on accepted Sandbox; F9 fallback, no opt-in, native stages preserved (STATIC ONLY)")

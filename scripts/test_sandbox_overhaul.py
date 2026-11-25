@@ -57,8 +57,8 @@ assert "profile.ResetForNewCampaign();" in src
 assert 'if (!Write(Current.Key,next.ToString(' in src
 assert "sandbox_creator_family_plan" in src
 assert '"|child_count="+profile.ChildCount' in src
-assert 'Text="PART 1 OF 2: STARTING CONDITIONS"' in p.read_text()
-assert 'Text="NEXT: NATIVE CREATOR"' in p.read_text()
+assert 'Text="Starting conditions"' in p.read_text()
+assert 'Text="Create character"' in p.read_text()
 assert "ExecuteAppearance" not in clicks
 assert "Input.IsKeyReleased(InputKey.Escape)" in src
 assert "if(viewModel!=null) viewModel.ExecuteBack();" in src, "Escape must navigate guided Back before quitting"

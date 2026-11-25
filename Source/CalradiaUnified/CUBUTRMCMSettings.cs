@@ -63,18 +63,14 @@ namespace CalradiaUnified
             set=>Set("EnableSupplyWarnings",value);
         }
 
-
-
-        [SettingPropertyBool("Player-clan advisory",Order=5,
+        [SettingPropertyBool("Army supply warnings",Order=3,
             RequireRestart=true,
-            HintText="Display read-only clan and settlement advice.")]
+            HintText="Report native army food shortages. Takes effect after restart.")]
         [SettingPropertyGroup("Campaign")]
-        public bool EnableNpcAdvisory
+        public bool EnableArmyWarnings
         {
-            get=>Read("EnableNpcAdvisory");
-            set=>Set("EnableNpcAdvisory",value);
+            get=>Read("EnableArmyWarnings");
+            set=>Set("EnableArmyWarnings",value);
         }
-
-
     }
 }

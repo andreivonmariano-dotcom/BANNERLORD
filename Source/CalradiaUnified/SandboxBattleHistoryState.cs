@@ -13,7 +13,8 @@ namespace CalradiaUnified
     /// </summary>
     public sealed class SandboxBattleHistoryState
     {
-        public const string Version = "CU_BATTLE_HISTORY_2";
+        public const string Version = "CU_BATTLE_HISTORY_3";
+        private const string PreviousVersion = "CU_BATTLE_HISTORY_2";
         private const string LegacyVersion = "CU_BATTLE_HISTORY_1";
         public const int MaxEntries = 32;
         private const int MaxNamedHeroes = 4;
@@ -23,6 +24,8 @@ namespace CalradiaUnified
             public string Key = "", Kind = "", Outcome = "";
             public string Source = "", SettlementId = "", LordId = "";
             public string PatronWitnessId = "";
+            // Empty for older saves and for battles outside native mercenary service.
+            public string MercenaryHeroId = "", MercenaryKingdomId = "";
             // IDs are actual engine Hero.StringId, never names invented by CU.
             public string WoundedHeroIds = "", FallenHeroIds = "";
             public int Day, PartyDead = -1, PartyWounded = -1;
@@ -81,13 +84,17 @@ namespace CalradiaUnified
             string outcome, string source, string settlementId,
             string lordId, string patronWitnessId, int partyDead,
             int partyWounded, string woundedHeroIds,
-            string fallenHeroIds)
+            string fallenHeroIds, string mercenaryHeroId = "",
+            string mercenaryKingdomId = "")
         {
             if (!ValidKey(key) || day < 0 || day > 2000000 ||
                 !ValidKind(kind) || !ValidOutcome(outcome) ||
                 !ValidSource(source) || !ValidId(settlementId, true) ||
                 !ValidId(lordId, true) ||
                 !ValidId(patronWitnessId, true) ||
+                !ValidId(mercenaryHeroId, true) || !ValidId(mercenaryKingdomId, true) ||
+                ((mercenaryHeroId.Length==0)!=(mercenaryKingdomId.Length==0)) ||
+                (source!="PlayerParty" && mercenaryKingdomId.Length>0) ||
                 !ValidIds(woundedHeroIds) || !ValidIds(fallenHeroIds) ||
                 partyDead < -1 || partyDead > 100000 ||
                 partyWounded < -1 || partyWounded > 100000 ||
@@ -115,7 +122,8 @@ namespace CalradiaUnified
                 LordId = lordId, PatronWitnessId = patronWitnessId,
                 PartyDead = partyDead, PartyWounded = partyWounded,
                 WoundedHeroIds = woundedHeroIds,
-                FallenHeroIds = fallenHeroIds
+                FallenHeroIds = fallenHeroIds,
+                MercenaryHeroId = mercenaryHeroId, MercenaryKingdomId = mercenaryKingdomId
             });
             return true;
         }
@@ -144,6 +152,16 @@ namespace CalradiaUnified
             return entries.Count(e => e.Source == "PlayerParty" &&
                 e.Outcome == "Victory" &&
                 e.PatronWitnessId == actualPatronId);
+        }
+
+        // Old battle receipts do not prove employment at the time of the battle.
+        public int LatestMercenaryVictory(string heroId,string kingdomId,int afterDay)
+        {
+            if(!ValidId(heroId,false) || !ValidId(kingdomId,false))return -1;
+            return entries.Where(e=>e.Source=="PlayerParty" && e.Outcome=="Victory" &&
+                e.Day>afterDay && e.MercenaryHeroId==heroId &&
+                e.MercenaryKingdomId==kingdomId).Select(e=>e.Day)
+                .DefaultIfEmpty(-1).Max();
         }
 
         private static string VisibleHeroes(string ids,
@@ -195,7 +213,8 @@ namespace CalradiaUnified
                     e.LordId, e.PatronWitnessId,
                     e.PartyDead.ToString(CultureInfo.InvariantCulture),
                     e.PartyWounded.ToString(CultureInfo.InvariantCulture),
-                    e.WoundedHeroIds, e.FallenHeroIds
+                    e.WoundedHeroIds, e.FallenHeroIds,
+                    e.MercenaryHeroId, e.MercenaryKingdomId
                 }));
             return String.Join("\n", rows);
         }
@@ -203,19 +222,21 @@ namespace CalradiaUnified
         public static SandboxBattleHistoryState Parse(string packed)
         {
             var empty = new SandboxBattleHistoryState();
-            if (String.IsNullOrEmpty(packed) || packed.Length > 32768)
+            if (String.IsNullOrEmpty(packed) || packed.Length > 49152)
                 return empty;
             var rows = packed.Replace("\r", "").Split('\n');
             if (rows.Length < 1 || rows.Length > MaxEntries + 1 ||
-                (rows[0] != Version && rows[0] != LegacyVersion))
+                (rows[0] != Version && rows[0] != PreviousVersion &&
+                    rows[0] != LegacyVersion))
                 return empty;
             bool old = rows[0] == LegacyVersion;
+            bool current = rows[0] == Version;
             var loaded = new SandboxBattleHistoryState();
             for (int i = 1; i < rows.Length; i++)
             {
                 var cells = rows[i].Split('|');
                 int day, died = -1, wounded = -1;
-                if (cells.Length != (old ? 7 : 12) ||
+                if (cells.Length != (old ? 7 : current ? 14 : 12) ||
                     !Int32.TryParse(cells[1], NumberStyles.None,
                         CultureInfo.InvariantCulture, out day))
                     return empty;
@@ -228,7 +249,8 @@ namespace CalradiaUnified
                 if (!loaded.RecordObserved(cells[0], day, cells[2],
                     cells[3], cells[4], cells[5], cells[6],
                     old ? "" : cells[7], died, wounded,
-                    old ? "" : cells[10], old ? "" : cells[11]))
+                    old ? "" : cells[10], old ? "" : cells[11],
+                    current ? cells[12] : "", current ? cells[13] : ""))
                     return empty;
             }
             return loaded;

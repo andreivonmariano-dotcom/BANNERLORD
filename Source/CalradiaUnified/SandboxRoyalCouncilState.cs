@@ -49,6 +49,28 @@ namespace CalradiaUnified
             LastMeetingDay=-1;Meetings=0;
             return "native_royal_hero_council_commissioned";
         }
+        // A verified current court replaces the local commission, not
+        // the native crown. Historical meeting count is retained.
+        public string Rebind(string kingdom,string seat,string king,
+            string marshal,string minister,string kingsguard,int day,
+            bool verifiedNativeAuthorityAndPresence)
+        {
+            if(!IsRecorded || kingdom!=KingdomId || day<0 ||
+                day<=LastMeetingDay || !verifiedNativeAuthorityAndPresence)
+                return "native_court_rebind_refused";
+            var candidate=new SandboxRoyalCouncilState();
+            if(candidate.Begin(kingdom,seat,king,marshal,minister,kingsguard)!=
+                "native_royal_hero_council_commissioned")
+                return "native_court_rebind_refused";
+            if(SeatId==seat && KingId==king && MarshalId==marshal &&
+                MinisterId==minister && KingsguardHeroId==kingsguard)
+                return "native_court_unchanged";
+            SeatId=seat;KingId=king;MarshalId=marshal;
+            MinisterId=minister;KingsguardHeroId=kingsguard;
+            // Rebinding is not a meeting. Prior meeting day stays in the past.
+            return "native_court_rebound";
+        }
+
         public string Convene(int day,bool kingAtSeat,
             bool ministerActuallyGoverns,bool marshalInParty,
             bool kingsguardHeroInParty,bool stillNativeRuler)

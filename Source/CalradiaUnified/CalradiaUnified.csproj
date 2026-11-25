@@ -44,6 +44,20 @@
     <Compile Remove="SandboxOriginPanel.cs" />
     <Compile Remove="NativeSettingsBehavior.cs" />
     <Compile Remove="NativeSettingsPanel.cs" />
+    <!-- Historical gameplay adapters: retained for provenance and old source tests, never compiled. -->
+    <Compile Remove="CivicBehavior.cs" />
+    <Compile Remove="CivicBehavior.CastleManagement.cs" />
+    <Compile Remove="CivicBehavior.Convoys.cs" />
+    <Compile Remove="CivicBehavior.Feudal.cs" />
+    <Compile Remove="CivicBehavior.Garrisons.cs" />
+    <Compile Remove="CivicBehavior.Kingdom.cs" />
+    <Compile Remove="CivicBehavior.Trade.cs" />
+    <Compile Remove="KingdomAutonomyBehavior.cs" />
+    <!-- Retired social observers and illustrated camp; preserve saved records in the migration partial. -->
+    <Compile Remove="SandboxOriginBehavior.PeerSocial.cs" />
+    <Compile Remove="SandboxOriginBehavior.StoryDirector.cs" />
+    <Compile Remove="SandboxOriginBehavior.HouseholdCamp.cs" />
+    <Compile Remove="CUHouseholdCampScreen.cs" />
   </ItemGroup>
   <ItemGroup Condition="'$(UsePublicReferences)' == 'true'">
     <PackageReference Include="Bannerlord.ReferenceAssemblies" Version="1.5.7.125802" PrivateAssets="all" />

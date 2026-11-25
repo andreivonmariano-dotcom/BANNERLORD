@@ -58,6 +58,22 @@ namespace CalradiaUnified
             upbringing=entry.Upbringing;
             return true;
         }
+        public string UpbringingFor(string heroId)
+        {
+            Entry entry;
+            return entries.TryGetValue(heroId??"",out entry)?entry.Upbringing:"";
+        }
+        public bool ReviseUpbringing(string heroId,string upbringing,int age)
+        {
+            Entry entry;
+            if(age<0 || age>=18 ||
+                !SandboxFamilyDevelopmentPolicy.IsUpbringing(upbringing) ||
+                !entries.TryGetValue(heroId??"",out entry) || entry.Upbringing==upbringing)
+                return false;
+            // Preserve all previously earned milestones; never replay education.
+            entry.Upbringing=upbringing;
+            return true;
+        }
         public int LastMilestone(string heroId)
         {
             Entry e;

@@ -59,3 +59,46 @@ for role,receipt in (
 print("PASS v0.70w SOURCE: historical officer contracts remain guarded; "+
       "direct transfers are held during acceptance. Historical live "+
       "transfer receipt requirement remains unfulfilled.")
+
+# The new manual trial shares the guarded roster transfer, not the frozen automation.
+assert 'Environment.GetEnvironmentVariable("CU_HOUSEHOLD_ORDER_TRIAL")' in s
+assert 'HouseholdOrderTrialEnabled() && applied && IsStandaloneSandbox()' in s
+assert 'actor==player.Spouse && actor.Spouse==player' in s
+assert 'actor.CompanionOf==clan' in s
+assert 'actor.Clan==clan' in s and 'clan.Leader==player' in s
+assert 'nativeGarrison.Party.PartySizeLimit-nativeGarrison.MemberRoster.TotalManCount<5' in s
+assert 'householdTransferBusy=true;' in s and 'finally{householdTransferBusy=false;}' in s
+assert '"cu_household_garrison_order"' in s
+assert 'party_before='+'' in s and 'garrison_after=' in s
+assert '()=>HouseholdOrderSpeaker(),()=>ExecuteHouseholdDefenseOrder()' in s
+
+assert '!ImprovedGarrisonsOwnsRecruitment() &&' in s
+assert 'AppDomain.CurrentDomain.GetAssemblies()' in s
+assert 'ChangeGovernorAction.Apply(seat.Town,actor)' in s
+assert 'seat.Town.Governor==actor && actor.GovernorOf==seat.Town' in s
+assert 'actor.PartyBelongedTo==null' in s and 'seat.Town.Governor==null' in s
+assert 'actor.CurrentSettlement==seat' in s and 'actor.GovernorOf==null' in s
+assert 'no_teleport=true|no_incumbent_replaced=true' in s
+
+# Direct native party duties, no invented officer roster or new role simulation.
+assert 'party.SetHeroPartyRole(actor,role)' in s
+assert 'party.GetRoleHolder(role)==actor && party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor' in s
+assert 'other_specialists_unchanged=' in s
+assert 'actor.PartyBelongedTo!=party' in s and 'party.MemberRoster.GetTroopCount(actor.CharacterObject)!=1' in s
+assert 'party.GetRoleHolder(role)==null && party.CanAssignMoreRolesToHero(actor)' in s
+assert 'party.GetHeroPartyRoles(actor).Count==0' in s
+assert 'PartyRole.FirstMate,PartyRole.Navigator' in s
+assert 'party.GetRoleHolder(x)==previous[i]' in s
+assert 'service.Enlisted || (!service.Available' in s
+assert 'party.Army!=null' in s and 'party.IsCurrentlyAtSea' in s
+assert 'PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer' in s
+assert 'cu_native_party_duties_cancel' in s
+
+# One native responsibilities submenu, accessible from direct dialogue and relevant personal choices.
+assert '"cu_household_governor_order","cu_native_party_duties_choices"' in s
+assert '"cu_native_party_duties_private","cu_personal_matters_topics"' in s
+assert '"cu_native_party_duties_concern","cu_personal_followup_choices"' in s
+assert 'HasHouseholdCommandServiceAuthority() && clan!=null' in s
+assert 'if(!HasHouseholdCommandServiceAuthority())return false;' in s
+assert 'livingPersons.Remember("NativeGovernorAssigned"' in s
+assert 'CanReviewNativeHouseholdAssignment()' in s

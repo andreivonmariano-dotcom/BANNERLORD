@@ -37,3 +37,37 @@ for path,count in (("CU_Feature_Compatibility_Audit.csv",55),("CU_Module_Ownersh
     with (root/"Data"/path).open(encoding="utf-8",newline="") as f:
         assert len(list(csv.DictReader(f)))==count
 print("PASS SOURCE ONLY: 20 held flags, native payroll, guarded dormant logistics, inactive legacy settings, preserved save key and ownership inventories.")
+
+# Runtime ownership is enforced at registration rather than only through config flags.
+autonomy=read("KingdomAutonomyMigrationBehavior.cs")
+civic=read("CivicMigrationBehavior.cs")
+living=read("SandboxOriginBehavior.LivingMenus.cs")
+civic_registration=civic[civic.index("public override void RegisterEvents()"):civic.index("public override void SyncData(")]
+autonomy_registration=autonomy[autonomy.index("public override void RegisterEvents()"):autonomy.index("public override void SyncData(")]
+assert "RegisterRetiredCivicExits" in civic_registration
+assert "DailyTickEvent" not in civic_registration and "DailyTickPartyEvent" not in civic_registration
+assert "AddNonSerializedListener" not in autonomy_registration
+assert "RegisterLocalAdministrationEntry(starter)" not in living
+assert 'CU_v030_civic_state' in civic and 'CU_v060_kingdom_orders' in autonomy
+assert 'CU_v060_kingdom_day' in autonomy
+assert 'public bool EnableNpcAdvisory' not in mcm
+
+with (root/"Data"/"CU_Complementary_Feature_Disposition.csv").open(encoding="utf-8",newline="") as handle:
+    dispositions=list(csv.DictReader(handle))
+with (root/"Data"/"CU_Feature_Compatibility_Audit.csv").open(encoding="utf-8",newline="") as handle:
+    historical=list(csv.DictReader(handle))
+assert len(dispositions)==55 and {row["feature_id"] for row in dispositions}=={row["feature_id"] for row in historical}
+assert all(row["disposition"] in {"KEEP","MERGE","RETIRED","OPTIONAL","DEFER"} and row["reason"] and row["owner"] for row in dispositions)
+print("PASS all 55 historical features have explicit disposition; legacy civic and autonomy save keys retained without active tick subscriptions.")
+
+# The expanded six-system review covers every canonical CU entry without treating historical references as implemented features.
+with (root/"Data"/"CU_Core_System_Review.csv").open(encoding="utf-8",newline="") as handle:
+    core_review=list(csv.DictReader(handle))
+with (root/"Data"/"Feature_Registry.csv").open(encoding="utf-8",newline="") as handle:
+    registered={row["feature_id"] for row in csv.DictReader(handle) if row["feature_id"].startswith("CU-")}
+ids=[row["feature_id"] for row in core_review]
+assert len(registered)==70 and registered <= set(ids)
+assert len(ids)==len(set(ids)) and len(ids)>70
+assert all(row["review_reason"] and row["owner"] and (root/row["source_path"]).is_file() for row in core_review)
+assert all(row["disposition"] in {"KEEP","IMPROVE","MERGE","RETIRE","DEFER","ARCHIVE","OPTIONAL"} for row in core_review)
+print("PASS six-system review includes every canonical CU feature and unique supplemental source contracts.")

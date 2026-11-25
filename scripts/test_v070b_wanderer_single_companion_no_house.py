@@ -76,7 +76,10 @@ assert 'Clan.PlayerClan.Companions.Count!=1' in comp
 assert 'cu_wanderer_unique_companion' in comp
 assert 'SetInitialSkillLevel(skill,' in comp
 assert 'provisional.GetSkillValue(skill)!=' in comp
-assert 'source.BattleEquipments' in comp
+assert 'SandboxCulturalRetinue.EquipForStyle(provisional,source,style,specialty,random)' in comp
+assert 'source.BattleEquipments' in ret
+assert 'officer.BattleEquipment[slot]=selected[slot]' in ret
+assert 'WandererSupportSkills(profile.WandererCompanionSpecialty)' in comp
 assert 'RemoveCompanionAction.ApplyByFire(' in ret
 
 # One-shot grant. A failed or extra companion cannot produce PASS.

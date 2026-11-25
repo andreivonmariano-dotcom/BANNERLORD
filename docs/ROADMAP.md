@@ -1,5 +1,7 @@
 # Calradia Unified: gameplay-first development roadmap
 
+> **Historical record, superseded 25 November 2026.** Current design and release roadmap: [CU_MASTER_ROADMAP.md](CU_MASTER_ROADMAP.md). The prior 78-mod reconstruction sequence is archival, not a mandate.
+
 **Version:** 1.0 (18 November 2026)  
 **Target baseline:** Bannerlord PC v1.5.7; War Sails is a separate test track  
 **Status:** v0.16.0 Sandbox origin designer compiled ([run 44256086670](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/44256086670)); native game launch, origin UI render, clan/family mutations and save persistence remain unverified  

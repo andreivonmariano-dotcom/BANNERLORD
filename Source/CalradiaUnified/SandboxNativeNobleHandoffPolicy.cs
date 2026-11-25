@@ -9,6 +9,17 @@ namespace CalradiaUnified
     /// </summary>
     public static class SandboxNativeNobleHandoffPolicy
     {
+        // During a campaign, native start type is historical. Current
+        // ownership, allegiance and leadership determine authority.
+        public static bool HasCurrentAuthority(bool royal,bool inKingdom,
+            bool leadsClan,bool rulingClan,bool mercenary,bool bandit,
+            bool rebel,bool eliminated,bool kingdomEliminated)
+        {
+            return inKingdom && leadsClan && !mercenary && !bandit &&
+                !rebel && !eliminated && !kingdomEliminated &&
+                rulingClan==royal;
+        }
+
         public static bool HasVerifiedNativeNobleAuthority(
             string nativeType,bool inNativeKingdom,
             bool playerLeadsClan,bool playerLeadsParty,

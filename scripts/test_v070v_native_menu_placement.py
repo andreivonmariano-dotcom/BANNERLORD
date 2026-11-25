@@ -15,10 +15,14 @@ knight=read("SandboxOriginBehavior.KnightOath.cs")
 lord=read("SandboxOriginBehavior.LordInheritance.cs")
 king=read("SandboxOriginBehavior.KingSuccession.cs")
 council=read("SandboxOriginBehavior.KingCouncil.cs")
-assert '"cu_civic_admin_entry_"+source' in civic
+assert '"cu_civic_admin_entry_local"' in civic
+assert 'RegisterLocalAdministrationEntry(starter)' not in living
+assert 'AddNonSerializedListener(this, RegisterRetiredCivicExits)' in civic
+assert 'starter.AddGameMenuOption("cu_people_lineage",' in civic
+assert '"cu_civic_admin_entry_"+source' not in civic
 assert '"cu_people_lineage_entry_"+from' in living
 assert '"Manage local administration"' in civic
-assert '"Hold household court"' in living
+assert '"Attend to local affairs"' in living
 assert 'Settlement.CurrentSettlement.OwnerClan==' in living
 assert '"cu_birth_family_council_entry_"+from' in living
 for hub in ("cu_civic_administration","cu_civic_stores",
@@ -37,8 +41,8 @@ assert 'starter.AddGameMenu("cu_origin_main"' in origin
 assert '"cu_origin_entry_" + sourceMenu' not in origin
 assert '"CU: Design my NEXT Sandbox starting life"' not in origin
 # Every private/family/royal office action is behind one hub.
-for marker in ('"cu_family_portraits"','"cu_family_residence_here"'):
-    assert marker in origin,marker
+assert '"cu_family_portraits"' not in origin # shared household dossier owns the portrait gallery
+assert '"cu_family_residence_here"' in origin
 assert '"cu_partial_family_review"' in living
 assert '"cu_partial_family_review_"+from' not in living
 for code,marker in (
@@ -47,7 +51,7 @@ for code,marker in (
     (king,'"cu_king_succession_entry"'),
     (council,'"cu_native_royal_council_entry"')):
     assert marker in code,marker
-    assert 'starter.AddGameMenuOption("cu_people_lineage"' in code
+    assert ('starter.AddGameMenuOption("cu_household_records"' if code in (lord,king) else 'starter.AddGameMenuOption("cu_people_lineage"') in code
     assert 'new[]{"town","castle"}' not in code
     assert 'foreach(var source in new[]{"town","castle"})' not in code
 dialogue=read("SandboxOriginBehavior.KnightDialogue.cs")
@@ -62,3 +66,14 @@ assert 'ChangeKingdomAction' not in knight+lord+king+council
 print("PASS v0.70v STATIC: estate/household hubs and contextual native "+
       "operations; direct next-game, service, lineage and royal tabs "+
       "removed from town/castle source. Native UI still unverified.")
+
+# Primary menu is for immediate decisions; preserve old records behind one secondary entry.
+assert 'starter.AddGameMenu("cu_household_records"' in living
+for marker in ("cu_partial_family_review","cu_people_open_claim"):
+    assert 'starter.AddGameMenuOption("cu_household_records",\n                "'+marker+'"' in living,marker
+assert 'settings.EnableManualGarrisonTransfers ||' in civic[civic.index("internal void RegisterLocalAdministrationEntry"):]
+assert 'Personal chores are retired' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+
+for marker in ("cu_role_economy_observed","cu_household_duty_ledger","cu_people_open_household"):
+    assert '"'+marker+'"' not in living
+assert 'starter.AddGameMenuOption("cu_people_lineage",\n                "cu_career_chronicle_entry"' in read("SandboxOriginBehavior.CareerChronicle.cs")

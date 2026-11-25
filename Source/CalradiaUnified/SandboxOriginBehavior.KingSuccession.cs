@@ -41,20 +41,22 @@ namespace CalradiaUnified
             return result;
         }
 
-        private void ObserveKingSuccessionDaily()
+        private void ObserveKingSuccessionDaily(){RefreshKingSuccessionObservation();}
+
+        private bool RefreshKingSuccessionObservation()
         {
             if(!applied || !IsStandaloneSandbox() ||
                 !kingSuccession.IsRecorded ||
-                MBObjectManager.Instance==null)return;
+                MBObjectManager.Instance==null)return false;
             int day=CurrentLordInheritanceDay();
-            if(day<0)return;
+            if(day<0)return false;
             var founder=MBObjectManager.Instance.GetObject<Hero>(
                 kingSuccession.FounderId);
             var kingdom=Kingdom.All.FirstOrDefault(k=>k!=null &&
                 k.StringId==kingSuccession.KingdomId);
             if(founder==null || kingdom==null || kingdom.IsEliminated ||
                 kingdom.RulingClan==null ||
-                kingdom.RulingClan.Leader==null)return;
+                kingdom.RulingClan.Leader==null)return false;
             string result=kingSuccession.Observe(
                 day,founder.IsAlive,
                 kingdom.RulingClan.StringId,
@@ -73,6 +75,7 @@ namespace CalradiaUnified
                     "|preferred_child="+kingSuccession.PreferredHeirId+
                     "|ranking="+kingSuccession.RankedHeirIds+
                     "|no_native_kingdom_or_fief_mutation=true");
+            return result=="native_crown_observation_changed" || result=="native_crown_unchanged";
         }
 
         private void RegisterKingSuccessionMenus(
@@ -84,38 +87,42 @@ namespace CalradiaUnified
                 "are saved claims, not an election, an appointed "+
                 "regent or a legal grant of crown and estates.",
                 args=>{});
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_king_succession_entry",
                 "Dynastic succession",
                 args=>kingSuccession.IsRecorded,
                 args=>
                 {
-                    kingSuccessionReturnMenu="cu_people_lineage";
+                    kingSuccessionReturnMenu="cu_household_records";
                     GameMenu.SwitchToMenu("cu_king_succession");
                 },false);
             starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_succession_review",
-                "Review native ruler and ranked children",
+                "Royal succession",
                 args=>kingSuccession.IsRecorded,
                 args=>
                 {
-                    ObserveKingSuccessionDaily();
+                    bool current=RefreshKingSuccessionObservation();
                     ShowNativeDetail("Royal household | Succession",
                         "Royal household rule: "+kingSuccession.Rule+
-                        ". Preferred verified native child: "+
+                        (current?". Preferred heir: ":". Last recorded preferred child: ")+
                         NativeHeroDisplayName(
                             kingSuccession.PreferredHeirId)+
-                        ". Child claim order: "+
+                        (current?". Child claim order: ":". Last recorded child claim order: ")+
                         NativeHeroDisplayNames(
                             kingSuccession.RankedHeirIds)+
-                        ". Actual native ruler: "+
+                        (current?". Current ruler: ":". Last known ruler: ")+
                         NativeHeroDisplayName(
                             kingSuccession.ActualRulerId)+
                         ". Kingdom: "+kingSuccession.KingdomId+
-                        ". Native status: "+kingSuccession.Status+
-                        ". The native kingdom alone decides succession. "+
-                        "No automatic underage regency or estate grant.");
+                        ". "+(current?"Status: ":"Last recorded status: ")+kingSuccession.Status+
+                        (current?"":". Current kingdom state unavailable; last observation day "+kingSuccession.LastObservedDay)+
+                        ". Succession follows the kingdom's laws. "+
+                        "Minor heirs receive no automatic regency.");
                 },false);
+            starter.AddGameMenuOption("cu_king_succession",
+                "cu_king_dynastic_branches","Review descendants and collateral kin",
+                args=>kingSuccession.IsRecorded,args=>ShowDynasticBranches(true),false);
             starter.AddGameMenuOption("cu_king_succession",
                 "cu_king_succession_return","Return",
                 args=>true,

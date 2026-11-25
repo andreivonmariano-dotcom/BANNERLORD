@@ -32,8 +32,8 @@ assert 'candidate.SoldierGuidedStart ?' in vm
 assert '"FamilyOnly":SandboxServicePolicy.DefaultRetinue(' in vm
 assert 'key=="Troops"' in vm
 assert 'Retinue: one culturally trained band lieutenant' not in vm
-assert 'Band: six low-tier native bandits' in vm
-assert 'Wages: fourteen-day native payroll reserve' in vm
+assert 'Band: six low-tier bandits and a lieutenant' in vm
+assert 'Wages: fourteen days' in vm
 assert 'if(profile.OutlawGuidedStart)' in behavior
 assert 'troops = profile.OutlawGuidedStart ? 0 :' in behavior
 assert 'SandboxOutlawStartingBand.TryGrant(' in behavior

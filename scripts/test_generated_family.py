@@ -37,7 +37,8 @@ assert 'spouseHero.OriginClan' in family
 assert 'cu_family_generated_spouse' in family
 assert 'cu_family_noble_origin_selected' in noble
 assert 'birthClan = Clan.PlayerClan' in noble
-assert 'clan != Clan.PlayerClan' in noble
+assert 'clan!=Clan.PlayerClan' in noble
+assert 'EligibleForeignNobleClan(clan,kingdom)' in noble
 assert 'kingdom.Clans.Where' in noble
 assert 'h.Spouse.Spouse == h' in noble
 assert 'SandboxFamilyOriginPolicy.CanBeNobleParents(' in noble

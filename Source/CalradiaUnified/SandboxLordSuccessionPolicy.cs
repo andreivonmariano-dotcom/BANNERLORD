@@ -59,6 +59,48 @@ namespace CalradiaUnified
                 .Take(SandboxOriginProfile.MaxChildren+12)
                 .ToArray();
         }
+        public const int BranchBudget=128, BranchDepth=5;
+        public sealed class BranchMember
+        {
+            public Candidate Person;
+            public int Depth;
+            public string Branch;
+        }
+        // Read-only branch representation. A deceased or married-out
+        // ancestor can connect living descendants; only verified living
+        // same-clan members appear as possible household claimants.
+        // Separate from the original direct-child inheritance record.
+        public static BranchMember[] Branches(string rule,string founderId,
+            IEnumerable<Candidate> children,IEnumerable<Candidate> siblings,
+            Func<string,IEnumerable<Candidate>> descendants)
+        {
+            var result=new List<BranchMember>();
+            if(!IsRule(rule) || String.IsNullOrEmpty(founderId) || descendants==null)
+                return result.ToArray();
+            var seen=new HashSet<string>(StringComparer.Ordinal){founderId};
+            int remaining=BranchBudget;
+            Action<IEnumerable<Candidate>,int,string> visit=null;
+            visit=(nodes,depth,branch)=>
+            {
+                if(nodes==null || depth>BranchDepth || remaining<=0)return;
+                var sample=nodes.Take(remaining).ToArray();
+                remaining-=sample.Length;
+                foreach(var person in sample.Where(x=>x!=null && x.NativeParentsVerified &&
+                    !String.IsNullOrWhiteSpace(x.Id) && x.Age>=0 && x.Age<=120 && x.SourceOrder>=0)
+                    .OrderBy(x=>rule==MalePreference && x.Female?1:0)
+                    .ThenByDescending(x=>x.Age).ThenBy(x=>x.SourceOrder)
+                    .ThenBy(x=>x.Id,StringComparer.Ordinal))
+                {
+                    if(!seen.Add(person.Id))continue;
+                    if(person.Verified)result.Add(new BranchMember{Person=person,Depth=depth,Branch=branch});
+                    if(depth<BranchDepth && remaining>0)visit(descendants(person.Id),depth+1,branch);
+                }
+            };
+            visit(children,1,"Descendant");
+            visit(siblings,1,"Collateral");
+            return result.ToArray();
+        }
+
         public static string Status(bool founderAlive,
             bool founderLeadsNativeClan,string nativeLeaderId,
             Candidate heir)

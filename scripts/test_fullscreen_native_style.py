@@ -31,7 +31,7 @@ for name,xml in (("pregame",creator),("native_culture",culture)):
     assert planes,name+": missing full-screen native backdrop"
     # The five-tab CUSandboxCreator is a retired reference. The active
     # guided film uses a native stone/bronze palette.
-    expected="#09121DFF" if name=="pregame" else "#120D09FF"
+    expected="#120E0AFF" if name=="pregame" else "#120D09FF"
     assert planes[0].get("Color")==expected,name
     bands=[n for n in root_widget.iter("Widget") if
         n.get("Sprite")=="BlankWhiteSquare_9" and
@@ -60,7 +60,7 @@ labels=[n.get("Text","") for n in creator.iter("TextWidget")]
 commands=[n.get("Command.Click") for n in creator.iter("ButtonWidget")]
 for label in ("01   Starting life","02   Bloodline","03   Fortune",
               "04   Land & home","05   Review your house",
-              "PART 1 OF 2: STARTING CONDITIONS","NEXT: NATIVE CREATOR"):
+              "Starting conditions","Create character"):
     assert label in labels,label
 for action in ("ExecuteIdentity","ExecuteHousehold","ExecuteResources",
                "ExecuteLocation","ExecuteReview","ExecuteToggleAdvanced",
@@ -89,5 +89,5 @@ assert 'MBGameManager.StartNewGame' in overlay
 
 # The native 3D character screen remains genuinely game-owned.
 assert 'new BodyGeneratorView(' not in overlay
-assert 'NEXT: NATIVE CREATOR' in ET.tostring(creator,encoding="unicode")
+assert 'Create character' in ET.tostring(creator,encoding="unicode")
 print("PASS: both CU screens fill the full display with native-style bands, keep five pages, live culture callbacks and truthful native 3D handoff (STATIC)")

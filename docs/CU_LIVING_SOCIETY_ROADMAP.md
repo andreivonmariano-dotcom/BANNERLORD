@@ -1,5 +1,7 @@
 # Full-stack compatibility review and society roadmap
 
+> **Historical record, superseded 25 November 2026.** Current six-system plan: [CU_MASTER_ROADMAP.md](CU_MASTER_ROADMAP.md). Old screening counts, selectable role numbers and speculative peer/story directions are retained as dated provenance.
+
 **24 November 2026 | Source snapshot 93c4883460fb66a8f7e7dc42f61f2c820e8019c8 | Gameplay acceptance pending**
 
 ## Q1: Existing-feature screening

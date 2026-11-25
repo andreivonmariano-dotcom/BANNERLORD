@@ -75,3 +75,49 @@ for token in (
 print("PASS v0.70n SOURCE: Kingsguard is ONE native Hero companion "
       "with culturally equipped native kit, not recruitable troops. "
       "Royal Minister uses actual governor action; live native play untested.")
+
+# Court continuity changes only the local record after live proof.
+assert 'kingdom!=KingdomId || day<0' in state
+assert 'day<=LastMeetingDay || !verifiedNativeAuthorityAndPresence' in state
+assert 'public string Rebind(' in state
+assert 'SeatId=seat;KingId=king;MarshalId=marshal;' in state
+assert 'Clan.PlayerClan.StringId==kingSuccession.RulingClanId' in council
+assert 'Clan.PlayerClan.Kingdom.StringId==royalCouncil.KingdomId' in council
+assert 'royalCouncil.Rebind(Clan.PlayerClan.Kingdom.StringId,' in council
+assert 'if(!present)' in council
+assert 'incumbent!=null && (!incumbent.IsAlive ||' in council
+assert 'retinueOffices.HasIdentity(person.StringId)' in council
+assert '(EffectiveHouseholdDuty(person).Length>0 && !(office=="Marshal" && ReadyRetainerMarshal(person)))' in council
+assert 'if(VacantRecordedRoyalOffice(office).Length==0)return false;' in council
+assert 'if(office=="Marshal" && ActiveRetainerService(person))' in council
+assert 'householdDuties.Release("ManAtArms",person.StringId)' in council
+assert 'retainerService.Clear();' in council
+assert 'if(!CanReplaceRoyalOfficer(office))return;' in council
+assert 'retinueOffices.Replace(prior,person.StringId,office)' in council
+assert 'RegisterRoyalOfficerReplacement(starter);' in council
+assert '"{CU_REPLACE_ROYAL_OFFICER}",null,null,110' in council
+registry=read("SandboxRetinueOfficePolicy.cs")
+assert 'public bool Replace(string oldId,string newId,string office)' in registry
+assert 'if(!Register(newId,office))return false;' in registry
+assert 'return Revoke(oldId);' in registry
+creator=read("CUGuidedCreatorVM.cs")
+assert 'new[]{"None","OwnedFief","ClanHome"}:SandboxFamilyHomePolicy.Modes' in creator
+assert 'key=="FamilyHomeMode" && value=="SpecificOwned"' in creator
+assert 'candidate.FamilyHomeMode=="SpecificOwned"' in creator
+assert 'SandboxFamilyPolicy.ResolveSpouseFemale(candidate.SpouseGender,hero.IsFemale)==hero.IsFemale' in creator
+print("PASS continuity and creator contracts; native ruler, existing companions, current governor and valid residence remain authoritative. SOURCE ONLY.")
+
+# Permanent revocation survives native rejoining; full registry must hide appointment.
+assert 'recorded.Length==0 && retinueOffices.IsRevoked(prior)' in council
+assert '!retinueOffices.CanRegisterNew(person.StringId,office)' in council
+assert 'public bool IsRevoked(string id)' in registry
+assert '!HasIdentity(id) && offices.Count<32' in registry
+print("PASS royal vacancy persistence and capacity guards; SOURCE ONLY.")
+
+# Native one-to-one counsel, no manufactured scene attendance.
+assert 'NativeRoyalCouncilPresent(true) &&' in council
+assert 'speaker.StringId==royalCouncil.MarshalId' in council
+assert 'speaker.StringId==royalCouncil.MinisterId' in council
+assert 'speaker.StringId==royalCouncil.KingsguardHeroId' in council
+assert '()=>CanHearRoyalOfficerInPerson(),()=>{if(CanHearRoyalOfficerInPerson())DiscussHouseholdDuty();}' in council
+assert '"cu_royal_officer_audience_exit"' in council

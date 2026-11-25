@@ -93,5 +93,5 @@ for source in (controller,layer,inspector,shell):
     for forbidden in ("[GameStateScreen(", "[CharacterCreationStageView(",
                       "RemoveStage<", "new BodyGeneratorView("):
         assert forbidden not in source,forbidden
-assert "NEXT: NATIVE CREATOR" in (root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
+assert "Create character" in (root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
 print("PASS: native CultureVM selection/commit/back, CU focused culture list and fallback, real FaceGen layer identity, no duplicate screen or BodyGen, truthful native wizard boundary (STATIC)")

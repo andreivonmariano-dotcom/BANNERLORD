@@ -48,6 +48,7 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxBattleHistoryState.cs" Link="SandboxBattleHistoryState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightBattleRecognitionState.cs" Link="SandboxKnightBattleRecognitionState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxPetitionStoryState.cs" Link="SandboxPetitionStoryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxAffairsIndexPolicy.cs" Link="SandboxAffairsIndexPolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightServiceOrderState.cs" Link="SandboxKnightServiceOrderState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxPetitionVoicePolicy.cs" Link="SandboxPetitionVoicePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxKnightStandingPolicy.cs" Link="SandboxKnightStandingPolicy.cs" />
@@ -61,6 +62,10 @@
     <Compile Include="../../Source/CalradiaUnified/SandboxStartingLifePolicy.cs" Link="SandboxStartingLifePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxHouseholdLineagePolicy.cs" Link="SandboxHouseholdLineagePolicy.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxLifeHistoryState.cs" Link="SandboxLifeHistoryState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxPeerSocialState.cs" Link="SandboxPeerSocialState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxGatheringPlan.cs" Link="SandboxGatheringPlan.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxDialogueVarietyState.cs" Link="SandboxDialogueVarietyState.cs" />
+    <Compile Include="../../Source/CalradiaUnified/SandboxStoryDirectorState.cs" Link="SandboxStoryDirectorState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxServiceCareerState.cs" Link="SandboxServiceCareerState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSocialObservationState.cs" Link="SandboxSocialObservationState.cs" />
     <Compile Include="../../Source/CalradiaUnified/SandboxSuccessionInterestState.cs" Link="SandboxSuccessionInterestState.cs" />

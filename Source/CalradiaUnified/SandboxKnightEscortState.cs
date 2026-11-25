@@ -31,6 +31,7 @@ namespace CalradiaUnified
         public string Begin(string patron,int day)
         {
             if(!CanBegin(patron,day))return "escort_not_available";
+            if(PatronId!=patron){CompletedEscorts=0;LastFinishedDay=-1;}
             PatronId=patron;Status="Active";
             StartDay=day;LastObservedDay=day;
             ConsecutiveDays=0;
@@ -58,7 +59,7 @@ namespace CalradiaUnified
                 return "native_field_escort_day_verified";
             Status="Completed";
             LastFinishedDay=day;
-            CompletedEscorts++;
+            if(CompletedEscorts<10000)CompletedEscorts++;
             return "verified_native_party_escort_completed";
         }
         public void Interrupt()
@@ -105,7 +106,9 @@ namespace CalradiaUnified
                completed>10000 || progress>RequiredDays ||
                (x[1]=="Active" && (x[0].Length==0 ||
                    start<0 || last<start)) ||
-               (finish>=0 && finish<start))return empty;
+               (x[1]=="Completed" && (finish<start || finish!=last ||
+                   progress!=RequiredDays || completed<1)) ||
+               (x[1]=="Active" && finish>=0 && finish>=start))return empty;
             return new SandboxKnightEscortState{
                 PatronId=x[0],Status=x[1],StartDay=start,
                 LastObservedDay=last,ConsecutiveDays=progress,

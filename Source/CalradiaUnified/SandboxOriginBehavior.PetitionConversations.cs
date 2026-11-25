@@ -2,6 +2,8 @@ using System;
 using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.CharacterDevelopment;
+using TaleWorlds.Core;
+using TaleWorlds.Localization;
 
 namespace CalradiaUnified
 {
@@ -13,27 +15,34 @@ namespace CalradiaUnified
         private bool SpeakingWithPendingPetitioner()
         {
             var actor=Hero.OneToOneConversationHero;
-            return applied && actor!=null && actor.IsAlive &&
+            return applied && PetitionsBelongToCurrentPlayer() && actor!=null && actor.IsAlive &&
                 actor.IsActive && !actor.IsPrisoner &&
-                agencyDecisions.HasPending &&
-                actor.StringId==agencyDecisions.PendingHeroId &&
-                RequestedCharacter()==actor;
+                agencyDecisions.PendingFor(actor.StringId)!=null &&
+                RequestedCharacter(actor.StringId)==actor;
         }
 
+        private string SpeakingPetitionKind()
+        {
+            var actor=Hero.OneToOneConversationHero;
+            var pending=actor==null?null:agencyDecisions.PendingFor(actor.StringId);
+            return pending==null?"":pending.Kind;
+        }
         private string AvailablePetitionForSpeaker()
         {
             var player=Hero.MainHero;
             var actor=Hero.OneToOneConversationHero;
-            if(!applied || player==null || actor==null ||
-                agencyDecisions.HasPending || !actor.IsAlive ||
+            if(!applied || !PetitionsBelongToCurrentPlayer() || player==null || actor==null ||
+                (!agencyDecisions.HasRoom || agencyDecisions.PendingFor(actor.StringId)!=null) || !actor.IsAlive ||
                 !actor.IsActive || actor.IsPrisoner ||
-                actor.Age<18f || !SamePlace(player,actor) ||
+                actor.Age<18f || RequestedCharacter(actor.StringId)!=actor ||
                 !livingPersons.People.Any(p=>p.Id==actor.StringId))
                 return "";
             var agenda=characterAgendas.Get(actor.StringId);
             if(agenda==null)return "";
             var history=agencyDecisions.For(actor.StringId);
-            return SandboxAgencyDecisionPolicy.ChooseInitiative(
+            if(!SandboxAgencyDecisionPolicy.CanReapproach(
+                socialBonds.For(actor.StringId),player.GetRelation(actor)))return "";
+            string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
                 agenda.Goal,true,true,player.GetRelation(actor),
                 history==null?0:history.RequestsMade,
                 history==null?1000:
@@ -42,8 +51,44 @@ namespace CalradiaUnified
                 actor.GetTraitLevel(DefaultTraits.Generosity),
                 actor.GetTraitLevel(DefaultTraits.Calculating),
                 actor.Gold);
+            kind=SpecializeNoblePetition(player,actor,kind);
+            return petitionStories.CanBegin(actor.StringId,kind,CurrentHouseholdDay())?kind:"";
         }
 
+        private string SpecializeNoblePetition(Hero player,Hero actor,string kind)
+        {
+            if(player==null || actor==null)return kind;
+            bool noble=CurrentNobleAuthority(true) || CurrentNobleAuthority(false);
+            string contact=CorrespondenceContact(player,actor);
+            string office=EffectiveHouseholdDuty(actor);
+            bool visitingLord=actor.Clan!=null && actor.Clan!=Clan.PlayerClan &&
+                actor.Clan.Leader==actor && RequestedCharacter(actor.StringId)==actor;
+            return SandboxAgencyDecisionPolicy.Specialize(kind,noble,office,
+                contact=="Spouse" || contact=="Kin",visitingLord);
+        }
+        private bool CanNegotiateAudience(string term)
+        {
+            if(!SpeakingWithPendingPetitioner())return false;
+            var actor=Hero.OneToOneConversationHero;
+            var player=Hero.MainHero;
+            bool noble=CurrentNobleAuthority(true) || CurrentNobleAuthority(false);
+            string office=EffectiveHouseholdDuty(actor);
+            bool garrison=term=="Garrison" && (KingMarshalAvailable() || LordMasterAvailable());
+            bool relevant=term=="Goodwill"?actor.Clan!=null && actor.Clan!=Clan.PlayerClan &&
+                actor.Clan.Leader==actor && player.GetRelation(actor)<100:
+                term=="Stipend"?actor.Clan==Clan.PlayerClan &&
+                    (office=="Royal Minister" || office=="Steward" || office=="Household Steward"):
+                garrison;
+            return SandboxAgencyDecisionPolicy.NegotiatedTermAllowed(SpeakingPetitionKind(),term,noble,
+                relevant,player.Gold,garrison);
+        }
+        private bool PrepareAudienceConcern()
+        {
+            if(!SpeakingWithPendingPetitioner() || !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()))return false;
+            MBTextManager.SetTextVariable("CU_PETITION_AUDIENCE_CONCERN",
+                new TextObject(SandboxAgencyDecisionPolicy.AudienceConcern(SpeakingPetitionKind())));
+            return true;
+        }
         private string PetitionerStyle()
         {
             var speaker=Hero.OneToOneConversationHero;
@@ -63,7 +108,8 @@ namespace CalradiaUnified
             var actor=Hero.OneToOneConversationHero;
             string kind=AvailablePetitionForSpeaker();
             if(actor==null || kind.Length==0)return;
-            if(agencyDecisions.Propose(actor.StringId,kind))
+            BindPetitionsToPlayer(Hero.MainHero);
+            if(agencyDecisions.Enqueue(actor.StringId,kind))
             {
                 RememberPetitionStory(actor,kind);
                 livingPersons.Remember("IndependentCharacterRequest",
@@ -84,7 +130,7 @@ namespace CalradiaUnified
         {
             if(!SpeakingWithPendingPetitioner())return false;
             int cost=SandboxAgencyDecisionPolicy.Amount(
-                agencyDecisions.PendingKind);
+                SpeakingPetitionKind());
             return cost>=0 && Hero.MainHero.Gold>=cost;
         }
 
@@ -92,49 +138,69 @@ namespace CalradiaUnified
         {
             if(!SpeakingWithPendingPetitioner())return false;
             int cost=SandboxAgencyDecisionPolicy.Amount(
-                agencyDecisions.PendingKind);
+                SpeakingPetitionKind());
             return cost>0 && Hero.MainHero.Gold<cost;
         }
 
+        private string petitionDecisionReply="";
+        private bool PreparePetitionDecisionReply()
+        {
+            MBTextManager.SetTextVariable("CU_PETITION_DECISION_REPLY",
+                new TextObject(petitionDecisionReply));
+            return true;
+        }
         private void RegisterPrivatePetitionConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            starter.AddPlayerLine("cu_petition_hear_concern","cu_personal_followup_choices",
+                "cu_petition_open","Tell me the request you wished to make.",
+                ()=>CanFollowPersonalTopic() && personalTopicName=="Concerns" && SpeakingWithPendingPetitioner(),null,116);
             starter.AddPlayerLine(
-                "cu_petition_hear_pending","hero_main_options",
+                "cu_petition_hear_pending","cu_personal_matters_topics",
                 "cu_petition_open",
                 "You wished to speak privately with me?",
                 ()=>SpeakingWithPendingPetitioner(),null,115);
             starter.AddPlayerLine(
-                "cu_petition_invite","hero_main_options",
+                "cu_petition_invite","cu_personal_matters_topics",
                 "cu_petition_open",
-                "How fares your work and your household?",
+                "Is there a particular matter you wish to put before me?",
                 ()=>AvailablePetitionForSpeaker().Length>0,
                 ()=>InvitePetitionFromSpeakingHero(),90);
             starter.AddDialogLine(
+                "cu_petition_no_longer_available","cu_petition_open",
+                "cu_personal_matters_topics","There is nothing I need to ask of you just now.",
+                ()=>!SpeakingWithPendingPetitioner(),null,80);
+            starter.AddDialogLine(
+                "cu_petition_audience","cu_petition_open",
+                "cu_petition_answers",
+                "{CU_PETITION_AUDIENCE_CONCERN}",
+                ()=>PrepareAudienceConcern(),null,125);
+            starter.AddDialogLine(
                 "cu_petition_recognition","cu_petition_open",
                 "cu_petition_answers",
-                "I have served as best I can. I ask that "+
-                "my work not go unnoticed.",
+                "I ask no silver of you. I would like you to acknowledge the work I have done, and hear what I hope to do next.",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="Recognition",
+                    SpeakingPetitionKind()=="Recognition",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_household","cu_petition_open",
                 "cu_petition_answers",
-                "My household is short of means. "+
-                "A little silver would bring us some relief.",
+                "I would rather not burden you with my affairs, but I need help for my household. Could you spare "+
+                SandboxAgencyDecisionPolicy.Amount("HouseholdAid")+" denars?",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="HouseholdAid",
+                    SpeakingPetitionKind()=="HouseholdAid",
                 null,120);
             starter.AddDialogLine(
                 "cu_petition_livelihood","cu_petition_open",
                 "cu_petition_answers",
-                "I have a chance to establish myself. "+
-                "I need help to make a beginning.",
+                "I want to make my own living, not spend my days asking favors. I ask for "+
+                SandboxAgencyDecisionPolicy.Amount("LivelihoodAid")+" denars to make a beginning.",
                 ()=>SpeakingWithPendingPetitioner() &&
-                    agencyDecisions.PendingKind=="LivelihoodAid",
+                    SpeakingPetitionKind()=="LivelihoodAid",
                 null,120);
+            starter.AddDialogLine("cu_petition_open_cu_safe_exit","cu_petition_open",
+                "close_window","We can speak again another time.",null,null,1);
             // Asking for a reason changes no gold or relationship.
             // The reply comes from recorded ambition, current
             // relation and real native Hero traits.
@@ -142,7 +208,7 @@ namespace CalradiaUnified
                 "cu_petition_personal_reason","cu_petition_answers",
                 "cu_petition_personal_reason_reply",
                 "What is most important to you in this matter?",
-                ()=>SpeakingWithPendingPetitioner(),null,90);
+                ()=>SpeakingWithPendingPetitioner() && !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),null,90);
             starter.AddDialogLine(
                 "cu_petition_reason_guarded",
                 "cu_petition_personal_reason_reply",
@@ -183,18 +249,36 @@ namespace CalradiaUnified
                 "the work ahead will be mine to do.",
                 ()=>SpeakingWithPendingPetitioner() &&
                     PetitionerStyle()=="Direct",null,120);
+            starter.AddDialogLine("cu_petition_personal_reason_reply_cu_safe_exit","cu_petition_personal_reason_reply",
+                "close_window","We can speak again another time.",null,null,1);
+            starter.AddPlayerLine("cu_petition_negotiate_goodwill","cu_petition_answers","cu_petition_accept_reply",
+                "Let our houses part on better terms. I offer my personal goodwill.",
+                ()=>CanNegotiateAudience("Goodwill"),()=>ResolveNegotiatedAudience("Goodwill"),135);
+            starter.AddPlayerLine("cu_petition_negotiate_stipend","cu_petition_answers","cu_petition_accept_reply",
+                "Accept 200 denars as a personal stipend for your work.",
+                ()=>CanNegotiateAudience("Stipend"),()=>ResolveNegotiatedAudience("Stipend"),135);
+            starter.AddPlayerLine("cu_petition_negotiate_garrison","cu_petition_answers","cu_petition_accept_reply",
+                "Station five of our existing recruits in the garrison here.",
+                ()=>CanNegotiateAudience("Garrison"),()=>ResolveNegotiatedAudience("Garrison"),135);
+            starter.AddPlayerLine(
+                "cu_petition_accept_audience","cu_petition_answers",
+                "cu_petition_accept_reply",
+                "I have heard your concern. I make no promise of an order yet.",
+                ()=>SpeakingWithPendingPetitioner() && SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),
+                ()=>AnswerCharacterRequest(true),125);
             starter.AddPlayerLine(
                 "cu_petition_accept","cu_petition_answers",
                 "cu_petition_accept_reply",
-                "You shall have my support.",
-                ()=>CanAcceptPetitionInConversation(),
+                "I agree to your request.",
+                ()=>CanAcceptPetitionInConversation() && !SandboxAgencyDecisionPolicy.IsAudience(SpeakingPetitionKind()),
                 ()=>AnswerCharacterRequest(true),120);
             starter.AddDialogLine(
                 "cu_petition_accept_reply","cu_petition_accept_reply",
-                "hero_main_options",
-                "I have heard your answer. Thank you for "+
-                "taking my affairs seriously.",
-                null,null,120);
+                "cu_personal_matters_topics",
+                "{CU_PETITION_DECISION_REPLY}",
+                ()=>PreparePetitionDecisionReply(),null,120);
+            starter.AddDialogLine("cu_petition_accept_reply_cu_safe_exit","cu_petition_accept_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_refuse","cu_petition_answers",
                 "cu_petition_refuse_reply",
@@ -203,20 +287,24 @@ namespace CalradiaUnified
                 ()=>AnswerCharacterRequest(false),110);
             starter.AddDialogLine(
                 "cu_petition_refuse_reply","cu_petition_refuse_reply",
-                "hero_main_options",
-                "I understand. I shall make other plans.",
-                null,null,110);
+                "cu_personal_matters_topics",
+                "{CU_PETITION_DECISION_REPLY}",
+                ()=>PreparePetitionDecisionReply(),null,110);
+            starter.AddDialogLine("cu_petition_refuse_reply_cu_safe_exit","cu_petition_refuse_reply",
+                "close_window","We can speak again another time.",null,null,1);
             starter.AddPlayerLine(
                 "cu_petition_no_coin","cu_petition_answers",
-                "hero_main_options",
+                "cu_petition_no_coin_reply",
                 "I have not the silver to offer you.",
                 ()=>CannotAffordPetitionInConversation(),
                 null,80);
             starter.AddPlayerLine(
                 "cu_petition_defer","cu_petition_answers",
-                "hero_main_options",
+                "close_window",
                 "Let us speak of this another time.",
-                ()=>SpeakingWithPendingPetitioner(),null,70);
+                null,null,70);
+            starter.AddDialogLine("cu_petition_no_coin_reply","cu_petition_no_coin_reply",
+                "cu_personal_matters_topics","We can speak of it another day.",null,null,80);
         }
     }
 }

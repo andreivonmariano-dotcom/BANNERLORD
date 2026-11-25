@@ -28,13 +28,7 @@ namespace CalradiaUnified
         }
         private static string Office(Hero hero)
         {
-            var name=hero.Name.ToString();
-            int start=name.LastIndexOf('(');
-            if(start<0 || !name.EndsWith(")",StringComparison.Ordinal))
-                return "";
-            var office=name.Substring(start+1,name.Length-start-2);
-            return SandboxRetinueOfficePolicy.Skills(office).Length>0?
-                office:"";
+            return SandboxOriginBehavior.RecordedRetinueOffice(hero);
         }
         internal static string Capture(SandboxOriginProfile profile,
             Hero player,Hero patron,SandboxLifeHistoryState state,
@@ -100,6 +94,10 @@ namespace CalradiaUnified
                     ", occupation: "+occupation+
                     ", clan: "+(clan.Length==0?"none":clan)+
                     ". Native character traits: "+NativeTraits(person)+".";
+                if(office.Length>0)
+                    description=SandboxRetinueOfficePolicy.OfficeBackground(office)+
+                        " Native age "+(int)person.Age+", "+culture+". "+
+                        "Earlier deeds are not established.";
                 if(isPlayer && player.Father!=null &&
                     player.Mother!=null)
                     description+=" Native parents: "+
@@ -116,11 +114,12 @@ namespace CalradiaUnified
                     Origin=isPlayer?"CreatorSelected:"+
                         SandboxStartingLifePolicy.Household(
                             profile.Role,profile.EarlyHousehold):
-                        "PriorHistoryNotEstablished",
+                        office.Length>0?"GeneratedHouseholdOffice":"PriorHistoryNotEstablished",
                     Ambition=isPlayer?
                         SandboxStartingLifePolicy.Ambition(
                             profile.Role,profile.NobleBirthPosition,
                             profile.PersonalAmbition):
+                        office.Length>0?SandboxGeneratedCharacterGoalPolicy.Goal(culture,station,occupation,sibling,false):
                         "NotYetModeled",
                     Biography=description
                 });
@@ -232,10 +231,102 @@ namespace CalradiaUnified
             return created;
         }
 
+        // Observe the actual immediate family and clan companions as the
+        // campaign changes. Keep the original biography and native IDs intact.
+        // No world search, generated hero, invented birth date or marriage action.
+        private static void TrackCurrentHousehold(SandboxLifeHistoryState life,
+            SandboxCharacterAgendaState agenda,Hero player)
+        {
+            var people=new List<Hero>();
+            if(player.Spouse!=null && player.Spouse.Spouse==player)
+                Add(people,player.Spouse);
+            if(player.Children!=null)
+                foreach(var child in player.Children)
+                    if(child!=null && (child.Father==player || child.Mother==player))
+                        Add(people,child);
+            var clan=Clan.PlayerClan;
+            if(clan!=null && clan.Companions!=null)
+                foreach(var companion in clan.Companions)
+                    if(companion!=null && companion.Clan==clan && companion.CompanionOf==clan)
+                        Add(people,companion);
+            foreach(var person in people)
+            {
+                if(person==player || !person.IsAlive ||
+                    String.IsNullOrWhiteSpace(person.StringId))continue;
+                bool spouse=person==player.Spouse && person.Spouse==player;
+                bool child=person.Father==player || person.Mother==player;
+                string station=spouse?"SpouseInPlayerClan":child?
+                    "RecordedOffspring":"ClanCompanion";
+                string occupation=Office(person);
+                if(occupation.Length==0)occupation=person.Occupation.ToString();
+                string culture=person.Culture==null?"":person.Culture.StringId;
+                string clanId=person.Clan==null?"":person.Clan.StringId;
+                string goal=SandboxGeneratedCharacterGoalPolicy.Goal(culture,
+                    child && person.Age>=18f?"AdultOffspring":station,
+                    occupation,false,false);
+                var record=life.People.FirstOrDefault(p=>p.Id==person.StringId);
+                if(record==null)
+                {
+                    if(!life.RecordNew(new SandboxLifeHistoryState.Person{
+                        Id=person.StringId,Name=person.Name.ToString(),
+                        Age=Math.Max(0,Math.Min(120,(int)person.Age)),Culture=culture,
+                        Station=station,Occupation=occupation,HouseholdId=clanId,
+                        Origin="FirstObservedDuringCampaign",Ambition=goal,
+                        Biography="Observed in the current native household. Earlier history is not established."
+                    }))continue;
+                    life.Remember("NativeHouseholdMemberObserved",person.StringId,
+                        player.StringId,"station="+station+"|date_of_joining_not_assumed=true");
+                }
+                int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+                if(spouse)
+                {
+                    life.ObserveMarriage(player.StringId,person.StringId,true,day);
+                    string presence=ObservedFamilyPresence(player,person);
+                    if(presence.Length>0 && life.ObserveFamilyState(player.StringId,person.StringId,"Presence",presence,day))
+                        DiagnosticJournal.Event("cu_family_presence_observed",
+                            "player="+player.StringId+"|relative="+person.StringId+"|state="+presence+"|day="+day+"|sample_not_event_date=true");
+                }
+                if(child && life.ObserveFamilyState(player.StringId,person.StringId,"Age",
+                    person.Age<18f?"Minor":"Adult",day))
+                    DiagnosticJournal.Event("cu_family_age_observed",
+                        "player="+player.StringId+"|relative="+person.StringId+"|adult="+(person.Age>=18f)+"|day="+day+"|sample_not_event_date=true");
+                if(child)
+                {
+                    if(person.Father==player)
+                        life.Tie(person.StringId,player.StringId,"Father","VerifiedNativeParent");
+                    if(person.Mother==player)
+                        life.Tie(person.StringId,player.StringId,"Mother","VerifiedNativeParent");
+                }
+                if(!spouse && !child)
+                    life.Tie(player.StringId,person.StringId,"ClanCompanion","NativeClanRoster");
+                if(agenda.Get(person.StringId)==null)
+                {
+                    string evidence;
+                    string home=RealHome(person,out evidence);
+                    agenda.Register(person.StringId,goal,home,evidence,
+                        occupation,culture,clanId);
+                }
+            }
+        }
+
+        // Party co-membership or actual current settlements only. A missing
+        // location, home assignment or last-known settlement is not separation.
+        internal static string ObservedFamilyPresence(Hero player,Hero relative)
+        {
+            if(player==null || relative==null || player==relative || !player.IsAlive ||
+                !relative.IsAlive || !player.IsActive || !relative.IsActive ||
+                player.IsPrisoner || relative.IsPrisoner)return "";
+            if(player.PartyBelongedTo!=null && player.PartyBelongedTo==relative.PartyBelongedTo)return "Together";
+            if(player.CurrentSettlement==null || relative.CurrentSettlement==null)return "";
+            return player.CurrentSettlement==relative.CurrentSettlement?"Together":"Apart";
+        }
+
         internal static void ObserveAgenda(SandboxLifeHistoryState life,
             SandboxCharacterAgendaState agenda,Hero player)
         {
-            if(life==null || agenda==null || player==null || agenda.Entries.Count==0)return;
+            if(life==null || agenda==null || player==null)return;
+            TrackCurrentHousehold(life,agenda,player);
+            if(agenda.Entries.Count==0)return;
             var tracked=new HashSet<string>(agenda.Entries.Select(e=>e.Id),
                 StringComparer.Ordinal);
             var alive=Hero.AllAliveHeroes.Where(h=>h!=null && tracked.Contains(h.StringId))
@@ -277,10 +368,20 @@ namespace CalradiaUnified
                         office:person.Occupation.ToString();
                     string currentClan=person.Clan==null?"":
                         person.Clan.StringId;
+                    // Historical station stays in the biography. Current
+                    // ambitions use current kinship and adulthood instead.
+                    string currentStation=known.Station;
+                    if(person==player.Spouse && person.Spouse==player)
+                        currentStation="SpouseInPlayerClan";
+                    else if(person.Father==player || person.Mother==player)
+                        currentStation=person.Age>=18f?"AdultOffspring":"RecordedOffspring";
+                    else if(currentStation=="SpouseInPlayerClan" ||
+                        currentStation=="RecordedOffspring")
+                        currentStation="FormerHouseholdMember";
                     string inferredGoal=
                         SandboxGeneratedCharacterGoalPolicy.Goal(
                             person.Culture==null?"":person.Culture.StringId,
-                            known.Station,currentOccupation,
+                            currentStation,currentOccupation,
                             siblings,actualParty);
                     string previousGoal=entry.Goal;
                     if(agenda.ObserveNativeGoal(entry.Id,inferredGoal,
@@ -375,7 +476,7 @@ namespace CalradiaUnified
                         x.Kind=="Spouse"))
                 {
                     if(state.ObserveMarriage(hero.StringId,
-                        hero.Spouse.StringId,true))events++;
+                        hero.Spouse.StringId,true,(int)Math.Floor(CampaignTime.Now.ToDays)))events++;
                 }
                 if(hero!=player)
                 {

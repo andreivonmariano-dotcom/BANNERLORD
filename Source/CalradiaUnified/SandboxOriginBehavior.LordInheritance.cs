@@ -33,6 +33,35 @@ namespace CalradiaUnified
                 }).ToArray();
         }
 
+        private void ShowDynasticBranches(bool royal)
+        {
+            string founderId=royal?kingSuccession.FounderId:lordInheritance.FounderId;
+            string clanId=royal?kingSuccession.RulingClanId:lordInheritance.ClanId;
+            string rule=royal?kingSuccession.Rule:lordInheritance.Rule;
+            var manager=MBObjectManager.Instance;
+            var founder=manager==null?null:manager.GetObject<Hero>(founderId);
+            var clan=Clan.All.FirstOrDefault(c=>c!=null && c.StringId==clanId);
+            if(founder==null || clan==null || clan.IsEliminated)
+            {ShowNativeDetail("Dynastic branches","The founding household is unknown.");return;}
+            var siblings=new SandboxLordSuccessionPolicy.Candidate[0];
+            if(founder.Father!=null && founder.Mother!=null &&
+                founder.Father.Children!=null && founder.Mother.Children!=null &&
+                founder.Father.Children.Contains(founder) && founder.Mother.Children.Contains(founder))
+                siblings=VerifiedLordChildCandidates(founder.Father,clan)
+                    .Where(c=>c.Id!=founderId && manager.GetObject<Hero>(c.Id)!=null &&
+                        manager.GetObject<Hero>(c.Id).Mother==founder.Mother)
+                    .Take(SandboxLordSuccessionPolicy.BranchBudget).ToArray();
+            var branches=SandboxLordSuccessionPolicy.Branches(rule,founderId,
+                VerifiedLordChildCandidates(founder,clan),siblings,
+                id=>VerifiedLordChildCandidates(manager.GetObject<Hero>(id),clan));
+            var lines=branches.Select(x=>x.Branch+" | depth "+x.Depth+" | "+
+                NativeHeroDisplayName(x.Person.Id)+(x.Person.Minor?" (minor)":"")).ToArray();
+            ShowNativeDetail("Dynastic branches",
+                (lines.Length==0?"No verified living same-clan relatives found.":String.Join("\n",lines))+
+                "\nFamily claims, not a succession decree. "+
+                "Direct-child inheritance preference remains separate. No crown, fief or regency is assigned.");
+        }
+
         private static int CurrentLordInheritanceDay()
         {
             double day=CampaignTime.Now.ToDays;
@@ -72,21 +101,23 @@ namespace CalradiaUnified
             return result;
         }
 
-        private void ObserveLordInheritanceDaily()
+        private void ObserveLordInheritanceDaily(){RefreshLordInheritanceObservation();}
+
+        private bool RefreshLordInheritanceObservation()
         {
             if(!applied || !IsStandaloneSandbox() ||
                 !lordInheritance.IsRecorded ||
                 MBObjectManager.Instance==null)
-                return;
+                return false;
             int day=CurrentLordInheritanceDay();
-            if(day<0)return;
+            if(day<0)return false;
             var founder=MBObjectManager.Instance.GetObject<Hero>(
                 lordInheritance.FounderId);
             var clan=Clan.All.FirstOrDefault(c=>c!=null &&
                 c.StringId==lordInheritance.ClanId);
             if(founder==null || clan==null || clan.IsEliminated ||
                 clan.Leader==null)
-                return;
+                return false;
             string result=lordInheritance.Observe(day,
                 founder.IsAlive,clan.Leader.StringId,
                 VerifiedLordChildCandidates(founder,clan));
@@ -101,6 +132,7 @@ namespace CalradiaUnified
                     "|rule="+lordInheritance.Rule+
                     "|fiefs_unchanged_by_CU=true"+
                     "|no_native_clan_leadership_action=true");
+            return result=="native_succession_observation_changed" || result=="native_succession_unchanged";
         }
 
         private void RegisterLordInheritanceMenus(
@@ -112,13 +144,13 @@ namespace CalradiaUnified
                 "ranks proven biological children. Native clan "+
                 "leadership, elections, fiefs and regency remain "+
                 "under game authority.",args=>{});
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_lord_inheritance_entry",
                 "My household inheritance",
                 args=>lordInheritance.IsRecorded,
                 args=>
                 {
-                    lordInheritanceReturnMenu="cu_people_lineage";
+                    lordInheritanceReturnMenu="cu_household_records";
                     GameMenu.SwitchToMenu("cu_lord_inheritance");
                 },false);
             starter.AddGameMenuOption("cu_lord_inheritance",
@@ -127,24 +159,28 @@ namespace CalradiaUnified
                 args=>lordInheritance.IsRecorded,
                 args=>
                 {
-                    ObserveLordInheritanceDaily();
+                    bool current=RefreshLordInheritanceObservation();
                     ShowNativeDetail("Lord household | Inheritance",
                         "Lord household custom: "+
                         lordInheritance.Rule+
-                        ". First living verified child: "+
+                        (current?". First living child: ":". Last recorded first child: ")+
                         NativeHeroDisplayName(
                             lordInheritance.PrimaryHeirId)+
-                        ". Current clan leader: "+
+                        (current?". Current clan leader: ":". Last known clan leader: ")+
                         NativeHeroDisplayName(
                             lordInheritance.NativeLeaderId)+
-                        ". Native status: "+lordInheritance.Status+
-                        ". Ranked living children: "+
+                        ". "+(current?"Status: ":"Last recorded status: ")+lordInheritance.Status+
+                        (current?"":". Current clan state unavailable; last observation day "+lordInheritance.LastObservedDay)+
+                        (current?". Living heirs: ":". Last recorded child order: ")+
                         NativeHeroDisplayNames(
                             lordInheritance.RankedHeirIds)+
                         ". A minor has no automatic regent. "+
                         "This records claims only, not automatic land "+
                         "or clan leadership.");
                 },false);
+            starter.AddGameMenuOption("cu_lord_inheritance",
+                "cu_lord_dynastic_branches","Review descendants and collateral kin",
+                args=>lordInheritance.IsRecorded,args=>ShowDynasticBranches(false),false);
             starter.AddGameMenuOption("cu_lord_inheritance",
                 "cu_lord_inheritance_back","Return",
                 args=>true,

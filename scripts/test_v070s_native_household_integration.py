@@ -19,7 +19,7 @@ creator=read("CUGuidedCreatorVM.cs")
 assert 'starter.AddGameMenu("cu_people_lineage"' in living
 assert '"cu_starting_household_native_status"' in living
 assert 'args=>ShowStartingHouseholdStatus()' in living
-assert '"My household and present calling"' in living
+assert '"Household"' in living
 assert '"cu_native_household_display_opened"' in view
 assert 'native_read_only=true' in view
 assert 'ShowNativeDetail("Starting household | "+type,' in view
@@ -35,9 +35,9 @@ assert 'NativeHeroDisplayName(' in king
 assert 'NativeHeroDisplayNames(' in king
 assert 'NativeHeroDisplayName(royalCouncil.MinisterId)' in council
 assert 'NativeHeroDisplayName(royalCouncil.MarshalId)' in council
-assert '"My royal court and council"' in council
-assert 'args=>royalCouncil.IsRecorded' in council
-assert '"My royal court and council",\n                    args=>royalCouncil.IsRecorded' in council
+assert '"Royal court"' in council
+assert 'args=>CurrentNobleAuthority(true) && royalCouncil.IsRecorded' in council
+assert '"Royal court",\n                    args=>CurrentNobleAuthority(true) && royalCouncil.IsRecorded' in council
 assert '"cu_royal_council_ui_location"' in council
 assert 'ShowNativeDetail(' in council
 assert 'NativeRoyalCouncilPresent(true)' in council
@@ -67,3 +67,16 @@ assert "knight_oath_ui.png" in mod.ROLE_UI_SCREENSHOTS["Knight"]
 print("PASS v0.70s STATIC: native household inquiry uses game Hero state; "
       "Knight/Lord/King panels have readable records and discoverable "
       "Royal Council location; native UI play evidence remains separate.")
+
+# Identity repair is opt-in, exact-ID and restricted to recorded family.
+assert 'FamilyOccupationRepairs()' in view
+assert 'h.CompanionOf==null && !clan.Companions.Contains(h)' in view
+assert 'livingPersons.People.Any(p=>p.Id==h.StringId' in view
+assert 'FamilyOccupationRepairs().Where(h=>ids.Contains(h.StringId))' in view
+assert 'h.SetNewOccupation(Occupation.Lord)' in view
+
+# Diagnostics have one entry per settlement; repair must be a second confirmation.
+assert '"cu_household_records","cu_start_diagnostic_records","Troubleshooting"' in view
+assert '"cu_family_occupation_repair_"+menu' not in view
+assert 'CanReviewStartDiagnostics() && Hero.MainHero.StringId==owner' in view
+assert 'if(!CanReviewStartDiagnostics() || Hero.MainHero.StringId!=owner)return;' in view

@@ -29,7 +29,8 @@ assert 'candidate.ChildCount>0 || candidate.SiblingCount>0' in vm
 assert 'prefix+"Name","Sibling "+i+" | Name"' in vm
 assert 'prefix+"Age","Sibling "+i+" | Age"' in vm
 assert 'prefix+"Gender","Sibling "+i+" | Gender"' in vm
-assert '"NobleBirthPosition","Your noble birth"' in vm
+assert '"NobleBirthPosition","Your noble birth"' not in vm
+assert 'candidate.NormalizeGuidedCareerDraft()' in vm
 assert '"RetinueMode","Your starting household officers"' in vm
 assert 'SandboxCustomLifeRolePolicy.IsNobleFamilyRole(role)' in policy
 assert 'role!="NobleCadet"' in policy

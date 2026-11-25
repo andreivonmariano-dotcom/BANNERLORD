@@ -12,11 +12,12 @@ namespace CalradiaUnified
     /// </summary>
     public sealed class SandboxPetitionStoryState
     {
-        public const string Version="CU_PETITION_STORIES_1";
-        public const int FollowUpDays=7;
+        public const string Version="CU_PETITION_STORIES_2";
+        public const string LegacyVersion="CU_PETITION_STORIES_1";
+        public const int FollowUpDays=7, MaxStories=64;
         public sealed class Story
         {
-            public string HeroId="",Kind="",Outcome="Pending";
+            public string HeroId="",Kind="",Outcome="Pending",Letter="";
             public int StartedDay,ResolvedDay=-1,FollowUpDay=-1;
             public int ObservedRelationChange;
             public bool NativePaymentVerified;
@@ -30,18 +31,26 @@ namespace CalradiaUnified
         private static bool ValidKind(string kind)
         {
             return kind=="Recognition" || kind=="HouseholdAid" ||
-                kind=="LivelihoodAid";
+                kind=="LivelihoodAid" || SandboxAgencyDecisionPolicy.IsAudience(kind);
         }
         public Story For(string id)
         {
             return Stories.FirstOrDefault(x=>x.HeroId==id);
         }
-        public bool Begin(string id,string kind,int day)
+        public bool CanBegin(string id,string kind,int day)
         {
-            if(!ValidId(id)||!ValidKind(kind)||day<0 ||
-                Stories.Count>=16 || For(id)!=null)return false;
-            Stories.Add(new Story{
-                HeroId=id,Kind=kind,StartedDay=day});
+            if(!ValidId(id)||!ValidKind(kind)||day<0 || day>2000000)return false;
+            var previous=For(id);
+            return previous==null?Stories.Count<MaxStories:
+                previous.Outcome!="Pending" && (long)day-previous.StartedDay>=70 &&
+                day>previous.ResolvedDay && day>previous.FollowUpDay;
+        }
+        public bool Begin(string id,string kind,int day,string letter="")
+        {
+            if(!CanBegin(id,kind,day) || (letter??"").Length>480)return false;
+            var previous=For(id);
+            if(previous!=null)Stories.Remove(previous);
+            Stories.Add(new Story{HeroId=id,Kind=kind,StartedDay=day,Letter=letter??""});
             return true;
         }
         public bool Resolve(string id,bool accepted,int day,
@@ -50,8 +59,8 @@ namespace CalradiaUnified
             var story=For(id);
             if(story==null || story.Outcome!="Pending" ||
                 day<story.StartedDay || day<0 ||
-                Math.Abs(nativeRelationDelta)>100)return false;
-            if(accepted && story.Kind!="Recognition" &&
+                nativeRelationDelta< -100 || nativeRelationDelta>100)return false;
+            if(accepted && story.Kind!="Recognition" && !SandboxAgencyDecisionPolicy.IsAudience(story.Kind) &&
                 !nativePaymentVerified)return false;
             story.Outcome=accepted?"Supported":"Declined";
             story.ResolvedDay=day;
@@ -59,14 +68,31 @@ namespace CalradiaUnified
             story.NativePaymentVerified=nativePaymentVerified;
             return true;
         }
+        public bool CloseUnanswered(string id,int day,string outcome)
+        {
+            var story=For(id);
+            if(story==null || story.Outcome!="Pending" || day<story.StartedDay ||
+                (outcome!="Expired" && outcome!="Unavailable" && outcome!="Unconfirmed"))return false;
+            story.Outcome=outcome;story.ResolvedDay=day;
+            return true;
+        }
         public bool CanFollowUp(string id,int day)
         {
             var story=For(id);
-            return story!=null &&
+            return story!=null && !SandboxAgencyDecisionPolicy.IsAudience(story.Kind) &&
                 (story.Outcome=="Supported" ||
                  story.Outcome=="Declined") &&
                 story.FollowUpDay<0 && story.ResolvedDay>=0 &&
                 day>=story.ResolvedDay+FollowUpDays;
+        }
+        // Keep the resolved matter available for ordinary conversation
+        // after the one-time follow-up, but never duplicate the due option.
+        public bool CanRecall(string id,int day)
+        {
+            var story=For(id);
+            return story!=null && (story.Outcome=="Supported" ||
+                story.Outcome=="Declined") && story.ResolvedDay>=0 &&
+                day>=story.ResolvedDay && !CanFollowUp(id,day);
         }
         public string RecordFollowUp(string id,int day)
         {
@@ -94,24 +120,25 @@ namespace CalradiaUnified
                     x.ResolvedDay.ToString(CultureInfo.InvariantCulture),
                     x.FollowUpDay.ToString(CultureInfo.InvariantCulture),
                     x.ObservedRelationChange.ToString(CultureInfo.InvariantCulture),
-                    x.NativePaymentVerified?"1":"0"}));
+                    x.NativePaymentVerified?"1":"0",Uri.EscapeDataString(x.Letter??"")}));
             return String.Join("\n",rows);
         }
         public static SandboxPetitionStoryState Parse(string input)
         {
             var empty=new SandboxPetitionStoryState();
-            if(String.IsNullOrEmpty(input)||input.Length>4500)return empty;
+            if(String.IsNullOrEmpty(input)||input.Length>393216)return empty;
             var lines=input.Replace("\r","").Split('\n');
-            if(lines[0]!=Version||lines.Length>17)return empty;
+            bool legacy=lines[0]==LegacyVersion;
+            if((!legacy && lines[0]!=Version)||lines.Length>MaxStories+1)return empty;
             var result=new SandboxPetitionStoryState();
             foreach(var line in lines.Skip(1))
             {
                 var f=line.Split('|');
                 int start,resolved,follow,relation;
-                if(f.Length!=8 || !ValidId(f[0]) ||
+                if(f.Length!=(legacy?8:9) || !ValidId(f[0]) ||
                     !ValidKind(f[1]) ||
                     (f[2]!="Pending"&&f[2]!="Supported"&&
-                     f[2]!="Declined") ||
+                     f[2]!="Declined"&&f[2]!="Expired"&&f[2]!="Unavailable"&&f[2]!="Unconfirmed") ||
                     !Int32.TryParse(f[3],NumberStyles.Integer,
                         CultureInfo.InvariantCulture,out start) ||
                     !Int32.TryParse(f[4],NumberStyles.Integer,
@@ -122,13 +149,22 @@ namespace CalradiaUnified
                         CultureInfo.InvariantCulture,out relation) ||
                     (f[7]!="0"&&f[7]!="1") ||
                     start<0||resolved< -1||follow< -1 ||
-                    Math.Abs(relation)>100 || result.For(f[0])!=null ||
+                    relation< -100 || relation>100 || result.For(f[0])!=null ||
                     (f[2]=="Pending" && resolved!=-1) ||
                     (f[2]!="Pending" && resolved<start) ||
+                    ((f[2]=="Expired" || f[2]=="Unavailable" || f[2]=="Unconfirmed") &&
+                        (follow>=0 || relation!=0 || f[7]!="0")) ||
                     (follow>=0 && (resolved<0 ||
                         follow<resolved+FollowUpDays)))return empty;
+                string letter="";
+                if(!legacy)
+                {
+                    try{letter=Uri.UnescapeDataString(f[8]);}
+                    catch{return empty;}
+                    if(letter.Length>480)return empty;
+                }
                 result.Stories.Add(new Story{
-                    HeroId=f[0],Kind=f[1],Outcome=f[2],
+                    HeroId=f[0],Kind=f[1],Outcome=f[2],Letter=letter,
                     StartedDay=start,ResolvedDay=resolved,
                     FollowUpDay=follow,ObservedRelationChange=relation,
                     NativePaymentVerified=f[7]=="1"});

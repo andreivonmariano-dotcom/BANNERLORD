@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using CalradiaUnified;
@@ -23,6 +24,173 @@ internal static class Program
     }
     private static void Main()
     {
+        var recentMarriage=new SandboxLifeHistoryState();
+        Check("marriage news records observation not wedding date and requires reciprocal link",
+            !recentMarriage.ObserveMarriage("parent","spouse",false,10) &&
+            recentMarriage.ObserveMarriage("parent","spouse",true,10) &&
+            recentMarriage.RecentNativeMarriageObservation("spouse","parent",10) &&
+            !recentMarriage.RecentNativeMarriageObservation("parent","other",10) &&
+            !recentMarriage.RecentNativeMarriageObservation("parent","spouse",17));
+        var restoredRecentMarriage=SandboxLifeHistoryState.Parse(recentMarriage.Serialize());
+        Check("marriage observation cannot be replayed and old undated receipts do not become news",
+            restoredRecentMarriage.RecentNativeMarriageObservation("parent","spouse",11) &&
+            !restoredRecentMarriage.ObserveMarriage("spouse","parent",true,11) &&
+            restoredRecentMarriage.ObserveMarriage("other","third",true) &&
+            !restoredRecentMarriage.RecentNativeMarriageObservation("other","third",11));
+        var nativeFamilyEvents=new SandboxLifeHistoryState();
+        Check("native family receipts require valid owner child and event",
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","parent","Birth",1) &&
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Wedding",1) &&
+            nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Birth",1) &&
+            !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Birth",2));
+        Check("native family event receipts remain owner scoped and expire",
+            nativeFamilyEvents.HasRecentNativeFamilyMilestone("parent","child","Birth",1) &&
+            !nativeFamilyEvents.HasRecentNativeFamilyMilestone("other","child","Birth",1) &&
+            !nativeFamilyEvents.HasRecentNativeFamilyMilestone("parent","child","Birth",8) &&
+            nativeFamilyEvents.RecordNativeFamilyMilestone("parent","child","Adulthood",100));
+        var nativeFamilyRoundTrip=SandboxLifeHistoryState.Parse(nativeFamilyEvents.Serialize());
+        Check("native family birth and adulthood persist independently",
+            nativeFamilyRoundTrip.HasRecentNativeFamilyMilestone("parent","child","Adulthood",100) &&
+            !nativeFamilyRoundTrip.HasRecentNativeFamilyMilestone("parent","child","Birth",100) &&
+            !nativeFamilyRoundTrip.RecordNativeFamilyMilestone("parent","child","Adulthood",101));
+        var familyTransitions=new SandboxLifeHistoryState();
+        Check("family maturity baseline is not a birth or adulthood event",
+            familyTransitions.ObserveFamilyState("parent","child","Age","Minor",10) &&
+            familyTransitions.RecentFamilyChange("parent","child","Age",10)=="" &&
+            !familyTransitions.ObserveFamilyState("parent","child","Age","Minor",11));
+        Check("family adulthood requires prior minor observation and stays owner scoped",
+            familyTransitions.ObserveFamilyState("parent","child","Age","Adult",20) &&
+            familyTransitions.RecentFamilyChange("parent","child","Age",20)=="Matured" &&
+            familyTransitions.RecentFamilyChange("successor","child","Age",20)=="" &&
+            !familyTransitions.ObserveFamilyState("parent","child","Age","Minor",21));
+        Check("family presence requires known states and distinguishes baseline and reunion",
+            !familyTransitions.ObserveFamilyState("parent","spouse","Presence","Unknown",10) &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Together",10) &&
+            familyTransitions.RecentFamilyChange("parent","spouse","Presence",10)=="" &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Apart",11) &&
+            familyTransitions.RecentFamilyChange("parent","spouse","Presence",11)=="Separated" &&
+            familyTransitions.ObserveFamilyState("parent","spouse","Presence","Together",15));
+        var familyRoundTrip=SandboxLifeHistoryState.Parse(familyTransitions.Serialize());
+        Check("family transition survives existing schema and expires without replay",
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",15)=="Reunited" &&
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",22)=="" &&
+            !familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Together",22) &&
+            !familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Apart",14));
+        var oldFamily=new SandboxLifeHistoryState();
+        Check("first observed adult is not a new adulthood event",
+            oldFamily.ObserveFamilyState("parent","adult","Age","Adult",25) &&
+            oldFamily.RecentFamilyChange("parent","adult","Age",25)=="");
+        for(int familyNoise=0;familyNoise<SandboxLifeHistoryState.MaxEvents;familyNoise++)
+            familyRoundTrip.Remember("Unrelated","other","","");
+        Check("evicted family sample starts a new baseline without invented reunion",
+            familyRoundTrip.ObserveFamilyState("parent","spouse","Presence","Together",30) &&
+            familyRoundTrip.RecentFamilyChange("parent","spouse","Presence",30)=="");
+        Check("distant letters require known adult trusted contact and a known place",
+            SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,10) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,false,true,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,true,true,true,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,false,90) &&
+            !SandboxAgencyDecisionPolicy.CanSendDistantLetter(true,true,false,true,true,9));
+        var voices=new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"};
+        var cultures=new[]{"empire","vlandia","sturgia","battania","aserai","khuzait"};
+        Check("letters retain request cost across distinct six voices and culture registers",
+            voices.Select(t=>SandboxPetitionVoicePolicy.Letter("HouseholdAid",t,"empire","Other",false,false,10)).Distinct().Count()==6 &&
+            cultures.Select(c=>SandboxPetitionVoicePolicy.Letter("HouseholdAid","Plain",c,"Other",false,false,10)).Distinct().Count()==6 &&
+            voices.All(t=>SandboxPetitionVoicePolicy.Letter("HouseholdAid",t,"empire","Other",false,false,10).Contains("150 denars")) &&
+            SandboxPetitionVoicePolicy.Letter("Audience","Warm","empire","Spouse",false,false,40).StartsWith("My dear companion") &&
+            SandboxPetitionVoicePolicy.Letter("Audience","Plain","empire","Other",true,true,10).StartsWith("To the sovereign"));
+        var newsAgenda=new SandboxCharacterAgendaState();
+        newsAgenda.Register("family_a","SupportHousehold","","Unverified","","empire","");
+        newsAgenda.Register("family_b","GainMilitaryTraining","","Unverified","","vlandia","");
+        string familyNews=SandboxPetitionVoicePolicy.OrdinaryLetter("SupportHousehold","Warm","empire","Spouse",40);
+        Check("ordinary news carries no demand and is globally and personally bounded",
+            familyNews.Length<=180 && !familyNews.Contains("denars") &&
+            !newsAgenda.RecordNews("family_a","player",15,5,familyNews) &&
+            newsAgenda.RecordNews("family_a","player",15,40,familyNews) &&
+            !newsAgenda.RecordNews("family_b","player",28,40,familyNews) &&
+            newsAgenda.RecordNews("family_b","player",29,40,familyNews) &&
+            !newsAgenda.CanWriteNews("family_a","player",74,40) &&
+            newsAgenda.CanWriteNews("family_a","player",75,40));
+        var savedNews=SandboxCharacterAgendaState.Parse(newsAgenda.Serialize());
+        Check("ordinary correspondence persists recipient, original words and native standing band",
+            savedNews.Get("family_a").NewsText==familyNews &&
+            savedNews.Get("family_a").NewsRecipient=="player" &&
+            savedNews.Get("family_a").NewsDay==15 && savedNews.Get("family_a").NewsStanding==1 &&
+            savedNews.Get("family_a").NewsGoal=="SupportHousehold" &&
+            SandboxCharacterAgendaState.Parse("CU_AGENDA_1\nP|old|SupportHousehold||||||0|1").Get("old").NewsDay==-1);
+        Check("unread letters require exact sender recipient and issue day",
+            savedNews.IsNewsUnread("family_a","player",15) &&
+            !savedNews.MarkNewsRead("family_a","successor",15) &&
+            !savedNews.MarkNewsRead("family_a","player",14) &&
+            savedNews.MarkNewsRead("family_a","player",15) &&
+            !savedNews.IsNewsUnread("family_a","player",15) &&
+            savedNews.IsNewsUnread("family_b","player",29));
+        var restoredReads=SandboxCharacterAgendaState.Parse(savedNews.Serialize());
+        restoredReads.RestoreNewsReads(savedNews.SerializeNewsReads());
+        Check("read receipt round trip preserves unrelated unread letters and new issue remains unread",
+            !restoredReads.IsNewsUnread("family_a","player",15) &&
+            restoredReads.IsNewsUnread("family_b","player",29) &&
+            restoredReads.RecordNews("family_a","player",75,40,familyNews) &&
+            restoredReads.IsNewsUnread("family_a","player",75) &&
+            !restoredReads.MarkNewsRead("family_a","player",15));
+        Check("ordinary relationship dialogue follows observed native score without inventing friend or enemy flags",
+            new[]{-40,-5,0,25,60}.Select(SandboxPetitionVoicePolicy.StandingReply).Distinct().Count()==5 &&
+            SandboxCharacterAgendaState.StandingBand(-30)==-2 &&
+            SandboxCharacterAgendaState.StandingBand(50)==2);
+        var writtenStory=new SandboxPetitionStoryState();
+        string originalLetter=SandboxPetitionVoicePolicy.Letter("Audience","Bold","vlandia","Other",false,true,30);
+        Check("letter snapshot round trips and old stories remain readable",
+            writtenStory.Begin("writer","Audience",1,originalLetter) &&
+            !writtenStory.CanBegin("writer","Audience",100) &&
+            SandboxPetitionStoryState.Parse(writtenStory.Serialize()).For("writer").Letter==originalLetter &&
+            SandboxPetitionStoryState.Parse("CU_PETITION_STORIES_1\nold|Recognition|Declined|1|2|-1|0|0").For("old").Letter=="");
+        Check("unconfirmed receipt closes without allowing another reward or followup",
+            writtenStory.CloseUnanswered("writer",2,"Unconfirmed") &&
+            !writtenStory.Resolve("writer",true,3,false,0) &&
+            !writtenStory.CanFollowUp("writer",50) &&
+            writtenStory.CanBegin("writer","Audience",71) &&
+            SandboxPetitionStoryState.Parse(writtenStory.Serialize()).For("writer").Outcome=="Unconfirmed");
+        var closedPetition=new SandboxPetitionStoryState();
+        Check("expired and unavailable petitions retain history without rewards or followups",
+            closedPetition.Begin("expired", "HouseholdAid", 5) &&
+            closedPetition.CloseUnanswered("expired",40,"Expired") &&
+            !closedPetition.Resolve("expired",true,41,true,2) &&
+            !closedPetition.CanFollowUp("expired",50) &&
+            closedPetition.Begin("gone","Recognition",10) &&
+            closedPetition.CloseUnanswered("gone",12,"Unavailable") &&
+            SandboxPetitionStoryState.Parse(closedPetition.Serialize()).For("gone").Outcome=="Unavailable");
+        var nobleAudience=new SandboxPetitionStoryState();
+        Check("noble audience is an actual conversation without payment or relationship reward",
+            SandboxAgencyDecisionPolicy.Choose("DefendClanStanding",true,true,10,0,70)=="Audience" &&
+            SandboxAgencyDecisionPolicy.Amount("Audience")==0 &&
+            SandboxAgencyDecisionPolicy.RelationDelta("Audience",true)==0 &&
+            SandboxAgencyDecisionPolicy.RelationDelta("Audience",false)==0 &&
+            nobleAudience.Begin("noble", "Audience", 1) &&
+            nobleAudience.Resolve("noble",true,2,false,0) &&
+            !nobleAudience.CanFollowUp("noble",20) &&
+            SandboxPetitionStoryState.Parse(nobleAudience.Serialize()).CanRecall("noble",20));
+        var affairs=new[]{
+            new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
+            new SandboxAffair{Id="petition:a",Category="Letters",Pending=true,Day=10},
+            new SandboxAffair{Id="story:b",Category="Letters",Pending=false,Day=8},
+            new SandboxAffair{Id="service:c",Category="Service",Pending=true,Day=11},
+            new SandboxAffair{Id="officer:d",Category="Household",Pending=false}};
+        Check("affairs index deduplicates pending matters and orders by day",
+            SandboxAffairsIndexPolicy.Select(affairs,"Pending").Select(a=>a.Id)
+                .SequenceEqual(new[]{"service:c","petition:a"}));
+        Check("affairs history and categories do not turn reference entries into obligations",
+            SandboxAffairsIndexPolicy.Select(affairs,"History").Single().Id=="story:b" &&
+            SandboxAffairsIndexPolicy.Select(affairs,"Household").Single().Id=="officer:d" &&
+            SandboxAffairsIndexPolicy.Select(affairs,"Letters").Length==2);
+        var inboxItems=affairs.Concat(new[]{new SandboxAffair{Id="news:e",Category="Letters",Unread=true,Day=20}});
+        Check("inbox contains only outstanding requests and unread correspondence",
+            SandboxAffairsIndexPolicy.Inbox(inboxItems).Select(x=>x.Id).SequenceEqual(new[]{"service:c","petition:a","news:e"}));
+        Check("archive retains old letters without duplicating unread messages or reference records",
+            SandboxAffairsIndexPolicy.Archive(inboxItems).Single().Id=="story:b");
+        Check("affairs pagination is bounded without dropping later records",
+            SandboxAffairsIndexPolicy.PageCount(0)==1 &&
+            SandboxAffairsIndexPolicy.PageCount(5)==1 &&
+            SandboxAffairsIndexPolicy.PageCount(64)==13);
         var fullBattleLedger=new SandboxBattleHistoryState();
         string longBattleId=new string('a',80);
         string woundedIds=String.Join(",",Enumerable.Range(0,4).Select(i=>new string('w',79)+i));
@@ -35,6 +203,329 @@ internal static class Program
         Check("full battle ledger survives its own serialization limit",
             allBattles && fullBattleLedger.Serialize().Length>16000 &&
             SandboxBattleHistoryState.Parse(fullBattleLedger.Serialize()).Entries.Count==SandboxBattleHistoryState.MaxEntries);
+        var nativeAssignmentMemory=new SandboxLifeHistoryState();
+        nativeAssignmentMemory.Remember("NativePartyDutyAssigned","founder","companion","role=Scout|day=1");
+        nativeAssignmentMemory.Remember("NativeGovernorAssigned","founder","spouse","seat=castle|day=2");
+        var restoredAssignmentMemory=SandboxLifeHistoryState.Parse(nativeAssignmentMemory.Serialize());
+        Check("confirmed party duty is a pair-specific memory after reload",
+            restoredAssignmentMemory.SharedConversationMemory("founder","companion")?.Kind=="NativePartyDutyAssigned");
+        Check("confirmed governor assignment is a pair-specific memory after reload",
+            restoredAssignmentMemory.SharedConversationMemory("founder","spouse")?.Kind=="NativeGovernorAssigned");
+        Check("successor cannot inherit predecessor appointment memory",
+            restoredAssignmentMemory.SharedConversationMemory("heir","spouse")==null);
+        var sharedTalk=new SandboxLifeHistoryState();
+        sharedTalk.Remember("FamilyVisit","spouse","player","day=4");
+        sharedTalk.Remember("FamilyGiftConfirmed","other","player","day=5");
+        Check("shared memory requires the exact pair",
+            sharedTalk.SharedConversationMemory("player","spouse").Kind=="FamilyVisit" &&
+            sharedTalk.SharedConversationMemory("successor","spouse")==null &&
+            sharedTalk.SharedConversationMemory("player","player")==null);
+        Check("discussion choice requires valid topic and day and is bounded per pair",
+            !sharedTalk.RecordConversationChoice("player","spouse","unknown",true,6) &&
+            !sharedTalk.RecordConversationChoice("player","spouse","Family",true,-1) &&
+            sharedTalk.RecordConversationChoice("player","spouse","Family",true,6) &&
+            !sharedTalk.RecordConversationChoice("player","spouse","Estate",false,6) &&
+            sharedTalk.RecordConversationChoice("player","other","Estate",false,6));
+        var restoredTalk=SandboxLifeHistoryState.Parse(sharedTalk.Serialize());
+        Check("actual discussion memory survives the existing save format",
+            restoredTalk.SharedConversationMemory("player","spouse").Detail=="day=6|topic=Family|stance=disagreed" &&
+            restoredTalk.SharedConversationMemory("player","other").Detail=="day=6|topic=Estate|stance=asked_advice" &&
+            !restoredTalk.RecordConversationChoice("player","spouse","Family",false,6));
+        Check("personal topic cooldown observes exact pair and seven-day bound",
+            restoredTalk.HasRecentConversationChoice("player","spouse","Family",12) &&
+            !restoredTalk.HasRecentConversationChoice("player","spouse","Family",13) &&
+            !restoredTalk.HasRecentConversationChoice("player","spouse","Family",5) &&
+            !restoredTalk.HasRecentConversationChoice("player","other","Family",12) &&
+            !restoredTalk.HasRecentConversationChoice("successor","spouse","Family",12));
+        Check("memory discussions do not overwrite the meaningful recalled event",
+            restoredTalk.RecordConversationChoice("player","spouse","Memory",false,14) &&
+            restoredTalk.HasRecentConversationChoice("player","spouse","Memory",14) &&
+            restoredTalk.SharedConversationMemory("player","spouse").Detail=="day=6|topic=Family|stance=disagreed");
+        Check("council preferences reflect distinct office goal and native standing",
+            SandboxPetitionVoicePolicy.GroupPreference("Marshal","","Plain",20)=="Security" &&
+            SandboxPetitionVoicePolicy.GroupPreference("Royal Minister","","Plain",20)=="Reserve" &&
+            SandboxPetitionVoicePolicy.GroupPreference("","SupportHousehold","Warm",20)=="Welfare" &&
+            SandboxPetitionVoicePolicy.GroupPreference("Marshal","","Bold",-20)=="Reserve");
+        Check("council arguments and cross-speaker response are bounded and distinct",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.Select(p=>SandboxPetitionVoicePolicy.GroupArgument(t,p)).Distinct().Count()==3) &&
+            SandboxPetitionVoicePolicy.GroupArgument("unknown","Security")=="" &&
+            SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",-20,true)!=
+                SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",30,true) &&
+            SandboxPetitionVoicePolicy.GroupResponse("Security","Security",30,true)!=
+                SandboxPetitionVoicePolicy.GroupResponse("Security","Welfare",30,true));
+        Check("council choice preserves dissent rather than forcing unanimous support",
+            SandboxPetitionVoicePolicy.GroupDecisionReply("Security","Security","Bold")!=
+                SandboxPetitionVoicePolicy.GroupDecisionReply("Welfare","Security","Bold") &&
+            SandboxPetitionVoicePolicy.GroupDecisionReply("Security","unknown","Bold")=="");
+        var courtTalk=new SandboxLifeHistoryState();
+        Check("council choice records only a valid pair and one declaration per day",
+            !courtTalk.RecordGroupDiscussion("player","player","Family","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","unknown","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Defense","unknown",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Defense","Security",-1) &&
+            courtTalk.RecordGroupDiscussion("player","marshal","Defense","Security",1) &&
+            !courtTalk.RecordGroupDiscussion("player","marshal","Family","Welfare",1) &&
+            courtTalk.RecordGroupDiscussion("player","minister","Defense","Security",1));
+        var savedCourtTalk=SandboxLifeHistoryState.Parse(courtTalk.Serialize());
+        Check("council declaration survives save with no inherited or absent participant memory",
+            savedCourtTalk.LatestGroupDiscussion("player","marshal").Detail=="day=1|topic=Defense|priority=Security" &&
+            savedCourtTalk.LatestGroupDiscussion("player","minister").Detail=="day=1|topic=Defense|priority=Security" &&
+            savedCourtTalk.LatestGroupDiscussion("successor","marshal")==null &&
+            savedCourtTalk.LatestGroupDiscussion("player","absent")==null &&
+            !savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",1) &&
+            savedCourtTalk.RecordGroupDiscussion("player","marshal","Defense","Reserve",2));
+        var repairTalk=new SandboxLifeHistoryState();
+        Check("relationship intention records valid actual pair and bounded daily choice",
+            !repairTalk.RecordRelationshipIntention("player","player","Care",1) &&
+            !repairTalk.RecordRelationshipIntention("player","spouse","Betrayal",1) &&
+            repairTalk.RecordRelationshipIntention("player","spouse","Repair",1) &&
+            !repairTalk.RecordRelationshipIntention("player","spouse","Care",1) &&
+            repairTalk.RecordRelationshipIntention("player","spouse","Care",2));
+        var savedRepair=SandboxLifeHistoryState.Parse(repairTalk.Serialize());
+        Check("relationship intentions persist but do not belong to a successor or stranger",
+            savedRepair.LatestRelationshipIntention("player","spouse").Detail=="day=2|intention=Care" &&
+            savedRepair.LatestRelationshipIntention("successor","spouse")==null &&
+            savedRepair.LatestRelationshipIntention("player","other")==null);
+        var peersSocial=new SandboxPeerSocialState();
+        Check("peer observations reject self invalid data and same day repeats",
+            !peersSocial.Observe("a","a",1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","b",-1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","b",1,101,"CommonInterest") &&
+            !peersSocial.Observe("a","b",1,10,"Alliance") &&
+            peersSocial.Observe("b","a",1,10,"CommonInterest") &&
+            !peersSocial.Observe("a","c",1,10,"CommonInterest"));
+        Check("peer sampling is symmetric and has seven day pair interval",
+            peersSocial.For("b","a")==peersSocial.For("a","b") &&
+            !peersSocial.Observe("a","b",7,10,"CommonInterest") &&
+            peersSocial.Observe("a","b",8,-25,"DifferentPriorities") &&
+            peersSocial.For("a","b").Meetings==2 &&
+            SandboxPeerSocialState.Describe(-25,"DifferentPriorities")=="Strained relations");
+        var restoredPeers=SandboxPeerSocialState.Parse(peersSocial.Serialize());
+        Check("peer observation persists native standing and modeled interests independently",
+            restoredPeers.For("a","b").NativeRelation==-25 &&
+            restoredPeers.For("a","b").Interest=="DifferentPriorities" &&
+            restoredPeers.For("a","b").FirstDay==1 &&
+            restoredPeers.For("a","b").LastDay==8 &&
+            restoredPeers.For("a","c")==null &&
+            !restoredPeers.CanObserve("a","b",14) && restoredPeers.CanObserve("a","b",15));
+        Check("peer state rejects corrupted history and preserves empty old save",
+            SandboxPeerSocialState.Parse("").Pairs.Count==0 &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|1|0|2|CommonInterest").Pairs.Count==0 &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\nb|a|1|1|0|1|CommonInterest").Pairs.Count==0);
+        var manyPeers=new SandboxPeerSocialState();
+        for(int i=0;i<SandboxPeerSocialState.MaxPairs;i++)
+            manyPeers.Observe("a","p"+i,i,0,"CommonInterest");
+        Check("peer history is bounded and no new pair can overrun capacity",
+            manyPeers.Pairs.Count==SandboxPeerSocialState.MaxPairs &&
+            !manyPeers.Observe("a","overflow",100,0,"CommonInterest") &&
+            SandboxPeerSocialState.Parse(manyPeers.Serialize()).Pairs.Count==SandboxPeerSocialState.MaxPairs);
+        Check("three substantive arguments per council topic and priority",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.All(p=>
+                    Enumerable.Range(0,3).Select(i=>SandboxPetitionVoicePolicy.GroupNuance(t,p,"Plain",i)).Distinct().Count()==3)));
+        Check("stable variation rotates across adjacent days without random UI state",
+            Enumerable.Range(10,3).Select(d=>SandboxPetitionVoicePolicy.DialogueVariant("speaker","Defense",d,3)).Distinct().Count()==3 &&
+            SandboxPetitionVoicePolicy.DialogueVariant("speaker","Defense",10,0)==0);
+        Check("current family needs and urgent defense alter topic-specific priorities",
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Family","Marshal","","Warm",20,false,true)=="Welfare" &&
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Defense","","SupportHousehold","Bold",20,true,true)=="Security" &&
+            SandboxPetitionVoicePolicy.GroupTopicPreference("Livelihood","","SupportHousehold","Prudent",20,false,true)=="Reserve");
+        Check("practical council follow-ups differ by subject and priority",
+            new[]{"Family","Defense","Livelihood","Relations"}.All(t=>
+                new[]{"Security","Welfare","Reserve"}.Select(p=>SandboxPetitionVoicePolicy.GroupChallenge(t,p,"Plain",true)).Distinct().Count()==3));
+        Check("peer trends reflect observed native change and retain legacy row support",
+            SandboxPeerSocialState.Trend(restoredPeers.For("a","b"))=="Native standing has worsened since tracking began" &&
+            SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|8|10|2|CommonInterest").For("a","b").KnownSamples==1 &&
+            SandboxPeerSocialState.Trend(SandboxPeerSocialState.Parse("CU_PEER_SOCIAL_1\na|b|1|8|10|2|CommonInterest").For("a","b"))=="");
+        var gathering=new SandboxGatheringPlan();
+        Check("gathering invites only bounded distinct people and supports refusal",
+            !gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","a"},new[]{"a"}) &&
+            !gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","b"},new[]{"c"}) &&
+            !SandboxGatheringPlan.AcceptInvitation(-20,"Guarded","Fellowship") &&
+            SandboxGatheringPlan.AcceptInvitation(20,"Warm","Fellowship") &&
+            gathering.Schedule("player","cu_people_lineage","seat","FamilyGathering",10,new[]{"a","b","c"},new[]{"a","b"}));
+        var restoredGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        Check("scheduled gathering requires exact owner seat and due window",
+            restoredGathering.Status=="Pending" && restoredGathering.Due==12 &&
+            !restoredGathering.IsDue("heir","cu_people_lineage","seat",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","elsewhere",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","seat",11) &&
+            restoredGathering.IsDue("player","cu_people_lineage","seat",12) &&
+            !restoredGathering.IsDue("player","cu_people_lineage","seat",16));
+        Check("gathering completion needs actual accepted attendees and retains attendance",
+            !restoredGathering.Finish("player",12,new[]{"a"}) &&
+            !restoredGathering.Finish("player",12,new[]{"a","c"}) &&
+            restoredGathering.Finish("player",12,new[]{"a","b"}) &&
+            SandboxGatheringPlan.Parse(restoredGathering.Serialize()).Attended.SequenceEqual(new[]{"a","b"}) &&
+            !restoredGathering.CanPlan(18) && restoredGathering.CanPlan(19));
+        var missedGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        missedGathering.Expire(16);
+        Check("missed gathering expires and does not imply attendance",
+            missedGathering.Status=="Expired" && missedGathering.Attended.Length==0 &&
+            SandboxGatheringPlan.Parse(missedGathering.Serialize()).Status=="Expired" &&
+            SandboxGatheringPlan.Parse("").Status=="");
+        var cancelledGathering=SandboxGatheringPlan.Parse(gathering.Serialize());
+        Check("only the owner can cancel the pending gathering",
+            !cancelledGathering.Cancel("heir",11) && cancelledGathering.Cancel("player",11) &&
+            SandboxGatheringPlan.Parse(cancelledGathering.Serialize()).Status=="Cancelled");
+        var occasionMemory=new SandboxLifeHistoryState();
+        Check("gathering memories preserve the actual occasion and exact participant identities",
+            !occasionMemory.RecordGroupDiscussion("player","guest","Family","Welfare",1,"Invented") &&
+            occasionMemory.RecordGroupDiscussion("player","guest","Family","Welfare",1,"Remembrance") &&
+            SandboxLifeHistoryState.Parse(occasionMemory.Serialize()).LatestGroupDiscussion("player","guest").Detail==
+                "day=1|topic=Family|priority=Welfare|occasion=Remembrance" &&
+            occasionMemory.LatestGroupDiscussion("player","absent")==null);
+        var variety=new SandboxDialogueVarietyState();
+        variety.Initialize("campaign_a");
+        int firstVariant=variety.Variant("player","guest","Greeting",3);
+        Check("dialogue selection is pure and does not consume the sequence when rendered",
+            variety.Variant("player","guest","Greeting",3)==firstVariant &&
+            variety.Entries.Count==0 && variety.Exposure("player","guest","Greeting")==0);
+        var sequence=new List<int>();
+        for(int i=0;i<3;i++)
+        {
+            sequence.Add(variety.Variant("player","guest","Greeting",3));
+            variety.Advance("player","guest","Greeting",1);
+        }
+        Check("three consecutive openings for the same pair do not repeat variants",
+            sequence.Distinct().Count()==3 && variety.Variant("player","guest","Greeting",3)==firstVariant);
+        Check("exposures distinguish exact player speaker and topic",
+            variety.Exposure("player","guest","Greeting")==3 &&
+            variety.Exposure("heir","guest","Greeting")==0 &&
+            variety.Exposure("player","other","Greeting")==0 &&
+            variety.Exposure("player","guest","Family")==0 &&
+            !variety.Advance("player","guest","Unknown",1) &&
+            variety.Advance("player","guest","Group:Remembrance",1) &&
+            variety.Exposure("player","guest","Group:Remembrance")==1 &&
+            variety.Exposure("player","guest","Group:Family")==0);
+        var savedVariety=SandboxDialogueVarietyState.Parse(variety.Serialize());
+        savedVariety.Initialize("another_seed");
+        Check("campaign seed and exposure sequence survive save reload",
+            savedVariety.Seed=="campaign_a" &&
+            savedVariety.Exposure("player","guest","Greeting")==3 &&
+            savedVariety.Variant("player","guest","Greeting",3)==firstVariant &&
+            !savedVariety.Advance("player","guest","Greeting",0));
+        var secondVariety=new SandboxDialogueVarietyState();
+        secondVariety.Initialize("campaign_b");
+        Check("different campaign seeds affect selection without promising collision-free variants",
+            Enumerable.Range(0,12).Any(i=>
+                new SandboxDialogueVarietyState { Seed="campaign_a" }.Variant("player","p"+i,"Family",3)!=
+                secondVariety.Variant("player","p"+i,"Family",3)));
+        var boundedVariety=new SandboxDialogueVarietyState();
+        boundedVariety.Initialize("campaign");
+        for(int i=0;i<SandboxDialogueVarietyState.Capacity+1;i++)
+            boundedVariety.Advance("player","p"+i,"Opinions",1);
+        Check("dialogue exposure cache has a fixed eviction bound and legacy empty initialization",
+            boundedVariety.Entries.Count==SandboxDialogueVarietyState.Capacity &&
+            boundedVariety.Exposure("player","p0","Opinions")==0 &&
+            SandboxDialogueVarietyState.Parse(boundedVariety.Serialize()).Entries.Count==SandboxDialogueVarietyState.Capacity &&
+            SandboxDialogueVarietyState.Parse("").Seed=="");
+        Check("invalid or duplicate exposure rows fail closed",
+            SandboxDialogueVarietyState.Parse("CU_DIALOGUE_VARIETY_1|seed\nplayer|npc|Greeting|1|1\nplayer|npc|Greeting|2|2").Entries.Count==0 &&
+            SandboxDialogueVarietyState.Parse("CU_DIALOGUE_VARIETY_1|seed\nplayer|npc|Greeting|-1|1").Seed=="");
+        Check("authored private opinion variants differ and retain individual voice",
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}.All(tone=>
+                SandboxPetitionVoicePolicy.PersonalReflection("Opinions",tone,1)!=
+                SandboxPetitionVoicePolicy.PersonalReflection("Opinions",tone,2)) &&
+            SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",30,1)!=
+            SandboxPetitionVoicePolicy.PersonalOpening("Spouse","Warm",-30,1));
+        var director=new SandboxStoryDirectorState();
+        Check("story director detail modes bound optional simulation cadence",
+            SandboxStoryDirectorState.PeerInterval(0)==0 &&
+            SandboxStoryDirectorState.PeerInterval(1)==3 &&
+            SandboxStoryDirectorState.PeerInterval(2)==1 &&
+            director.SetDetail(0) && !director.CanOpen(1) &&
+            !director.SetDetail(3) && director.SetDetail(1));
+        string evidence=SandboxStoryDirectorState.Fingerprint("player|npc","ChangedAmbition","prior=x|current=y");
+        Check("director accepts only supported distinct observed narrative participants",
+            !director.Open("player","player","ChangedAmbition",evidence,1) &&
+            !director.Open("player","npc","InventedConspiracy",evidence,1) &&
+            director.Open("player","npc","ChangedAmbition",evidence,1) &&
+            !director.Open("player","other","ChangedClan","different",1));
+        Check("story choices require exact identities and set delayed follow-up",
+            !director.Answer("heir","npc","Listen",2) &&
+            !director.Answer("player","other","Listen",2) &&
+            director.Answer("player","npc","Caution",2) &&
+            !director.CanDiscuss("player","npc",8) &&
+            director.CanDiscuss("player","npc",9));
+        var savedDirector=SandboxStoryDirectorState.Parse(director.Serialize());
+        Check("story director persists chosen response and exact follow-up deadline",
+            savedDirector.Response=="Caution" && savedDirector.Stage=="FollowUp" &&
+            savedDirector.Due==9 && savedDirector.Finish("player","npc",9) &&
+            !savedDirector.CanOpen(22) && savedDirector.CanOpen(23) &&
+            !savedDirector.Open("player","npc","ChangedAmbition",evidence,23));
+        var ignoredDirector=new SandboxStoryDirectorState();
+        ignoredDirector.Open("player","npc","ChangedClan","observed",1);
+        ignoredDirector.Expire(32);
+        Check("expired story does not become a completed native event",
+            ignoredDirector.Stage=="Expired" &&
+            SandboxStoryDirectorState.Parse(ignoredDirector.Serialize()).Stage=="Expired" &&
+            SandboxStoryDirectorState.Parse("").Stage=="");
+        Check("motives are context-sensitive and differ by goal and voice",
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Bold",20,false)!=
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Prudent",20,false) &&
+            SandboxStoryDirectorState.MotiveWords("GainMilitaryTraining","Bold",20,false)!=
+            SandboxStoryDirectorState.MotiveWords("SupportHousehold","Bold",20,false) &&
+            SandboxStoryDirectorState.MotiveWords("GainMilitaryTraining","Dutiful",-20,true).Contains("trust"));
+        var longDirector=new SandboxStoryDirectorState();
+        var longVariety=new SandboxDialogueVarietyState();
+        longVariety.Initialize("generational");
+        bool directorStable=true;
+        for(int day=1;day<=36500;day++)
+        {
+            string owner="generation"+(day/7300);
+            string actor="npc"+(day%64);
+            longDirector.Expire(day);
+            if(longDirector.CanOpen(day))
+                longDirector.Open(owner,actor,"ChangedAmbition","event"+day,day);
+            if(longDirector.CanDiscuss(owner,longDirector.Actor,day))
+            {
+                if(longDirector.Stage=="Open")longDirector.Answer(owner,longDirector.Actor,"Listen",day);
+                else longDirector.Finish(owner,longDirector.Actor,day);
+            }
+            longVariety.Advance(owner,actor,"Greeting",day);
+            if(day%30==0)
+            {
+                string aPacked=longDirector.Serialize(),vPacked=longVariety.Serialize();
+                longDirector=SandboxStoryDirectorState.Parse(aPacked);
+                longVariety=SandboxDialogueVarietyState.Parse(vPacked);
+                directorStable &= longDirector.Serialize()==aPacked && longVariety.Serialize()==vPacked;
+            }
+            directorStable &= longDirector.Receipts.Count<=SandboxStoryDirectorState.MaxReceipts &&
+                longVariety.Entries.Count<=SandboxDialogueVarietyState.Capacity;
+        }
+        Check("36500 modeled days keep director and dialogue ledger bounded across generational reloads",
+            directorStable && longDirector.Receipts.Count==SandboxStoryDirectorState.MaxReceipts &&
+            longVariety.Entries.Count==SandboxDialogueVarietyState.Capacity);
+        var peerThread=new SandboxStoryDirectorState();
+        Check("peer story requires exact distinct third participant and supported kind",
+            !peerThread.Open("player","a","PeerTension","evidence",1) &&
+            !peerThread.Open("player","a","PeerTension","evidence",1,"player") &&
+            !peerThread.Open("player","a","ChangedClan","evidence",1,"b") &&
+            peerThread.Open("player","a","PeerTension","evidence",1,"b"));
+        var restoredPeerThread=SandboxStoryDirectorState.Parse(peerThread.Serialize());
+        Check("peer thread retains third participant and prevents successor or peer impersonation",
+            restoredPeerThread.Peer=="b" && restoredPeerThread.Actor=="a" &&
+            !restoredPeerThread.CanDiscuss("heir","a",1) &&
+            !restoredPeerThread.CanDiscuss("player","b",1) &&
+            restoredPeerThread.Answer("player","a","Listen",1) &&
+            SandboxStoryDirectorState.Parse(restoredPeerThread.Serialize()).Peer=="b");
+        string legacyDirector=String.Join("|",director.Serialize().Split('|').Take(12));
+        Check("previous twelve-field director records remain readable",
+            SandboxStoryDirectorState.Parse(legacyDirector).Actor==director.Actor &&
+            SandboxStoryDirectorState.Parse(legacyDirector).Peer=="");
+        var reputationPeers=new SandboxPeerSocialState();
+        reputationPeers.Observe("a","b",1,35,"CommonInterest");
+        reputationPeers.Observe("a","c",2,40,"CommonInterest");
+        reputationPeers.Observe("a","b",8,35,"CommonInterest");
+        reputationPeers.Observe("a","c",9,40,"CommonInterest");
+        Check("reputation requires two recently and repeatedly sampled peers",
+            reputationPeers.Reputation("a",9)=="Good standing among sampled acquaintances" &&
+            reputationPeers.Reputation("b",9)=="" && reputationPeers.Reputation("heir",9)=="" &&
+            reputationPeers.Reputation("a",100)=="" &&
+            SandboxPeerSocialState.Parse(reputationPeers.Serialize()).Reputation("a",9)==
+                reputationPeers.Reputation("a",9));
         var fullLifeLedger=new SandboxLifeHistoryState();
         string longBiography=new string('\u754c',240);
         for(int i=0;i<SandboxLifeHistoryState.MaxPeople;i++)
@@ -69,6 +560,24 @@ internal static class Program
                 "PlayerParty","","","patron",1,1,"hero_a","hero_b") &&
             !reconciledBattles.Record(reconciledKey,1,"Field","Victory","PlayerParty","","") &&
             SandboxBattleHistoryState.Parse(reconciledBattles.Serialize()).Entries[0].PartyDead==1);
+        var mercenaryWitness=new SandboxBattleHistoryState();
+        Check("mercenary battle witness requires native player and employer together",
+            !mercenaryWitness.RecordObserved(SandboxBattleHistoryState.EventKey("incomplete"),5,
+                "Field","Victory","PlayerParty","","","",-1,-1,"","","hero_a","") &&
+            mercenaryWitness.RecordObserved(SandboxBattleHistoryState.EventKey("mercenary"),6,
+                "Field","Victory","PlayerParty","","","",-1,-1,"","","hero_a","kingdom_a") &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_a",5)==6 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_b","kingdom_a",5)==-1 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_b",5)==-1 &&
+            mercenaryWitness.LatestMercenaryVictory("hero_a","kingdom_a",6)==-1 &&
+            SandboxBattleHistoryState.Parse(mercenaryWitness.Serialize())
+                .LatestMercenaryVictory("hero_a","kingdom_a",5)==6);
+        Check("legacy version two battle never proves mercenary employer",
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_2\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||||-1|-1||").Entries.Count==1 &&
+            SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_2\n"+reconciledKey+
+                "|1|Field|Victory|PlayerParty||||-1|-1||")
+                .LatestMercenaryVictory("hero_a","kingdom_a",0)==-1);
         Check("legacy battle schema preserves unknown casualty counts",
             SandboxBattleHistoryState.Parse("CU_BATTLE_HISTORY_1\n"+reconciledKey+
                 "|1|Field|Victory|PlayerParty||").Entries[0].PartyDead==-1);
@@ -357,6 +866,29 @@ internal static class Program
                 "MapSafePassages",0,2,0,25)=="Warm" &&
             SandboxPetitionVoicePolicy.Style(
                 "MapSafePassages",0,0,0,25)=="Direct");
+        Check("native personality voice uses five traits and current trust",
+            SandboxPetitionVoicePolicy.Tone(2,0,0,0,0,25)=="Dutiful" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,2,0,0,25)=="Prudent" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,0,2,0,25)=="Bold" &&
+            SandboxPetitionVoicePolicy.Tone(0,0,0,0,2,25)=="Warm" &&
+            SandboxPetitionVoicePolicy.Tone(2,2,2,2,2,-20)=="Guarded");
+        Check("each personality has distinct greetings and opinions",
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}
+                .Select(SandboxPetitionVoicePolicy.Greeting).Distinct().Count()==6 &&
+            new[]{"Guarded","Prudent","Bold","Dutiful","Warm","Plain"}
+                .Select(t=>SandboxPetitionVoicePolicy.Opinion(t,"Family")).Distinct().Count()==6);
+        Check("failed native transfer never produces a successful thank you",
+            SandboxPetitionVoicePolicy.DecisionReply("Warm",true,false)!=
+                SandboxPetitionVoicePolicy.DecisionReply("Warm",true,true));
+        var revisedGrowth=new SandboxFamilyGrowthState();
+        revisedGrowth.Register("child_a","Martial",10);
+        Check("co-parent education revision preserves completed milestone and cannot affect adult or unknown child",
+            revisedGrowth.ReviseUpbringing("child_a","Scholarly",10) &&
+            !revisedGrowth.ReviseUpbringing("child_a","Kind",18) &&
+            !revisedGrowth.ReviseUpbringing("unknown","Kind",10) &&
+            revisedGrowth.LastMilestone("child_a")==10 &&
+            SandboxFamilyGrowthState.Parse(revisedGrowth.Serialize()).UpbringingFor("child_a")=="Scholarly" &&
+            SandboxFamilyGrowthState.Parse(revisedGrowth.Serialize()).LastMilestone("child_a")==10);
         Check("knight rank requires service, lord favor and renown",
             SandboxKnightStandingPolicy.Standing(9,200f,6,3)==
                 "Newly sworn knight" &&
@@ -428,6 +960,37 @@ internal static class Program
             petitionStory.RecordFollowUp("actor_1",10)==
                 "face_to_face_story_followup_recorded" &&
             !petitionStory.CanFollowUp("actor_1",11));
+        Check("resolved petition is recallable before and after its one-time follow-up",
+            petitionStory.CanRecall("actor_1",9) &&
+            !petitionStory.CanRecall("actor_1",2) &&
+            petitionStory.CanRecall("actor_1",10) &&
+            SandboxPetitionStoryState.Parse(petitionStory.Serialize()).CanRecall("actor_1",30));
+        var fullStoryLedger=new SandboxPetitionStoryState();
+        bool storiesRecorded=true;
+        for(int i=0;i<SandboxPetitionStoryState.MaxStories;i++)
+            storiesRecorded &= fullStoryLedger.Begin("person_"+i,"Recognition",1);
+        Check("petition history accommodates all 64 tracked people and survives reload",
+            storiesRecorded && !fullStoryLedger.Begin("overflow","Recognition",1) &&
+            SandboxPetitionStoryState.Parse(fullStoryLedger.Serialize()).Stories.Count==
+                SandboxPetitionStoryState.MaxStories);
+        var dueStory=new SandboxPetitionStoryState();
+        Check("due follow-up takes precedence over ordinary recollection",
+            dueStory.Begin("actor_due","Recognition",1) &&
+            dueStory.Resolve("actor_due",false,2,false,0) &&
+            dueStory.CanFollowUp("actor_due",9) &&
+            !dueStory.CanRecall("actor_due",9) &&
+            dueStory.RecordFollowUp("actor_due",9)=="face_to_face_story_followup_recorded" &&
+            dueStory.CanRecall("actor_due",9));
+        var growingHouse=new SandboxLifeHistoryState();
+        Check("new household observations never replace original biographies",
+            growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="original",Origin="Creator"}) &&
+            !growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="original",Origin="Observed"}) &&
+            growingHouse.RecordNew(new SandboxLifeHistoryState.Person{Id="new_child",Origin="Observed"}) &&
+            SandboxLifeHistoryState.Parse(growingHouse.Serialize()).People.Any(p=>p.Id=="original" && p.Origin=="Creator") &&
+            SandboxLifeHistoryState.Parse(growingHouse.Serialize()).People.Any(p=>p.Id=="new_child"));
+        Check("grown offspring no longer retain a minor upbringing ambition",
+            SandboxGeneratedCharacterGoalPolicy.Goal("","RecordedOffspring","",false,false)=="CompleteUpbringing" &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("","AdultOffspring","",false,false)=="EstablishLivelihood");
         Check("petition story preserves outcome and one-shot follow-up",
             SandboxPetitionStoryState.Parse(
                 petitionStory.Serialize()).Serialize()==
@@ -437,6 +1000,40 @@ internal static class Program
             !SandboxPetitionStoryState.Parse(
                 petitionStory.Serialize()+"|forged")
                 .Stories.Any());
+        Check("later petition renews story but does not reset request quotas",
+            !petitionStory.Begin("actor_1","Recognition",70) &&
+            petitionStory.Begin("actor_1","Recognition",71) &&
+            petitionStory.For("actor_1").Outcome=="Pending" &&
+            !petitionStory.CanFollowUp("actor_1",78));
+        Check("malformed petition relation minimum cannot throw",
+            !SandboxPetitionStoryState.Parse(
+                "CU_PETITION_STORIES_1\nactor_1|Recognition|Declined|1|2|-1|-2147483648|0").Stories.Any());
+        var chargeTest=new SandboxCareerChargeState();
+        Check("all seven careers have a concrete charge",
+            SandboxStartingLifePolicy.SevenPaths.All(role=>
+                SandboxCareerChargeState.Label(SandboxCareerChargeState.DefaultKind(role)).Length>0));
+        Check("charge requires actual verified role and prevents a second active plan",
+            !chargeTest.Start("hero_a","Lord","StrengthenGarrison","castle_a",10,50,false) &&
+            chargeTest.Start("hero_a","Lord","StrengthenGarrison","castle_a",10,50,true) &&
+            !chargeTest.Start("hero_a","Lord","VisitEstate","castle_b",11,-1,true));
+        Check("estate defense requires later actual garrison change at same holding and by same hero",
+            !chargeTest.CanComplete("hero_a","Lord",10,"castle_a",55,true) &&
+            !chargeTest.CanComplete("hero_a","Lord",11,"castle_b",55,true) &&
+            !chargeTest.CanComplete("hero_b","Lord",11,"castle_a",55,true) &&
+            !chargeTest.CanComplete("hero_a","Lord",11,"castle_a",54,true) &&
+            chargeTest.CanComplete("hero_a","Lord",11,"castle_a",55,true));
+        var restoredCharge=SandboxCareerChargeState.Parse(chargeTest.Serialize());
+        Check("active charge survives reload, completion cannot be replayed",
+            restoredCharge.CanComplete("hero_a","Lord",11,"castle_a",55,true) &&
+            restoredCharge.Close("hero_a",11) &&
+            !restoredCharge.CanComplete("hero_a","Lord",12,"castle_a",60,true) &&
+            !restoredCharge.Start("hero_a","Lord","VisitEstate","castle_b",11,-1,true) &&
+            restoredCharge.Start("hero_a","Lord","VisitEstate","castle_b",12,-1,true));
+        Check("successor does not inherit previous character's charge",
+            !restoredCharge.CanComplete("hero_b","Lord",13,"castle_b",1,true) &&
+            restoredCharge.Start("hero_b","King","Council","castle_b",13,-1,true) &&
+            !restoredCharge.CanComplete("hero_b","King",14,"castle_b",13,true) &&
+            restoredCharge.CanComplete("hero_b","King",14,"castle_b",14,true));
         var declinedStory=new SandboxPetitionStoryState();
         Check("declined petition gives a later conversation, not money",
             declinedStory.Begin("actor_2","Recognition",5) &&
@@ -521,6 +1118,23 @@ internal static class Program
                 "companion_already_has_duty" &&
             offices.Assign("Captain","companion_2")==
                 "personal_duty_recorded");
+        Check("officers cannot silently replace or dismiss another holder",
+            offices.Assign("Steward","companion_3")=="office_occupied" &&
+            !offices.Release("Steward","companion_3") &&
+            offices.AssignedId("Steward")=="companion_1");
+        var releases=new SandboxHouseholdDutyState();
+        releases.Assign("Envoy","companion_4");
+        Check("explicit dismissal frees office and cannot replay old reports",
+            releases.Release("Envoy","companion_4") &&
+            !releases.Release("Envoy","companion_4") &&
+            releases.Assign("Envoy","companion_5")=="personal_duty_recorded" &&
+            !releases.CanReport("Envoy","companion_4",20) &&
+            SandboxHouseholdDutyState.Parse(releases.Serialize()).AssignedId("Envoy")=="companion_5");
+        Check("household appointments respect trust and native traits",
+            !SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(-1,2,0) &&
+            !SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(5,0,2) &&
+            SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(5,1,2) &&
+            SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(20,0,2));
         Check("household report is one native day per office",
             offices.Report("Steward","companion_1",13)==
                 "native_duty_report_recorded" &&
@@ -682,6 +1296,65 @@ internal static class Program
             SandboxOriginProfile.Roles.Where(p=>
                 !SandboxStartingLifePolicy.SevenPaths.Contains(p)).All(p=>
                     SandboxStartingLifePolicy.CareerContract(p)==""));
+        foreach(string guidedPath in SandboxStartingLifePolicy.SevenPaths)
+        {
+            var singlePathDraft=new SandboxOriginProfile{
+                Role=guidedPath,KnightOrigin="YoungerSibling",SoldierEntryRank="Captain",
+                NobleBirthPosition="YoungerBrotherOfLord",NobleElderHeroId="elder",
+                SpouseEnabled=true,ChildCount=1,SiblingCount=1,StartingKingdomId="vlandia"};
+            Check("single guided career clears retired subtype "+guidedPath,
+                singlePathDraft.NormalizeGuidedCareerDraft() &&
+                singlePathDraft.Role==guidedPath &&
+                singlePathDraft.KnightOrigin=="SwornHouse" &&
+                singlePathDraft.SoldierEntryRank==(guidedPath=="Soldier"?"Native":"Recruit") &&
+                singlePathDraft.NobleBirthPosition=="Independent" &&
+                singlePathDraft.NobleElderHeroId=="" &&
+                singlePathDraft.SpouseEnabled && singlePathDraft.ChildCount==1 &&
+                singlePathDraft.SiblingCount==1 &&
+                singlePathDraft.StartingKingdomId=="vlandia" &&
+                SandboxOriginProfile.Parse(singlePathDraft.Serialize()).KnightOrigin=="SwornHouse");
+        }
+        var retiredCareerDraft=new SandboxOriginProfile{
+            Role="NobleCadet",NobleBirthPosition="YoungerBrotherOfLord",
+            NobleElderHeroId="elder",KnightOrigin="YoungerSibling",SoldierEntryRank="Captain"};
+        Check("legacy role parser survives but is rejected by new guided career normalization",
+            !retiredCareerDraft.NormalizeGuidedCareerDraft() &&
+            retiredCareerDraft.Role=="NobleCadet" &&
+            retiredCareerDraft.NobleBirthPosition=="YoungerBrotherOfLord" &&
+            retiredCareerDraft.KnightOrigin=="YoungerSibling" &&
+            SandboxOriginProfile.Parse(retiredCareerDraft.Serialize()).Role=="NobleCadet");
+        Check("legacy knight and soldier profile values still parse unchanged",
+            SandboxOriginProfile.Parse("Role=Knight\nKnightOrigin=YoungerSibling\n").KnightOrigin=="YoungerSibling" &&
+            SandboxOriginProfile.Parse("Role=Soldier\nSoldierEntryRank=Captain\n").SoldierEntryRank=="Captain");
+        var fixedKnightDraft=new SandboxOriginProfile{
+            Role="Knight",KnightGuidedStart=true,KnightOrigin="YoungerSibling",
+            StartingKingdomId="vlandia",ServicePatronHeroId="patron",
+            RetinueMode="Native",StartingFiefMode="Specific",
+            StartingFiefId="castle",AllowStartingFiefTransfer=true,
+            RoleAffiliationsEnabled=true,Gold=10000,Influence=100,Troops=50,
+            FamilyHomeMode="SpecificOwned",FamilyHomeId="castle",
+            SpouseEnabled=true,ChildCount=1};
+        Check("single Knight contract clears impossible advanced grants without losing family or patron",
+            fixedKnightDraft.NormalizeGuidedCareerDraft() &&
+            fixedKnightDraft.KnightOrigin=="SwornHouse" &&
+            fixedKnightDraft.RetinueMode=="RoleBased" &&
+            fixedKnightDraft.StartingFiefMode=="Native" &&
+            fixedKnightDraft.StartingFiefId=="" &&
+            !fixedKnightDraft.AllowStartingFiefTransfer &&
+            !fixedKnightDraft.RoleAffiliationsEnabled &&
+            fixedKnightDraft.Gold==-1 && fixedKnightDraft.Influence==-1 &&
+            fixedKnightDraft.Troops==0 &&
+            fixedKnightDraft.FamilyHomeMode=="None" &&
+            fixedKnightDraft.FamilyHomeId=="" &&
+            fixedKnightDraft.SpouseEnabled && fixedKnightDraft.ChildCount==1 &&
+            fixedKnightDraft.ServicePatronHeroId=="patron");
+        Check("Knight fixed controls are hidden but character and family customization remains editable",
+            new[]{"RetinueMode","StartingFiefMode","StartingFiefId","AllowStartingFiefTransfer",
+                "Gold","Influence","Troops","FamilyHomeMode","FamilyHomeId"}
+                .All(fixedKnightDraft.IsFixedGuidedKnightField) &&
+            new[]{"SpouseEnabled","ChildCount","SiblingCount","StartingKingdomId","ServicePatronHeroId"}
+                .All(x=>!fixedKnightDraft.IsFixedGuidedKnightField(x)) &&
+            !new SandboxOriginProfile{Role="Lord",LordGuidedStart=true}.IsFixedGuidedKnightField("RetinueMode"));
         Check("political office independent of recorded career",
             SandboxStartingLifePolicy.PoliticalStanding(true,true,true,false)=="Native ruler" &&
             SandboxStartingLifePolicy.PoliticalStanding(false,true,true,false)=="Ruling-clan member" &&
@@ -753,6 +1426,103 @@ internal static class Program
                 royalCouncil.Serialize()+"|extra").IsRecorded &&
             royalCouncil.Convene(99,true,true,true,true,true)==
                 "council_day_invalid");
+        var restoredCourt=SandboxRoyalCouncilState.Parse(royalCouncil.Serialize());
+        Check("court cannot rebind across kingdoms or without native proof or on same meeting day",
+            restoredCourt.Rebind("battania","newseat","heir","marshal","minister","guard",102,true)=="native_court_rebind_refused" &&
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",102,false)=="native_court_rebind_refused" &&
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",101,true)=="native_court_rebind_refused" &&
+            restoredCourt.KingId=="king");
+        Check("court continuity preserves prior meetings and saves exact successor and replacement identities",
+            restoredCourt.Rebind("vlandia","newseat","heir","marshal","minister","guard",102,true)=="native_court_rebound" &&
+            restoredCourt.KingId=="heir" && restoredCourt.SeatId=="newseat" &&
+            restoredCourt.Meetings==2 && restoredCourt.LastMeetingDay==101 &&
+            SandboxRoyalCouncilState.Parse(restoredCourt.Serialize()).KingsguardHeroId=="guard" &&
+            restoredCourt.Convene(102,true,true,true,true,true)=="real_royal_hero_council_convened" &&
+            restoredCourt.Meetings==3);
+        var replacementOffices=new SandboxRetinueOfficeState();
+        Check("office replacement preserves revoked identity and refuses occupied or unknown roles",
+            replacementOffices.Register("old","Marshal") &&
+            replacementOffices.Register("minister","RoyalMinister") &&
+            !replacementOffices.Replace("old","minister","Marshal") &&
+            !replacementOffices.Replace("old","new","Kingsguard") &&
+            replacementOffices.Replace("old","new","Marshal") &&
+            replacementOffices.HasIdentity("old") && replacementOffices.OfficeFor("old")=="" &&
+            SandboxRetinueOfficeState.Parse(replacementOffices.Serialize()).OfficeFor("new")=="Marshal" &&
+            !replacementOffices.Replace("new","old","Marshal"));
+        var revokedCommission=new SandboxRetinueOfficeState();
+        Check("a revoked royal commission can be filled only when the office is vacant",
+            revokedCommission.Register("departed","Marshal") &&
+            revokedCommission.Revoke("departed") &&
+            revokedCommission.FillRevokedVacancy("departed","replacement","Marshal") &&
+            !revokedCommission.FillRevokedVacancy("departed","duplicate","Marshal") &&
+            !revokedCommission.FillRevokedVacancy("unknown","other","Kingsguard") &&
+            revokedCommission.OfficeFor("replacement")=="Marshal");
+        var returnedOfficer=new SandboxRetinueOfficeState();
+        returnedOfficer.Register("former","Marshal");
+        returnedOfficer.Revoke("former");
+        returnedOfficer=SandboxRetinueOfficeState.Parse(returnedOfficer.Serialize());
+        Check("revocation persists and a returned former officer cannot regain its commission",
+            returnedOfficer.IsRevoked("former") && !returnedOfficer.IsRevoked("unknown") &&
+            !returnedOfficer.CanRegisterNew("former","Marshal") &&
+            returnedOfficer.CanRegisterNew("successor","Marshal") &&
+            returnedOfficer.FillRevokedVacancy("former","successor","Marshal") &&
+            !returnedOfficer.IsRevoked("successor"));
+        var saturatedOffices=new SandboxRetinueOfficeState();
+        for(int officeIndex=0;officeIndex<32;officeIndex++)
+        {
+            string id="capacity_"+officeIndex;
+            saturatedOffices.Register(id,"Marshal");
+            saturatedOffices.Revoke(id);
+        }
+        Check("full retinue registry refuses a new appointment without losing revoked identities",
+            !saturatedOffices.CanRegisterNew("extra","Marshal") &&
+            !saturatedOffices.FillRevokedVacancy("capacity_0","extra","Marshal") &&
+            SandboxRetinueOfficeState.Parse(saturatedOffices.Serialize()).IsRevoked("capacity_0") &&
+            saturatedOffices.IsRevoked("capacity_31") && saturatedOffices.ActiveIds().Length==0);
+        var branchCandidates=new Dictionary<string,SandboxLordSuccessionPolicy.Candidate[]>
+        {
+            {"deadchild",new[]{new SandboxLordSuccessionPolicy.Candidate("grandchild",22,false,0,true,true,true)}},
+            {"sibling",new[]{new SandboxLordSuccessionPolicy.Candidate("nephew",19,false,0,true,true,true)}},
+            {"grandchild",new[]{new SandboxLordSuccessionPolicy.Candidate("founder",75,false,0,true,true,true)}}
+        };
+        var dynastyBranches=SandboxLordSuccessionPolicy.Branches("EldestChild","founder",
+            new[]{new SandboxLordSuccessionPolicy.Candidate("deadchild",40,false,0,false,true,true),
+                new SandboxLordSuccessionPolicy.Candidate("unverified",30,false,1,true,true,false)},
+            new[]{new SandboxLordSuccessionPolicy.Candidate("sibling",50,true,0,true,false,true)},
+            id=>branchCandidates.ContainsKey(id)?branchCandidates[id]:new SandboxLordSuccessionPolicy.Candidate[0]);
+        Check("dynastic branch review crosses deceased and married-out links, excludes cycles and unverified kin",
+            dynastyBranches.Length==2 && dynastyBranches[0].Person.Id=="grandchild" &&
+            dynastyBranches[0].Depth==2 && dynastyBranches[0].Branch=="Descendant" &&
+            dynastyBranches[1].Person.Id=="nephew" && dynastyBranches[1].Branch=="Collateral");
+        var manyBranches=SandboxLordSuccessionPolicy.Branches("EldestChild","founder",
+            Enumerable.Range(0,300).Select(i=>new SandboxLordSuccessionPolicy.Candidate("child"+i,20,false,i,true,true,true)),
+            null,id=>new SandboxLordSuccessionPolicy.Candidate[0]);
+        Check("dynastic branch traversal respects fixed candidate and depth budgets",
+            manyBranches.Length==SandboxLordSuccessionPolicy.BranchBudget &&
+            SandboxLordSuccessionPolicy.Branches("Invalid","founder",null,null,id=>null).Length==0);
+        Check("noble officer duties differ by actual office and native governor verification",
+            new[]{"Master of Arms","Knight","Marshal","Kingsguard","Royal Minister"}
+                .Select(x=>SandboxRetinueOfficePolicy.DutyFocus(x,true,false,true,0)).Distinct().Count()==5 &&
+            SandboxRetinueOfficePolicy.DutyFocus("Royal Minister",true,false,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Royal Minister",true,false,false,0) &&
+            SandboxRetinueOfficePolicy.DutyFocus("Marshal",true,true,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Marshal",true,false,true,0) &&
+            SandboxRetinueOfficePolicy.DutyFocus("Master of Arms",true,false,true,0)!=
+                SandboxRetinueOfficePolicy.DutyFocus("Master of Arms",true,false,true,1));
+        Check("current noble authority follows native political station rather than original start",
+            SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,false,false,false,false,false) &&
+            SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,true,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,false,false,false,false,false,false));
+        Check("current noble authority rejects lost leadership, independent clans and mercenary contracts",
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,false,true,false,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,false,false,false,false,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(false,true,true,false,true,false,false,false,false));
+        Check("current noble authority rejects rebel, bandit and eliminated political contexts",
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,true,false,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,true,false,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,true,false) &&
+            !SandboxNativeNobleHandoffPolicy.HasCurrentAuthority(true,true,true,true,false,false,false,false,true));
         Check("native handoff accepts established King and Lord even before Hero.IsLord",
             SandboxNativeNobleHandoffPolicy.HasVerifiedNativeNobleAuthority(
                 "vassal",true,true,true,false,false,false,false,3) &&
@@ -823,6 +1593,97 @@ internal static class Program
             SandboxKingStartPolicy.ValidateNativeMinistry(
                 true,true,false,true)==
                     "native_royal_governor_not_verified");
+        // Reproduce the reported World Setup failure with old child and spouse ages.
+        foreach(var role in new[]{"Lord","King","Knight"})
+        {
+            var oldHouse=new SandboxOriginProfile{Role=role,SpouseEnabled=true,SpouseAge=48,
+                PlayerAge=48,ChildCount=1,AutoHouseNamesPrepared=true,RealFamilyEnabled=true};
+            oldHouse.Children[0].Age=24;
+            Check("confirmed family is not overwritten by World placeholder repair "+role,
+                !oldHouse.PrepareUnconfirmedWorldFamily() && oldHouse.Children[0].Age==24 && oldHouse.SpouseAge==48);
+            oldHouse.ResetForNewCampaign();
+            oldHouse.Role=role;oldHouse.StartingKingdomId="vlandia";
+            oldHouse.KingGuidedStart=role=="King";oldHouse.LordGuidedStart=role=="Lord";
+            oldHouse.KnightGuidedStart=role=="Knight";
+            oldHouse.RetinueMode="RoleBased";oldHouse.SpouseEnabled=true;oldHouse.ChildCount=1;
+            oldHouse.SpouseBackground=role=="Knight"?"Commoner":"NobleRandom";
+            oldHouse.SpouseBirthClanId="";
+            oldHouse.FamilyHomeMode=role=="Knight"?"None":"OwnedFief";
+            Check("fresh noble/knight World placeholder passes strict age validation "+role,
+                oldHouse.PrepareUnconfirmedWorldFamily() && oldHouse.IsValid(30,out _) &&
+                oldHouse.Children[0].Age==0 && oldHouse.SpouseAge==30 &&
+                !oldHouse.AutoHouseNamesPrepared && !oldHouse.RealFamilyEnabled);
+            oldHouse.PlayerAge=18;
+            Check("unconfirmed family does not block minimum native founder age "+role,
+                oldHouse.IsValid(18,out _));
+            oldHouse.PlayerAge=30;
+            SandboxAutoHousePlan.Prepare(oldHouse,"vlandia",30,false,"Founder");
+            Check("House editor replaces placeholders using actual founder age "+role,
+                oldHouse.AutoHouseNamesPrepared && oldHouse.Children[0].Age>0 &&
+                oldHouse.IsValid(30,out _));
+            oldHouse.Children[0].Age=25;
+            Check("confirmed editor still rejects impossible child ages "+role,
+                !oldHouse.IsValid(30,out _) && !oldHouse.PrepareUnconfirmedWorldFamily() &&
+                oldHouse.Children[0].Age==25);
+        }
+        // Pure profile matrix, not a native character-creation run.
+        // Test every age, both founder sexes, and all seven guided paths.
+        int matrixCases=0;
+        foreach(string role in SandboxStartingLifePolicy.SevenPaths)
+        for(int founder=18;founder<=80;founder++)
+        foreach(bool female in new[]{false,true})
+        {
+            var plan=new SandboxOriginProfile{Role=role,StartingScenario="twofactionwar",
+                StartingKingdomId="aserai",ScenarioFaction1="empire",ScenarioFaction2="vlandia",
+                SpouseAge=65,SpouseBirthClanId="old_clan",SpouseBackground="NobleChosen",
+                SpouseFaceSeed="old_face",SpouseEquipmentKit="Royal",PlayerAge=70,
+                SpouseEnabled=true,ChildCount=2,SiblingCount=1,AutoHouseNamesPrepared=true,
+                RealFamilyEnabled=true,Gold=90000,Troops=99,AllowStartingFiefTransfer=true};
+            plan.Children[0].Age=45;plan.Children[0].FaceSeed="old_child_face";
+            plan.Siblings[0].Age=60;plan.Siblings[0].EquipmentKit="Royal";
+            plan.ResetForNewCampaign();
+            Check("fresh creator clears hidden settings "+role+" "+founder+" "+female,
+                plan.StartingScenario=="none" && plan.StartingKingdomId=="" &&
+                plan.ScenarioFaction1=="" && plan.ScenarioFaction2=="" &&
+                plan.SpouseBirthClanId=="" && plan.SpouseBackground=="Commoner" &&
+                plan.SpouseFaceSeed=="" && plan.SpouseEquipmentKit=="Vanilla" &&
+                plan.Children[0].Age==0 && plan.Children[0].FaceSeed=="" &&
+                plan.Siblings[0].Age==25 && plan.Siblings[0].EquipmentKit=="Vanilla" &&
+                plan.Gold==-1 && plan.Troops==0 && !plan.AllowStartingFiefTransfer &&
+                !plan.RealFamilyEnabled && !plan.AutoHouseNamesPrepared);
+            plan.WandererNoHouseStart=role=="Wanderer";plan.OutlawGuidedStart=role=="Outlaw";
+            plan.MercenaryGuidedStart=role=="Mercenary";plan.SoldierGuidedStart=role=="Soldier";
+            plan.KnightGuidedStart=role=="Knight";plan.LordGuidedStart=role=="Lord";plan.KingGuidedStart=role=="King";
+            bool requiredFamily=plan.KnightGuidedStart || plan.LordGuidedStart || plan.KingGuidedStart;
+            plan.StartingKingdomId=role=="Wanderer" || role=="Outlaw"?"":"vlandia";
+            plan.RetinueMode=role=="Wanderer" || role=="Mercenary" || role=="Soldier"?"FamilyOnly":"RoleBased";
+            plan.FamilyHomeMode=role=="Lord" || role=="King" || role=="Wanderer"?"OwnedFief":"None";
+            plan.SpouseEnabled=requiredFamily;plan.ChildCount=requiredFamily?1:0;
+            plan.SpouseBackground=role=="Lord" || role=="King"?"NobleRandom":"Commoner";
+            plan.PlayerAge=founder;
+            Check("World profile age matrix "+role+" "+founder+" "+female,
+                plan.PrepareUnconfirmedWorldFamily() && plan.IsValid(founder,out _));
+            if(role!="Wanderer")
+            {
+                SandboxAutoHousePlan.Prepare(plan,"vlandia",founder,female,"Founder");
+                plan.RealFamilyEnabled=plan.SpouseEnabled;
+            }
+            var roundTrip=SandboxOriginProfile.Parse(plan.Serialize());
+            Check("House profile age matrix and serialized round trip "+role+" "+founder+" "+female,
+                plan.IsValid(founder,out _) && roundTrip.IsValid(founder,out _) &&
+                (!requiredFamily || (plan.ChildCount==1 && plan.SpouseEnabled &&
+                    SandboxFamilyAgePolicy.CanChooseChildAge(plan.Children[0].Age,founder,plan.SpouseAge))));
+            if(requiredFamily)
+            {
+                plan.Children[0].Age=SandboxFamilyAgePolicy.ChildAgeMaximum(founder,plan.SpouseAge)+1;
+                string precise;
+                Check("one-year invalid child boundary "+role+" "+founder+" "+female,
+                    !plan.IsValid(founder,out precise) && precise.StartsWith("Child.1.Age:") &&
+                    plan.ValidationContext(founder).Contains("|child_max="));
+            }
+            matrixCases++;
+        }
+        Check("seven career age matrix contains all 882 founder profiles",matrixCases==882);
         var guidedKing=new SandboxOriginProfile();
         guidedKing.Role="King";
         guidedKing.KingGuidedStart=true;
@@ -1308,6 +2169,10 @@ internal static class Program
             SandboxKnightEscortState.Parse(knightEscort.Serialize())
                 .CompletedEscorts==1);
         knightEscort.Begin("lord_4_16",43);
+        Check("renewed active escort survives save and reload with prior completion",
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).IsActive &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).CompletedEscorts==1 &&
+            SandboxKnightEscortState.Parse(knightEscort.Serialize()).LastFinishedDay==13);
         Check("Knight escort presence requires consecutive map days",
             knightEscort.Observe(44,true)==
                 "native_field_escort_day_verified" &&
@@ -1321,6 +2186,19 @@ internal static class Program
             knightEscort.Observe(49,true)==
                 "verified_native_party_escort_completed" &&
             knightEscort.CompletedEscorts==2);
+        var changedPatronOrders=new SandboxKnightServiceOrderState{
+            PatronId="old_lord",Status="Reported",CompletedOrders=3,LastReportedDay=20,
+            RecommendationDay=21,RoyalHearingDay=22};
+        Check("new patron cannot inherit completed orders or former ruler hearing",
+            changedPatronOrders.Begin("new_lord","Scout",30)=="native_patron_order_accepted" &&
+            changedPatronOrders.CompletedOrders==0 &&
+            !changedPatronOrders.CanHearKing(31) &&
+            !changedPatronOrders.CanPresentRecommendation("new_lord",31));
+        var changedPatronEscort=new SandboxKnightEscortState{
+            PatronId="old_lord",Status="Completed",CompletedEscorts=2,LastFinishedDay=10};
+        Check("new patron escort starts without former patron's credit",
+            changedPatronEscort.Begin("new_lord",40)=="native_patron_field_escort_accepted" &&
+            changedPatronEscort.CompletedEscorts==0 && changedPatronEscort.LastFinishedDay==-1);
         Check("Knight native verified muster accrues once",
             knightOath.Observe(33,true,true,true,true)==
                 "muster_window_open" &&
@@ -1414,6 +2292,73 @@ internal static class Program
                 "vassal","",false,false,0) &&
             !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "king","",false,false,0));
+        Check("contextual family titles follow observed rule and gender, not noble claims",
+            SandboxFamilyPolicy.FamilyTitle(true,true,true,false,false,true,false)=="Queen" &&
+            SandboxFamilyPolicy.FamilyTitle(false,false,true,true,false,true,false)=="Royal Consort" &&
+            SandboxFamilyPolicy.FamilyTitle(true,false,true,false,true,true,false)=="Princess" &&
+            SandboxFamilyPolicy.FamilyTitle(false,false,false,false,true,true,false)=="Lord" &&
+            SandboxFamilyPolicy.FamilyTitle(true,false,false,false,false,true,false)=="Lady");
+        Check("retainer profession is not a native noble promotion",
+            SandboxRetinueOfficePolicy.Profession("Man-at-Arms")=="Man-at-Arms" &&
+            SandboxRetinueOfficePolicy.Profession("Knight")=="Knight" &&
+            SandboxRetinueOfficePolicy.Profession("Royal Minister")=="Minister" &&
+            SandboxRetinueOfficePolicy.NobleCommission("Lord","Knight") &&
+            !SandboxRetinueOfficePolicy.NobleCommission("Lord","ManAtArms") &&
+            !SandboxRetinueOfficePolicy.NobleCommission("King","RoyalMinister"));
+        var guardDuty=new SandboxHouseholdDutyState();
+        guardDuty.Assign("Captain","captain");
+        guardDuty.Assign("ManAtArms","guard");
+        guardDuty.Report("ManAtArms","guard",5);
+        var restoredGuard=SandboxHouseholdDutyState.Parse(guardDuty.Serialize());
+        Check("man-at-arms appointment persists separately from captain and rejects duplicate office",
+            restoredGuard.AssignedId("ManAtArms")=="guard" && restoredGuard.AssignedId("Captain")=="captain" &&
+            restoredGuard.ReportCount("ManAtArms")==1 && restoredGuard.Assign("Envoy","guard")=="companion_already_has_duty");
+        var service=new SandboxRetainerServiceState();
+        service.Begin("lord","guard",0);
+        for(int d=1;d<=5;d++)service.Record("lord","guard",d);
+        Check("retainer progression needs distinct report days, owner and real skill gates",
+            !service.Record("lord","guard",5) && !service.Record("other","guard",6) &&
+            !service.CanPromote("lord","guard","Sergeant",29,80,60,60,true) &&
+            !service.CanPromote("lord","guard","Sergeant",30,79,60,60,true) &&
+            service.CanPromote("lord","guard","Sergeant",30,80,60,60,true) &&
+            !service.CanPromote("lord","guard","Squire",14,60,60,0,false));
+        Check("mounted retainer path persists and cannot skip rank",
+            service.Promote("lord","guard","Squire",14,60,60,0,true) &&
+            !service.CanPromote("lord","guard","Knight",74,120,100,0,true));
+        for(int d=15;d<25;d++)service.Record("lord","guard",d);
+        service=SandboxRetainerServiceState.Parse(service.Serialize());
+        Check("knighthood and marshal eligibility require earned service and leadership",
+            service.Promote("lord","guard","Knight",74,120,100,0,true) &&
+            !service.MarshalReady("lord","guard",164,150,120));
+        for(int d=75;d<90;d++)service.Record("lord","guard",d);
+        Check("marshal qualification and pay attempt are independent and persisted",
+            service.MarshalReady("lord","guard",164,150,120) &&
+            !service.MarshalReady("lord","guard",164,149,120) &&
+            service.RecordPayAttempt("lord","guard",164) &&
+            !SandboxRetainerServiceState.Parse(service.Serialize()).PayDue("lord","guard",164) &&
+            SandboxRetainerServiceState.Wage("Knight")==200);
+        Check("military retainer profiles distinguish rank and cultural infantry equipment",
+            SandboxRetinueOfficePolicy.StartingLevel("ManAtArms")<SandboxRetinueOfficePolicy.StartingLevel("Sergeant") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("ManAtArms",0)<SandboxRetinueOfficePolicy.TrainingTarget("Sergeant",0) &&
+            SandboxRetinueCulturePolicy.GearStyle("vlandia","ManAtArms")=="Infantry" &&
+            SandboxRetinueCulturePolicy.GearStyle("sturgia","ManAtArms")=="Axeguard" &&
+            SandboxRetinueCulturePolicy.GearStyle("battania","ManAtArms")=="Longbow");
+        Check("noble family occupations are separate from landless careers",
+            new[]{"King","Lord","Knight","HouseholdKnight","NobleCadet"}.All(SandboxFamilyPolicy.NobleFamilyOccupation) &&
+            new[]{"Wanderer","Outlaw","Mercenary","Soldier",""}.All(x=>!SandboxFamilyPolicy.NobleFamilyOccupation(x)));
+        Check("native family proof rejects one-sided marriage or missing reciprocal links",
+            SandboxStartContract.FamilyIdentityGate(true,false,true,true,true,true)=="native_marriage_not_reciprocal" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,false,true,true)=="native_child_identity_or_parentage_missing" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,true,true,false)=="native_sibling_identity_or_parentage_missing" &&
+            SandboxStartContract.FamilyIdentityGate(false,false,false,false,false,false)=="" &&
+            SandboxStartContract.FamilyIdentityGate(true,true,true,true,true,true)=="");
+        var previewPlan=new SandboxOriginProfile{Role="King",SpouseEnabled=true,ChildCount=1,SpouseAge=32};
+        previewPlan.Children[0].Age=10;
+        string originalPreviewPlan=previewPlan.Serialize();
+        string proposedPreview=previewPlan.HouseholdPreview(30);
+        Check("household preview is read only and identifies spouse child age and native authority",
+            previewPlan.Serialize()==originalPreviewPlan && proposedPreview.Contains("age 10") &&
+            proposedPreview.Contains("maximum age: 14") && proposedPreview.Contains("Proposed household only"));
         Check("native status validation accepts empty default only if landless",
             SandboxStartContract.Validate("default","",
                 "vlandia","",false,0,false,false,0,0).Length==0 &&
@@ -1661,7 +2606,14 @@ internal static class Program
                 "mercenary" &&
             SandboxSoldierEnlistmentPolicy
                 .RequestedNativeRank("Sergeant")=="sergeant");
-        Check("guided Soldier has exactly three starting grade choices",
+        Check("new guided Soldier accepts verified provider grade without changing legacy requests",
+            SandboxSoldierEnlistmentPolicy.IsEntryRank("Native") &&
+            SandboxSoldierEnlistmentPolicy.NativeRankIds.All(rank=>
+                SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Native",rank)=="") &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Native","fake")=="native_rank_not_recognized" &&
+            SandboxSoldierEnlistmentPolicy.ValidateRequestedEntryRank("Captain","veteran")=="actual_rank_differs_from_selected_entry" &&
+            SandboxOriginProfile.Parse("Role=Soldier\nSoldierEntryRank=Native\n").SoldierEntryRank=="Native");
+        Check("legacy explicit Soldier has exactly three starting grade choices",
             SandboxSoldierEnlistmentPolicy.EntryChoices.SequenceEqual(
                 new[]{"Recruit","Sergeant","Captain"}) &&
             SandboxSoldierEnlistmentPolicy.NativeRankIds.Length==7 &&
@@ -2931,6 +3883,48 @@ internal static class Program
             !SandboxAgencyDecisionState.Parse(
                 "CU_AGENCY_1\n50|brother|HouseholdAid|15"+
                 "\nR|brother|15|1").HasPending);
+        Check("noble audience specialization is role gated and grants no automatic native reward",
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Marshal",false,false)=="DefenseAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"RoyalMinister",false,false)=="EstateAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"",true,false)=="FamilyAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Audience",true,"",false,true)=="DiplomaticAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",false,"Marshal",false,false)=="Recognition" &&
+            SandboxAgencyDecisionPolicy.Specialize("HouseholdAid",true,"Marshal",false,false)=="HouseholdAid" &&
+            new[]{"DefenseAudience","EstateAudience","FamilyAudience","DiplomaticAudience"}.All(k=>
+                SandboxAgencyDecisionPolicy.IsAudience(k) && SandboxAgencyDecisionPolicy.Amount(k)==0 &&
+                SandboxAgencyDecisionPolicy.RelationDelta(k,true)==0));
+        Check("explicit noble negotiation terms require authority, exact relevant speaker and native resources",
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DiplomaticAudience","Goodwill",true,true,0,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DiplomaticAudience","Goodwill",false,true,0,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("EstateAudience","Stipend",true,true,199,false) &&
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("EstateAudience","Stipend",true,true,200,false) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,true,0,false) &&
+            SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,true,0,true) &&
+            !SandboxAgencyDecisionPolicy.NegotiatedTermAllowed("DefenseAudience","Garrison",true,false,0,true) &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Royal Minister",false,false)=="EstateAudience" &&
+            SandboxAgencyDecisionPolicy.Specialize("Recognition",true,"Master of Arms",false,false)=="DefenseAudience");
+        var pendingQueue=new SandboxAgencyDecisionState{Day=15};
+        pendingQueue.Enqueue("first","HouseholdAid");
+        pendingQueue.Day=20;
+        pendingQueue.Enqueue("second","Recognition");
+        pendingQueue.Enqueue("third","Audience");
+        var restoredQueue=SandboxAgencyDecisionState.Parse(pendingQueue.Serialize());
+        Check("multiple petitions persist, exact speaker selection and removal do not consume another request",
+            restoredQueue.PendingCount==3 && !restoredQueue.Enqueue("second","Audience") &&
+            restoredQueue.SelectPending("second") && restoredQueue.PendingKind=="Recognition" &&
+            restoredQueue.Dismiss("Declined")=="Declined" && restoredQueue.PendingCount==2 &&
+            restoredQueue.PendingFor("first").Kind=="HouseholdAid" && restoredQueue.PendingFor("third").Kind=="Audience");
+        restoredQueue.Day=49;restoredQueue.Tick();
+        Check("queued petitions expire independently and legacy single petition remains readable",
+            restoredQueue.PendingCount==1 && restoredQueue.PendingFor("first")==null &&
+            restoredQueue.PendingFor("third")!=null &&
+            SandboxAgencyDecisionState.Parse("CU_AGENCY_1\n15|legacy|HouseholdAid|15\nR|legacy|15|1").PendingCount==1);
+        var cappedRequests=new SandboxAgencyDecisionState{Day=15};
+        for(int q=0;q<SandboxAgencyDecisionState.MaxPending;q++)cappedRequests.Enqueue("queue_"+q,"Audience");
+        Check("bounded request queue refuses overflow without consuming quota",
+            !cappedRequests.HasRoom && !cappedRequests.Enqueue("overflow","Audience") &&
+            cappedRequests.For("overflow")==null &&
+            SandboxAgencyDecisionState.Parse(cappedRequests.Serialize()).PendingCount==SandboxAgencyDecisionState.MaxPending);
         var nearMaxNpcDay=new SandboxAgencyDecisionState{
             Day=Int32.MaxValue};
         Check("large campaign day cannot overflow first NPC cooldown",
@@ -3077,6 +4071,61 @@ internal static class Program
             SandboxRetinueOfficePolicy.PartyDuty("Navigator")=="Scout" &&
             SandboxRetinueOfficePolicy.PartyDuty("HouseholdSteward")=="Quartermaster" &&
             SandboxRetinueOfficePolicy.PartyDuty("Knight")=="None");
+        var officeRegistry=new SandboxRetinueOfficeState();
+        Check("office identity survives renaming and save roundtrip",
+            officeRegistry.Register("hero_mathieu","Knight") &&
+            !officeRegistry.Register("hero_mathieu","Marshal") &&
+            SandboxRetinueOfficeState.Parse(officeRegistry.Serialize()).OfficeFor("hero_mathieu")=="Knight");
+        Check("legacy titles parse explicitly without assigning plain names",
+            SandboxRetinueOfficePolicy.LegacyOffice("Mathieu (Knight)")=="Knight" &&
+            SandboxRetinueOfficePolicy.LegacyOffice("Livia (Royal Minister)")=="RoyalMinister" &&
+            SandboxRetinueOfficePolicy.Key("Master of Arms")=="MasterOfArms" &&
+            SandboxRetinueOfficePolicy.LegacyOffice("Roland (Master of Arms)")=="MasterOfArms" &&
+            SandboxRetinueOfficePolicy.LegacyOffice("Mathieu")=="");
+        Check("officer training keeps command and roguery specialties",
+            SandboxRetinueCulturePolicy.Training("vlandia","Marshal").Take(3).SequenceEqual(new[]{"Leadership","Tactics","Riding"}) &&
+            SandboxRetinueCulturePolicy.Training("empire","SecondInCommand").Contains("Roguery") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("Squire",0)<SandboxRetinueOfficePolicy.TrainingTarget("Knight",0));
+        Check("Wanderer companion support skills differ by specialty",
+            SandboxRetinueOfficePolicy.WandererSupportSkills("Scout").Contains("Riding") &&
+            SandboxRetinueOfficePolicy.WandererSupportSkills("Guard").Contains("Athletics") &&
+            SandboxRetinueOfficePolicy.WandererSupportSkills("Trader").Contains("Steward"));
+        Check("complete mounted bow kit preferred over missing ammunition",
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","Arrows","BodyArmor","OneHandedWeapon"})>
+            SandboxRetinueCulturePolicy.EquipmentScore("HorseArcher",new[]{"Horse","Bow","BodyArmor","OneHandedWeapon"}));
+        var randomRetinue=new Random(701);
+        var drawn=new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        bool uniqueDraw=true;
+        for(int i=0;i<18;i++)
+            uniqueDraw&=drawn.Add(SandboxCulturalNames.RandomUnused("vlandia",false,randomRetinue,drawn));
+        Check("generated name sampling is without replacement and fails closed when exhausted",
+            uniqueDraw && drawn.Count==18 && SandboxCulturalNames.RandomUnused("vlandia",false,randomRetinue,drawn)=="");
+        Check("fresh seeds create different plausible character profiles",
+            Enumerable.Range(0,100).Select(i=>SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))).Distinct().Count()>1 &&
+            Enumerable.Range(0,100).All(i=>SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))>=18 &&
+                SandboxRetinueOfficePolicy.RandomAge("Squire",new Random(i))<=21) &&
+            Enumerable.Range(0,100).Select(i=>SandboxRetinueOfficePolicy.RandomSkill("Knight",0,new Random(i))).Distinct().Count()>1);
+        var retiredOffice=new SandboxRetinueOfficeState();
+        Check("revoked office remains retired after reload and cannot be regained by name",
+            retiredOffice.Register("former","Knight") && retiredOffice.Revoke("former") &&
+            SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).HasIdentity("former") &&
+            SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).OfficeFor("former")=="" &&
+            !SandboxRetinueOfficeState.Parse(retiredOffice.Serialize()).Register("former","Knight"));
+        Check("progression separates apprentice and veteran with bounded focus and appropriate attributes",
+            SandboxRetinueOfficePolicy.StartingLevel("Squire")<SandboxRetinueOfficePolicy.StartingLevel("Marshal") &&
+            SandboxRetinueOfficePolicy.FocusTarget(0)==4 && SandboxRetinueOfficePolicy.FocusTarget(-1)==0 &&
+            SandboxRetinueOfficePolicy.AttributesForOffice("RoyalMinister")[0]=="Intelligence");
+        Check("generated companion age and training distinguish apprentice and veteran",
+            SandboxRetinueOfficePolicy.StartingAge("Squire")==19 &&
+            SandboxRetinueOfficePolicy.StartingAge("Marshal")>SandboxRetinueOfficePolicy.StartingAge("Knight") &&
+            SandboxRetinueOfficePolicy.TrainingTarget("Marshal",0)>SandboxRetinueOfficePolicy.TrainingTarget("Squire",0) &&
+            SandboxRetinueOfficePolicy.KitTier("Squire",false)<SandboxRetinueOfficePolicy.KitTier("Knight",false));
+        Check("civilian preferences and office character profiles differ",
+            SandboxRetinueOfficePolicy.KitTier("RoyalMinister",true)>SandboxRetinueOfficePolicy.KitTier("RoyalMinister",false) &&
+            SandboxRetinueOfficePolicy.OfficeBackground("Squire")!=SandboxRetinueOfficePolicy.OfficeBackground("Marshal") &&
+            SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Squire")!=SandboxRetinueCulturePolicy.PrimaryTrait("vlandia","Marshal") &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("empire","HouseholdOfficer","RoyalMinister",false,false)=="MaintainHousehold" &&
+            SandboxGeneratedCharacterGoalPolicy.Goal("empire","HouseholdOfficer","Kingsguard",false,false)=="KeepCompanyTogether");
         Check("retinue cultures have distinct native outfit goals",
             SandboxRetinueCulturePolicy.GearStyle("vlandia","Knight")=="Lancer" &&
             SandboxRetinueCulturePolicy.GearStyle("khuzait","Knight")=="HorseArcher" &&
@@ -4714,6 +5763,12 @@ internal static class Program
                 !settings.TrySetMenuValue("EnableEconomy", "TRUE",
                     userIni, out configError) && !settings.EnableEconomy &&
                 System.IO.File.ReadAllText(userIni)==heldBefore);
+            Check("retired setting cannot be edited through gameplay menu",
+                !settings.TrySetMenuValue("DepotCapacity","125",userIni,out configError) &&
+                !settings.TrySetMenuValue("EnableNpcAdvisory","false",userIni,out configError) &&
+                System.IO.File.ReadAllText(userIni)==heldBefore);
+            Check("only five current settings are editable",
+                SettingsCatalog.All.Count(x=>SettingsCatalog.IsRuntimeEditable(x.Key))==5);
             System.IO.File.AppendAllText(userIni,"EnableEconomy=true\n");
             var legacyOverride=Settings.LoadFromPaths(baseline,userIni);
             Check("legacy config stays readable but effective runtime blocks mutation",

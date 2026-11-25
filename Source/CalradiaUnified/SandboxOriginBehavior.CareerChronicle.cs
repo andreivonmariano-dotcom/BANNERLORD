@@ -38,6 +38,27 @@ namespace CalradiaUnified
             return true;
         }
 
+        // Observe only roles supported by actual authority. Never infer a new criminal or civilian calling.
+        private void ObserveLifetimeCareerAutomatically()
+        {
+            var player=Hero.MainHero;
+            if(player==null || !applied || !IsStandaloneSandbox())return;
+            try
+            {
+                string role=new[]{"Soldier","Knight","King","Lord","Mercenary"}.FirstOrDefault(CanRecordLifetimeRole);
+                if(role==null && player.StringId==startAuditOwner &&
+                    (startAuditRole=="Wanderer" || startAuditRole=="Outlaw") && CanRecordLifetimeRole(startAuditRole))
+                {
+                    // Do not re-label a former contract-holder as an outlaw or wanderer simply for traveling independently.
+                    if(!lifetimeCareers.For(player.StringId).Any(e=>e.Role!=startAuditRole))role=startAuditRole;
+                }
+                if(role==null)return;
+                int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+                if(lifetimeCareers.Record(player.StringId,role,day,true,true))
+                    DiagnosticJournal.Event("cu_lifetime_native_observation","hero="+player.StringId+"|role="+role+"|day="+day+"|no_new_title=true");
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_lifetime_observation_failed",error);}
+        }
         private void RecordLifetimeRole(string role)
         {
             var player=Hero.MainHero;
@@ -45,7 +66,7 @@ namespace CalradiaUnified
             int day=(int)Math.Floor(CampaignTime.Now.ToDays);
             bool recorded=lifetimeCareers.Record(player.StringId,role,day,true,true);
             ShowNativeDetail("Lifetime career",
-                (recorded?"Chosen career observation recorded.":
+                (recorded?"Career recorded.":
                     "No new receipt: same/earlier day or history limit.")+
                 "\n\n"+LifetimeCareerText(player));
         }
@@ -87,7 +108,7 @@ namespace CalradiaUnified
                         "Independent party of at least five confirmed. Review supplies and band security; criminal status not inferred.":"";
                 case "Mercenary":
                     return clan.Kingdom!=null && clan.IsUnderMercenaryService?
-                        "Native mercenary contract confirmed. Review company obligations and resources.":"";
+                        "Mercenary contract confirmed.":"";
                 case "Soldier":
                     var service=SandboxSaSBridge.Read();
                     return service.Available && service.Enlisted &&
@@ -106,11 +127,11 @@ namespace CalradiaUnified
                     return clan.Leader==player && clan.Kingdom!=null &&
                         clan.Kingdom.RulingClan!=clan && !clan.IsUnderMercenaryService &&
                         clan.Settlements!=null && clan.Settlements.Count>0?
-                        "Native non-ruling landed clan leadership confirmed. Review estate and household affairs.":"";
+                        "Vassalage confirmed.":"";
                 case "King":
                     return clan.Leader==player && clan.Kingdom!=null &&
                         clan.Kingdom.RulingClan==clan && !clan.IsUnderMercenaryService?
-                        "Native rulership confirmed. Review royal obligations and council records.":"";
+                        "Crown confirmed.":"";
                 default: return "";
             }
         }
@@ -137,20 +158,8 @@ namespace CalradiaUnified
 
         private void ReviewRecurringCareer()
         {
-            string role=SelectedReviewRole();
-            string evidence=CanRecordLifetimeRole(role)?ReviewCareerEvidence(role):"";
-            var player=Hero.MainHero;
-            int day=(int)Math.Floor(CampaignTime.Now.ToDays);
-            bool recorded=player!=null &&
-                recurringCareerReviews.Record(player.StringId,role,day,evidence.Length>0);
-            if(recorded)
-                livingPersons.Remember("CareerReviewObserved",player.StringId,"",
-                    "role="+role+"|day="+day+"|current_condition_only=true");
-            ShowNativeDetail("Career | Recurring review",
-                (recorded?evidence:evidence.Length==0?
-                    "Current career conditions could not be verified.":
-                    "Review not recorded: seven-day interval or record limit.")+
-                "\n\n"+RecurringCareerReviewText());
+            ShowNativeDetail("Career | Agreed charge",
+                DiscussChargeProgress()+"\n\n"+RecurringCareerReviewText());
         }
 
         private string CurrentCareerRole()
@@ -173,6 +182,9 @@ namespace CalradiaUnified
                 Hero.MainHero==null || Clan.PlayerClan==null ||
                 MobileParty.MainParty==null || !roleEconomy.Started)
                 return;
+            ObserveLifetimeCareerAutomatically();
+            // Old starting chapters are founder-specific. Do not award them to successors.
+            if(Hero.MainHero.StringId!=startAuditOwner)return;
             string role=CurrentCareerRole();
             if(role.Length==0)return;
             // Never continue the old starting-role chapters on a new calling.
@@ -261,9 +273,7 @@ namespace CalradiaUnified
                     "|location="+(townId.Length>0?townId:"none")+
                     "|native_state_verified=true"+
                     "|no_fake_rank_or_salary=true");
-                Notify("Your "+role+" chronicle has recorded "+
-                    "chapter "+careerChronicle.Chapter+" of three. "+
-                    "Review your next duty from the household ledger.");
+                // Historical milestones are recorded silently, never presented as new chores.
             }
         }
 
@@ -287,32 +297,36 @@ namespace CalradiaUnified
                     clan.Leader==player,clan.Kingdom!=null,
                     clan.Kingdom!=null && clan.Kingdom.RulingClan==clan,
                     clan.IsUnderMercenaryService);
-            return "Recorded career: "+role+
+            var episode=player==null?null:lifetimeCareers.For(player.StringId).LastOrDefault();
+            bool founder=player!=null && player.StringId==startAuditOwner;
+            return "Starting career (historical): "+role+
+                "\nLast confirmed personal calling: "+(episode==null?"not yet observed":episode.Role+" (day "+episode.LastDay+")")+
                 "\nCareer duties (guidance): "+
-                SandboxStartingLifePolicy.CareerContract(role)+
-                "\nCurrent native political standing: "+standing+
+                SandboxStartingLifePolicy.CareerContract(episode==null?role:episode.Role)+
+                "\nPolitical standing: "+standing+
                 "\nClan settlements: "+
                 (clan==null || clan.Settlements==null?"unverified":
                     clan.Settlements.Count.ToString())+
-                "\nRecorded personal oath: "+
+                "\nPersonal oath: "+
                 (knightOath.IsConfigured?knightOath.Status:"none")+
-                "\nLast recorded external service status: "+
+                "\nLast service status: "+
                 serviceCareer.Status+
-                "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
-                "\nSelected review calling: "+SelectedReviewRole()+
-                "\n"+RecurringCareerReviewText()+
-                "\nPresent charge: "+
-                SandboxCareerChronicleState.ChapterObjective(
-                    role,careerChronicle.Chapter)+
-                (careerChronicle.ConsecutiveDays>0?
-                    "\nConfirmed days in this duty: "+
-                    careerChronicle.ConsecutiveDays:"")+
+                "\nHistorical starting milestones: "+(founder?careerChronicle.Chapter+"/3":"founder's record, not yours")+
+                (IsPersonalChargeActive()?"\nA legacy personal goal remains. You can set it aside.":"")+
                 "\nThese chapters record actual Bannerlord "+
                 "actions, real parties, native contracts and "+
                 "recognized people. They do not grant a "+
                 "game rank, salary, troops, land or kingdom office.";
         }
 
+        private string PersonalChronicleText()
+        {
+            var player=Hero.MainHero;
+            if(player==null)return "No current character.";
+            return CareerChronicleDescription()+"\n\n"+LifetimeCareerText(player)+
+                "\n\n"+(roleEconomy.Started && player.StringId==startAuditOwner?roleEconomy.Describe():"Current livelihood: native economy")+
+                "\n\n"+BattleHistoryDescription()+"\n\n"+PersonalHistoryText(player);
+        }
         private void RegisterCareerChronicleMenus(
             CampaignGameStarter starter)
         {
@@ -324,44 +338,27 @@ namespace CalradiaUnified
                 args=>{ObserveCareerChronicleDaily();});
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_career_chronicle_entry",
-                "My career chronicle and next charge",
+                "My chronicle",
                 args=>roleEconomy.Started &&
                     CurrentCareerRole().Length>0,
                 args=>GameMenu.SwitchToMenu(
                     "cu_career_chronicle"),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_review",
-                "Review my current chapter",
+                "Read my career history",
                 args=>true,
                 args=>{
                     ObserveCareerChronicleDaily();
-                    ShowNativeDetail("Career | Your next charge",
-                        CareerChronicleDescription());
+                    ShowNativeDetail("Career history",
+                        PersonalChronicleText());
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_career_recurring_review",
-                "Review my recurring career duties",
-                args=>SelectedReviewRole().Length>0,
-                args=>ReviewRecurringCareer(),false);
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_lifetime_history","Read my lifetime career history",
-                args=>true,args=>ShowNativeDetail("Lifetime career",
-                    LifetimeCareerText(Hero.MainHero)),false);
-            foreach(string candidate in SandboxStartingLifePolicy.SevenPaths)
-            {
-                string role=candidate;
-                starter.AddGameMenuOption("cu_career_chronicle",
-                    "cu_lifetime_record_"+role,"Record observed calling: "+role,
-                    args=>CanRecordLifetimeRole(role),
-                    args=>RecordLifetimeRole(role),false);
-            }
-            starter.AddGameMenuOption("cu_career_chronicle",
-                "cu_battle_history","Review witnessed campaign battles",
-                args=>true,args=>ShowNativeDetail("Career | Battle history",
-                    BattleHistoryDescription()),false);
+                "cu_career_charge_withdraw","Set aside my current charge",
+                args=>IsPersonalChargeActive(),
+                args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_return",
-                "Return to household affairs",
+                "Back",
                 args=>true,
                 args=>GameMenu.SwitchToMenu(
                     "cu_people_lineage"),false);

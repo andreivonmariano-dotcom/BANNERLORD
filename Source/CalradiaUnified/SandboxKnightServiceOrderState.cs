@@ -36,6 +36,12 @@ namespace CalradiaUnified
             if(!CanBegin(patron,day) ||
                 (order!="Scout" && order!="Muster"))
                 return "native_service_order_unavailable";
+            // A new lord cannot inherit another lord's witnessed service.
+            if(PatronId!=patron)
+            {
+                CompletedOrders=0;MissedOrders=0;LastReportedDay=-1;
+                RecommendationDay=-1;RoyalHearingDay=-1;
+            }
             PatronId=patron;Order=order;Status="Active";
             StartDay=day;DueDay=day+14;
             LastObservedDay=day;FirstTownId="";SecondTownId="";

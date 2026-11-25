@@ -84,8 +84,10 @@ assert "TeleportHero" not in gallery
 assert "AddHeroToParty" not in gallery
 assert "MarriageAction" not in gallery
 assert '"cu_family_portraits_open"' in gallery
-assert '"cu_family_portraits"' in behavior
-assert 'new CUFamilyPortraitScreen()' in behavior
+assert '"cu_family_portraits"' not in behavior
+household=(root/"Source"/"CalradiaUnified"/"SandboxOriginBehavior.NativeHouseholdUI.cs").read_text(encoding="utf-8")
+assert 'OpenDossierFamilyPortraits' in household
+assert 'new CUFamilyPortraitScreen()' in household
 
 # Every visible C# field must exist in XML and parent types.
 nativeXml=ET.parse(root/"Modules/CalradiaUnified/GUI/Prefabs/CUNativeOriginReview.xml").getroot()
@@ -99,7 +101,7 @@ for name in nativeBindings:
 assert len(nativeBindings)>=7
 assert not list(nativeXml.iter("ButtonWidget")), "read-only native review overlay must not steal controls"
 assert any(n.get("Command.Click")=="ExecuteClose" for n in galleryXml.iter("ButtonWidget"))
-assert any(n.get("Text")=="Close gallery" for n in galleryXml.iter("TextWidget"))
+assert any(n.get("Text")=="Close" for n in galleryXml.iter("TextWidget"))
 assert any(n.tag=="ImageIdentifierWidget" and n.get("DataSource")=="{Portrait}"
            and n.get("ImageId")=="@Id" for n in galleryXml.iter())
 assert any(n.tag=="ListPanel" and n.get("DataSource")=="{Members}"

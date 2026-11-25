@@ -26,7 +26,7 @@ Get-ChildItem -LiteralPath $root -Recurse -File -Filter '*.dll' | ForEach-Object
 $names=@('TaleWorlds.GauntletUI','TaleWorlds.Engine.GauntletUI',
   'TaleWorlds.Library','SandBox.GauntletUI','SandBox.View',
   'TaleWorlds.GauntletUI.PrefabSystem','TaleWorlds.Engine',
-  'TaleWorlds.ScreenSystem')
+  'TaleWorlds.ScreenSystem','TaleWorlds.CampaignSystem','TaleWorlds.Core','TaleWorlds.MountAndBlade')
 $resolver=[ResolveEventHandler]{
     param($sender,$eventArgs)
     $name=$eventArgs.Name.Split(',')[0]
@@ -65,7 +65,7 @@ try{
             $types=@($_.Exception.Types|Where-Object{$null -ne $_})
         }
         $selected=@($types|Where-Object{
-            $_.Name -match '^(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|BrushState|GauntletLayer|GauntletMovieIdentifier|Color|BannerEditorView|CharacterCreation.+View|CharacterCreationScreen)$'
+            $_.Name -match '^(Widget|TextWidget|ButtonWidget|Brush|BrushLayer|BrushState|GauntletLayer|GauntletMovieIdentifier|Color|BannerEditorView|CharacterCreation.+View|CharacterCreationScreen|LocationComplex|LocationCharacter|Location|MBInformationManager|MultiSelectionInquiryData|InquiryElement|ImageIdentifier|CharacterImageIdentifier|CharacterCode|BannerImageIdentifier)$'
         })
         foreach($nativeType in @(
             'TaleWorlds.GauntletUI.BaseTypes.Widget',
@@ -92,7 +92,8 @@ try{
         }
         foreach($type in $selected|Sort-Object FullName -Unique){
             $lines.Add('')
-            $lines.Add('TYPE '+$type.FullName+' BASE '+$type.BaseType.FullName)
+            $baseName=if($null -ne $type.BaseType){$type.BaseType.FullName}else{'none'}
+            $lines.Add('TYPE '+$type.FullName+' BASE '+$baseName)
             foreach($c in $type.GetConstructors($flags)){
                 try{$lines.Add('CTOR '+$c.ToString())}
                 catch{$lines.Add('CTOR '+$c.Name+' [dependency unresolved]')}

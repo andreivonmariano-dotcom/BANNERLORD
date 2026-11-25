@@ -103,6 +103,13 @@ namespace CalradiaUnified
             new SettingDescriptor("EstateSalePricePerGrain", "Estate Sale Price Per Grain", "castles", false, 1, 100, 5, false),
         });
 
+        // All remains the historical INI/validation catalog. Only current settings may be written from gameplay UI.
+        public static bool IsRuntimeEditable(string key)
+        {
+            return key=="EnableDiagnostics" || key=="AutoSessionReports" ||
+                key=="EnableSupplyWarnings" || key=="EnableArmyWarnings" || key=="SupplyWarningDays";
+        }
+
         public static readonly string[] Groups =
             new[] { "general", "diagnostics", "supply", "economy",
                 "recruitment", "kingdom", "clan", "convoys", "castles" };

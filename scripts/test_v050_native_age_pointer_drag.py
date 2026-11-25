@@ -36,8 +36,8 @@ for name in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
              "CUNativeStatsEditorSafe"):
     prefab=ET.parse(ui/(name+".xml")).getroot()
     labels=[x.get("Text") for x in prefab.iter("TextWidget")]
-    assert "18 YEARS" in labels and "80 YEARS" in labels
-    assert "18                                         80 YEARS" not in labels
+    assert "18" in labels and "80" in labels
+    assert "18                                         80" not in labels
     commands=[x.get("Command.Click") for x in prefab.iter("ButtonWidget")]
     assert {"ExecuteAgeIncrease","ExecuteAgeDecrease",
             "ExecuteEnterExactAge"}<=set(commands)

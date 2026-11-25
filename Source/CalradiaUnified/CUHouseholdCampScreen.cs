@@ -147,7 +147,7 @@ namespace CalradiaUnified
         public void ExecutePeople()
         {
             SetSection("People","The company at your side",roll,
-                "Click a portrait for an actual native Hero record.");
+                "Select a portrait.");
         }
         public void ExecuteOfficers()
         {
@@ -165,7 +165,7 @@ namespace CalradiaUnified
         {
             SetSection("Service","Your present charge",
                 serviceText,
-                "Service credit comes only from native campaign evidence.");
+                "");
         }
         public void ExecuteChronicle()
         {

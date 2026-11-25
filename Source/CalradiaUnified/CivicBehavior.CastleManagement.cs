@@ -49,7 +49,7 @@ namespace CalradiaUnified
                 ", garrison wage " + wages + "/day, current wage limit " +
                 castle.GarrisonWagePaymentLimit + ", forecast-affordable limit " +
                 recommended + ", siege " + (castle.SiegeEvent != null) +
-                ". Native tax is not measured by this report.");
+                " (excludes taxes).");
         }
         private bool CanTransferRecruits(bool toGarrison)
         {
@@ -134,7 +134,7 @@ namespace CalradiaUnified
                 "settlement=" + CurrentId() + "|previous=" +
                 previous + "|new=" + newLimit);
             Notice("Castle wage limit set to " + newLimit +
-                ". Actual troop wages are already within the limit.");
+                " Wages are within the limit.");
         }
     }
 }

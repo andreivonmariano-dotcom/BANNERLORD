@@ -21,7 +21,7 @@ ordered = [
     "SandboxServicePatron.TryAssign(",
     "SandboxStartingFief.TryApply(profile,hero)",
     "SandboxFamilyHome.TryPlace(profile,hero,fiefOutcome)",
-    "SandboxCulturalRetinue.TryCreate(profile,hero)",
+    "SandboxCulturalRetinue.TryCreate(profile,hero,retinueOffices)",
     "SandboxStartContract.RetinueReadyForOtherGrants(",
     "if (profile.Gold >= 0)",
 ]

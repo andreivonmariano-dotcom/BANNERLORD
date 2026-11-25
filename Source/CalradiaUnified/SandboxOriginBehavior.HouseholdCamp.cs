@@ -79,7 +79,7 @@ namespace CalradiaUnified
         {
             if(!agencyDecisions.HasPending)
                 return "No one has a pending private petition. "+
-                    "Speak to your actual companions and grown family "+
+                    "Speak to companions and adult family "+
                     "members to learn what matters to them.";
             var person=ResolveCampaignHero(
                 agencyDecisions.PendingHeroId);
@@ -91,10 +91,10 @@ namespace CalradiaUnified
             string where=place!=null?place.Name.ToString():
                 person.PartyBelongedTo!=null?
                     person.PartyBelongedTo.Name.ToString():
-                    "location not verified";
+                    "location unknown";
             var story=petitionStories.For(person.StringId);
-            return person.Name+" seeks "+agencyDecisions.PendingKind+
-                ".\nLast known location: "+where+
+            return person.Name+": "+PetitionConcern(agencyDecisions.PendingKind)+
+                "\nLast known location: "+where+
                 "\nPersonal history: "+(story==null?
                     "no earlier outcome":story.Outcome)+
                 "\nAnswer only by speaking with this person.";
@@ -102,23 +102,11 @@ namespace CalradiaUnified
         private string CampOfficerText()
         {
             var clan=Clan.PlayerClan;
-            string summary="";
-            foreach(var office in new[]{"Steward","Captain","Envoy"})
-            {
-                string id=householdDuties.AssignedId(office);
-                var person=ResolveCampaignHero(id);
-                bool verified=person!=null && person.IsAlive &&
-                    clan!=null && person.CompanionOf==clan &&
-                    person.Clan==clan;
-                summary+=office+": "+(id.Length==0?"vacant":
-                    verified?person.Name.ToString():
-                    "previous holder unavailable")+
-                    " | reports "+householdDuties.ReportCount(office)+
-                    "\n";
-            }
-            return summary+
-                "\nMeet your companion in person to grant "+
-                "a duty or hear a witnessed report.";
+            var party=MobileParty.MainParty;
+            if(clan==null || party==null)return "No current company.";
+            return String.Join("\n",HouseholdSpecialties.Select(role=>role+": "+
+                (party.GetRoleHolder(role)==null?"Vacant (leader covers duty)":NativePersonName(party.GetRoleHolder(role)))))+
+                "\nSpeak with a present adult family member or companion to fill a vacant native duty. Existing appointments remain in the native party screen.";
         }
         private string CampServiceText()
         {
@@ -147,7 +135,7 @@ namespace CalradiaUnified
             ShowNativeDetail(person.Name+" | Traveling household",
                 "Age "+(int)person.Age+
                 "\nCurrent duty: "+DossierOfficerLabel(person)+
-                "\nNative party: "+MobileParty.MainParty.Name+
+                "\nParty: "+MobileParty.MainParty.Name+
                 "\nStanding with you: "+
                 Hero.MainHero.GetRelation(person)+
                 "\n"+SocialBondDescription(person)+
@@ -186,10 +174,7 @@ namespace CalradiaUnified
         {
             if(starter==null)return;
             starter.AddGameMenu("cu_household_camp",
-                "At camp, your company gathers around its own banner. "+
-                "Consult the traveling roll, consider your service "+
-                "and make plans. Meet individual people through "+
-                "the game's real conversations.",
+                "Review your traveling household and correspondence. Speak directly with people to make decisions.",
                 args=>{});
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_roll",
@@ -197,27 +182,14 @@ namespace CalradiaUnified
                 args=>CanSetUpNativeCamp(),
                 args=>OpenIllustratedHouseholdCamp(),false);
             starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_officers",
-                "Review the duties of my companions",
-                args=>CanSetUpNativeCamp(),
-                args=>ShowHouseholdDutyLedger(),false);
-            starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_service",
-                "Consider my next duty and service",
-                args=>CanSetUpNativeCamp() &&
-                    CurrentCareerRole().Length>0,
-                args=>ShowNativeDetail("Camp | Present duties",
-                    CareerChronicleDescription()),false);
-            starter.AddGameMenuOption("cu_household_camp",
-                "cu_household_camp_recurring_review",
-                "Review recurring career duties",
-                args=>CanSetUpNativeCamp() && SelectedReviewRole().Length>0,
-                args=>ReviewRecurringCareer(),false);
+                "cu_household_camp_withdraw_charge","Set aside my current charge",
+                args=>CanSetUpNativeCamp() && IsPersonalChargeActive(),
+                args=>ShowNativeDetail("Career | Charge",WithdrawCareerCharge()),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_petitions",
                 "Read private correspondence",
                 args=>CanSetUpNativeCamp(),
-                args=>HearDossierPetition(),false);
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_household_camp",
                 "cu_household_camp_leave",
                 "Break camp and return to the campaign",

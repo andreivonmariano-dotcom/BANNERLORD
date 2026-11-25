@@ -108,24 +108,21 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty]
-        public string Heading { get { return "HOUSE OF CALRADIA"; } }
+        public string Heading { get { return "Family"; } }
 
         [DataSourceProperty]
         public string Description
         {
             get
             {
-                return "Every son and daughter is shown here. Young " +
-                    "children have a recorded family home, but " +
-                    "Bannerlord does not spawn or recall them as adult " +
-                    "party heroes until they come of age.";
+                return "Members of your family.";
             }
         }
 
         [DataSourceProperty]
         public string MemberCount
         {
-            get { return Members.Count + " FAMILY MEMBERS"; }
+            get { return Members.Count + " family members"; }
         }
 
         public void ExecuteClose()
@@ -145,7 +142,8 @@ namespace CalradiaUnified
         {
             person=hero;
             inspect=inspectAction;
-            Relationship = relationship;
+            string title=SandboxOriginBehavior.ContextualHouseholdTitle(hero);
+            Relationship = title.Length>0?title:relationship;
             Name = hero.Name.ToString();
             Age = hero.IsChild ? "Age " + (int)hero.Age +
                 "  |  underage" : "Age " + (int)hero.Age;
@@ -162,7 +160,7 @@ namespace CalradiaUnified
             Presence=relationship=="CHILD" ?
                 SandboxFamilyResidencePolicy.HumanStatus(category) :
                 (hero.IsChild?"Underage; no party recall":
-                    (scenePresent?"At settlement":"Location recorded"));
+                    (scenePresent?"At settlement":"Last known location"));
             if(relationship=="CHILD")
                 DiagnosticJournal.Event("cu_family_gallery_child",
                     "id="+hero.StringId+

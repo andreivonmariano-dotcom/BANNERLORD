@@ -77,6 +77,16 @@ namespace CalradiaUnified
                 parts[2]=="same_culture=true";
         }
 
+        // Shared final proof: a matching name/count alone is not family.
+        public static string FamilyIdentityGate(bool spouseRequested,bool reciprocalMarriage,
+            bool childrenRequested,bool exactChildrenAndBothParentLinks,
+            bool siblingsRequested,bool exactSiblingsAndBothParentLinks)
+        {
+            if(spouseRequested && !reciprocalMarriage)return "native_marriage_not_reciprocal";
+            if(childrenRequested && !exactChildrenAndBothParentLinks)return "native_child_identity_or_parentage_missing";
+            if(siblingsRequested && !exactSiblingsAndBothParentLinks)return "native_sibling_identity_or_parentage_missing";
+            return "";
+        }
         public static string[] Validate(
             string desiredNativeStartType,
             string actualNativeStartType,

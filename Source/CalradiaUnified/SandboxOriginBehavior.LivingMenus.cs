@@ -21,7 +21,7 @@ namespace CalradiaUnified
             try
             {
                 InformationManager.ShowInquiry(new InquiryData(
-                    heading,detail,true,false,"Continue",null,
+                    heading,detail,true,false,"Close",null,
                     ()=>{},null),true);
             }
             catch(Exception error)
@@ -82,11 +82,31 @@ namespace CalradiaUnified
             return settlement!=null &&
                 other.StayingInSettlement==settlement;
         }
-        private Hero RequestedCharacter()
+        private string petitionRecipient="";
+        private bool PetitionsBelongToCurrentPlayer()
         {
-            var target=FindLivingPerson(agencyDecisions.PendingHeroId);
+            return Hero.MainHero!=null && (String.IsNullOrEmpty(petitionRecipient) ||
+                petitionRecipient==Hero.MainHero.StringId);
+        }
+        private void BindPetitionsToPlayer(Hero player)
+        {
+            if(player==null)return;
+            if(!String.IsNullOrEmpty(petitionRecipient) && petitionRecipient!=player.StringId)
+                foreach(var request in agencyDecisions.PendingRequests)
+                {
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Unavailable");
+                    agencyDecisions.RemovePending(request.HeroId,"RecipientChanged");
+                }
+            petitionRecipient=player.StringId;
+        }
+        private Hero RequestedCharacter(string id=null)
+        {
+            if(!PetitionsBelongToCurrentPlayer())return null;
+            var target=FindLivingPerson(id??agencyDecisions.PendingHeroId);
             return target!=null && target.IsActive && !target.IsPrisoner &&
-                target.Age>=18f && SamePlace(Hero.MainHero,target)?target:null;
+                target.Age>=18f && (SamePlace(Hero.MainHero,target) ||
+                    (NativeRoyalCouncilPresent(true) && (LocalRoyalGuest(target) ||
+                        GroupParticipantPresent(target,"cu_native_royal_council"))))?target:null;
         }
         private bool HasRequest()
         {
@@ -95,23 +115,80 @@ namespace CalradiaUnified
         }
         private void ObserveAgencyDaily(Hero player)
         {
+            BindPetitionsToPlayer(player);
+            // Reconcile every request independently; a distant first petitioner does not block others.
+            foreach(var story in petitionStories.Stories.Where(s=>s.Outcome=="Pending" &&
+                (agencyDecisions.PendingFor(s.HeroId)==null ||
+                    agencyDecisions.PendingFor(s.HeroId).Kind!=s.Kind)).ToArray())
+                petitionStories.CloseUnanswered(story.HeroId,CurrentHouseholdDay(),"Unconfirmed");
+            var before=agencyDecisions.PendingRequests;
             agencyDecisions.Tick();
-            if(agencyDecisions.HasPending &&
-                FindLivingPerson(agencyDecisions.PendingHeroId)==null)
+            foreach(var request in before)
             {
-                livingPersons.Remember("CharacterRequestExpired",
-                    agencyDecisions.PendingHeroId,"",
-                    "actor_no_longer_alive_or_loaded");
-                agencyDecisions.Dismiss("Unavailable");
+                if(agencyDecisions.PendingFor(request.HeroId)==null)
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Expired");
+                else if(FindLivingPerson(request.HeroId)==null)
+                {
+                    livingPersons.Remember("CharacterRequestExpired",request.HeroId,"","actor_no_longer_alive_or_loaded");
+                    petitionStories.CloseUnanswered(request.HeroId,CurrentHouseholdDay(),"Unavailable");
+                    agencyDecisions.RemovePending(request.HeroId,"Unavailable");
+                }
             }
-            if(agencyDecisions.Day<15 ||
-                agencyDecisions.Day%5!=0 || agencyDecisions.HasPending)
-                return;
-            OfferLocalCharacterRequest(player);
+            if(agencyDecisions.Day>=15 && agencyDecisions.Day%5==0 && agencyDecisions.HasRoom)
+                OfferLocalCharacterRequest(player);
+            ObserveOrdinaryCorrespondence(player);
+        }
+        private bool CanWriteDistantPetition(Hero player,Hero actor)
+        {
+            if(player==null || actor==null || actor==player)return false;
+            string contact=CorrespondenceContact(player,actor);
+            bool family=contact=="Spouse" || contact=="Kin";
+            bool companion=Clan.PlayerClan!=null && actor.Clan==Clan.PlayerClan && actor.CompanionOf==Clan.PlayerClan;
+            bool patron=knightOath.HasCurrentOath && knightOath.PlayerId==player.StringId && actor.StringId==knightOath.PatronId;
+            bool knownNoble=actor.Clan!=null && actor.Clan.Leader==actor &&
+                player.GetRelation(actor)>=25;
+            return SandboxAgencyDecisionPolicy.CanSendDistantLetter(actor.Age>=18f,
+                actor.IsAlive && actor.IsActive,actor.IsPrisoner,family || companion || patron || knownNoble,
+                actor.LastKnownClosestSettlement!=null,player.GetRelation(actor));
+        }
+        private void ObserveOrdinaryCorrespondence(Hero player)
+        {
+            if(player==null || agencyDecisions.Day<15 || agencyDecisions.Day%7!=0)return;
+            int day=CurrentHouseholdDay();
+            if(characterAgendas.Entries.Any(e=>e.NewsDay>=0 &&
+                (long)day-e.NewsDay<SandboxCharacterAgendaState.NewsInterval))return;
+            var eligible=new System.Collections.Generic.HashSet<string>(
+                characterAgendas.Entries.Where(e=>e.NewsDay<0 ||
+                    (long)day-e.NewsDay>=SandboxCharacterAgendaState.PersonalNewsInterval)
+                    .Select(e=>e.Id),StringComparer.Ordinal);
+            if(eligible.Count==0)return;
+            var known=new System.Collections.Generic.HashSet<string>(
+                livingPersons.People.Select(p=>p.Id),StringComparer.Ordinal);
+            var candidates=Hero.AllAliveHeroes.Where(h=>h!=null && h!=player &&
+                eligible.Contains(h.StringId) && known.Contains(h.StringId) &&
+                !SamePlace(player,h) && agencyDecisions.PendingFor(h.StringId)==null &&
+                CanWriteDistantPetition(player,h))
+                .OrderBy(h=>characterAgendas.Get(h.StringId).NewsDay)
+                .ThenBy(h=>h.StringId,StringComparer.Ordinal);
+            foreach(var person in candidates)
+            {
+                var entry=characterAgendas.Get(person.StringId);
+                string letter=SandboxPetitionVoicePolicy.OrdinaryLetter(entry.Goal,PersonalVoice(person),
+                    person.Culture==null?"":person.Culture.StringId,
+                    CorrespondenceContact(player,person),player.GetRelation(person));
+                if(!characterAgendas.RecordNews(person.StringId,player.StringId,day,
+                    player.GetRelation(person),letter))continue;
+                DiagnosticJournal.Event("cu_ordinary_correspondence_recorded",
+                    "sender="+person.StringId+"|recipient="+player.StringId+
+                    "|day="+day+"|modeled_letter=true|requires_answer=false|native_mutation=false");
+                break;
+            }
         }
         private void OfferLocalCharacterRequest(Hero player)
         {
-            if(player==null || agencyDecisions.HasPending)return;
+            if(player==null)return;
+            BindPetitionsToPlayer(player);
+            if(!agencyDecisions.HasRoom)return;
             var ids=agencyDecisions.Prioritize(
                 characterAgendas.Entries.Select(a=>a.Id));
             if(ids.Length==0)return;
@@ -119,7 +196,7 @@ namespace CalradiaUnified
             var wanted=new System.Collections.Generic.HashSet<string>(
                 ids,StringComparer.Ordinal);
             var local=Hero.AllAliveHeroes.Where(h=>h!=null && h.IsAlive &&
-                wanted.Contains(h.StringId) && h!=player && SamePlace(player,h))
+                wanted.Contains(h.StringId) && h!=player && (SamePlace(player,h) || CanWriteDistantPetition(player,h)))
                 .GroupBy(h=>h.StringId,StringComparer.Ordinal)
                 .ToDictionary(g=>g.Key,g=>g.First(),StringComparer.Ordinal);
             foreach(string id in ids)
@@ -129,7 +206,7 @@ namespace CalradiaUnified
                 Hero hero;
                 if(!local.TryGetValue(id,out hero))continue;
                 if(hero==null || hero==player ||
-                    !SamePlace(player,hero) || hero.Age<18f ||
+                    (!SamePlace(player,hero) && !CanWriteDistantPetition(player,hero)) || hero.Age<18f ||
                     !hero.IsActive || hero.IsPrisoner)
                     continue;
                 if(!livingPersons.People.Any(p=>p.Id==hero.StringId))
@@ -139,7 +216,7 @@ namespace CalradiaUnified
                 if(!SandboxAgencyDecisionPolicy.CanReapproach(
                     socialBonds.For(hero.StringId),nativeRelation))continue;
                 string kind=SandboxAgencyDecisionPolicy.ChooseInitiative(
-                    record.Goal,true,true,nativeRelation,
+                    record.Goal,true,SamePlace(player,hero) || CanWriteDistantPetition(player,hero),nativeRelation,
                     prior==null?0:prior.RequestsMade,
                     prior==null?1000:
                         agencyDecisions.Day-prior.LastDay,
@@ -147,15 +224,17 @@ namespace CalradiaUnified
                     hero.GetTraitLevel(DefaultTraits.Generosity),
                     hero.GetTraitLevel(DefaultTraits.Calculating),
                     hero.Gold);
-                if(kind.Length==0)continue;
-                if(agencyDecisions.Propose(hero.StringId,kind))
+                kind=SpecializeNoblePetition(player,hero,kind);
+                if(kind.Length==0 || !petitionStories.CanBegin(hero.StringId,kind,CurrentHouseholdDay()))continue;
+                if(agencyDecisions.Enqueue(hero.StringId,kind))
                 {
                     RememberPetitionStory(hero,kind);
                     livingPersons.Remember("IndependentCharacterRequest",
                         hero.StringId,player.StringId,
                         "kind="+kind+
                         "|source=modeled_npc_initiative"+
-                        "|native_evidence=goal_traits_wealth_presence"+
+                        "|native_evidence=goal_traits_wealth_contact"+
+                        "|delivery="+(SamePlace(player,hero)?"in_person":"modeled_letter")+
                         "|not_a_claim_of_native_ai_dialogue=true");
                     DiagnosticJournal.Event("cu_character_request_offered",
                         "hero="+hero.StringId+"|kind="+kind+
@@ -181,6 +260,7 @@ namespace CalradiaUnified
                 actor.Name.ToString()+" asks for "+
                 (agencyDecisions.PendingKind=="Recognition"?
                     "public acknowledgment of their work":
+                    agencyDecisions.PendingKind=="Audience"?"a private audience":
                     amount+" denars of household support")+
                 ". Their personal goal is "+
                 (characterAgendas.Get(actor.StringId)==null?"unknown":
@@ -203,20 +283,83 @@ namespace CalradiaUnified
             }
         }
 
+        // Explicit terms only. Consume the exact speaker's invitation before
+        // any native action, so an uncertain effect cannot be replayed.
+        private void ResolveNegotiatedAudience(string term)
+        {
+            petitionDecisionReply="No agreement was confirmed.";
+            if(answeringCharacterRequest || !CanNegotiateAudience(term))return;
+            answeringCharacterRequest=true;
+            try
+            {
+                var actor=Hero.OneToOneConversationHero;
+                var player=Hero.MainHero;
+                if(actor==null || player==null || !agencyDecisions.SelectPending(actor.StringId))return;
+                string kind=agencyDecisions.PendingKind;
+                bool royal=term=="Garrison" && KingMarshalAvailable();
+                int payerBefore=player.Gold,recipientBefore=actor.Gold,relationBefore=player.GetRelation(actor);
+                agencyDecisions.Dismiss("NegotiatedTermAttempt");
+                bool rosterProof=false;
+                try
+                {
+                    if(term=="Goodwill")ChangeRelationAction.ApplyRelationChangeBetweenHeroes(player,actor,1,false);
+                    else if(term=="Stipend")GiveGoldAction.ApplyBetweenCharacters(player,actor,
+                        SandboxAgencyDecisionPolicy.EstatePersonalStipend,false);
+                    else if(term=="Garrison")rosterProof=TransferExistingTroopsByOfficer(royal);
+                }
+                catch(Exception error){DiagnosticJournal.Exception("cu_negotiated_audience_effect_failed",error);}
+                int relationAfter=player.GetRelation(actor);
+                bool relationProof=term=="Goodwill" && SandboxNativeEffectProof.RelationDirectionObserved(relationBefore,relationAfter,1);
+                bool paymentProof=term=="Stipend" && SandboxNativeEffectProof.GiftResult(payerBefore,player.Gold,
+                    recipientBefore,actor.Gold,SandboxAgencyDecisionPolicy.EstatePersonalStipend)=="confirmed";
+                bool confirmed=relationProof || paymentProof || rosterProof;
+                int relationDelta=relationProof?SandboxNativeEffectProof.ObservedDelta(relationBefore,relationAfter):0;
+                if(confirmed)petitionStories.Resolve(actor.StringId,true,CurrentHouseholdDay(),paymentProof,relationDelta);
+                else petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed");
+                livingPersons.Remember("NegotiatedAudience",actor.StringId,player.StringId,
+                    "kind="+kind+"|term="+term+"|confirmed="+confirmed+"|native_relation_delta="+relationDelta+
+                    "|personal_denars="+(paymentProof?SandboxAgencyDecisionPolicy.EstatePersonalStipend:0)+
+                    "|existing_recruits="+(rosterProof?5:0)+"|no_native_treaty_or_estate_grant=true");
+                DiagnosticJournal.Event("cu_negotiated_audience_result","actor="+actor.StringId+"|kind="+kind+
+                    "|term="+term+"|confirmed="+confirmed+"|relation_delta="+relationDelta+
+                    "|personal_denars="+(paymentProof?SandboxAgencyDecisionPolicy.EstatePersonalStipend:0)+
+                    "|existing_recruits="+(rosterProof?5:0));
+                petitionDecisionReply=relationProof?"Your goodwill has been received. Our personal standing has changed.":
+                    paymentProof?"I have received the 200 denars personally. This is not a deposit into the estate treasury.":
+                    rosterProof?"Five of our existing recruits are now accounted for in the garrison.":
+                    "The order could not be confirmed. Check the garrison or purse before trying again.";
+            }
+            finally{answeringCharacterRequest=false;}
+        }
         private void AnswerCharacterRequestCore(bool accept)
         {
+            petitionDecisionReply="Let us leave that matter unsettled for now.";
             var player=Hero.MainHero;
-            var actor=RequestedCharacter();
+            var speaker=Hero.OneToOneConversationHero;
+            var actor=speaker==null?null:RequestedCharacter(speaker.StringId);
             if(player==null || actor==null ||
-                Hero.OneToOneConversationHero!=actor)
+                Hero.OneToOneConversationHero!=actor || !SpeakingWithPendingPetitioner() ||
+                !agencyDecisions.SelectPending(actor.StringId))
             {
                 Notify("Speak with the person directly to answer "+
-                    "their petition. No remote decision was made.");
+                    "their petition. ");
                 return;
             }
             string kind=agencyDecisions.PendingKind;
             int amount=SandboxAgencyDecisionPolicy.Amount(kind);
             if(amount<0)return;
+            // An actual audience settles only the request for conversation.
+            // It never produces a gift, relation bonus or political receipt.
+            if(SandboxAgencyDecisionPolicy.IsAudience(kind))
+            {
+                agencyDecisions.Dismiss(accept?"AudienceHeard":"AudienceDeclined");
+                petitionStories.Resolve(actor.StringId,accept,CurrentHouseholdDay(),false,0);
+                livingPersons.Remember("PersonalAudienceAnswered",actor.StringId,player.StringId,
+                    "accepted="+accept+"|face_to_face=true|reward=false");
+                petitionDecisionReply=accept?"I thank you for hearing me. No work or appointment has been ordered.":
+                    "Very well. We shall leave the matter there.";
+                return;
+            }
             int requestedRelation=SandboxAgencyDecisionPolicy.RelationDelta(
                 kind,accept);
             string giftProof="not_requested";
@@ -225,7 +368,7 @@ namespace CalradiaUnified
                 if(!SandboxAgencyDecisionPolicy.NativeTransferPermitted(
                     kind,true,player.Gold,actor.IsAlive))
                 {
-                    Notify("You lack the denars for this support request.");
+                    Notify("You cannot afford this request.");
                     return;
                 }
                 int payerBefore=player.Gold;
@@ -264,7 +407,10 @@ namespace CalradiaUnified
                     // transfer. An entirely unchanged transfer can be
                     // attempted later at the player's choice.
                     if(giftProof!="no_native_effect")
+                    {
+                        petitionStories.CloseUnanswered(actor.StringId,CurrentHouseholdDay(),"Unconfirmed");
                         agencyDecisions.Dismiss("UnverifiedNativeGift");
+                    }
                     Notify("Both native gold balances did not confirm "+
                         "the intended gift. No acceptance was recorded.");
                     return;
@@ -291,6 +437,11 @@ namespace CalradiaUnified
                 relationBefore,relationAfter,requestedRelation);
             int actualRelation=SandboxNativeEffectProof.ObservedDelta(
                 relationBefore,relationAfter);
+            // Consume the choice before supplementary story/diagnostic UI work.
+            // A confirmed payment must not be replayed if story recording fails.
+            agencyDecisions.Dismiss(relationProof?
+                (accept?"Accepted":"Declined"):
+                "NativeRelationUnverified");
             livingPersons.Remember(
                 relationProof?
                     (accept?"CharacterRequestAccepted":
@@ -314,11 +465,8 @@ namespace CalradiaUnified
                 "|relation_proof="+relationProof+
                 "|relation_exact="+exactRelation+
                 "|actual_relation_delta="+actualRelation);
-            // Consume the choice before supplementary story/diagnostic UI work.
-            // A confirmed payment must not be replayed if story recording fails.
-            agencyDecisions.Dismiss(relationProof?
-                (accept?"Accepted":"Declined"):
-                "NativeRelationUnverified");
+            petitionDecisionReply=SandboxPetitionVoicePolicy.DecisionReply(
+                PersonalVoice(actor),accept,relationProof || (accept && giftProof=="confirmed"));
             ResolvePetitionStory(actor,accept,kind,
                 giftProof=="confirmed",actualRelation,relationProof);
             Notify(actor.Name.ToString()+": "+
@@ -378,7 +526,7 @@ namespace CalradiaUnified
             var player=Hero.MainHero;
             if(clan==null || player==null)
             {
-                Notify("No verified native family claim exists.");
+                Notify("You have no recognized family claim.");
                 return;
             }
             string leader=clan.Leader==null?"none":
@@ -390,28 +538,19 @@ namespace CalradiaUnified
                 successionInterest.EarlierSonsAtStart+
                 ". Living strongholds: "+NativeBirthHoldings(clan)+
                 ". Current clan head: "+leader+
-                ". Claim: "+inheritanceNegotiation.Status+
-                ". Negotiation readiness relation threshold: "+
-                SandboxInheritanceNegotiationPolicy.ConsentThreshold(
-                    successionInterest.CultureId,
-                    successionInterest.EarlierSonsAtStart)+
-                " native relation. Cultural mediation payment: "+
-                SandboxInheritanceNegotiationPolicy
-                    .FamilySettlementContribution(
-                        successionInterest.CultureId)+
-                " denars (maximum two, made at a native family court)."+
-                " A cadet must join the native kingdom through normal "+
-                "politics. Favorable relations alone are NOT game-backed "+
-                "clan-head consent. Property transfer is disabled until "+
-                "an actual native clan-head decision can be observed.");
+                ". Historical claim: "+inheritanceNegotiation.Status+
+                ". CU no longer negotiates or transfers holdings. Use native and Diplomacy political processes.");
         }
+        // Historical negotiation code is retained for auditing old saves only.
+        private static bool LegacyEstateActionsEnabled(){return false;}
         private void PetitionFamilyCouncil()
         {
+            if(!LegacyEstateActionsEnabled())return;
             var player=Hero.MainHero;
             var clan=RecordedBirthClan();
             if(player==null || clan==null)
             {
-                Notify("Your native birth clan is unavailable.");
+                Notify("Your birth clan is unavailable.");
                 return;
             }
             var leader=clan.Leader;
@@ -452,6 +591,7 @@ namespace CalradiaUnified
         }
         private bool CanOfferFamilyMediation()
         {
+            if(!LegacyEstateActionsEnabled())return false;
             var player=Hero.MainHero;
             var clan=RecordedBirthClan();
             return player!=null && clan!=null &&
@@ -577,6 +717,7 @@ namespace CalradiaUnified
         }
         private bool CanConfirmFamilyGrant()
         {
+            if(!LegacyEstateActionsEnabled())return false;
             var clan=RecordedBirthClan();
             var player=Hero.MainHero;
             var estate=Settlement.CurrentSettlement;
@@ -686,36 +827,43 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "You gather the people of your own house at court. "+
-                "Consult the household roll, receive your officers "+
-                "and review matters of land and inheritance. "+
-                "Other families must be spoken to in person.",
-                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+                "Manage your household, read correspondence or attend to your current duties.",
+                args=>{});
+            starter.AddGameMenu("cu_household_records",
+                "Family, history and optional records. Speak to people directly for decisions.",args=>{});
+            starter.AddGameMenuOption("cu_people_lineage","cu_household_records_entry",
+                "Records and recovery",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return true;},
+                args=>GameMenu.SwitchToMenu("cu_household_records"),false);
+            starter.AddGameMenuOption("cu_household_records","cu_household_archived_letters",
+                "Archived letters",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()==this;},
+                args=>OpenArchivedCorrespondence(),false);
+            starter.AddGameMenuOption("cu_household_records","cu_household_records_back",
+                "Back",args=>true,args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
             starter.AddGameMenu("cu_people_household",
-                "The household roll. Names, places and ambitions "+
-                "belong to people living in your campaign.",
+                "Members of your household.",
                 args=>{});
             starter.AddGameMenu("cu_people_requests",
-                "Private petitions from people close to your house. "+
-                "Your reply can change actual denars and relationships.",
-                args=>{OfferLocalCharacterRequest(Hero.MainHero);});
+                "Petitions awaiting your answer.",
+                args=>{});
             starter.AddGameMenu("cu_people_claim",
-                "Family council. Hear claims to estates, review "+
-                "inheritance custom and seek a lawful settlement.",
+                "Historical family claims. Native ownership remains authoritative.",
                 args=>{});
             foreach(string location in new[]{"town","castle"})
             {
                 string from=location;
                 starter.AddGameMenuOption(from,
                     "cu_people_lineage_entry_"+from,
-                    "Hold household court",
-                    args=>applied && Hero.MainHero!=null &&
-                        Clan.PlayerClan!=null &&
-                        Settlement.CurrentSettlement!=null &&
-                        Settlement.CurrentSettlement.IsFortification &&
-                        !Settlement.CurrentSettlement.IsUnderSiege &&
-                        Settlement.CurrentSettlement.OwnerClan==
-                            Clan.PlayerClan,
+                    "Attend to local affairs",
+                    args=>{
+                        args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
+                        return applied && Hero.MainHero!=null &&
+                            Clan.PlayerClan!=null &&
+                            Settlement.CurrentSettlement!=null &&
+                            Settlement.CurrentSettlement.IsFortification &&
+                            !Settlement.CurrentSettlement.IsUnderSiege &&
+                            Settlement.CurrentSettlement.OwnerClan==
+                                Clan.PlayerClan;
+                    },
                     args=>{
                         affairsReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_lineage");
@@ -725,85 +873,55 @@ namespace CalradiaUnified
                 // a fictional remote-clan command.
                 starter.AddGameMenuOption(from,
                     "cu_birth_family_council_entry_"+from,
-                    "Request an audience with my birth family",
-                    args=>successionInterest.IsRecorded &&
-                        RecordedBirthClan()!=null &&
-                        Settlement.CurrentSettlement!=null &&
-                        Settlement.CurrentSettlement.IsFortification &&
-                        !Settlement.CurrentSettlement.IsUnderSiege &&
-                        Settlement.CurrentSettlement.OwnerClan==
-                            RecordedBirthClan(),
+                    "Read my historical family claim",
+                    args=>{
+                        args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
+                        return successionInterest.IsRecorded &&
+                            RecordedBirthClan()!=null &&
+                            Settlement.CurrentSettlement!=null &&
+                            Settlement.CurrentSettlement.IsFortification &&
+                            !Settlement.CurrentSettlement.IsUnderSiege &&
+                            Settlement.CurrentSettlement.OwnerClan==
+                                RecordedBirthClan();
+                    },
                     args=>{
                         claimReturnMenu=from;
                         GameMenu.SwitchToMenu("cu_people_claim");
                     },false);
             }
+            // Retired civic subsystem has no player entry in new gameplay.
             // Recoverable failures are still accessible, but never
             // occupy a separate top-level settlement option.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_partial_family_review",
-                "Review incomplete starting household",
-                args=>familyRecovery.NeedsReview &&
-                    Hero.MainHero!=null,
+                "Incomplete household",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return familyRecovery.NeedsReview &&
+                    Hero.MainHero!=null;},
                 args=>ShowNativeDetail(
                     "Starting Life | Native family review",
                     familyRecovery.Describe()),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_role_economy_observed",
-                "My livelihood and obligations",
-                args=>roleEconomy.Started,
-                args=>ShowNativeDetail(
-                    "Starting Role | Verified livelihood record",
-                    roleEconomy.Describe()),false);
             // This is a real, read-only native inquiry. Its spouse,
             // child, companion and service status comes from live Heroes
             // and saved campaign records, not an old creator .ini file.
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_starting_household_native_status",
-                "My household and present calling",
-                args=>Hero.MainHero!=null &&
+                "Household",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null &&
                     (knightOath.IsConfigured ||
                      lordInheritance.IsRecorded ||
                      kingSuccession.IsRecorded ||
-                     roleEconomy.Started),
+                     roleEconomy.Started);},
                 args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_household_duty_ledger",
-                "My household officers and their duties",
-                args=>Hero.MainHero!=null &&
-                    Clan.PlayerClan!=null &&
-                    Clan.PlayerClan.Companions!=null &&
-                    Clan.PlayerClan.Companions.Count>0,
-                args=>ShowHouseholdDutyLedger(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_family_native_audiences",
-                "Arrange a family audience",
-                args=>Hero.MainHero!=null &&
-                    (Hero.MainHero.Spouse!=null ||
-                     (Hero.MainHero.Children!=null &&
-                      Hero.MainHero.Children.Any(x=>x!=null &&
-                          x.IsAlive && x.Age>=18f))),
-                args=>ShowNativeDetail(
-                    "Household | Family audiences",
-                    "Meet your living spouse or grown child in "+
-                    "the game's actual conversation. "+
-                    "A witnessed family audience can improve "+
-                    "your real relationship once per thirty "+
-                    "days. Gifts of 100 native denars are "+
-                    "separate voluntary decisions. Children "+
-                    "under eighteen are not adult courtiers."),
-                false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_open_household",
-                "People of my household",
-                args=>livingPersons.People.Count>0,
-                args=>GameMenu.SwitchToMenu("cu_people_household"),false);
-            starter.AddGameMenuOption("cu_people_lineage",
+                "cu_people_affairs_journal","Correspondence and requests",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
+                args=>OpenCampaignAffairs(),false);
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_people_open_claim",
-                "Family council and inheritance",
-                args=>successionInterest.IsRecorded,
+                "Historical family claim",
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return successionInterest.IsRecorded;},
                 args=>{
-                    claimReturnMenu="cu_people_lineage";
+                    claimReturnMenu="cu_household_records";
                     GameMenu.SwitchToMenu("cu_people_claim");
                 },false);
             starter.AddGameMenuOption("cu_people_lineage",
@@ -813,7 +931,7 @@ namespace CalradiaUnified
 
             starter.AddGameMenuOption("cu_people_household",
                 "cu_household_view","Review selected household member",
-                args=>livingPersons.People.Count>0,
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return livingPersons.People.Count>0;},
                 args=>DescribeSelectedPerson(),false);
             starter.AddGameMenuOption("cu_people_household",
                 "cu_household_next","Next household member",
@@ -824,18 +942,18 @@ namespace CalradiaUnified
                     DescribeSelectedPerson();
                 },false);
             starter.AddGameMenuOption("cu_people_household",
-                "cu_household_back","Return to People & Lineage",
+                "cu_household_back","Back to records",
                 args=>true,
-                args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
+                args=>GameMenu.SwitchToMenu("cu_household_records"),false);
 
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_request","Read the pending correspondence",
-                args=>agencyDecisions.HasPending,
-                args=>HearDossierPetition(),false);
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return agencyDecisions.HasPending;},
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_no_requests","Read private correspondence",
-                args=>!agencyDecisions.HasPending,
-                args=>HearDossierPetition(),false);
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return !agencyDecisions.HasPending;},
+                args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_people_requests",
                 "cu_people_requests_back","Return to People & Lineage",
                 args=>true,
@@ -843,36 +961,14 @@ namespace CalradiaUnified
 
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_review","Review native family claim",
-                args=>successionInterest.IsRecorded,
+                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return successionInterest.IsRecorded;},
                 args=>DescribeFamilyClaim(),false);
-            starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_petition",
-                "Petition clan head for a secondary family holding",
-                args=>successionInterest.IsRecorded &&
-                    !inheritanceNegotiation.Authorized &&
-                    inheritanceNegotiation.Attempts<3 &&
-                    inheritanceNegotiation.Status!=
-                        "NativeGrantCompleted" &&
-                    inheritanceNegotiation.Status!=
-                        "ClaimWithdrawn" &&
-                    CandidateClanGrant()!=null,
-                args=>PetitionFamilyCouncil(),false);
-            starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_mediation",
-                "Offer the clan's cultural mediation contribution",
-                args=>CanOfferFamilyMediation(),
-                args=>OfferFamilyMediation(),false);
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_withdraw",
                 "Withdraw this family's outstanding claim",
                 args=>SandboxInheritanceNegotiationPolicy.MayWithdraw(
                     inheritanceNegotiation.Status),
                 args=>WithdrawFamilyClaim(),false);
-            starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_grant",
-                "Confirm negotiated native family estate grant",
-                args=>CanConfirmFamilyGrant(),
-                args=>ConfirmEstateInNativeDialog(),false);
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_back","Return to People & Lineage",
                 args=>true,

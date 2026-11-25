@@ -17,13 +17,10 @@ office=read("SandboxRetinueOfficePolicy.cs")
 fields=vm.split("private List<Field> BuildFields()",1)[1]
 world=fields.split("if(preCampaign)",1)[1].split("\n            else\n            {",1)[0]
 house=fields.split("\n            else\n            {",1)[1].split("return list;",1)[0]
-assert '"NobleBirthPosition"' in world and '"NobleElderHeroId"' in world
-# The source-only v0.61 assertion expected World-only noble birth.
-# A real v0.69f game session proved this can strand the player after native
-# Age/Culture discovery. House may now *correct the existing choice*.
-assert '"NobleBirthPosition"' in house and '"SiblingCount"' in house
-assert house.index('"NobleBirthPosition"') < house.index('"SpouseEnabled"')
-assert '"NobleElderHeroId"' in house
+assert '"NobleBirthPosition"' not in world and '"NobleElderHeroId"' not in world
+assert '"NobleBirthPosition"' not in house and '"NobleElderHeroId"' not in house
+assert '"SiblingCount"' in house and '"SpouseEnabled"' in house
+assert 'candidate.NormalizeGuidedCareerDraft()' in vm
 assert 'candidate.RetinueMode=candidate.WandererNoHouseStart?' in vm
 assert '"FamilyOnly":candidate.OutlawGuidedStart?' in vm
 assert '"RoleBased":candidate.KnightGuidedStart ?' in vm
@@ -53,9 +50,11 @@ for culture in ("vlandia","sturgia","battania","empire","aserai","khuzait"):
     assert f'case "{culture}"' in names,culture
 assert "SandboxCulturalNames.Suggest" in auto
 assert "SandboxCulturalNames.Suggest" in family
-assert "SandboxCulturalNames.Suggest(culture,female,index+2" in retinue
-assert "TrainForOffice(officer,offices[i])" in retinue
-assert "EquipFromNativeDonor(officer,sources[i],offices[i])" in retinue
+assert "SandboxCulturalNames.RandomUnused(culture,female,random,used)" in retinue
+assert "TrainForOffice(officer,offices[i],random)" in retinue
+assert "EquipForStyle(officer,sources[i]," in retinue
+assert "EquipCivilian(officer,sources[i],offices[i],random)" in retinue
+assert "registry.Register(officer.StringId,offices[i])" in retinue
 assert "AssignNativeDuty(officer,offices[i])" in retinue
 assert "SetPartyQuartermaster" in retinue
 assert "SetPartyScout" in retinue

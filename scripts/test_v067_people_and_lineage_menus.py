@@ -24,7 +24,7 @@ assert '"cu_people_household"' in menu
 assert '"cu_people_requests"' in menu
 assert '"cu_people_claim"' in menu
 assert 'new[]{"town","castle"}' in menu
-assert '"Hold household court"' in menu
+assert '"Attend to local affairs"' in menu
 assert '"Return to settlement"' in menu
 assert '"cu_household_view"' in menu
 assert '"cu_household_next"' in menu
@@ -33,9 +33,9 @@ assert '"cu_people_accept"' not in menu
 assert '"cu_people_decline"' not in menu
 assert '"cu_people_requests_back"' in menu
 assert '"cu_family_claim_review"' in menu
-assert '"cu_family_petition"' in menu
-assert '"cu_family_grant"' in menu
-assert '"cu_family_mediation"' in menu
+assert '"cu_family_petition"' not in menu
+assert '"cu_family_grant"' not in menu
+assert '"cu_family_mediation"' not in menu
 assert '"cu_family_withdraw"' in menu
 assert 'OfferFamilyMediation()' in menu
 assert 'WithdrawFamilyClaim()' in menu
@@ -53,8 +53,11 @@ assert 'Hero.OneToOneConversationHero!=actor' in menu
 assert 'AnswerCharacterRequest(true)' in read("SandboxOriginBehavior.PetitionConversations.cs")
 assert '"cu_birth_family_council_entry_"' in menu
 assert 'Settlement.CurrentSettlement.OwnerClan==' in menu
-assert 'args=>ConfirmEstateInNativeDialog(),false' in menu
-assert '"Confirm grant","Cancel"' in menu
+assert 'args=>ConfirmEstateInNativeDialog(),false' not in menu
+assert 'private static bool LegacyEstateActionsEnabled(){return false;}' in menu
+assert 'if(!LegacyEstateActionsEnabled())return;' in menu
+assert menu.count('if(!LegacyEstateActionsEnabled())return false;')==2
+assert '"Confirm grant","Cancel"' in menu # historical unreachable code only
 assert '"Confirm","Cancel"' in menu
 assert 'ScreenManager.PushScreen' not in menu
 assert 'Gauntlet' not in menu

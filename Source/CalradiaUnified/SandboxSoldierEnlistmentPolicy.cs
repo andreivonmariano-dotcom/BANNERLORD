@@ -18,7 +18,8 @@ namespace CalradiaUnified
 
         public static bool IsEntryRank(string entry)
         {
-            return Array.IndexOf(EntryChoices,entry)>=0;
+            // Native is the current guided draft; explicit legacy grades stay strict.
+            return entry=="Native" || Array.IndexOf(EntryChoices,entry)>=0;
         }
 
         public static string RequestedNativeRank(string entry)
@@ -93,6 +94,7 @@ namespace CalradiaUnified
                 return "unrecognized_requested_entry_rank";
             if(NativeRankNumber(actualRankId)==0)
                 return "native_rank_not_recognized";
+            if(desiredEntry=="Native")return ""; // rank is verified by SaS, not CU
             return String.Equals(RequestedNativeRank(desiredEntry),
                 actualRankId,StringComparison.Ordinal)?""
                 :"actual_rank_differs_from_selected_entry";

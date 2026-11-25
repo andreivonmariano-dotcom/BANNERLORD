@@ -28,7 +28,7 @@ assert 'OpenFromNativeBUTRScreen()' in native
 assert 'b.ShowStartingHouseholdStatus();' in dossier
 
 # Settlement actions belong in a genuine owned court.
-assert '"Hold household court"' in menu
+assert '"Attend to local affairs"' in menu
 assert 'Settlement.CurrentSettlement.OwnerClan==' in menu
 assert 'Clan.PlayerClan' in menu
 assert '!Settlement.CurrentSettlement.IsUnderSiege' in menu
@@ -52,18 +52,22 @@ assert 'OfferLocalCharacterRequest(Hero.MainHero)' not in dossier
 assert 'AnswerCharacterRequest(true)' not in dossier
 assert 'AnswerCharacterRequest(false)' not in dossier
 assert 'ConfirmCharacterSupport()' not in dossier
-assert 'Text="View petitions"' in (
+assert 'Text="Correspondence"' in (
     root/"Modules"/"CalradiaUnified"/"GUI"/"Prefabs"/
     "CUNobleDossier.xml").read_text(encoding="utf-8")
 
 # Every change is made during a real Hero conversation, not by a menu.
 assert 'Hero.OneToOneConversationHero' in petition
-assert 'actor.StringId==agencyDecisions.PendingHeroId' in petition
-assert 'RequestedCharacter()==actor' in petition
-assert 'SamePlace(player,actor)' in petition
+assert 'agencyDecisions.PendingFor(actor.StringId)!=null' in petition
+assert 'RequestedCharacter(actor.StringId)==actor' in petition
+assert 'RequestedCharacter(actor.StringId)==actor' in petition
+assert 'RequestedCharacter(actor.StringId)!=actor' in petition
+assert 'SamePlace(Hero.MainHero,target)' in menu
+assert 'LocalRoyalGuest(target)' in menu
+assert 'Hero.OneToOneConversationHero!=actor' in menu
 assert 'actor.Age<18f' in petition
 assert 'SandboxAgencyDecisionPolicy.ChooseInitiative(' in petition
-assert 'agencyDecisions.Propose(actor.StringId,kind)' in petition
+assert 'agencyDecisions.Enqueue(actor.StringId,kind)' in petition
 for text in ("cu_petition_hear_pending","cu_petition_invite",
              "cu_petition_recognition","cu_petition_household",
              "cu_petition_livelihood","cu_petition_accept",
@@ -87,3 +91,37 @@ print("PASS v0.71d STATIC: court belongs to native owned estates, "+
       "birth-family claims remain reachable, portable native Clan/Party "+
       "dossiers are read-only, petitions use real conversations, and "+
       "modified native relation gains are reported accurately.")
+
+# Live crash containment: map, dossier and settlement routes use native inquiries.
+affairs=(src/"SandboxOriginBehavior.Affairs.cs").read_text(encoding="utf-8")
+assert 'ScreenManager.PushScreen(new CUAffairsScreen' not in affairs
+assert 'b.ShowAffairsNativePage(all,0)' in affairs
+assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,' in affairs
+assert '"Close",unread?(more?"Mark read & next":"Mark read")' in affairs
+assert 'characterAgendas.MarkNewsRead(item.HeroId,owner,item.Day)' in affairs
+assert 'string owner=Hero.MainHero.StringId;' in affairs
+assert 'if(!CanReadAffairs(owner))return;' in affairs
+assert 'Hero.MainHero.StringId==expectedOwner' in affairs
+assert 'MobileParty.MainParty.MapEvent==null' in affairs
+assert 'Mission.Current==null' in affairs
+assert 'if(RoyalAudienceAvailableToday())count++;' not in affairs
+assert 'SandboxAffairsIndexPolicy.Inbox(all)' in affairs
+assert 'SandboxAffairsIndexPolicy.Archive(BuildAffairs())' in affairs
+assert 'Pending=estate.IsUnderSiege' not in affairs
+assert 'cu_household_archived_letters' in menu
+assert 'store.SyncData("CU_news_read_1",ref newsReads);' in origin
+assert 'if(PendingAffairsGathering(day))count++;' in affairs
+assert 'bool pending=PendingAffairsGathering(day);' in affairs
+assert 'gatheringPlan.Owner==Hero.MainHero.StringId' in affairs
+assert '"cu_people_affairs_journal"' in menu
+print("PASS native correspondence containment and shared gathering notification predicate. SOURCE ONLY.")
+
+assert 'agencyDecisions.SelectPending(actor.StringId)' in menu
+assert 'agencyDecisions.PendingCount' in affairs
+assert 'foreach(var request in agencyDecisions.PendingRequests)' in menu
+assert 'CU_petition_recipient_1' in origin
+assert 'MBInformationManager.ShowMultiSelectionInquiry' in affairs
+assert '"cu_people_affairs_list"' not in menu
+assert 'args=>OpenCampaignAffairs(),false' in menu
+assert 'new InquiryElement(index,' in affairs
+assert 'item.Title+" | "+item.Status+(item.Day>=0?' in affairs

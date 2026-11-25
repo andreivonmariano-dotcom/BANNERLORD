@@ -1,5 +1,13 @@
 # Calradia Unified: mandatory PowerShell install and playthrough test standard
 
+## Current candidate | 25 November 2026
+
+25 November 2026 | Bannerlord PC 1.5.7.125802 | War Sails 1.3.7.125802 | CU v0.74.0 | 41 selected modules | Gate B, COMPILED_UNTESTED.
+
+Latest **COMPILED_UNTESTED** download: [Calradia Unified v0.74.0 family and personal memories](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45637611622/artifacts/15035145061). Development head `c2a4f25fca25a61d5ca44357d678cc4d1c240c0d`; PR workflow [45637611622](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45637611622) built synthetic merge checkout `68a6f24fbd94e780279ee375d340c2c400fbac0a` (not an actual branch merge). Push workflow [45637592173](https://github.com/andreivonmariano-dotcom/BANNERLORD/actions/runs/45637592173) also passed but produced a different DLL, not the selected pin. 138 CI steps, 4,372 policy checks, zero compiler warnings/errors. Independently downloaded exact bytes: outer and inner CRC pass, single Modules/CalradiaUnified, one DLL, manifest and embedded identity consistent. DLL 1,124,864 bytes SHA-256 `e6bcbde295ecf0527ec97b0c4805d11916a28bd92ee099f18d838da68e6d0bba`; runtime ZIP 442,175 bytes SHA-256 `4ce395511bb178a30ce9563c288e52473b6db2667f0f764112f8da7c7710928f`; outer artifact 438,057 bytes SHA-256 `b22d1e002125db674fc9e23f6b4b0c553b992e1001f8fe3e72969a61c39a366a`. Gate B only, no new native or reload test, no module installed.
+
+Use the updated installer with `-ShowLatest` and `-LatestVerified`. The downloaded package is a direct module ZIP nested inside the GitHub artifact; the installer accepts either. Back up old module and saves before a separate authorized installation. [Focused Lord acceptance](CU_LORD_FAMILY_OBSERVATION_PLAYTEST.md). Historical commands below are not the current pin.
+
 ## Current playable-test candidate | v0.69g (21 November 2026)
 
 The currently **compiled and policy-tested** stabilization candidate is **v0.69g**, source commit `8c2382461522907db63d5890e2204864a336e056`. It addresses a real Vlandian Younger Brother of a Lord test in which a missing native older-lord candidate blocked all custom family creation after native finalization. The new House check catches that missing elder *before* completing the native wizard, returns the cursor to the existing noble-birth choice and preserves the requested spouse, two children and two siblings. The Siblings screen now explains that generating an older brother does **not** create the existing clan-leading lord required by that origin. A true older-lord family link still requires a qualified native Hero.

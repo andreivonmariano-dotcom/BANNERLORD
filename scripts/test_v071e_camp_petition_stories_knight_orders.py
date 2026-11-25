@@ -30,8 +30,8 @@ assert 'CU_v071e_personal_petition_stories' in origin
 assert 'CU_v071e_native_knight_orders' in origin
 
 assert '[PrefabExtension("Party",' in native
-assert 'ExecuteCUCamp()' in native
-assert 'Command.Click=\\\"ExecuteCUCamp' in native
+assert 'ExecuteCUCamp()' not in native
+assert 'Command.Click=\\\"ExecuteCUCamp' not in native
 assert 'GameMenu.ActivateGameMenu("cu_household_camp")' in camp
 assert 'ScreenManager.PopScreen();' in camp
 assert 'MobileParty.MainParty' in camp
@@ -43,9 +43,10 @@ assert 'party.MemberRoster.GetTroopRoster()' in camp
 assert 'person.PartyBelongedTo!=party' in camp
 assert 'person.Age<18f' in camp
 assert 'GameMenu.ExitToLast()' in camp
-assert 'ShowHouseholdDutyLedger()' in camp
+assert 'ShowHouseholdDutyLedger()' not in camp # duplicate menu removed; illustrated roster retains officer tab
+assert 'CampOfficerText()' in camp
 assert 'CareerChronicleDescription()' in camp
-assert 'HearDossierPetition()' in camp
+assert 'OpenCampaignAffairs()' in camp
 assert not (source/"CUHouseholdCampMissionLogic.cs").exists()
 for forbidden in (
     'MissionState.OpenNew','Mission.SpawnAgent',
@@ -63,6 +64,9 @@ assert 'petitions' not in stories or 'petitionStories.For' in stories
 assert 'Hero.OneToOneConversationHero' in stories
 assert 'SamePlace(Hero.MainHero,person)' in stories
 assert 'petitionStories.RecordFollowUp(' in stories
+assert 'petitionStories.CanFollowUp(person.StringId,CurrentHouseholdDay())' in stories
+assert 'petitionStories.CanRecall(actor.StringId,CurrentHouseholdDay())' in read("SandboxOriginBehavior.LivingDialogueDepth.cs")
+assert 'TrackCurrentHousehold(life,agenda,player);' in read("SandboxLivingPersons.cs")
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in stories
 assert 'FollowUpDays=7' in states[0]
 assert 'return "face_to_face_story_followup_recorded";' in states[0]

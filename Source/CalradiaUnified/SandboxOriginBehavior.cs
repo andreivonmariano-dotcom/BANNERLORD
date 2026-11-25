@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Reflection;
@@ -25,12 +26,75 @@ namespace CalradiaUnified
     public sealed partial class SandboxOriginBehavior : CampaignBehaviorBase
     {
         private bool applied;
+        // Historical campaign-local start receipt, not today's authority.
+        private string startAuditOwner="",startAuditRole="",startAuditStatus="",startAuditReason="",startAuditRequest="";
+        private void RecordStartAudit(SandboxOriginProfile profile,Hero hero,string status,string reason)
+        {
+            if(profile==null || hero==null)return;
+            startAuditOwner=hero.StringId;startAuditRole=profile.Role;
+            startAuditStatus=status;startAuditReason=reason??"";
+            if(startAuditReason.Length>500)startAuditReason=startAuditReason.Substring(0,500);
+            startAuditRequest=profile.ValidationContext((int)hero.Age);
+        }
+        private static string VerifyRequestedFamilyIdentity(SandboxOriginProfile profile,Hero hero)
+        {
+            bool noble=SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role);
+            var spouse=hero.Spouse;
+            bool marriage=spouse!=null && (!noble || spouse.Occupation==Occupation.Lord) && spouse.Spouse==hero && spouse.Clan==Clan.PlayerClan &&
+                spouse.Name!=null && spouse.Name.ToString()==profile.SpouseName &&
+                spouse.IsFemale==SandboxFamilyPolicy.ResolveSpouseFemale(profile.SpouseGender,hero.IsFemale) &&
+                SandboxFamilyAgePolicy.MatchesRequestedAge(spouse.Age,profile.SpouseAge);
+            var children=hero.Children==null?new List<Hero>():hero.Children.Where(x=>x!=null).ToList();
+            bool childProof=true;
+            foreach(var expected in profile.Children.Take(profile.ChildCount))
+            {
+                var actual=children.FirstOrDefault(h=>spouse!=null && (!noble || h.Occupation==Occupation.Lord) &&
+                    h.Name!=null &&
+                    h.Name.ToString()==expected.Name && h.IsFemale==(expected.Gender=="Female") &&
+                    SandboxFamilyAgePolicy.MatchesRequestedAge(h.Age,expected.Age) &&
+                    h.Father==(hero.IsFemale?spouse:hero) && h.Mother==(hero.IsFemale?hero:spouse) &&
+                    spouse.Children!=null && spouse.Children.Contains(h));
+                if(actual==null){childProof=false;break;}children.Remove(actual);
+            }
+            var father=hero.Father;var mother=hero.Mother;
+            var siblings=father==null || father.Children==null?new List<Hero>():
+                father.Children.Where(x=>x!=null && x!=hero).ToList();
+            bool siblingProof=profile.SiblingCount==0 || (father!=null && mother!=null &&
+                father.Children!=null && father.Children.Contains(hero) && mother.Children!=null && mother.Children.Contains(hero));
+            foreach(var expected in profile.Siblings.Take(profile.SiblingCount))
+            {
+                var actual=siblings.FirstOrDefault(h=>mother!=null && (!noble || h.Occupation==Occupation.Lord) &&
+                    h.Name!=null &&
+                    h.Name.ToString()==expected.Name && h.IsFemale==(expected.Gender=="Female") &&
+                    SandboxFamilyAgePolicy.MatchesRequestedAge(h.Age,expected.Age) &&
+                    h.Father==father && h.Mother==mother && mother.Children!=null && mother.Children.Contains(h));
+                if(actual==null){siblingProof=false;break;}siblings.Remove(actual);
+            }
+            return SandboxStartContract.FamilyIdentityGate(profile.SpouseEnabled,marriage,
+                profile.ChildCount>0,childProof,profile.SiblingCount>0,siblingProof);
+        }
         private bool startedNewGame;
         private bool characterCreationComplete;
         private SandboxFamilyGrowthState familyGrowth =
             new SandboxFamilyGrowthState();
         private SandboxFamilyRecoveryState familyRecovery=
             new SandboxFamilyRecoveryState();
+        private SandboxRetinueOfficeState retinueOffices=new SandboxRetinueOfficeState();
+        internal static string RecordedRetinueOffice(Hero person)
+        {
+            var campaign=Campaign.Current;
+            var b=campaign==null?null:campaign.GetCampaignBehavior<SandboxOriginBehavior>();
+            if(b==null || person==null || !person.IsAlive || Clan.PlayerClan==null ||
+                person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan ||
+                person==Hero.MainHero)return "";
+            string office=b.retinueOffices.OfficeFor(person.StringId);
+            if(office.Length>0 || b.retinueOffices.HasIdentity(person.StringId))return office;
+            var old=b.livingPersons.People.FirstOrDefault(x=>x.Id==person.StringId);
+            if(old==null || person.Name==null || old.Name!=person.Name.ToString() ||
+                Clan.PlayerClan==null || person.Clan!=Clan.PlayerClan ||
+                person.CompanionOf!=Clan.PlayerClan)return "";
+            return SandboxRetinueOfficePolicy.LegacyOffice(old.Name);
+        }
         private SandboxLifeHistoryState livingPersons=
             new SandboxLifeHistoryState();
         private SandboxSocialObservationState socialObservations=
@@ -70,6 +134,7 @@ namespace CalradiaUnified
         private string soldierPendingOriginProfile="";
         // These belong to this campaign save, not an external profile.
         private string wandererCompanionId = "";
+        private string wandererCompanionProfession="";
         private int wandererWageCreditDay = -1;
 
         public override void RegisterEvents()
@@ -84,8 +149,8 @@ namespace CalradiaUnified
                 this, ObserveCareerChronicleDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveSocietyAccountsAndPeers);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
-                this, AdvanceFamilyUpbringing);
+            // Native education owns post-creation skill and trait progression.
+            // Retain the serialized initial upbringing choices for old saves.
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightOathDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
@@ -96,6 +161,10 @@ namespace CalradiaUnified
                 this, ObserveNativeMilitaryAppointmentsDaily);
             CampaignEvents.MapEventEnded.AddNonSerializedListener(
                 this, ObserveCompletedBattle);
+            CampaignEvents.OnGivenBirthEvent.AddNonSerializedListener(
+                this, ObserveNativeFamilyBirth);
+            CampaignEvents.HeroComesOfAgeEvent.AddNonSerializedListener(
+                this, ObserveNativeFamilyAdulthood);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveLordInheritanceDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
@@ -106,6 +175,35 @@ namespace CalradiaUnified
                 this, CharacterCreationCompleted);
             CampaignEvents.OnCharacterCreationInitializedEvent.AddNonSerializedListener(
                 this, ObserveNativeCharacterCreation);
+        }
+
+        private void ObserveNativeFamilyBirth(Hero mother,List<Hero> newborns,int unusedCount)
+        {
+            if(mother==null || newborns==null)return;
+            try
+            {
+                foreach(var child in newborns)
+                    if(child!=null && child.IsAlive && child.Mother==mother)
+                        RecordNativeFamilyMilestone(child,"Birth");
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_family_birth_observer_failed",error);}
+        }
+        private void ObserveNativeFamilyAdulthood(Hero child)
+        {
+            try{RecordNativeFamilyMilestone(child,"Adulthood");}
+            catch(Exception error){DiagnosticJournal.Exception("cu_family_adulthood_observer_failed",error);}
+        }
+        private void RecordNativeFamilyMilestone(Hero child,string milestone)
+        {
+            var player=Hero.MainHero;
+            if(!applied || !IsStandaloneSandbox() || livingPersons==null ||
+                player==null || child==null || child==player || !child.IsAlive ||
+                (child.Father!=player && child.Mother!=player))return;
+            int day=CurrentHouseholdDay();
+            if(livingPersons.RecordNativeFamilyMilestone(player.StringId,child.StringId,milestone,day))
+                DiagnosticJournal.Event("cu_native_family_milestone",
+                    "player="+player.StringId+"|child="+child.StringId+"|kind="+milestone+
+                    "|day="+day+"|native_callback=true|reward=false");
         }
 
         // The engine initializes the native narrative graph after receiving
@@ -343,6 +441,11 @@ namespace CalradiaUnified
         public override void SyncData(IDataStore store)
         {
             store.SyncData("CU_v016_origin_applied", ref applied);
+            store.SyncData("CU_start_audit_owner_1",ref startAuditOwner);
+            store.SyncData("CU_start_audit_role_1",ref startAuditRole);
+            store.SyncData("CU_start_audit_status_1",ref startAuditStatus);
+            store.SyncData("CU_start_audit_reason_1",ref startAuditReason);
+            store.SyncData("CU_start_audit_request_1",ref startAuditRequest);
             store.SyncData("CU_v060_dynastic_elder",
                 ref dynasticElderHeroId);
             store.SyncData("CU_v062_dynastic_elder_name",
@@ -363,6 +466,7 @@ namespace CalradiaUnified
                 ref soldierPendingOriginProfile);
             store.SyncData("CU_v070b_wanderer_companion",
                 ref wandererCompanionId);
+            store.SyncData("CU_wanderer_companion_profession_1",ref wandererCompanionProfession);
             store.SyncData("CU_v070b_wanderer_wage_credit_day",
                 ref wandererWageCreditDay);
             // Keep only our generated children's personal upbringing
@@ -374,9 +478,24 @@ namespace CalradiaUnified
             string recovery=familyRecovery.Serialize();
             store.SyncData("CU_v069d_family_recovery",ref recovery);
             familyRecovery=SandboxFamilyRecoveryState.Parse(recovery);
+            string retinueOfficeRecords=retinueOffices.Serialize();
+            store.SyncData("CU_v074_retinue_offices",ref retinueOfficeRecords);
+            retinueOffices=SandboxRetinueOfficeState.Parse(retinueOfficeRecords);
             string biographies=livingPersons.Serialize();
             store.SyncData("CU_v064_living_persons",ref biographies);
             livingPersons=SandboxLifeHistoryState.Parse(biographies);
+            string peerRecords=peerSocial.Serialize();
+            store.SyncData("CU_peer_social_1",ref peerRecords);
+            peerSocial=SandboxPeerSocialState.Parse(peerRecords);
+            string plannedGathering=gatheringPlan.Serialize();
+            store.SyncData("CU_gathering_plan_1",ref plannedGathering);
+            gatheringPlan=SandboxGatheringPlan.Parse(plannedGathering);
+            string variety=dialogueVariety.Serialize();
+            store.SyncData("CU_dialogue_variety_1",ref variety);
+            dialogueVariety=SandboxDialogueVarietyState.Parse(variety);
+            string story=storyDirector.Serialize();
+            store.SyncData("CU_story_director_1",ref story);
+            storyDirector=SandboxStoryDirectorState.Parse(story);
             string social=socialObservations.Serialize();
             store.SyncData("CU_v065_social_observations",ref social);
             socialObservations=SandboxSocialObservationState.Parse(social);
@@ -407,10 +526,14 @@ namespace CalradiaUnified
             successionInterest=SandboxSuccessionInterestState.Parse(claim);
             string agenda=characterAgendas.Serialize();
             store.SyncData("CU_v066_character_agendas",ref agenda);
+            string newsReads=characterAgendas.SerializeNewsReads();
+            store.SyncData("CU_news_read_1",ref newsReads);
             characterAgendas=SandboxCharacterAgendaState.Parse(agenda);
+            characterAgendas.RestoreNewsReads(newsReads);
             string requests=agencyDecisions.Serialize();
             store.SyncData("CU_v067_character_requests",ref requests);
             agencyDecisions=SandboxAgencyDecisionState.Parse(requests);
+            store.SyncData("CU_petition_recipient_1",ref petitionRecipient);
             string court=inheritanceNegotiation.Serialize();
             store.SyncData("CU_v067_family_negotiation",ref court);
             inheritanceNegotiation=SandboxInheritanceNegotiationState
@@ -418,12 +541,18 @@ namespace CalradiaUnified
             string duties=householdDuties.Serialize();
             store.SyncData("CU_v071c_household_duties",ref duties);
             householdDuties=SandboxHouseholdDutyState.Parse(duties);
+            string retainerRecord=retainerService.Serialize();
+            store.SyncData("CU_retainer_service_1",ref retainerRecord);
+            retainerService=SandboxRetainerServiceState.Parse(retainerRecord);
             string chapters=careerChronicle.Serialize();
             store.SyncData("CU_v071c_career_chronicle",ref chapters);
             careerChronicle=SandboxCareerChronicleState.Parse(chapters);
             string recurringReviews=recurringCareerReviews.Serialize();
             store.SyncData("CU_recurring_career_reviews_1",ref recurringReviews);
             recurringCareerReviews=SandboxCareerReviewState.Parse(recurringReviews);
+            string charge=careerCharge.Serialize();
+            store.SyncData("CU_career_charge_1",ref charge);
+            careerCharge=SandboxCareerChargeState.Parse(charge);
             string lifetime=lifetimeCareers.Serialize();
             store.SyncData("CU_lifetime_career_1",ref lifetime);
             lifetimeCareers=SandboxLifetimeCareerState.Parse(lifetime);
@@ -469,10 +598,12 @@ namespace CalradiaUnified
             TryApplyOnce();
             if (starter == null || !IsStandaloneSandbox()) return;
             RegisterPeopleAndLineageMenus(starter);
+            RegisterStartDiagnosticMenus(starter);
             RegisterKnightOathMenus(starter);
             RegisterKnightPatronConversations(starter);
             RegisterNobleOfficerConversations(starter);
             RegisterHouseholdConversations(starter);
+            RegisterLivingDialogueDepth(starter);
             RegisterPrivatePetitionConversations(starter);
             RegisterPetitionStoryConversations(starter);
             RegisterCareerChronicleMenus(starter);
@@ -481,6 +612,8 @@ namespace CalradiaUnified
             RegisterLordInheritanceMenus(starter);
             RegisterKingSuccessionMenus(starter);
             RegisterNativeRoyalCouncilMenus(starter);
+            RegisterGroupDiscussionMenus(starter);
+            // Historical peer/story records are migrated only; no runtime simulation or scene probe.
             starter.AddGameMenu("cu_origin_main",
                 "This legacy editor is retired. Start a new Sandbox to use the guided creator.",
                 args=>{});
@@ -505,45 +638,11 @@ namespace CalradiaUnified
             // Pre-campaign character design is already available through
             // the guided creator. Never advertise a NEXT GAME editor in
             // every active town/castle.
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_family_portraits",
-                "View my household portraits",
-                    args => Hero.MainHero != null &&
-                        (Hero.MainHero.Spouse != null ||
-                         (Hero.MainHero.Children != null &&
-                          Hero.MainHero.Children.Count > 0)),
-                    args =>
-                    {
-                        try
-                        {
-                            ScreenManager.PushScreen(
-                                new CUFamilyPortraitScreen());
-                        }
-                        catch (Exception error)
-                        {
-                            DiagnosticJournal.Exception(
-                                "cu_family_portrait_screen_failed",error);
-                            try
-                            {
-                                if (ScreenManager.TopScreen is
-                                    CUFamilyPortraitScreen)
-                                    ScreenManager.PopScreen();
-                            }
-                            catch (Exception secondary)
-                            {
-                                DiagnosticJournal.Exception(
-                                    "cu_family_portrait_screen_recovery",
-                                    secondary);
-                            }
-                            Notify("Household gallery could not open; " +
-                                "native Clan screen remains available.");
-                        }
-                    },false);
                 // Explicit repair for existing saves. The player must stand
                 // in their OWN castle or town to move the family there.
                 // This never changes the child HeroState or adds a minor to
                 // a party. It is not an automatic retroactive save migration.
-            starter.AddGameMenuOption("cu_people_lineage",
+            starter.AddGameMenuOption("cu_household_records",
                 "cu_family_residence_here",
                 "Make this owned holding my family's home",
                     args => Hero.MainHero != null &&
@@ -636,11 +735,22 @@ namespace CalradiaUnified
                 return;
             try
             {
+                // A confirmed former companion never regains an office
+                // merely by being recruited again. Missing identity is not proof.
+                var activeOfficerIds=new HashSet<string>(retinueOffices.ActiveIds(),StringComparer.Ordinal);
+                if(activeOfficerIds.Count>0)
+                    foreach(var officer in Hero.AllAliveHeroes.Where(h=>h!=null && activeOfficerIds.Contains(h.StringId)))
+                        if(officer==player || officer.Clan!=Clan.PlayerClan || officer.CompanionOf!=Clan.PlayerClan)
+                            if(retinueOffices.Revoke(officer.StringId))
+                                DiagnosticJournal.Event("cu_retinue_office_revoked","hero="+officer.StringId+"|native_membership_lost=true");
                 SandboxLivingPersons.ObserveDaily(livingPersons,
                     socialObservations,player);
                 SandboxLivingPersons.ObserveAgenda(livingPersons,
                     characterAgendas,player);
+                // Retired modeled story generation: keep saved historical receipts only.
                 ObserveAgencyDaily(player);
+                // No speculative peer sampling in ordinary campaigns.
+                gatheringPlan.Expire(CurrentHouseholdDay());
                 if(serviceCareer.IsConfigured)
                 {
                     // Serve as Soldier owns every actual enlisted-party
@@ -918,6 +1028,7 @@ namespace CalradiaUnified
                 {
                     soldierPendingStartSaved=true;
                     soldierPendingOriginProfile=profile.Serialize();
+                    RecordStartAudit(profile,hero,"Pending",waiting.Available?"native_enlistment_pending":"supported_sas_provider_unavailable");
                     if(!soldierPendingNoticeShown)
                     {
                         soldierPendingNoticeShown=true;
@@ -929,7 +1040,8 @@ namespace CalradiaUnified
                             "|no_native_rank_or_grant_fabricated=true");
                         Notify("Soldier enlistment awaits the real "+
                             "Serve as Soldier enlistment action. "+
-                            "Choose the requested troop grade and "+
+                            (profile.SoldierEntryRank=="Native"?"Choose your troop grade in Serve as Soldier and "+
+                                "the selected ":"Choose the requested troop grade and ")+
                             "commanding kingdom; no Soldier start "+
                             "will be marked successful beforehand.");
                     }
@@ -955,9 +1067,11 @@ namespace CalradiaUnified
                     "native_start_unchanged");
                 return;
             }
+            RecordStartAudit(profile,hero,"Incomplete","initialization_not_completed");
             string reason;
             if (!profile.IsValid((int)hero.Age, out reason))
             {
+                RecordStartAudit(profile,hero,"Failed",reason);
                 DiagnosticJournal.Event("sandbox_origin_invalid", reason);
                 return;
             }
@@ -973,6 +1087,7 @@ namespace CalradiaUnified
                 "|noble_birth="+profile.NobleBirthPosition);
             if(lifeGate.Length>0)
             {
+                RecordStartAudit(profile,hero,"Failed","preflight_"+lifeGate);
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=FAIL|reason=preflight_"+lifeGate+
                     "|no_custom_grants_applied=true");
@@ -1161,6 +1276,8 @@ namespace CalradiaUnified
                 if(postFamilyGate.Length==0 && profile.KingGuidedStart)
                     postFamilyGate=VerifyGuidedKingNativeFamily(
                         profile,hero);
+                if(postFamilyGate.Length==0 && profile.RealFamilyEnabled)
+                    postFamilyGate=VerifyRequestedFamilyIdentity(profile,hero);
                 if(postFamilyGate.Length>0)
                 {
                     RecordFailedNativeFamily(profile,hero,postFamilyGate);
@@ -1169,6 +1286,7 @@ namespace CalradiaUnified
                         "|family="+family+"|dynasty="+dynasty+
                         "|native_stage8_retained=true"+
                         "|no_new_fief_gold_items_or_retinue=true");
+                    RecordStartAudit(profile,hero,"Failed",postFamilyGate);
                     DiagnosticJournal.Event("sandbox_start_contract",
                         "result=FAIL|reason="+postFamilyGate+
                         "|native_stage8_retained=true"+
@@ -1219,6 +1337,7 @@ namespace CalradiaUnified
                 if(SandboxServicePolicy.NeedsPatron(profile.Role) &&
                     patron==null)
                 {
+                    RecordStartAudit(profile,hero,"Failed","commanding_lord_not_bound");
                     DiagnosticJournal.Event("sandbox_start_contract",
                         "result=FAIL|reason=commanding_lord_not_bound"+
                         "|patron="+patronStatus+
@@ -1285,6 +1404,7 @@ namespace CalradiaUnified
                     string gate=homeContractError.Length>0?
                         homeContractError:"starting_fief_request_unfulfilled";
                     RecordFailedNativeFamily(profile,hero,gate);
+                    RecordStartAudit(profile,hero,"Failed",gate);
                     DiagnosticJournal.Event("sandbox_start_contract",
                         "result=FAIL|reason="+gate+
                         "|optional_grants_skipped=true"+
@@ -1295,7 +1415,7 @@ namespace CalradiaUnified
                 // The optional named Wanderer friend is not a household
                 // officer. First dismiss native starter wanderers using
                 // the checked FamilyOnly path; only then register one Hero.
-                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero);
+                string retinue=SandboxCulturalRetinue.TryCreate(profile,hero,retinueOffices);
                 DiagnosticJournal.Event("cu_cultural_retinue_status",
                     "role="+profile.Role+
                     "|mode="+profile.RetinueMode+
@@ -1311,6 +1431,7 @@ namespace CalradiaUnified
                 {
                     RecordFailedNativeFamily(profile,hero,
                         "retinue_not_verified");
+                    RecordStartAudit(profile,hero,"Failed","retinue_not_verified");
                     DiagnosticJournal.Event("sandbox_start_contract",
                         "result=FAIL|reason=retinue_not_verified"+
                         "|retinue="+retinue+
@@ -1330,14 +1451,11 @@ namespace CalradiaUnified
                 {
                     var royalOfficers=Clan.PlayerClan.Companions.ToArray();
                     var marshal=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Marshal)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="Marshal");
                     var minister=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Royal Minister)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="RoyalMinister");
                     var kingsguard=royalOfficers.FirstOrDefault(o=>
-                        o!=null && o.Name.ToString().EndsWith(
-                            "(Kingsguard)",StringComparison.Ordinal));
+                        o!=null && retinueOffices.OfficeFor(o.StringId)=="Kingsguard");
                     bool marshalRole=marshal!=null &&
                         marshal.Occupation==Occupation.Lord;
                     bool ministerRole=minister!=null &&
@@ -1393,6 +1511,7 @@ namespace CalradiaUnified
                     {
                         RecordFailedNativeFamily(profile,hero,
                             "royal_court:"+court);
+                        RecordStartAudit(profile,hero,"Failed","royal_court:"+court);
                         DiagnosticJournal.Event(
                             "sandbox_start_contract",
                             "result=FAIL|reason=royal_court:"+court+
@@ -1425,12 +1544,9 @@ namespace CalradiaUnified
                                 .GetTroopCount(o.CharacterObject)==1);
                     bool offices=lordOfficers.Length==2 &&
                         lordOfficers.Count(o=>o!=null &&
-                            o.Name.ToString().EndsWith(
-                                "(Master of Arms)",
-                                StringComparison.Ordinal))==1 &&
+                            retinueOffices.OfficeFor(o.StringId)=="MasterOfArms")==1 &&
                         lordOfficers.Count(o=>o!=null &&
-                            o.Name.ToString().EndsWith(
-                                "(Knight)",StringComparison.Ordinal))==1;
+                            retinueOffices.OfficeFor(o.StringId)=="Knight")==1;
                     string lordRetinue=SandboxLordStartPolicy
                         .ValidateOfficers(retinue,lordOfficers.Length,
                             !offices,cultural,nativeHeroes,
@@ -1447,6 +1563,7 @@ namespace CalradiaUnified
                         "|master_of_arms_and_knight="+offices);
                     if(lordRetinue.Length>0)
                     {
+                        RecordStartAudit(profile,hero,"Failed","lord_officers:"+lordRetinue);
                         DiagnosticJournal.Event("sandbox_start_contract",
                             "result=FAIL|reason=lord_officers:"+
                             lordRetinue+
@@ -1490,6 +1607,7 @@ namespace CalradiaUnified
                         "|bandit_faction_not_invented=true");
                     if(!valid)
                     {
+                        RecordStartAudit(profile,hero,"Failed","outlaw_lieutenant_not_verified");
                         DiagnosticJournal.Event("sandbox_start_contract",
                             "result=FAIL"+
                             "|reason=outlaw_lieutenant_not_verified"+
@@ -1522,6 +1640,7 @@ namespace CalradiaUnified
                         "|native_stats_preserved=true");
                     if(!good)
                     {
+                        RecordStartAudit(profile,hero,"Failed","wanderer_companion_not_verified");
                         DiagnosticJournal.Event("sandbox_start_contract",
                             "result=FAIL"+
                             "|reason=wanderer_companion_not_verified"+
@@ -1532,6 +1651,8 @@ namespace CalradiaUnified
                     }
                     wandererCompanionId=companion==null ?
                         "" : companion.StringId;
+                    wandererCompanionProfession=companion==null?"":
+                        SandboxRetinueOfficePolicy.CompanionProfession(profile.WandererCompanionSpecialty);
                 }
 
                 if (profile.Gold >= 0)
@@ -1588,6 +1709,7 @@ namespace CalradiaUnified
                         "|payroll_not_permanently_free=true");
                     if(!accepted)
                     {
+                        RecordStartAudit(profile,hero,"Failed","outlaw_band_not_verified");
                         DiagnosticJournal.Event("sandbox_start_contract",
                             "result=FAIL|reason=outlaw_band_not_verified"+
                             "|receipt="+outlawBand+
@@ -1898,6 +2020,27 @@ namespace CalradiaUnified
                         Clan.PlayerClan.Settlements.Count))
                     failures=failures.Concat(new[]{
                         "landless_start_has_native_fief_or_kingdom"}).ToArray();
+                // Do not publish a successful noble start before its
+                // actual council and child-claim records are commissioned.
+                if(failures.Length==0 && profile.KingGuidedStart)
+                {
+                    string council=BeginNativeRoyalCouncil(hero);
+                    if(council!="native_royal_hero_council_commissioned")
+                        failures=failures.Concat(new[]{"royal_council:"+council}).ToArray();
+                    else
+                    {
+                        string royalRecorded=BeginGuidedKingSuccession(profile,hero);
+                        if(royalRecorded!="native_royal_household_recorded")
+                            failures=failures.Concat(new[]{"royal_claim_record:"+royalRecorded}).ToArray();
+                    }
+                }
+                if(failures.Length==0 && profile.LordGuidedStart)
+                {
+                    string heirRecorded=BeginGuidedLordInheritance(profile,hero);
+                    if(heirRecorded!="native_household_heirs_recorded")
+                        failures=failures.Concat(new[]{"lord_heir_record:"+heirRecorded}).ToArray();
+                }
+                RecordStartAudit(profile,hero,failures.Length==0?"ContractPassed":"Failed",String.Join(",",failures));
                 DiagnosticJournal.Event("sandbox_start_contract",
                     "result=" + (failures.Length == 0 ? "PASS" : "FAIL") +
                     "|role=" + profile.Role +
@@ -1937,41 +2080,6 @@ namespace CalradiaUnified
                             soldierReceipt.Length==0);
                         SandboxLivingPersons.CaptureAgenda(
                             profile,livingPersons,characterAgendas,hero);
-                        if(profile.KingGuidedStart)
-                        {
-                            string council=BeginNativeRoyalCouncil(hero);
-                            if(council!="native_royal_hero_council_commissioned")
-                            {
-                                DiagnosticJournal.Event(
-                                    "sandbox_start_contract",
-                                    "result=FAIL"+
-                                    "|reason=royal_council:"+council+
-                                    "|native_capital_unchanged=true"+
-                                    "|no_false_royal_council=true");
-                                Notify("Native royal court could not be "+
-                                    "commissioned: "+council);
-                                return;
-                            }
-                            string royalRecorded=BeginGuidedKingSuccession(
-                                profile,hero);
-                            if(royalRecorded!="native_royal_household_recorded")
-                                DiagnosticJournal.Event(
-                                    "cu_royal_claim_record_refused",
-                                    "result="+royalRecorded+
-                                    "|native_kingdom_unchanged=true"+
-                                    "|native_ownership_unchanged=true");
-                        }
-                        if(profile.LordGuidedStart)
-                        {
-                            string heirRecorded=BeginGuidedLordInheritance(
-                                profile,hero);
-                            if(heirRecorded!="native_household_heirs_recorded")
-                                DiagnosticJournal.Event(
-                                    "cu_lord_heir_record_refused",
-                                    "result="+heirRecorded+
-                                    "|native_owner_unchanged=true"+
-                                    "|no_false_succession_result=true");
-                        }
                         roleEconomy.Start(
                             profile.KnightGuidedStart?
                                 "HouseholdKnight":profile.SoldierGuidedStart?
@@ -2086,6 +2194,7 @@ namespace CalradiaUnified
                     }
                     catch(Exception historyError)
                     {
+                        RecordStartAudit(profile,hero,"Incomplete","career_history_capture_failed:"+historyError.GetType().Name);
                         DiagnosticJournal.Exception(
                             "cu_living_persons_capture_failed",historyError);
                     }
@@ -2114,6 +2223,7 @@ namespace CalradiaUnified
             }
             catch (Exception ex)
             {
+                RecordStartAudit(profile,hero,"Failed","unexpected_"+ex.GetType().Name);
                 RecordFailedNativeFamily(profile,hero,
                     "unexpected_"+ex.GetType().Name);
                 DiagnosticJournal.Exception("sandbox_origin_new_game", ex);
