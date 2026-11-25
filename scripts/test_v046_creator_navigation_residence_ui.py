@@ -80,7 +80,23 @@ assert "adultsSceneRegistered" in home
 assert "EligibleForAdultRecall(" in home
 assert '"underage_home_recorded"' in residence
 assert '"adult_hero_not_present"' in residence
-assert "Every son and daughter is shown here." in gallery
+# The gallery contract is native child identity and residence, not display copy.
+# Protect the existing six-child creator bound and both parent relationships.
+children=gallery.split("if (player.Children != null)",1)[1].split("private void Add",1)[0]
+assert "foreach (var child in player.Children" in children
+assert "h != null && h.IsAlive" in children
+assert "(h.Mother == player || h.Father == player)" in children
+assert ".OrderBy(h => h.Age)" in children
+assert ".Take(SandboxOriginProfile.MaxChildren)" in children
+assert 'Add(child,"CHILD")' in children
+assert "Members.Add(new CUFamilyPortraitVM(hero,relationship))" in gallery
+assert "hero.StayingInSettlement ??" in gallery
+assert "hero.LastKnownClosestSettlement" in gallery
+assert "residence.HeroesWithoutParty.Contains(hero)" in gallery
+assert "SandboxFamilyResidencePolicy.Classify(" in gallery
+assert "SandboxFamilyResidencePolicy.HumanStatus(category)" in gallery
+assert any(x.get("DataSource")=="{Members}" for x in portraits.iter("ListPanel"))
+assert any(x.get("Text")=="@Home" for x in portraits.iter("TextWidget"))
 assert "cu_family_gallery_child" in gallery
 assert "hero.IsChild" in gallery
 assert 'Text="@Presence"' in ET.tostring(portraits,encoding="unicode")
