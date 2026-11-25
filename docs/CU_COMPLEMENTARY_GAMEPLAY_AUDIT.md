@@ -75,3 +75,10 @@
 
 ## Validation and remaining work
 Historical source inventory disposition and runtime registration guards do not establish all module compatibility. Check 41-module startup, native conversation, governor eligibility/rejection and native references, no raw transfer with IG active, family gift and education, petitions, seven career loops, save/load and 60-minute session. Preserve old saved records and state keys; no destructive migration. No merge/release or live installation change. Use a disposable test save for first native governor action; no claim of recruitment delegation until a supported IG integration exists.
+
+## Deeper mutation review: native education and political ownership
+The old upbringing subsystem independently trained generated children and increased traits on daily age milestones 6/10/14/18. That overlaps the native child-development lifecycle. Disconnect AdvanceFamilyUpbringing from DailyTickEvent and remove ongoing CU education conversation choices. Preserve initial creator-defined traits/skills, upbringing labels and all CU_v052_family_growth serialized data. No rollback of already applied historical development. Native education controls new in-campaign progression. Historical milestone methods remain for audit but are not event-subscribed.
+
+The old family estate negotiation had a modeled consent threshold, optional native gold/relation payments and a guarded direct settlement ownership action. These are redundant and may bypass native/Diplomacy political decisions. Remove the petition, mediation and grant entry points; explicitly fail closed in the historical mutation gates. Keep existing historical claims readable and withdrawable, not pending alerts. No new CU inheritance payment or fief transfer after creation. Starting-life valid native fief selection and succession records remain distinct.
+
+The governor request is directly visible in the native dialogue root for eligible local residents and available after relevant family/concerns conversation. No third-party command method is invoked.

@@ -1032,46 +1032,6 @@ namespace CalradiaUnified
                 "cu_personal_matters_topics","Of course. What else is on your mind?",null,null,85);
             starter.AddPlayerLine("cu_personal_followup_exit","cu_personal_followup_choices",
                 "close_window","That is all for now.",null,null,80);
-            for(int i=0;i<6;i++)
-            {
-                int slot=i;
-                starter.AddPlayerLine("cu_family_education_child_"+slot,"cu_personal_matters_topics",
-                    "cu_family_education_discussion","Let us speak of {CU_EDUCATION_CHILD_"+slot+"}'s upbringing.",
-                    ()=>PrepareEducationOption(slot),()=>
-                    {
-                        var child=EducationChild(slot);
-                        educationChildId=child==null?"":child.StringId;
-                    },95);
-            }
-            starter.AddDialogLine("cu_family_education_discussion","cu_family_education_discussion",
-                "cu_family_education_choices","{CU_EDUCATION_DISCUSSION}",()=>PrepareEducationDiscussion(),null,100);
-            starter.AddDialogLine("cu_family_education_discussion_cu_safe_exit","cu_family_education_discussion",
-                "close_window","We can speak again another time.",null,null,1);
-            foreach(string choice in new[]{"Kind","Martial","Scholarly","Mercantile","Seafaring","Independent"})
-            {
-                string plan=choice;
-                string words=plan=="Kind"?"Let us teach kindness and generosity.":
-                    plan=="Martial"?"Let us encourage the practice of arms.":
-                    plan=="Scholarly"?"Let us encourage study and learning.":
-                    plan=="Mercantile"?"Let us teach the ways of trade.":
-                    plan=="Seafaring"?"Let us encourage knowledge of the sea.":
-                    "Let us encourage independent judgment.";
-                starter.AddPlayerLine("cu_family_education_choose_"+plan,"cu_family_education_choices",
-                    "cu_family_education_reply",words,
-                    ()=>SelectedEducationChild()!=null &&
-                        familyGrowth.UpbringingFor(educationChildId)!=plan,
-                    ()=>ChooseEducation(plan),100);
-            }
-            starter.AddDialogLine("cu_family_education_reply","cu_family_education_reply",
-                "cu_personal_matters_topics","{CU_EDUCATION_REPLY}",()=>PrepareEducationReply(),null,100);
-            starter.AddDialogLine("cu_family_education_reply_cu_safe_exit","cu_family_education_reply",
-                "close_window","We can speak again another time.",null,null,1);
-            starter.AddPlayerLine("cu_family_education_leave","cu_family_education_choices",
-                "cu_family_education_back_reply","Let us leave the matter for now.",null,null,80);
-            starter.AddDialogLine("cu_family_education_back_reply","cu_family_education_back_reply",
-                "cu_personal_matters_topics","Very well. What else is on your mind?",null,null,80);
-            starter.AddPlayerLine("cu_family_education_end","cu_family_education_choices",
-                "close_window","That is all for now.",null,null,70);
             starter.AddPlayerLine("cu_personal_charge_progress","cu_personal_matters_topics",
                 "cu_personal_charge_reply","Let us review what we have accomplished.",
                 ()=>CanCounselCareer() && IsPersonalChargeActive(),

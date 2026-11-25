@@ -538,23 +538,14 @@ namespace CalradiaUnified
                 successionInterest.EarlierSonsAtStart+
                 ". Living strongholds: "+NativeBirthHoldings(clan)+
                 ". Current clan head: "+leader+
-                ". Claim: "+inheritanceNegotiation.Status+
-                ". Negotiation readiness relation threshold: "+
-                SandboxInheritanceNegotiationPolicy.ConsentThreshold(
-                    successionInterest.CultureId,
-                    successionInterest.EarlierSonsAtStart)+
-                " native relation. Cultural mediation payment: "+
-                SandboxInheritanceNegotiationPolicy
-                    .FamilySettlementContribution(
-                        successionInterest.CultureId)+
-                " denars (maximum two, made at a native family court)."+
-                " A cadet must join the native kingdom through normal "+
-                "politics. Favorable relations alone are NOT game-backed "+
-                "clan-head consent. Property transfer is disabled until "+
-                "an actual native clan-head decision can be observed.");
+                ". Historical claim: "+inheritanceNegotiation.Status+
+                ". CU no longer negotiates or transfers holdings. Use native and Diplomacy political processes.");
         }
+        // Historical negotiation code is retained for auditing old saves only.
+        private static bool LegacyEstateActionsEnabled(){return false;}
         private void PetitionFamilyCouncil()
         {
+            if(!LegacyEstateActionsEnabled())return;
             var player=Hero.MainHero;
             var clan=RecordedBirthClan();
             if(player==null || clan==null)
@@ -600,6 +591,7 @@ namespace CalradiaUnified
         }
         private bool CanOfferFamilyMediation()
         {
+            if(!LegacyEstateActionsEnabled())return false;
             var player=Hero.MainHero;
             var clan=RecordedBirthClan();
             return player!=null && clan!=null &&
@@ -725,6 +717,7 @@ namespace CalradiaUnified
         }
         private bool CanConfirmFamilyGrant()
         {
+            if(!LegacyEstateActionsEnabled())return false;
             var clan=RecordedBirthClan();
             var player=Hero.MainHero;
             var estate=Settlement.CurrentSettlement;
@@ -877,7 +870,7 @@ namespace CalradiaUnified
                 // a fictional remote-clan command.
                 starter.AddGameMenuOption(from,
                     "cu_birth_family_council_entry_"+from,
-                    "Request an audience with my birth family",
+                    "Read my historical family claim",
                     args=>{
                         args.optionLeaveType=GameMenuOption.LeaveType.Conversation;
                         return successionInterest.IsRecorded &&
@@ -943,7 +936,7 @@ namespace CalradiaUnified
                 args=>GameMenu.SwitchToMenu("cu_people_household"),false);
             starter.AddGameMenuOption("cu_household_records",
                 "cu_people_open_claim",
-                "Family council and inheritance",
+                "Historical family claim",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return successionInterest.IsRecorded;},
                 args=>{
                     claimReturnMenu="cu_household_records";
@@ -989,33 +982,11 @@ namespace CalradiaUnified
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return successionInterest.IsRecorded;},
                 args=>DescribeFamilyClaim(),false);
             starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_petition",
-                "Petition clan head for a secondary family holding",
-                args=>successionInterest.IsRecorded &&
-                    !inheritanceNegotiation.Authorized &&
-                    inheritanceNegotiation.Attempts<3 &&
-                    inheritanceNegotiation.Status!=
-                        "NativeGrantCompleted" &&
-                    inheritanceNegotiation.Status!=
-                        "ClaimWithdrawn" &&
-                    CandidateClanGrant()!=null,
-                args=>PetitionFamilyCouncil(),false);
-            starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_mediation",
-                "Offer the clan's cultural mediation contribution",
-                args=>CanOfferFamilyMediation(),
-                args=>OfferFamilyMediation(),false);
-            starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_withdraw",
                 "Withdraw this family's outstanding claim",
                 args=>SandboxInheritanceNegotiationPolicy.MayWithdraw(
                     inheritanceNegotiation.Status),
                 args=>WithdrawFamilyClaim(),false);
-            starter.AddGameMenuOption("cu_people_claim",
-                "cu_family_grant",
-                "Confirm negotiated native family estate grant",
-                args=>CanConfirmFamilyGrant(),
-                args=>ConfirmEstateInNativeDialog(),false);
             starter.AddGameMenuOption("cu_people_claim",
                 "cu_family_claim_back","Return to People & Lineage",
                 args=>true,

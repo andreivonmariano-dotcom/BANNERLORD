@@ -235,8 +235,12 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             if(starter==null)return;
-            starter.AddPlayerLine("cu_household_governor_order","cu_personal_matters_topics","cu_household_governor_reply",
+            starter.AddPlayerLine(cu_household_governor_order","hero_main_options","cu_household_governor_reply",
                 "Will you govern this holding for our house?",()=>CanAskResidentToGovern(),()=>AskResidentToGovern(),140);
+            starter.AddPlayerLine("cu_household_governor_from_concern","cu_personal_followup_choices","cu_household_governor_reply",
+                "Will you govern this holding for our house?",()=>CanFollowPersonalTopic() &&
+                    (personalTopicName=="Concerns" || personalTopicName=="Family") && CanAskResidentToGovern(),
+                ()=>AskResidentToGovern(),140);
             starter.AddDialogLine("cu_household_governor_reply","cu_household_governor_reply","close_window",
                 "{CU_HOUSEHOLD_GOVERNOR_REPLY}",null,null,140);
             starter.AddPlayerLine("cu_household_defense_order",

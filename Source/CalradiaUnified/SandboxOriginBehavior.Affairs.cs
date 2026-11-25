@@ -81,7 +81,6 @@ namespace CalradiaUnified
                 knightServiceOrders.PatronId==knightOath.PatronId &&
                 knightServiceOrders.CanHearKing(CurrentOathDay()))count++;
             if(oath && knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)count++;
-            if(OpenAffairsClaim())count++;
             if(PendingAffairsGathering(day))count++;
             if(RoyalAudienceAvailableToday())count++;
             var clan=Clan.PlayerClan;
@@ -337,10 +336,10 @@ namespace CalradiaUnified
                 var estate=String.IsNullOrEmpty(inheritanceNegotiation.SettlementId)?null:
                     Settlement.Find(inheritanceNegotiation.SettlementId);
                 rows.Add(new SandboxAffair{Id="inheritance",Category="Household",HeroId=inheritanceNegotiation.LeaderId,SettlementId=inheritanceNegotiation.SettlementId,Title="Family estate claim",
-                    Status=inheritanceNegotiation.Authorized?"Awaiting lawful consent":"Disputed",
-                    Pending=true,Day=inheritanceNegotiation.PetitionDay,Detail=
+                    Status="Historical claim (native ownership only)",
+                    Pending=false,Day=inheritanceNegotiation.PetitionDay,Detail=
                         (estate==null?"The claim remains unresolved.":"Claim concerning "+estate.Name+".")+
-                        "\nVisit your birth family's hall."});
+                        "\nCU estate negotiation is retired. Use native political processes."});
             }
             if(clan.Settlements!=null)
                 foreach(var estate in clan.Settlements.Where(s=>s!=null && s.OwnerClan==clan))

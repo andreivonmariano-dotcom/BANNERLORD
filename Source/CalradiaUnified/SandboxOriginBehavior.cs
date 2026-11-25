@@ -149,8 +149,8 @@ namespace CalradiaUnified
                 this, ObserveCareerChronicleDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveSocietyAccountsAndPeers);
-            CampaignEvents.DailyTickEvent.AddNonSerializedListener(
-                this, AdvanceFamilyUpbringing);
+            // Native education owns post-creation skill and trait progression.
+            // Retain the serialized initial upbringing choices for old saves.
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(
                 this, ObserveKnightOathDaily);
             CampaignEvents.DailyTickEvent.AddNonSerializedListener(

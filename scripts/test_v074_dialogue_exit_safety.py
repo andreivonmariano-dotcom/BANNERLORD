@@ -284,3 +284,8 @@ assert 'new[]{"Concerns","Family","Standing"}' in depth
 assert '()=>CanDiscussPersonalMatters() || SpeakingWithPendingPetitioner()' in depth
 assert '"cu_group_entry_"+parent' not in group and '"cu_group_schedule_"+occasion' not in group
 assert 'CU_gathering_plan_1' in origin and 'CU_career_charge_1' in origin
+
+assert '"cu_family_education_child_"+slot' not in depth
+assert '"cu_household_governor_order","hero_main_options","cu_household_governor_reply"' in officer
+assert '"cu_household_governor_from_concern","cu_personal_followup_choices"' in officer
+assert 'this, AdvanceFamilyUpbringing);' not in origin
