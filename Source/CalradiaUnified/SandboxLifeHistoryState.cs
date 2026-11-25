@@ -72,7 +72,7 @@ namespace CalradiaUnified
         }
         // A reciprocal native spouse link is evidence of a marriage,
         // not proof of its date or a newly performed ceremony.
-        public bool ObserveMarriage(string hero,string spouse,bool reciprocal)
+        public bool ObserveMarriage(string hero,string spouse,bool reciprocal,int observedDay=-1)
         {
             if(!reciprocal || String.IsNullOrWhiteSpace(hero) ||
                 String.IsNullOrWhiteSpace(spouse) || hero==spouse)return false;
@@ -82,7 +82,23 @@ namespace CalradiaUnified
             if(!Tie(hero,spouse,"Spouse","VerifiedNativeMarriage") || known)
                 return false;
             return Remember("NativeMarriageObserved",hero,spouse,
-                "native_marriage_seen=true|date_not_established");
+                "native_marriage_seen=true|date_not_established"+
+                (observedDay>=0 && observedDay<=2000000?"|observed_day="+observedDay.ToString(
+                    System.Globalization.CultureInfo.InvariantCulture):""));
+        }
+        public bool RecentNativeMarriageObservation(string hero,string spouse,int day)
+        {
+            if(String.IsNullOrWhiteSpace(hero) || String.IsNullOrWhiteSpace(spouse) ||
+                hero==spouse || day<0)return false;
+            var receipt=Events.LastOrDefault(e=>e.Kind=="NativeMarriageObserved" &&
+                ((e.Actor==hero && e.Target==spouse) || (e.Actor==spouse && e.Target==hero)));
+            if(receipt==null)return false;
+            var fields=receipt.Detail.Split('|');
+            int observed;
+            return fields.Length==3 && fields[0]=="native_marriage_seen=true" &&
+                fields[1]=="date_not_established" && fields[2].StartsWith("observed_day=",StringComparison.Ordinal) &&
+                Int32.TryParse(fields[2].Substring(13),out observed) && observed>=0 &&
+                (long)day-observed>=0 && (long)day-observed<7;
         }
         // A saved native observation, not a reconstructed event date. If an
         // old sample is evicted, the next observation is only a new baseline.

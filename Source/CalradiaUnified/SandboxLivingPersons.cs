@@ -280,7 +280,7 @@ namespace CalradiaUnified
                 int day=(int)Math.Floor(CampaignTime.Now.ToDays);
                 if(spouse)
                 {
-                    life.ObserveMarriage(player.StringId,person.StringId,true);
+                    life.ObserveMarriage(player.StringId,person.StringId,true,day);
                     string presence=ObservedFamilyPresence(player,person);
                     if(presence.Length>0 && life.ObserveFamilyState(player.StringId,person.StringId,"Presence",presence,day))
                         DiagnosticJournal.Event("cu_family_presence_observed",
@@ -476,7 +476,7 @@ namespace CalradiaUnified
                         x.Kind=="Spouse"))
                 {
                     if(state.ObserveMarriage(hero.StringId,
-                        hero.Spouse.StringId,true))events++;
+                        hero.Spouse.StringId,true,(int)Math.Floor(CampaignTime.Now.ToDays)))events++;
                 }
                 if(hero!=player)
                 {

@@ -24,6 +24,19 @@ internal static class Program
     }
     private static void Main()
     {
+        var recentMarriage=new SandboxLifeHistoryState();
+        Check("marriage news records observation not wedding date and requires reciprocal link",
+            !recentMarriage.ObserveMarriage("parent","spouse",false,10) &&
+            recentMarriage.ObserveMarriage("parent","spouse",true,10) &&
+            recentMarriage.RecentNativeMarriageObservation("spouse","parent",10) &&
+            !recentMarriage.RecentNativeMarriageObservation("parent","other",10) &&
+            !recentMarriage.RecentNativeMarriageObservation("parent","spouse",17));
+        var restoredRecentMarriage=SandboxLifeHistoryState.Parse(recentMarriage.Serialize());
+        Check("marriage observation cannot be replayed and old undated receipts do not become news",
+            restoredRecentMarriage.RecentNativeMarriageObservation("parent","spouse",11) &&
+            !restoredRecentMarriage.ObserveMarriage("spouse","parent",true,11) &&
+            restoredRecentMarriage.ObserveMarriage("other","third",true) &&
+            !restoredRecentMarriage.RecentNativeMarriageObservation("other","third",11));
         var nativeFamilyEvents=new SandboxLifeHistoryState();
         Check("native family receipts require valid owner child and event",
             !nativeFamilyEvents.RecordNativeFamilyMilestone("parent","parent","Birth",1) &&

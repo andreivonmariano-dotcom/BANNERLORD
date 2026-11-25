@@ -817,6 +817,9 @@ namespace CalradiaUnified
                 livingPersons.RecentFamilyChange(player.StringId,actor.StringId,"Presence",day)=="Reunited")
                 return player.GetRelation(actor)<0?"We are together again, though we still have matters to settle.":
                     "It is good to be together again after our time apart.";
+            if(livingPersons.RecentNativeMarriageObservation(player.StringId,actor.StringId,day))
+                return player.GetRelation(actor)<0?"We are married, but we still need to speak frankly about the life we share.":
+                    "We share a marriage now. Let us speak of how we will make a life together.";
             if(player.Children==null)return "";
             var children=player.Children.Where(h=>h!=null && h.IsAlive &&
                 (h.Father==player || h.Mother==player) && (h.Father==actor || h.Mother==actor)).ToArray();
@@ -892,6 +895,18 @@ namespace CalradiaUnified
                         reply+=" I remember the help you gave in earlier matters.";
                     else if(knownDecline && bond!=null && bond.Declined>0 && bond.Negative<0 && relation<0)
                         reply+=" I remember that we did not agree on earlier matters.";
+                    var shared=livingPersons.SharedConversationMemory(player.StringId,actor.StringId);
+                    if(shared!=null && shared.Kind=="FamilyGiftConfirmed" && SpeakingWithAdultFamily())
+                        reply+=" I remember the gift you gave me.";
+                    else if(shared!=null && shared.Kind=="FamilyVisit" && SpeakingWithAdultFamily())
+                        reply+=" I remember the time we set aside for our family.";
+                    else if(shared!=null && (shared.Kind=="NativePartyDutyAssigned" || shared.Kind=="NativeGovernorAssigned") &&
+                        CanDiscussHouseholdDuty())
+                    {
+                        string actualDuty=NativeHouseholdAssignment(actor);
+                        reply+=actualDuty.Length>0?" I remember our appointment. My current duty is "+actualDuty+".":
+                            " I remember the appointment, but I no longer have a confirmed native duty.";
+                    }
                     int shift=ObservedStandingShift(player,actor);
                     if(shift>0)reply+=" Our standing has improved since the earlier record. I would see that progress continue.";
                     else if(shift<0)reply+=" Matters between us have grown more strained. I would not dismiss that change.";
