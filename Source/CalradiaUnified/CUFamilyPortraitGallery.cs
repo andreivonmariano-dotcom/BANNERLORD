@@ -115,10 +115,7 @@ namespace CalradiaUnified
         {
             get
             {
-                return "Every son and daughter is shown here. Young " +
-                    "children have a recorded family home, but " +
-                    "Bannerlord does not spawn or recall them as adult " +
-                    "party heroes until they come of age.";
+                return "Members of your family.";
             }
         }
 
@@ -145,7 +142,8 @@ namespace CalradiaUnified
         {
             person=hero;
             inspect=inspectAction;
-            Relationship = relationship;
+            string title=SandboxOriginBehavior.ContextualHouseholdTitle(hero);
+            Relationship = title.Length>0?title:relationship;
             Name = hero.Name.ToString();
             Age = hero.IsChild ? "Age " + (int)hero.Age +
                 "  |  underage" : "Age " + (int)hero.Age;

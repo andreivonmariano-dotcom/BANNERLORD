@@ -256,6 +256,8 @@ namespace CalradiaUnified
                        provisional.CharacterObject)!=1)
                     throw new InvalidOperationException(
                         "Native companion party/relationship not confirmed");
+                provisional.EncyclopediaText=new TextObject(provisional.Name+" travels with "+player.Name+
+                    " as a "+SandboxRetinueOfficePolicy.CompanionProfession(profile.WandererCompanionSpecialty).ToLowerInvariant()+".");
                 created=provisional;
                 DiagnosticJournal.Event("cu_wanderer_unique_companion",
                     "result=PASS|id="+created.StringId+

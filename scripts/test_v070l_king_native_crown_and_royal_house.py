@@ -137,7 +137,7 @@ assert 'CurrentNobleAuthority(true)' in council
 assert 'marshal.PartyBelongedTo!=party || kingsguard.PartyBelongedTo!=party' in council
 assert 'minister.PartyBelongedTo!=null || minister.CurrentSettlement!=seat' in council
 assert 'if(!NativeRoyalCouncilPresent(true))return;' in council
-assert 'Last verified clan leader:' in lord and 'Last verified native ruler:' in observation
+assert 'Last known clan leader:' in lord and 'Last known ruler:' in observation
 assert 'Last recorded status:' in lord and 'Last recorded status:' in observation
 assert 'return result=="native_succession_observation_changed" || result=="native_succession_unchanged";' in lord
 assert 'return result=="native_crown_observation_changed" || result=="native_crown_unchanged";' in observation

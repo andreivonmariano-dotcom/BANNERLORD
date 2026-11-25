@@ -14,6 +14,7 @@ namespace CalradiaUnified
         {
             switch(office)
             {
+                case "ManAtArms":return "Man-at-Arms";
                 case "MasterOfArms":return "Master of Arms";
                 case "RoyalMinister":return "Royal Minister";
                 case "HouseholdSteward":return "Household Steward";
@@ -24,6 +25,8 @@ namespace CalradiaUnified
         }
         public static string Key(string label)
         {
+            if(label=="Man-at-Arms" || label=="Man at Arms" || label=="ManAtArms")return "ManAtArms";
+            if(label=="Captain" || label=="Envoy" || label=="Steward")return label;
             if(label=="Band Lieutenant" || label=="Second In Command")return "SecondInCommand";
             if(label=="Master of Arms" || label=="Master ofArms")return "MasterOfArms";
             string key=(label??"").Replace(" ","");
@@ -34,6 +37,48 @@ namespace CalradiaUnified
             if(String.IsNullOrEmpty(name) || !name.EndsWith(")",StringComparison.Ordinal))return "";
             int start=name.LastIndexOf(" (",StringComparison.Ordinal);
             return start<1?"":Key(name.Substring(start+2,name.Length-start-3));
+        }
+        // A profession label is independent of the native occupation.
+        public static string Profession(string office)
+        {
+            switch(Key(office))
+            {
+                case "Knight":return "Knight";
+                case "Squire":return "Squire";
+                case "Kingsguard":return "Royal Guardsman";
+                case "Marshal":return "Marshal";
+                case "MasterOfArms":return "Master of Arms";
+                case "RoyalMinister":return "Minister";
+                case "Sergeant":return "Sergeant";
+                case "ManAtArms":return "Man-at-Arms";
+                case "Captain":return "Captain";
+                case "Envoy":return "Envoy";
+                case "Steward":case "HouseholdSteward":return "Steward";
+                case "Chamberlain":return "Chamberlain";
+                case "Factor":return "Trade Factor";
+                case "Navigator":return "Navigator";
+                case "FirstMate":return "First Mate";
+                case "SecondInCommand":return "Band Lieutenant";
+                default:return "";
+            }
+        }
+        public static string CompanionProfession(string specialty)
+        {
+            switch(specialty)
+            {
+                case "Guard":return "Guard";
+                case "Scout":return "Scout";
+                case "Healer":return "Healer";
+                case "Steward":return "Steward";
+                case "Trader":return "Trader";
+                default:return "Companion";
+            }
+        }
+        public static bool NobleCommission(string role,string office)
+        {
+            return SandboxFamilyPolicy.NobleFamilyOccupation(role) &&
+                (office=="Knight" || office=="MasterOfArms" || office=="Marshal" ||
+                 office=="Kingsguard" || office=="Squire");
         }
         public static string[] WandererSupportSkills(string specialty)
         {
@@ -114,6 +159,7 @@ namespace CalradiaUnified
             switch(office)
             {
                 case "Squire":return "A young attendant entrusted with learning arms and mounted service.";
+                case "ManAtArms":return "A household soldier sworn to serve in arms.";
                 case "Knight":return "A sworn household fighter trained for mounted and personal service.";
                 case "Marshal":return "A senior officer entrusted with the ordering of the household's forces.";
                 case "Kingsguard":return "A personal guard charged with protecting the sovereign.";
@@ -141,6 +187,7 @@ namespace CalradiaUnified
         {
             switch(office)
             {
+                case "ManAtArms":return new[]{"OneHanded","Athletics","Polearm"};
                 case "Knight":return new[]{"Riding","Polearm","OneHanded"};
                 case "MasterOfArms":return new[]{"OneHanded","Leadership","Tactics"};
                 case "Marshal":return new[]{"Leadership","Tactics","Riding"};
@@ -159,7 +206,7 @@ namespace CalradiaUnified
         }
         public static bool IsFieldOfficer(string office)
         {
-            return office=="Knight" || office=="MasterOfArms" ||
+            return office=="ManAtArms" || office=="Knight" || office=="MasterOfArms" ||
                 office=="Marshal" || office=="Kingsguard" ||
                 office=="Squire" ||
                 office=="FirstMate" || office=="Sergeant" ||
@@ -172,6 +219,7 @@ namespace CalradiaUnified
             bool second=variant==1;
             switch(office)
             {
+                case "ManAtArms":return second?"My arms are ready. Where shall we march?":"I stand ready to serve in arms.";
                 case "MasterOfArms":return second?
                     "I would review the readiness of the recruits and the men entrusted with training them.":
                     "My charge is the household's readiness in arms. Training and discipline come before new commitments.";
@@ -183,11 +231,11 @@ namespace CalradiaUnified
                     second?"We should weigh the company's strength against our next obligation.":
                     "My charge is the field force. We should review its readiness before committing it to a campaign.";
                 case "Kingsguard":return second?
-                    "My duty is your personal protection, not the command of an invented guard regiment.":
+                    "My place is at your side. Your safety comes first.":
                     "I attend to your safety and the risks of our next movement.";
                 case "RoyalMinister":return governorVerified?
                     (second?"I can report on the holding I actually govern. Changes to its administration remain with the native settlement screen.":
-                    "I hold a native governorship and can discuss its affairs, but the settlement's own accounts remain authoritative."):
+                    "I can report on the affairs of my holding."):
                     "I cannot claim the authority of a governor without a current native appointment.";
                 case "Squire":return second?
                     "I wish to learn more of the duties of a mounted retainer.":

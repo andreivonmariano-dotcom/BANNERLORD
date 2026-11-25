@@ -33,6 +33,19 @@ namespace CalradiaUnified
             return role=="King" || role=="Lord" || role=="Knight" ||
                 role=="HouseholdKnight" || role=="NobleCadet";
         }
+        // Display titles are contextual; they never assign native authority.
+        public static string FamilyTitle(bool female,bool sovereign,bool royalKin,
+            bool spouse,bool child,bool noble,bool swornKnight)
+        {
+            if(sovereign)return female?"Queen":"King";
+            if(royalKin && spouse)return "Royal Consort";
+            if(royalKin && child)return female?"Princess":"Prince";
+            if(swornKnight)return "Knight";
+            if(noble)return female?"Lady":"Lord";
+            if(spouse)return "Spouse";
+            if(child)return female?"Daughter":"Son";
+            return "";
+        }
         public static bool ValidChildAge(int childAge, int playerAge,
             bool hasSpouse, int spouseAge)
         {

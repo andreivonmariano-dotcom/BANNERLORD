@@ -532,6 +532,15 @@ namespace CalradiaUnified
                     return "failed:family_occupation_mismatch";
                 }
             }
+            // Fresh generated people receive concise encyclopedia entries.
+            // Never replace an existing native character's biography.
+            if(spouseHero!=null && player.Spouse==spouseHero && spouseHero.Spouse==player)
+                spouseHero.EncyclopediaText=new TextObject(spouseHero.Name+" is the spouse of "+player.Name+".");
+            foreach(var child in allocatedChildren.Where(h=>h!=null && h.Father!=null && h.Mother!=null))
+                child.EncyclopediaText=new TextObject(child.Name+" is the "+(child.IsFemale?"daughter":"son")+
+                    " of "+child.Father.Name+" and "+child.Mother.Name+".");
+            foreach(var sibling in provisionalSiblings.Where(h=>h!=null && h.Father==player.Father && h.Mother==player.Mother))
+                sibling.EncyclopediaText=new TextObject(sibling.Name+" is the "+(sibling.IsFemale?"sister":"brother")+" of "+player.Name+".");
             bool verified = (!profile.SpouseEnabled ||
                     (player.Spouse == spouseHero && spouseHero != null &&
                      spouseHero.Clan == Clan.PlayerClan)) &&

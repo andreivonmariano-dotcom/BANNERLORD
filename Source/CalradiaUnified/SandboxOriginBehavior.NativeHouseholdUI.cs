@@ -87,6 +87,93 @@ namespace CalradiaUnified
         }
         // These buttons inspect real campaign entities. A Hero must
         // still belong to the player's actual family or companion roster.
+        internal static string ContextualHouseholdTitle(Hero person)
+        {
+            if(person==null || person.Clan==null)return "";
+            var clan=person.Clan;
+            var king=clan.Kingdom==null?null:clan.Kingdom.Leader;
+            bool sovereign=king==person && clan.Kingdom.RulingClan==clan && clan.Leader==person;
+            bool royal=king!=null && king.Clan==clan && clan.Kingdom.RulingClan==clan;
+            bool spouse=royal && king.Spouse==person && person.Spouse==king;
+            bool child=royal && king.Children!=null && king.Children.Contains(person) &&
+                (person.Father==king || person.Mother==king);
+            if(sovereign || spouse || child)
+                return SandboxFamilyPolicy.FamilyTitle(person.IsFemale,sovereign,royal,spouse,child,person.IsLord,false);
+            var campaign=Campaign.Current;
+            var b=campaign==null?null:campaign.GetCampaignBehavior<SandboxOriginBehavior>();
+            if(b!=null && clan==Clan.PlayerClan)
+            {
+                string office=RecordedRetinueOffice(person);
+                if(office.Length>0)return SandboxRetinueOfficePolicy.Profession(office);
+                if(person.CompanionOf==clan && clan.Companions.Contains(person))
+                {
+                    string duty=b.HouseholdOfficeFor(person.StringId);
+                    string profession=SandboxRetinueOfficePolicy.Profession(duty);
+                    if(profession.Length>0)return profession;
+                    return "Companion";
+                }
+                if(person==Hero.MainHero && b.knightOath.HasCurrentOath && b.knightOath.PlayerId==person.StringId)
+                    return "Knight";
+            }
+            return SandboxFamilyPolicy.FamilyTitle(person.IsFemale,false,false,false,false,person.IsLord,false);
+        }
+        private bool RecordedNobleFounder(Hero player)
+        {
+            var clan=Clan.PlayerClan;
+            return applied && player!=null && clan!=null && player.Clan==clan &&
+                ((lordInheritance.IsRecorded && lordInheritance.FounderId==player.StringId && lordInheritance.ClanId==clan.StringId) ||
+                 (kingSuccession.IsRecorded && kingSuccession.FounderId==player.StringId && kingSuccession.RulingClanId==clan.StringId) ||
+                 (knightOath.IsConfigured && knightOath.PlayerId==player.StringId));
+        }
+        private Hero[] FamilyOccupationRepairs()
+        {
+            var player=Hero.MainHero;var clan=Clan.PlayerClan;
+            if(!RecordedNobleFounder(player) || player.IsPrisoner || MobileParty.MainParty==null ||
+                MobileParty.MainParty.MapEvent!=null || TaleWorlds.MountAndBlade.Mission.Current!=null)
+                return new Hero[0];
+            var candidates=new System.Collections.Generic.List<Hero>();
+            if(player.Spouse!=null && player.Spouse.Spouse==player)candidates.Add(player.Spouse);
+            if(player.Children!=null)candidates.AddRange(player.Children.Where(h=>h!=null &&
+                (h.Father==player || h.Mother==player) && h.Father!=null && h.Mother!=null &&
+                h.Father.Children.Contains(h) && h.Mother.Children.Contains(h)));
+            if(player.Father!=null && player.Mother!=null)
+                candidates.AddRange(player.Father.Children.Where(h=>h!=null && h!=player &&
+                    h.Father==player.Father && h.Mother==player.Mother && player.Mother.Children.Contains(h)));
+            return candidates.Distinct().Where(h=>h.IsAlive && !h.IsPrisoner && h.Clan==clan &&
+                h.CompanionOf==null && !clan.Companions.Contains(h) && h.CharacterObject!=null &&
+                h.Occupation==Occupation.Wanderer && h.CharacterObject.Occupation==Occupation.Wanderer &&
+                livingPersons.People.Any(p=>p.Id==h.StringId && p.HouseholdId==clan.StringId &&
+                    (p.Station=="SpouseInPlayerClan" || p.Station=="RecordedOffspring" || p.Station=="RecordedSibling")))
+                .Take(16).ToArray();
+        }
+        private void ReviewFamilyOccupationRepair()
+        {
+            var candidates=FamilyOccupationRepairs();
+            if(candidates.Length==0){ShowNativeDetail("Family occupations","No eligible family corrections.");return;}
+            var ids=candidates.Select(h=>h.StringId).ToArray();
+            string owner=Hero.MainHero.StringId;
+            InformationManager.ShowInquiry(new InquiryData("Correct family occupations",
+                String.Join("\n",candidates.Select(h=>h.Name+" | Wanderer → Lord"))+
+                "\nOnly recorded family members are affected. No land, office or title grant.",
+                true,true,"Correct","Cancel",()=>
+                {
+                    if(Hero.MainHero==null || Hero.MainHero.StringId!=owner)return;
+                    int changed=0;
+                    foreach(var h in FamilyOccupationRepairs().Where(h=>ids.Contains(h.StringId)))
+                    {
+                        try
+                        {
+                            h.SetNewOccupation(Occupation.Lord);
+                            bool confirmed=h.Occupation==Occupation.Lord && h.CharacterObject.Occupation==Occupation.Lord;
+                            if(confirmed)changed++;
+                            DiagnosticJournal.Event("cu_family_occupation_repair","hero="+h.StringId+
+                                "|confirmed="+confirmed+"|minor="+h.IsChild+"|state="+h.HeroState);
+                        }
+                        catch(Exception error){DiagnosticJournal.Exception("cu_family_occupation_repair_failed",error);}
+                    }
+                    ShowNativeDetail("Family occupations","Corrected: "+changed+" of "+ids.Length+".");
+                },()=>{}),true);
+        }
         private void InspectDossierHero(Hero person)
         {
             var player=Hero.MainHero;
@@ -140,8 +227,9 @@ namespace CalradiaUnified
             else if(companion && person.PartyBelongedTo!=null)
                 duty="Current field assignment: "+
                     person.PartyBelongedTo.Name+".";
-            ShowNativeDetail(person.Name+" | "+relationship,
-                "Age "+(int)person.Age+" | "+parentage+
+            string title=ContextualHouseholdTitle(person);
+            ShowNativeDetail(person.Name+" | "+(title.Length>0?title:relationship),
+                "Age "+(int)person.Age+" | "+relationship+" | "+parentage+
                 "\n"+location+
                 "\n"+(assignedOffice.Length>0?"Household office: "+assignedOffice+"\n":"")+duty+
                 "\nStanding with you: "+
@@ -256,6 +344,11 @@ namespace CalradiaUnified
                     args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
                         return Hero.MainHero!=null && !Hero.MainHero.IsPrisoner && Clan.PlayerClan!=null;},
                     args=>ShowStartDiagnostics(),false);
+            foreach(var menu in new[]{"town","castle"})
+                starter.AddGameMenuOption(menu,"cu_family_occupation_repair_"+menu,"Correct family occupations",
+                    args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
+                        return FamilyOccupationRepairs().Length>0;},
+                    args=>ReviewFamilyOccupationRepair(),false);
         }
         private void ShowStartDiagnostics()
         {

@@ -2216,6 +2216,27 @@ internal static class Program
                 "vassal","",false,false,0) &&
             !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "king","",false,false,0));
+        Check("contextual family titles follow observed rule and gender, not noble claims",
+            SandboxFamilyPolicy.FamilyTitle(true,true,true,false,false,true,false)=="Queen" &&
+            SandboxFamilyPolicy.FamilyTitle(false,false,true,true,false,true,false)=="Royal Consort" &&
+            SandboxFamilyPolicy.FamilyTitle(true,false,true,false,true,true,false)=="Princess" &&
+            SandboxFamilyPolicy.FamilyTitle(false,false,false,false,true,true,false)=="Lord" &&
+            SandboxFamilyPolicy.FamilyTitle(true,false,false,false,false,true,false)=="Lady");
+        Check("retainer profession is not a native noble promotion",
+            SandboxRetinueOfficePolicy.Profession("Man-at-Arms")=="Man-at-Arms" &&
+            SandboxRetinueOfficePolicy.Profession("Knight")=="Knight" &&
+            SandboxRetinueOfficePolicy.Profession("Royal Minister")=="Minister" &&
+            SandboxRetinueOfficePolicy.NobleCommission("Lord","Knight") &&
+            !SandboxRetinueOfficePolicy.NobleCommission("Lord","ManAtArms") &&
+            !SandboxRetinueOfficePolicy.NobleCommission("King","RoyalMinister"));
+        var guardDuty=new SandboxHouseholdDutyState();
+        guardDuty.Assign("Captain","captain");
+        guardDuty.Assign("ManAtArms","guard");
+        guardDuty.Report("ManAtArms","guard",5);
+        var restoredGuard=SandboxHouseholdDutyState.Parse(guardDuty.Serialize());
+        Check("man-at-arms appointment persists separately from captain and rejects duplicate office",
+            restoredGuard.AssignedId("ManAtArms")=="guard" && restoredGuard.AssignedId("Captain")=="captain" &&
+            restoredGuard.ReportCount("ManAtArms")==1 && restoredGuard.Assign("Envoy","guard")=="companion_already_has_duty");
         Check("noble family occupations are separate from landless careers",
             new[]{"King","Lord","Knight","HouseholdKnight","NobleCadet"}.All(SandboxFamilyPolicy.NobleFamilyOccupation) &&
             new[]{"Wanderer","Outlaw","Mercenary","Soldier",""}.All(x=>!SandboxFamilyPolicy.NobleFamilyOccupation(x)));

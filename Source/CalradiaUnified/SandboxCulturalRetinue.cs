@@ -435,9 +435,7 @@ namespace CalradiaUnified
                     // become a landed LORD merely by joining a party.
                     // Preserve native lord occupation for a noble
                     // household's appointed mounted combat officer.
-                    bool nobleFieldOffice=(profile.Role=="King" ||
-                        profile.Role=="Lord" || profile.Role=="Knight") &&
-                        SandboxRetinueOfficePolicy.IsFieldOfficer(offices[i]);
+                    bool nobleFieldOffice=SandboxRetinueOfficePolicy.NobleCommission(profile.Role,offices[i]);
                     officer.SetNewOccupation(nobleFieldOffice?
                         Occupation.Lord:Occupation.Wanderer);
                     if(!officer.IsActive)
@@ -493,8 +491,7 @@ namespace CalradiaUnified
                     }
                     // The native recruitment/assignment action can affect occupation.
                     // Restore only the originally intended category for this new officer.
-                    var expectedOccupation=(profile.Role=="King" || profile.Role=="Lord" ||
-                        profile.Role=="Knight") && SandboxRetinueOfficePolicy.IsFieldOfficer(offices[i])?
+                    var expectedOccupation=SandboxRetinueOfficePolicy.NobleCommission(profile.Role,offices[i])?
                         Occupation.Lord:Occupation.Wanderer;
                     if(officer.Occupation!=expectedOccupation)officer.SetNewOccupation(expectedOccupation);
                     DiagnosticJournal.Event("cu_officer_occupation_verified",
@@ -517,6 +514,9 @@ namespace CalradiaUnified
                             "Retinue officer native assignment not verified");
                     if(registry==null || !registry.Register(officer.StringId,offices[i]))
                         throw new InvalidOperationException("Retinue office identity not saved");
+                    officer.EncyclopediaText=new TextObject(officer.Name+" serves the house of "+
+                        Clan.PlayerClan.Name+" as "+SandboxRetinueOfficePolicy.Profession(offices[i])+". "+
+                        SandboxRetinueOfficePolicy.OfficeBackground(offices[i]));
                     created++;
                     DiagnosticJournal.Event("cu_cultural_retinue_officer",
                         "id="+officer.StringId+

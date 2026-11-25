@@ -15,9 +15,10 @@ namespace CalradiaUnified
     {
         public const string Version="CU_HOUSEHOLD_DUTIES_1";
         public const int FamilyCooldownDays=30;
-        private readonly string[] officerIds=new string[3];
-        private readonly int[] lastReportDays={-1,-1,-1};
-        private readonly int[] reportCounts=new int[3];
+        public const string ExtendedVersion="CU_HOUSEHOLD_DUTIES_2";
+        private readonly string[] officerIds=new string[4];
+        private readonly int[] lastReportDays={-1,-1,-1,-1};
+        private readonly int[] reportCounts=new int[4];
         private readonly Dictionary<string,int> familyAudience=
             new Dictionary<string,int>(StringComparer.Ordinal);
         private readonly Dictionary<string,int> familyGift=
@@ -28,6 +29,7 @@ namespace CalradiaUnified
             if(office=="Steward")return 0;
             if(office=="Captain")return 1;
             if(office=="Envoy")return 2;
+            if(office=="ManAtArms")return 3;
             return -1;
         }
         private static bool Id(string text)
@@ -168,7 +170,8 @@ namespace CalradiaUnified
         public string Serialize()
         {
             var fields=new List<string>();
-            for(int i=0;i<3;i++)
+            bool extended=!String.IsNullOrEmpty(officerIds[3]);
+            for(int i=0;i<(extended?4:3);i++)
             {
                 fields.Add(officerIds[i]??"");
                 fields.Add(lastReportDays[i].ToString(
@@ -178,7 +181,7 @@ namespace CalradiaUnified
             }
             fields.Add(Pack(familyAudience));
             fields.Add(Pack(familyGift));
-            return Version+"\n"+String.Join("|",fields);
+            return (extended?ExtendedVersion:Version)+"\n"+String.Join("|",fields);
         }
         public static SandboxHouseholdDutyState Parse(string packed)
         {
@@ -186,12 +189,13 @@ namespace CalradiaUnified
             if(String.IsNullOrEmpty(packed) || packed.Length>4096)
                 return empty;
             var rows=packed.Replace("\r","").Split('\n');
-            if(rows.Length!=2 || rows[0]!=Version)return empty;
+            if(rows.Length!=2 || (rows[0]!=Version && rows[0]!=ExtendedVersion))return empty;
+            int slots=rows[0]==ExtendedVersion?4:3;
             var fields=rows[1].Split('|');
-            if(fields.Length!=11)return empty;
+            if(fields.Length!=slots*3+2)return empty;
             var result=new SandboxHouseholdDutyState();
             var seen=new HashSet<string>(StringComparer.Ordinal);
-            for(int i=0;i<3;i++)
+            for(int i=0;i<slots;i++)
             {
                 string id=fields[i*3];
                 int day,count;
@@ -209,8 +213,8 @@ namespace CalradiaUnified
                 result.lastReportDays[i]=day;
                 result.reportCounts[i]=count;
             }
-            if(!Unpack(fields[9],result.familyAudience) ||
-               !Unpack(fields[10],result.familyGift))
+            if(!Unpack(fields[slots*3],result.familyAudience) ||
+               !Unpack(fields[slots*3+1],result.familyGift))
                 return empty;
             return result;
         }

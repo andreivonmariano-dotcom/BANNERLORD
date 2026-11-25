@@ -49,7 +49,7 @@ namespace CalradiaUnified
                 if(old==null || (old.IsAlive && old.Clan==Clan.PlayerClan &&
                     old.CompanionOf==Clan.PlayerClan))return false;
             }
-            return new[]{"Steward","Captain","Envoy"}
+            return new[]{"Steward","Captain","Envoy","ManAtArms"}
                 .Where(x=>x!=office).All(x=>
                     householdDuties.AssignedId(x)!=id);
         }
@@ -249,6 +249,8 @@ namespace CalradiaUnified
                     settlement.IsFortification;
             if(office=="Captain")
                 return party.MemberRoster.TotalManCount>=8;
+            if(office=="ManAtArms")
+                return party.MemberRoster.GetTroopCount(speaker.CharacterObject)>0;
             if(office=="Envoy")
                 return settlement!=null && settlement.IsTown &&
                     settlement.OwnerClan!=null &&
@@ -257,7 +259,7 @@ namespace CalradiaUnified
         }
         private string HouseholdOfficeFor(string id)
         {
-            foreach(var office in new[]{"Steward","Captain","Envoy"})
+            foreach(var office in new[]{"Steward","Captain","Envoy","ManAtArms"})
                 if(householdDuties.AssignedId(office)==id)
                     return office;
             return "";
@@ -439,14 +441,14 @@ namespace CalradiaUnified
             starter.AddDialogLine("cu_family_house_gift_reply_cu_safe_exit","cu_family_house_gift_reply",
                 "close_window","We can speak again another time.",null,null,1);
 
-            foreach(var officeName in new[]{"Steward","Captain","Envoy"})
+            foreach(var officeName in new[]{"Steward","Captain","Envoy","ManAtArms"})
             {
                 string office=officeName;
                 starter.AddPlayerLine(
                     "cu_household_appoint_"+office.ToLowerInvariant(),
                     "cu_personal_matters_topics","cu_household_appoint_reply_"+
                     office.ToLowerInvariant(),
-                    "I would have you serve as "+office+
+                    "I would have you serve as "+(office=="ManAtArms"?"a man-at-arms":office)+
                     " in my household.",
                     ()=>CanAppointHouseholdCompanion(office),
                     ()=>AppointHouseholdCompanion(office),100);
@@ -488,14 +490,14 @@ namespace CalradiaUnified
         {
             var clan=Clan.PlayerClan;
             string text="";
-            foreach(var office in new[]{"Steward","Captain","Envoy"})
+            foreach(var office in new[]{"Steward","Captain","Envoy","ManAtArms"})
             {
                 string id=householdDuties.AssignedId(office);
                 var hero=ResolveCampaignHero(id);
                 bool present=hero!=null && hero.IsAlive &&
                     clan!=null && hero.CompanionOf==clan &&
                     hero.Clan==clan;
-                text+=office+": "+(id.Length==0?"vacant":
+                text+=(office=="ManAtArms"?"Man-at-Arms":office)+": "+(id.Length==0?"vacant":
                     present?hero.Name.ToString():
                     "former holder unavailable")+
                     " | witnessed reports: "+
