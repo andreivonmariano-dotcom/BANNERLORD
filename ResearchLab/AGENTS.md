@@ -1,2 +1,5 @@
 # Research laboratory instructions
+
+Read INDEX.md, Handoff/CURRENT.md, Failures/REGISTER.csv and KNOWLEDGE_PROTOCOL.md first, then exact relevant files. Apply record IDs and immutable references to designs/tests. Log failures even when corrected. No production changes from lab administration.
+
 Keep the production candidate frozen until a distinct useful mechanic has native and human playtest evidence. Read README.md, NATIVE_ENGINE_1_5_7.md, MOD_IMPLEMENTATION_STUDIES.md, LAB_EVIDENCE.md and EXPERIMENT_MATRIX.csv. Use the separate branch and staged local directory. Record API signatures, exact version/fingerprints, native call-edge findings, failure evidence, next test. Do not publish game binaries, full decompiled code, third-party source or private logs. No automatic installation into production, no game state mutations without explicit player action and disposable test profile. Do not mistake experiments, policy checks, source studies or compiled bytes for delivered gameplay. No unrelated features, merge or release.

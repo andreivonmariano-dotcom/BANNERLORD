@@ -1,4 +1,8 @@
 # Bannerlord Research Lab
+
+## Mandatory knowledge retrieval
+Start with [INDEX.md](INDEX.md), [Handoff/CURRENT.md](Handoff/CURRENT.md), [Failures/REGISTER.csv](Failures/REGISTER.csv) and [learning log](Handoff/LEARNING_LOG.md). See [knowledge protocol](KNOWLEDGE_PROTOCOL.md). Domain records distinguish verified evidence from research gaps. Update records by stable ID after every milestone.
+
 25 November 2026 | isolated research branch, not a CU release.
 
 ## Purpose and rules
