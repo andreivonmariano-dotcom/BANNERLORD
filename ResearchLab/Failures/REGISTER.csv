@@ -1,0 +1,7 @@
+id,area,status,observed_failure,correction_or_rule,evidence,remaining
+F001,reflection,CORRECTED,Recursive AssemblyResolve caused StackOverflowException,Preload actual TaleWorlds assemblies in fresh process,LAB_EVIDENCE.md,Other assemblies may need separate investigation
+F002,build,CORRECTED,CS0012 missing netstandard 2.0,Reference installed Mono 4.7.2 API facade; corrected build passed,LAB_EVIDENCE.md,Full CU SDK absent
+F003,execution,CORRECTED,Local execution policy blocked Probe-Native.ps1,Reviewed script ran with process-only policy; no global change,LAB_EVIDENCE.md,Respect organizational restrictions
+F004,gameplay,OPEN,Repetitive dialogue and nominal titles lack practical decisions,Require situation choice action consequence and player critique,MOD_IMPLEMENTATION_STUDIES.md,Useful native-tested prototype pending
+F005,interface,OPEN,Debug receipts and redundant reports visible in ordinary play,Separate diagnostics and player-facing actions,MOD_IMPLEMENTATION_STUDIES.md,Actual visual repair pending
+F006,evidence,OPEN,Native receipts do not establish useful gameplay,Separate native readback and repeated player acceptance,MOD_IMPLEMENTATION_STUDIES.md,No accepted production improvement

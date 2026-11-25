@@ -1,0 +1,2 @@
+# NAV-001 | War Sails
+METADATA partial. NavalDLC manifest v1.3.7 and base PartyRole enum Captain/FirstMate/Navigator in [native reference](../NATIVE_ENGINE_1_5_7.md). No naval assembly signatures, sea transitions or actual role changes verified. Next: fingerprint NavalDLC assemblies, inspect documented movement and role contracts, build separate observation probe. Preserve land and naval role slots; do not assume land operations work at sea.

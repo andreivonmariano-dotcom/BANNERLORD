@@ -1,0 +1,2 @@
+# [ID] [topic]
+Date; game/DLC/provider versions and fingerprints; exact immutable source path/commit; question and evidence status; signature or behavior; reproduction; actual results and failures; ownership/license; limitations; applicability and failure IDs; next test. Update catalog, learning log, evidence, matrix, failure register and handoff.
