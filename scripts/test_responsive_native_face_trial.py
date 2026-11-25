@@ -88,5 +88,5 @@ assert "NativeFacePanelPixels = 694" in policy
 assert "CanTryNativeFaceDock(int width,int height)" in policy
 assert "HasVerifiedRectangularSceneDock" in policy
 assert "get { return false; }" in policy
-assert 'NEXT: NATIVE CREATOR' in (prefabs/"CUSandboxCreator.xml").read_text(encoding="utf-8")
+assert 'Create character' in (prefabs/"CUSandboxCreator.xml").read_text(encoding="utf-8")
 print("PASS: expandable 1366/1920 native-style CU controls and reversible original FaceGen-only right dock, no false persistent one-screen claim (STATIC)")

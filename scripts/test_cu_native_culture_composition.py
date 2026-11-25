@@ -101,7 +101,7 @@ assert all(not re.search(r'new\s+(?:BodyGeneratorView|CharacterCreationFaceGener
 assert "NativeStateShellEnabled=false;" in profile
 assert 'if (candidate.NativeStateShellEnabled &&' in menu
 assert "NativeStageEnabled=false;" in menu
-assert "NEXT: NATIVE CREATOR" in (
+assert "Create character" in (
     ROOT/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
 assert not any("CharacterCreationStageView(typeof(CharacterCreationCultureStage))"
                in p.read_text(encoding="utf-8") for p in S.glob("*.cs"))

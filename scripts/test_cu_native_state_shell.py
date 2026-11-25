@@ -77,6 +77,6 @@ assert 'candidate.NativeIntegrationReviewEnabled)' in creator
 assert "NativeStateShellPolicy.cs" in csproj
 assert "native CU shell maps culture to Your Character" in tests
 assert "native CU shell permits only explicit native-state opt-in" in tests
-assert 'NEXT: NATIVE CREATOR' in (
+assert 'Create character' in (
     root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
 print("PASS: opt-in CU ribbon attached to true character-creation screen, native stages untouched, live culture binding, safe lifecycle, 12 policy checks and truthful dual-screen status (STATIC)")

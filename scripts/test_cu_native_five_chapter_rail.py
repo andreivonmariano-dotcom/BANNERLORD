@@ -77,7 +77,7 @@ for token in ("SandboxNativeStartOptions.TryPrepare(",
     assert token in creator,token
 assert 'new CUGuidedCreatorVM(true,' in creator
 assert 'layer.LoadMovie("CUGuidedCreator", viewModel);' in creator
-assert 'NEXT: NATIVE CREATOR' in (root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
+assert 'Create character' in (root/"Modules/CalradiaUnified/GUI/Prefabs/CUSandboxCreator.xml").read_text(encoding="utf-8")
 assert 'CUNativeChapterPolicy.cs' in csproj
 assert "native 3D scene crop is unverified" in smoke
 assert "single-screen" in doc and "not" in doc.lower()
