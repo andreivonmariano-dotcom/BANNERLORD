@@ -194,7 +194,6 @@ namespace CalradiaUnified
                 string focus=SandboxRetinueOfficePolicy.DutyFocus(office,owned,
                     owned && seat.IsUnderSiege,SandboxKingNativeMinistry.VerifiedGovernor(speaker),variant);
                 if(focus.Length>0)reply+=" "+focus;
-                string skills=NativeOfficerSkills(speaker,office);
                 // Skill numbers belong in the character record, not spoken dialogue.
                 if(ExistingCourtDuty(speaker).Length==0)
                 {

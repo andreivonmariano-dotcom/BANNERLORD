@@ -93,3 +93,10 @@ assert 'LatestVerified' in installer
 print("PASS v0.70y SOURCE: four nonoptional BUTR modules, compiled "+
       "UIExtenderEx 3.0.3 native Clan/Party/Kingdom mixins, no copied "+
       "runtime DLLs, and install precheck before changing game files.")
+
+# Native encyclopedia uses existing stat rows, not custom movie patches.
+assert 'BaseViewModelMixin<EncyclopediaHeroPageVM>' in adapter
+assert 'page.IsInformationHidden' in adapter
+assert 'hero.Clan!=Clan.PlayerClan' in adapter
+assert 'page.Stats.Remove(row)' in adapter and 'page.Stats.Add(row)' in adapter
+assert 'new StringPairItemVM("Standing / profession",title)' in adapter

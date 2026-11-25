@@ -138,8 +138,10 @@ namespace CalradiaUnified
             if(player.Spouse!=null && player.Spouse.Spouse==player)candidates.Add(player.Spouse);
             if(player.Children!=null)candidates.AddRange(player.Children.Where(h=>h!=null &&
                 (h.Father==player || h.Mother==player) && h.Father!=null && h.Mother!=null &&
+                h.Father.Children!=null && h.Mother.Children!=null &&
                 h.Father.Children.Contains(h) && h.Mother.Children.Contains(h)));
-            if(player.Father!=null && player.Mother!=null)
+            if(player.Father!=null && player.Mother!=null && player.Father.Children!=null &&
+                player.Mother.Children!=null)
                 candidates.AddRange(player.Father.Children.Where(h=>h!=null && h!=player &&
                     h.Father==player.Father && h.Mother==player.Mother && player.Mother.Children.Contains(h)));
             return candidates.Distinct().Where(h=>h.IsAlive && !h.IsPrisoner && h.Clan==clan &&
