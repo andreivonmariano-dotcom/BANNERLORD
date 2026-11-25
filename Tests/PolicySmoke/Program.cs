@@ -142,6 +142,16 @@ internal static class Program
         Check("full battle ledger survives its own serialization limit",
             allBattles && fullBattleLedger.Serialize().Length>16000 &&
             SandboxBattleHistoryState.Parse(fullBattleLedger.Serialize()).Entries.Count==SandboxBattleHistoryState.MaxEntries);
+        var nativeAssignmentMemory=new SandboxLifeHistoryState();
+        nativeAssignmentMemory.Remember("NativePartyDutyAssigned","founder","companion","role=Scout|day=1");
+        nativeAssignmentMemory.Remember("NativeGovernorAssigned","founder","spouse","seat=castle|day=2");
+        var restoredAssignmentMemory=SandboxLifeHistoryState.Parse(nativeAssignmentMemory.Serialize());
+        Check("confirmed party duty is a pair-specific memory after reload",
+            restoredAssignmentMemory.SharedConversationMemory("founder","companion")?.Kind=="NativePartyDutyAssigned");
+        Check("confirmed governor assignment is a pair-specific memory after reload",
+            restoredAssignmentMemory.SharedConversationMemory("founder","spouse")?.Kind=="NativeGovernorAssigned");
+        Check("successor cannot inherit predecessor appointment memory",
+            restoredAssignmentMemory.SharedConversationMemory("heir","spouse")==null);
         var sharedTalk=new SandboxLifeHistoryState();
         sharedTalk.Remember("FamilyVisit","spouse","player","day=4");
         sharedTalk.Remember("FamilyGiftConfirmed","other","player","day=5");
