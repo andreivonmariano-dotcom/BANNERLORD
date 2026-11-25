@@ -60,7 +60,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="194"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="16" Text="@Relationship"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#D7B377FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="102"
+                        WidthSizePolicy="Fixed" SuggestedWidth="145"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="16" Text="@Age"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#E9E3D6FF"
                         WidthSizePolicy="Fixed" SuggestedWidth="111"
@@ -69,7 +69,7 @@
                         WidthSizePolicy="Fixed" SuggestedWidth="213"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                     <TextWidget Brush.FontSize="15" Text="@Presence"  Brush.TextHorizontalAlignment="Left" Brush.TextVerticalAlignment="Center" Color="#D5BC91FF"
-                        WidthSizePolicy="Fixed" SuggestedWidth="333"
+                        WidthSizePolicy="Fixed" SuggestedWidth="290"
                         HeightSizePolicy="Fixed" SuggestedHeight="50"/>
                   </Children>
                 </ListPanel>

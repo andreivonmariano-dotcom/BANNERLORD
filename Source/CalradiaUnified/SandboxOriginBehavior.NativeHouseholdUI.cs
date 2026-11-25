@@ -110,6 +110,9 @@ namespace CalradiaUnified
                     string duty=b.HouseholdOfficeFor(person.StringId);
                     string profession=SandboxRetinueOfficePolicy.Profession(duty);
                     if(profession.Length>0)return profession;
+                    if(person.StringId==b.wandererCompanionId &&
+                        !String.IsNullOrEmpty(b.wandererCompanionProfession))
+                        return b.wandererCompanionProfession;
                     return "Companion";
                 }
                 if(person==Hero.MainHero && b.knightOath.HasCurrentOath && b.knightOath.PlayerId==person.StringId)

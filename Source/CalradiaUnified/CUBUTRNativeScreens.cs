@@ -1,3 +1,7 @@
+using System;
+using TaleWorlds.CampaignSystem;
+using TaleWorlds.CampaignSystem.ViewModelCollection.Encyclopedia.Pages;
+using TaleWorlds.Core.ViewModelCollection.Generic;
 using Bannerlord.UIExtenderEx.Attributes;
 using Bannerlord.UIExtenderEx.Prefabs2;
 using Bannerlord.UIExtenderEx.ViewModels;
@@ -61,6 +65,36 @@ namespace CalradiaUnified
         public void ExecuteCUDossier()
         {
             SandboxOriginBehavior.OpenFromNativeBUTRScreen();
+        }
+    }
+
+    // Use the native encyclopedia's existing stat-row renderer. No
+    // custom portrait, prefab replacement, or change to native filters.
+    [ViewModelMixin("RefreshValues")]
+    internal sealed class CUEncyclopediaProfessionMixin : BaseViewModelMixin<EncyclopediaHeroPageVM>
+    {
+        private readonly EncyclopediaHeroPageVM page;
+        private StringPairItemVM row;
+        public CUEncyclopediaProfessionMixin(EncyclopediaHeroPageVM vm):base(vm){page=vm;}
+        public override void OnRefresh()
+        {
+            try
+            {
+                if(page==null || page.Stats==null)return;
+                if(row!=null && page.Stats.Contains(row))page.Stats.Remove(row);
+                row=null;
+                var hero=page.Obj as Hero;
+                if(hero==null || !hero.IsAlive || page.IsInformationHidden ||
+                    Clan.PlayerClan==null || hero.Clan!=Clan.PlayerClan)return;
+                string title=SandboxOriginBehavior.ContextualHouseholdTitle(hero);
+                if(String.IsNullOrEmpty(title) || title=="Companion")return;
+                row=new StringPairItemVM("Standing / profession",title);
+                page.Stats.Add(row);
+            }
+            catch(Exception error)
+            {
+                DiagnosticJournal.Exception("cu_encyclopedia_profession_failed",error);
+            }
         }
     }
 

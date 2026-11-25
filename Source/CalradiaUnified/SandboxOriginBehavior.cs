@@ -134,6 +134,7 @@ namespace CalradiaUnified
         private string soldierPendingOriginProfile="";
         // These belong to this campaign save, not an external profile.
         private string wandererCompanionId = "";
+        private string wandererCompanionProfession="";
         private int wandererWageCreditDay = -1;
 
         public override void RegisterEvents()
@@ -432,6 +433,7 @@ namespace CalradiaUnified
                 ref soldierPendingOriginProfile);
             store.SyncData("CU_v070b_wanderer_companion",
                 ref wandererCompanionId);
+            store.SyncData("CU_wanderer_companion_profession_1",ref wandererCompanionProfession);
             store.SyncData("CU_v070b_wanderer_wage_credit_day",
                 ref wandererWageCreditDay);
             // Keep only our generated children's personal upbringing
@@ -1648,6 +1650,8 @@ namespace CalradiaUnified
                     }
                     wandererCompanionId=companion==null ?
                         "" : companion.StringId;
+                    wandererCompanionProfession=companion==null?"":
+                        SandboxRetinueOfficePolicy.CompanionProfession(profile.WandererCompanionSpecialty);
                 }
 
                 if (profile.Gold >= 0)
