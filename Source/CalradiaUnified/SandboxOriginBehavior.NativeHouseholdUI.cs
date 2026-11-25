@@ -108,7 +108,7 @@ namespace CalradiaUnified
                 if(person.CompanionOf==clan && clan.Companions.Contains(person))
                 {
                     string duty=b.HouseholdOfficeFor(person.StringId);
-                    string profession=SandboxRetinueOfficePolicy.Profession(duty);
+                    string profession=SandboxRetinueOfficePolicy.Profession(b.ActiveRetainerService(person)?b.retainerService.Rank:duty);
                     if(profession.Length>0)return profession;
                     if(person.StringId==b.wandererCompanionId &&
                         !String.IsNullOrEmpty(b.wandererCompanionProfession))
@@ -236,6 +236,7 @@ namespace CalradiaUnified
             ShowNativeDetail(person.Name+" | "+(title.Length>0?title:relationship),
                 "Age "+(int)person.Age+" | "+relationship+" | "+parentage+
                 "\n"+location+
+                (ActiveRetainerService(person)?"\n"+RetainerServiceSummary(person):"")+
                 "\n"+(assignedOffice.Length>0?"Household office: "+assignedOffice+"\n":"")+duty+
                 "\nStanding with you: "+
                 (person==player?"your own character":

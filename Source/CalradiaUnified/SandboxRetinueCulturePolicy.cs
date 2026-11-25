@@ -15,7 +15,9 @@ namespace CalradiaUnified
             if(office=="Navigator")return "Scout";
             if(office=="FirstMate")return "Boarding";
             if(office=="Kingsguard")return "Shieldguard";
-            if(office=="Sergeant")return "Infantry";
+            if(office=="Sergeant" || office=="ManAtArms")
+                return culture=="sturgia"?"Axeguard":culture=="battania"?"Longbow":
+                    culture=="aserai"?"Skirmisher":"Infantry";
             if(office=="SecondInCommand")return "Bandit";
             if(office=="Marshal")return "Commander";
             if(!SandboxRetinueOfficePolicy.IsFieldOfficer(office))

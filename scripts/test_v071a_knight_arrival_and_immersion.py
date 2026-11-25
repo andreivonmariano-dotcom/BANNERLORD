@@ -60,7 +60,7 @@ assert 'cu_knight_ceremony_house' in dialogue
 assert 'cu_knight_ceremony_duties' in dialogue
 
 for name,backdrop in (("CUNobleDossier","#100D0A99"),
-                       ("CUFamilyPortraits","#110D0999")):
+                       ("CUFamilyPortraits","#100D0A99")):
     root=ET.parse(PREFABS/(name+".xml")).getroot()
     assert root.tag=="Prefab"
     assert any(widget.get("Color")==backdrop for widget in root.iter())

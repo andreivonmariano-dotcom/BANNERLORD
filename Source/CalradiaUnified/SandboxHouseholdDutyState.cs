@@ -219,4 +219,66 @@ namespace CalradiaUnified
             return result;
         }
     }
+    // One active personal military retainer, bound to the existing duty
+    // slot and commissioning player. No native rank or skill mutation.
+    public sealed class SandboxRetainerServiceState
+    {
+        public const string Version="CU_RETAINER_SERVICE_1";
+        public string Owner="",HeroId="",Rank="";
+        public int Since=-1,Reports,LastReport=-1,LastPay=-1;
+        private static bool Id(string s){return !String.IsNullOrEmpty(s) && s.Length<=80 &&
+            s.All(c=>Char.IsLetterOrDigit(c)||c=='_'||c=='-');}
+        private static bool KnownRank(string s){return s=="ManAtArms" || s=="Sergeant" || s=="Squire" || s=="Knight";}
+        public bool Matches(string owner,string hero){return Id(owner) && Id(hero) && Owner==owner && HeroId==hero && KnownRank(Rank);}
+        public bool Begin(string owner,string hero,int day)
+        {
+            if(!Id(owner)||!Id(hero)||owner==hero||day<0||Matches(owner,hero))return false;
+            Owner=owner;HeroId=hero;Rank="ManAtArms";Since=day;Reports=0;LastReport=-1;LastPay=-1;return true;
+        }
+        public void Clear(){Owner="";HeroId="";Rank="";Since=-1;Reports=0;LastReport=-1;LastPay=-1;}
+        public bool Record(string owner,string hero,int day)
+        {
+            if(!Matches(owner,hero)||day<Since||day<=LastReport)return false;
+            LastReport=day;if(Reports<10000)Reports++;return true;
+        }
+        public static int Wage(string rank)
+        {
+            switch(rank){case "ManAtArms":return 70;case "Sergeant":return 120;case "Squire":return 90;case "Knight":return 200;default:return 0;}
+        }
+        public bool PayDue(string owner,string hero,int day)
+        {return Matches(owner,hero) && day>=Since && (long)day-(LastPay<0?Since:LastPay)>=7;}
+        public bool RecordPayAttempt(string owner,string hero,int day)
+        {if(!PayDue(owner,hero,day))return false;LastPay=day;return true;}
+        public bool CanPromote(string owner,string hero,string next,int day,int martial,int riding,int leadership,bool noble)
+        {
+            if(!Matches(owner,hero)||day<Since)return false;
+            long elapsed=(long)day-Since;
+            if(Rank=="ManAtArms" && next=="Sergeant")return elapsed>=30 && Reports>=5 && martial>=80 && leadership>=60;
+            if(Rank=="ManAtArms" && next=="Squire")return noble && elapsed>=14 && Reports>=3 && martial>=60 && riding>=60;
+            if(Rank=="Squire" && next=="Knight")return noble && elapsed>=60 && Reports>=10 && martial>=120 && riding>=100;
+            return false;
+        }
+        public bool Promote(string owner,string hero,string next,int day,int martial,int riding,int leadership,bool noble)
+        {
+            if(!CanPromote(owner,hero,next,day,martial,riding,leadership,noble))return false;
+            Rank=next;Since=day;Reports=0;return true;
+        }
+        public bool MarshalReady(string owner,string hero,int day,int leadership,int tactics)
+        {return Matches(owner,hero) && Rank=="Knight" && (long)day-Since>=90 && Reports>=15 && leadership>=150 && tactics>=120;}
+        public string Serialize(){return KnownRank(Rank)?Version+"\n"+String.Join("|",new[]{Owner,HeroId,Rank,Since.ToString(),Reports.ToString(),LastReport.ToString(),LastPay.ToString()}):Version;}
+        public static SandboxRetainerServiceState Parse(string raw)
+        {
+            var result=new SandboxRetainerServiceState();
+            if(String.IsNullOrEmpty(raw)||raw.Length>512)return result;
+            var rows=raw.Replace("\r","").Split('\n');if(rows.Length!=2||rows[0]!=Version)return result;
+            var p=rows[1].Split('|');int since,reports,last,pay;
+            if(p.Length!=7||!Id(p[0])||!Id(p[1])||p[0]==p[1]||!KnownRank(p[2])||
+                !Int32.TryParse(p[3],out since)||since<0||!Int32.TryParse(p[4],out reports)||reports<0||reports>10000||
+                !Int32.TryParse(p[5],out last)||last< -1||!Int32.TryParse(p[6],out pay)||pay< -1||
+                (reports>0 && last<since))return result;
+            result.Owner=p[0];result.HeroId=p[1];result.Rank=p[2];result.Since=since;
+            result.Reports=reports;result.LastReport=last;result.LastPay=pay;return result;
+        }
+    }
+
 }

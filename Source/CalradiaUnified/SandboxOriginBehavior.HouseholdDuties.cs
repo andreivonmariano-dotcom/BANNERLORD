@@ -13,6 +13,101 @@ namespace CalradiaUnified
     {
         private SandboxHouseholdDutyState householdDuties=
             new SandboxHouseholdDutyState();
+        private SandboxRetainerServiceState retainerService=new SandboxRetainerServiceState();
+        private bool ActiveRetainerService(Hero person)
+        {
+            var player=Hero.MainHero;var clan=Clan.PlayerClan;
+            return person!=null && player!=null && clan!=null && person.IsAlive &&
+                person.Clan==clan && person.CompanionOf==clan &&
+                householdDuties.AssignedId("ManAtArms")==person.StringId &&
+                retainerService.Matches(player.StringId,person.StringId);
+        }
+        private static int RetainerSkill(Hero h,string name)
+        {
+            var skill=SandboxNativeSkillCatalog.Find(name);
+            return h==null || skill==null?0:h.GetSkillValue(skill);
+        }
+        private static int RetainerMartial(Hero h)
+        {return new[]{"OneHanded","TwoHanded","Polearm","Bow","Crossbow","Throwing"}.Max(x=>RetainerSkill(h,x));}
+        private bool CanEnrollRetainer()
+        {
+            var h=Hero.OneToOneConversationHero;
+            return SpeakingWithHouseholdCompanion() && HouseholdOfficeFor(h.StringId)=="ManAtArms" &&
+                !ActiveRetainerService(h) && h.Age>=18;
+        }
+        private void EnrollRetainer()
+        {
+            appointmentReply="We shall speak of this another time.";
+            if(!CanEnrollRetainer())return;
+            var h=Hero.OneToOneConversationHero;
+            if(retainerService.Begin(Hero.MainHero.StringId,h.StringId,CurrentHouseholdDay()))
+                appointmentReply="I am ready to serve.";
+        }
+        private bool CanPromoteRetainer(string rank)
+        {
+            var h=Hero.OneToOneConversationHero;
+            return SpeakingWithHouseholdCompanion() && ActiveRetainerService(h) && h.Age>=18 &&
+                retainerService.CanPromote(Hero.MainHero.StringId,h.StringId,rank,CurrentHouseholdDay(),
+                    RetainerMartial(h),RetainerSkill(h,"Riding"),RetainerSkill(h,"Leadership"),
+                    CurrentNobleAuthority(true)||CurrentNobleAuthority(false));
+        }
+        private void PromoteRetainer(string rank)
+        {
+            appointmentReply="Let us leave this for now.";
+            if(!CanPromoteRetainer(rank))return;
+            var h=Hero.OneToOneConversationHero;
+            if(!SandboxPetitionVoicePolicy.AcceptsHouseholdDuty(Hero.MainHero.GetRelation(h),
+                h.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Honor),
+                h.GetTraitLevel(TaleWorlds.CampaignSystem.CharacterDevelopment.DefaultTraits.Calculating)))
+            {appointmentReply="I am not ready for that charge.";return;}
+            if(!retainerService.Promote(Hero.MainHero.StringId,h.StringId,rank,CurrentHouseholdDay(),
+                RetainerMartial(h),RetainerSkill(h,"Riding"),RetainerSkill(h,"Leadership"),
+                CurrentNobleAuthority(true)||CurrentNobleAuthority(false)))return;
+            livingPersons.Remember("RetainerPromoted",h.StringId,Hero.MainHero.StringId,"rank="+rank);
+            DiagnosticJournal.Event("cu_retainer_promoted","hero="+h.StringId+"|rank="+rank+"|native_rank_unchanged=true");
+            appointmentReply="I shall strive to deserve the honor.";
+        }
+        private bool ReadyRetainerMarshal(Hero h)
+        {
+            return ActiveRetainerService(h) && CurrentNobleAuthority(true) &&
+                retainerService.MarshalReady(Hero.MainHero.StringId,h.StringId,CurrentHouseholdDay(),
+                    RetainerSkill(h,"Leadership"),RetainerSkill(h,"Tactics"));
+        }
+        private bool CanPayRetainer()
+        {
+            var h=Hero.OneToOneConversationHero;
+            return SpeakingWithHouseholdCompanion() && ActiveRetainerService(h) &&
+                retainerService.PayDue(Hero.MainHero.StringId,h.StringId,CurrentHouseholdDay()) &&
+                Hero.MainHero.Gold>=SandboxRetainerServiceState.Wage(retainerService.Rank);
+        }
+        private void PayRetainer()
+        {
+            appointmentReply="No payment was confirmed.";
+            if(!CanPayRetainer())return;
+            var h=Hero.OneToOneConversationHero;var player=Hero.MainHero;
+            int cost=SandboxRetainerServiceState.Wage(retainerService.Rank);
+            int before=player.Gold,recipient=h.Gold;
+            if(!retainerService.RecordPayAttempt(player.StringId,h.StringId,CurrentHouseholdDay()))return;
+            try{GiveGoldAction.ApplyBetweenCharacters(player,h,cost,false);}
+            catch(Exception error){DiagnosticJournal.Exception("cu_retainer_pay_failed",error);}
+            string result=SandboxNativeEffectProof.GiftResult(before,player.Gold,recipient,h.Gold,cost);
+            if(result=="confirmed")
+            {
+                livingPersons.Remember("RetainerPaid",h.StringId,player.StringId,"denars="+cost);
+                appointmentReply="My thanks. I have received "+cost+" denars.";
+            }
+            DiagnosticJournal.Event("cu_retainer_pay","hero="+h.StringId+"|denars="+cost+"|result="+result);
+        }
+        private string RetainerServiceSummary(Hero h)
+        {
+            if(!ActiveRetainerService(h))return "";
+            return SandboxRetinueOfficePolicy.Profession(retainerService.Rank)+
+                " | Reports: "+retainerService.Reports+" | Days in rank: "+
+                Math.Max(0,CurrentHouseholdDay()-retainerService.Since)+
+                " | Weekly pay: "+SandboxRetainerServiceState.Wage(retainerService.Rank)+
+                " denars (voluntary)"+(ReadyRetainerMarshal(h)?" | Eligible for vacant Marshal office":"");
+        }
+
 
         // Appointment is only a personal, save-backed household duty.
         // It never changes the native party role, Clan or GovernorOf.
@@ -83,8 +178,9 @@ namespace CalradiaUnified
                 "|native_governorship_unchanged=true");
             if(status=="personal_duty_recorded")
             {
+                if(office=="ManAtArms")retainerService.Begin(Hero.MainHero.StringId,speaker.StringId,CurrentHouseholdDay());
                 appointmentReply=SandboxPetitionVoicePolicy.DecisionReply(tone,true,true)+
-                    " I shall attend to the duties of "+office+".";
+                    " I shall attend to my duties as "+SandboxRetinueOfficePolicy.Profession(office)+".";
                 livingPersons.Remember("HouseholdDutyAppointed",speaker.StringId,
                     Hero.MainHero.StringId,"office="+office+"|previous="+previous);
             }
@@ -102,6 +198,7 @@ namespace CalradiaUnified
             var speaker=Hero.OneToOneConversationHero;
             string office=HouseholdOfficeFor(speaker.StringId);
             if(!householdDuties.Release(office,speaker.StringId))return;
+            if(office=="ManAtArms" && retainerService.HeroId==speaker.StringId)retainerService.Clear();
             livingPersons.Remember("HouseholdDutyReleased",speaker.StringId,
                 Hero.MainHero.StringId,"office="+office);
             appointmentReply=Hero.MainHero.GetRelation(speaker)<0?
@@ -277,8 +374,12 @@ namespace CalradiaUnified
                 "|actual_native_evidence=true|free_rewards=0");
             // Record the witnessed consultation, not a new economic or military action.
             if(result=="native_duty_report_recorded")
+            {
+                if(office=="ManAtArms" && ActiveRetainerService(speaker))
+                    retainerService.Record(Hero.MainHero.StringId,speaker.StringId,CurrentHouseholdDay());
                 livingPersons.Remember("HouseholdDutyReviewed",speaker.StringId,
                     Hero.MainHero.StringId,"office="+office+"|day="+CurrentHouseholdDay());
+            }
             // The conversation itself reports the state; no receipt popup.
         }
         private static int CurrentHouseholdDay()
@@ -464,6 +565,21 @@ namespace CalradiaUnified
                         office.ToLowerInvariant(),
                 "close_window","We can speak again another time.",null,null,1);
             }
+            starter.AddPlayerLine("cu_retainer_enroll","cu_personal_matters_topics","cu_retainer_reply",
+                "Let us put your service on record.",()=>CanEnrollRetainer(),()=>EnrollRetainer(),108);
+            foreach(var rankName in new[]{"Sergeant","Squire","Knight"})
+            {
+                string rank=rankName;
+                starter.AddPlayerLine("cu_retainer_promote_"+rank.ToLowerInvariant(),"cu_personal_matters_topics","cu_retainer_reply",
+                    "I would have you serve as "+SandboxRetinueOfficePolicy.Profession(rank)+".",
+                    ()=>CanPromoteRetainer(rank),()=>PromoteRetainer(rank),110);
+            }
+            starter.AddPlayerLine("cu_retainer_pay","cu_personal_matters_topics","cu_retainer_reply",
+                "Here is your week's pay.",()=>CanPayRetainer(),()=>PayRetainer(),109);
+            starter.AddDialogLine("cu_retainer_reply","cu_retainer_reply","cu_personal_matters_topics",
+                "{CU_APPOINTMENT_REPLY}",()=>PrepareAppointmentReply(),null,100);
+            starter.AddDialogLine("cu_retainer_reply_cu_safe_exit","cu_retainer_reply",
+                "close_window","Until next time.",null,null,1);
             starter.AddPlayerLine("cu_household_duty_release","cu_personal_matters_topics",
                 "cu_household_duty_release_reply","I release you from your household duty.",
                 ()=>CanReleaseHouseholdDuty(),()=>ReleaseHouseholdDuty(),100);
@@ -501,6 +617,8 @@ namespace CalradiaUnified
                     "former holder unavailable")+
                     " | witnessed reports: "+
                     householdDuties.ReportCount(office)+"\n";
+                if(present && office=="ManAtArms" && ActiveRetainerService(hero))
+                    text+=RetainerServiceSummary(hero)+"\n";
             }
             if(clan!=null && clan.Companions!=null)
                 foreach(var officer in clan.Companions.Where(h=>h!=null && h.IsAlive && h.Clan==clan && h.CompanionOf==clan).Take(32))

@@ -148,7 +148,8 @@ namespace CalradiaUnified
             if(person==null || person==Hero.MainHero || !person.IsAlive || !person.IsActive ||
                 person.IsPrisoner || person.Age<18f || person.CharacterObject==null ||
                 person.Clan!=Clan.PlayerClan || person.CompanionOf!=Clan.PlayerClan ||
-                retinueOffices.HasIdentity(person.StringId) || EffectiveHouseholdDuty(person).Length>0 ||
+                retinueOffices.HasIdentity(person.StringId) ||
+                (EffectiveHouseholdDuty(person).Length>0 && !(office=="Marshal" && ReadyRetainerMarshal(person))) ||
                 !retinueOffices.CanRegisterNew(person.StringId,office) ||
                 party==null || party.LeaderHero!=Hero.MainHero || party.MemberRoster==null ||
                 party.MapEvent!=null || seat==null || seat.OwnerClan!=Clan.PlayerClan ||
@@ -170,6 +171,11 @@ namespace CalradiaUnified
             bool replaced=retinueOffices.Replace(prior,person.StringId,office) ||
                 retinueOffices.FillRevokedVacancy(prior,person.StringId,office);
             if(!replaced)return;
+            if(office=="Marshal" && ActiveRetainerService(person))
+            {
+                householdDuties.Release("ManAtArms",person.StringId);
+                retainerService.Clear();
+            }
             DiagnosticJournal.Event("cu_royal_officer_replaced","office="+office+
                 "|previous="+prior+"|current="+person.StringId+"|native_appointments_unchanged=true");
             MBTextManager.SetTextVariable("CU_REPLACE_ROYAL_OFFICER",

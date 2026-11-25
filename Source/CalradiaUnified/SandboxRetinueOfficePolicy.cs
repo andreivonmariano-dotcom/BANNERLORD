@@ -146,6 +146,7 @@ namespace CalradiaUnified
         // Desired average native item tier (not a fabricated item ID).
         public static int KitTier(string office,bool civilian)
         {
+            if(office=="ManAtArms")return civilian?2:3;
             if(office=="Squire" || office=="SecondInCommand")return 2;
             if(office=="Marshal" || office=="Kingsguard" || office=="Knight" ||
                 office=="MasterOfArms")return civilian?3:4;

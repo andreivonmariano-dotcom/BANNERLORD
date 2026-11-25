@@ -352,8 +352,9 @@ namespace CalradiaUnified
                     string office=EffectiveHouseholdDuty(officer);
                     if(office.Length==0)continue;
                     rows.Add(new SandboxAffair{Id="officer:"+officer.StringId,Category="Household",
-                        HeroId=officer.StringId,Title=officer.Name.ToString(),Status=office,Detail=AffairLocation(officer)+
-                            "\nSpeak to your officer."});
+                        HeroId=officer.StringId,Title=officer.Name.ToString(),
+                        Status=ContextualHouseholdTitle(officer),Detail=AffairLocation(officer)+
+                            (ActiveRetainerService(officer)?"\n"+RetainerServiceSummary(officer):"")+"\nSpeak to your officer."});
                 }
             return rows;
         }

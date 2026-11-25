@@ -508,6 +508,9 @@ namespace CalradiaUnified
             string duties=householdDuties.Serialize();
             store.SyncData("CU_v071c_household_duties",ref duties);
             householdDuties=SandboxHouseholdDutyState.Parse(duties);
+            string retainerRecord=retainerService.Serialize();
+            store.SyncData("CU_retainer_service_1",ref retainerRecord);
+            retainerService=SandboxRetainerServiceState.Parse(retainerRecord);
             string chapters=careerChronicle.Serialize();
             store.SyncData("CU_v071c_career_chronicle",ref chapters);
             careerChronicle=SandboxCareerChronicleState.Parse(chapters);

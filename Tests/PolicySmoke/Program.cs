@@ -2237,6 +2237,30 @@ internal static class Program
         Check("man-at-arms appointment persists separately from captain and rejects duplicate office",
             restoredGuard.AssignedId("ManAtArms")=="guard" && restoredGuard.AssignedId("Captain")=="captain" &&
             restoredGuard.ReportCount("ManAtArms")==1 && restoredGuard.Assign("Envoy","guard")=="companion_already_has_duty");
+        var service=new SandboxRetainerServiceState();
+        service.Begin("lord","guard",0);
+        for(int d=1;d<=5;d++)service.Record("lord","guard",d);
+        Check("retainer progression needs distinct report days, owner and real skill gates",
+            !service.Record("lord","guard",5) && !service.Record("other","guard",6) &&
+            !service.CanPromote("lord","guard","Sergeant",29,80,60,60,true) &&
+            !service.CanPromote("lord","guard","Sergeant",30,79,60,60,true) &&
+            service.CanPromote("lord","guard","Sergeant",30,80,60,60,true) &&
+            !service.CanPromote("lord","guard","Squire",14,60,60,0,false));
+        Check("mounted retainer path persists and cannot skip rank",
+            service.Promote("lord","guard","Squire",14,60,60,0,true) &&
+            !service.CanPromote("lord","guard","Knight",74,120,100,0,true));
+        for(int d=15;d<25;d++)service.Record("lord","guard",d);
+        service=SandboxRetainerServiceState.Parse(service.Serialize());
+        Check("knighthood and marshal eligibility require earned service and leadership",
+            service.Promote("lord","guard","Knight",74,120,100,0,true) &&
+            !service.MarshalReady("lord","guard",164,150,120));
+        for(int d=75;d<90;d++)service.Record("lord","guard",d);
+        Check("marshal qualification and pay attempt are independent and persisted",
+            service.MarshalReady("lord","guard",164,150,120) &&
+            !service.MarshalReady("lord","guard",164,149,120) &&
+            service.RecordPayAttempt("lord","guard",164) &&
+            !SandboxRetainerServiceState.Parse(service.Serialize()).PayDue("lord","guard",164) &&
+            SandboxRetainerServiceState.Wage("Knight")==200);
         Check("noble family occupations are separate from landless careers",
             new[]{"King","Lord","Knight","HouseholdKnight","NobleCadet"}.All(SandboxFamilyPolicy.NobleFamilyOccupation) &&
             new[]{"Wanderer","Outlaw","Mercenary","Soldier",""}.All(x=>!SandboxFamilyPolicy.NobleFamilyOccupation(x)));
