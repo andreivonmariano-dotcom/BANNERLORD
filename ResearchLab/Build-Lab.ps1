@@ -21,6 +21,9 @@ $out=Join-Path $mod 'bin\Win64_Shipping_Client'
 New-Item -ItemType Directory -Path $out -Force | Out-Null
 $dll=Join-Path $out 'CUResearchLab.dll'
 $refs=@('TaleWorlds.CampaignSystem','TaleWorlds.Core','TaleWorlds.MountAndBlade','TaleWorlds.Library','TaleWorlds.ObjectSystem','TaleWorlds.Localization','TaleWorlds.DotNet') | ForEach-Object {"/reference:"+(Join-Path $bin ($_+'.dll'))}
+$facade=Join-Path $bin 'mono\lib\mono\4.7.2-api\Facades\netstandard.dll'
+if(-not(Test-Path -LiteralPath $facade)){throw 'Installed game netstandard 2.0 facade not found.'}
+$refs+=('/reference:'+$facade)
 & $csc /nologo /target:library /warnaserror+ /optimize+ ("/out:"+$dll) @refs (Join-Path $src 'TransferPolicy.cs') (Join-Path $src 'NativeProbe.cs')
 if($LASTEXITCODE -ne 0){throw 'Native module compile failed.'}
 Copy-Item -LiteralPath (Join-Path $src 'SubModule.xml') -Destination $mod -Force
