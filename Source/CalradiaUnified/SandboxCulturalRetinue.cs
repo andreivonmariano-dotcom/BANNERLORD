@@ -491,7 +491,18 @@ namespace CalradiaUnified
                             duty="native_assignment_failed";
                         }
                     }
-                    bool confirmed=Clan.PlayerClan.Companions
+                    // The native recruitment/assignment action can affect occupation.
+                    // Restore only the originally intended category for this new officer.
+                    var expectedOccupation=(profile.Role=="King" || profile.Role=="Lord" ||
+                        profile.Role=="Knight") && SandboxRetinueOfficePolicy.IsFieldOfficer(offices[i])?
+                        Occupation.Lord:Occupation.Wanderer;
+                    if(officer.Occupation!=expectedOccupation)officer.SetNewOccupation(expectedOccupation);
+                    DiagnosticJournal.Event("cu_officer_occupation_verified",
+                        "hero="+officer.StringId+"|office="+offices[i]+"|expected="+expectedOccupation+
+                        "|hero_occupation="+officer.Occupation+"|character_occupation="+officer.CharacterObject.Occupation);
+                    bool confirmed=officer.Occupation==expectedOccupation &&
+                        officer.CharacterObject.Occupation==expectedOccupation &&
+                        Clan.PlayerClan.Companions
                         .Contains(officer) &&
                         officer.Culture==player.Culture &&
                         officer.Clan==Clan.PlayerClan &&

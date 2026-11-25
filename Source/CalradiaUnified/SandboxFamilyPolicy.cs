@@ -27,6 +27,12 @@ namespace CalradiaUnified
                 preferredGender == "Female";
         }
 
+        // Native occupation is a social category, not a title or a grant.
+        public static bool NobleFamilyOccupation(string role)
+        {
+            return role=="King" || role=="Lord" || role=="Knight" ||
+                role=="HouseholdKnight" || role=="NobleCadet";
+        }
         public static bool ValidChildAge(int childAge, int playerAge,
             bool hasSpouse, int spouseAge)
         {

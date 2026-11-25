@@ -276,6 +276,10 @@ namespace CalradiaUnified
                 " | Mercenary: "+clan.IsUnderMercenaryService+
                 "\nHoldings: "+holdings+" | Reciprocal marriage: "+marriage+" | Linked children: "+children+
                 " | Full siblings: "+CountNativeFullSiblings(player)+
+                "\nFounder occupation: "+player.Occupation+
+                " | Spouse: "+(spouse==null?"none":spouse.Occupation.ToString())+
+                "\nChildren: "+(player.Children==null?"none":String.Join(", ",player.Children.Where(h=>h!=null)
+                    .Take(8).Select(h=>h.Name+": "+h.Occupation)))+
                 "\nKnight oath recorded: "+knightOath.IsConfigured+" | Lord claim recorded: "+lordInheritance.IsRecorded+
                 " | King claim recorded: "+kingSuccession.IsRecorded+
                 "\nServe as Soldier: "+SandboxSaSBridge.HasSupportedProvider()+

@@ -2216,6 +2216,9 @@ internal static class Program
                 "vassal","",false,false,0) &&
             !SandboxRoleConsistencyPolicy.NativeStartTypeMatches(
                 "king","",false,false,0));
+        Check("noble family occupations are separate from landless careers",
+            new[]{"King","Lord","Knight","HouseholdKnight","NobleCadet"}.All(SandboxFamilyPolicy.NobleFamilyOccupation) &&
+            new[]{"Wanderer","Outlaw","Mercenary","Soldier",""}.All(x=>!SandboxFamilyPolicy.NobleFamilyOccupation(x)));
         Check("native family proof rejects one-sided marriage or missing reciprocal links",
             SandboxStartContract.FamilyIdentityGate(true,false,true,true,true,true)=="native_marriage_not_reciprocal" &&
             SandboxStartContract.FamilyIdentityGate(true,true,true,false,true,true)=="native_child_identity_or_parentage_missing" &&

@@ -38,8 +38,9 @@ namespace CalradiaUnified
         }
         private static string VerifyRequestedFamilyIdentity(SandboxOriginProfile profile,Hero hero)
         {
+            bool noble=SandboxFamilyPolicy.NobleFamilyOccupation(profile.Role);
             var spouse=hero.Spouse;
-            bool marriage=spouse!=null && spouse.Spouse==hero && spouse.Clan==Clan.PlayerClan &&
+            bool marriage=spouse!=null && (!noble || spouse.Occupation==Occupation.Lord) && spouse.Spouse==hero && spouse.Clan==Clan.PlayerClan &&
                 spouse.Name!=null && spouse.Name.ToString()==profile.SpouseName &&
                 spouse.IsFemale==SandboxFamilyPolicy.ResolveSpouseFemale(profile.SpouseGender,hero.IsFemale) &&
                 SandboxFamilyAgePolicy.MatchesRequestedAge(spouse.Age,profile.SpouseAge);
@@ -47,7 +48,8 @@ namespace CalradiaUnified
             bool childProof=true;
             foreach(var expected in profile.Children.Take(profile.ChildCount))
             {
-                var actual=children.FirstOrDefault(h=>spouse!=null && h.Name!=null &&
+                var actual=children.FirstOrDefault(h=>spouse!=null && (!noble || h.Occupation==Occupation.Lord) &&
+                    h.Name!=null &&
                     h.Name.ToString()==expected.Name && h.IsFemale==(expected.Gender=="Female") &&
                     SandboxFamilyAgePolicy.MatchesRequestedAge(h.Age,expected.Age) &&
                     h.Father==(hero.IsFemale?spouse:hero) && h.Mother==(hero.IsFemale?hero:spouse) &&
@@ -61,7 +63,8 @@ namespace CalradiaUnified
                 father.Children!=null && father.Children.Contains(hero) && mother.Children!=null && mother.Children.Contains(hero));
             foreach(var expected in profile.Siblings.Take(profile.SiblingCount))
             {
-                var actual=siblings.FirstOrDefault(h=>mother!=null && h.Name!=null &&
+                var actual=siblings.FirstOrDefault(h=>mother!=null && (!noble || h.Occupation==Occupation.Lord) &&
+                    h.Name!=null &&
                     h.Name.ToString()==expected.Name && h.IsFemale==(expected.Gender=="Female") &&
                     SandboxFamilyAgePolicy.MatchesRequestedAge(h.Age,expected.Age) &&
                     h.Father==father && h.Mother==mother && mother.Children!=null && mother.Children.Contains(h));

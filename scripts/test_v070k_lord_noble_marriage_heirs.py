@@ -90,7 +90,7 @@ assert 'founder.Mother.Children.Contains(founder)' in native
 assert 'manager.GetObject<Hero>(c.Id).Mother==founder.Mother' in native
 assert 'args=>ShowDynasticBranches(false)' in native
 assert 'args=>ShowDynasticBranches(true)' in read("SandboxOriginBehavior.KingSuccession.cs")
-assert 'not a legal succession order' in native
+assert 'Family claims, not a succession decree.' in native
 duties=read("SandboxOriginBehavior.HouseholdDuties.cs")
 office=read("SandboxRetinueOfficePolicy.cs")
 variety=read("SandboxDialogueVarietyState.cs")
@@ -104,5 +104,5 @@ assert 'e.Detail.StartsWith(dayKey+"|",StringComparison.Ordinal)' in duties
 assert 'NativeOfficerSkills(person,recorded)' in duties
 assert 'officer.GetSkillValue(x.Skill)' in duties
 assert 'SetInitialSkillLevel' not in duties
-assert 'recent recorded consultations:' in duties
+assert 'recent consultations:' in duties
 print("PASS bounded native family branch review and office-specific consultation contracts. SOURCE ONLY.")
