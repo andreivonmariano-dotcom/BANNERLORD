@@ -10,3 +10,4 @@
 Evidence anchor 29d8233ea33404904df4fc829401c8c6a1106fa8; compiled L001 source fc771db2e67d3fd3545a857b6ccab4bba37fc861. New entries require exact sources, status and next tests.
 - [ENG-002 market gold, construction reserve and governors](Engine/MARKET_AND_GOVERNOR_MODELS.md); [L002 observation probe](Prototypes/L002/README.md). L001 held; L002 compiled only.
 - [AI-001 character motivations and decision ownership](Engine/NPC_DECISIONS.md), [QST-001 quests and personal obligations](Engine/QUESTS_AND_OBLIGATIONS.md). External/production source studied; installed verification pending.
+- [AI-002 installed AI and persuasion](Engine/NATIVE_AI_MODELS.md), [QST-002 installed quest lifecycle](Engine/NATIVE_QUEST_LIFECYCLE.md). Static installed verification completed; native gameplay NOT_RUN.
