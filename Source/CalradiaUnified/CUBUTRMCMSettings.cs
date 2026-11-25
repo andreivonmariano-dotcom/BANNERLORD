@@ -63,8 +63,14 @@ namespace CalradiaUnified
             set=>Set("EnableSupplyWarnings",value);
         }
 
-
-
-
+        [SettingPropertyBool("Army supply warnings",Order=3,
+            RequireRestart=true,
+            HintText="Report native army food shortages. Takes effect after restart.")]
+        [SettingPropertyGroup("Campaign")]
+        public bool EnableArmyWarnings
+        {
+            get=>Read("EnableArmyWarnings");
+            set=>Set("EnableArmyWarnings",value);
+        }
     }
 }

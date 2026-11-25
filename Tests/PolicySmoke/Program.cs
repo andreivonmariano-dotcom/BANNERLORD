@@ -5702,6 +5702,12 @@ internal static class Program
                 !settings.TrySetMenuValue("EnableEconomy", "TRUE",
                     userIni, out configError) && !settings.EnableEconomy &&
                 System.IO.File.ReadAllText(userIni)==heldBefore);
+            Check("retired setting cannot be edited through gameplay menu",
+                !settings.TrySetMenuValue("DepotCapacity","125",userIni,out configError) &&
+                !settings.TrySetMenuValue("EnableNpcAdvisory","false",userIni,out configError) &&
+                System.IO.File.ReadAllText(userIni)==heldBefore);
+            Check("only five current settings are editable",
+                SettingsCatalog.All.Count(x=>SettingsCatalog.IsRuntimeEditable(x.Key))==5);
             System.IO.File.AppendAllText(userIni,"EnableEconomy=true\n");
             var legacyOverride=Settings.LoadFromPaths(baseline,userIni);
             Check("legacy config stays readable but effective runtime blocks mutation",
