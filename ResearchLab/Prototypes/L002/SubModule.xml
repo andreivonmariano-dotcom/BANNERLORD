@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="CU Governor Research L002 (disposable control only)" />
+  <Id value="CUGovernorResearch" />
+  <Version value="v0.0.2" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+  <DependedModules>
+    <DependedModule Id="Native" />
+    <DependedModule Id="SandBoxCore" />
+    <DependedModule Id="Sandbox" />
+  </DependedModules>
+  <SubModules><SubModule>
+    <Name value="Read-only governor research probe" />
+    <DLLName value="CUGovernorResearch.dll" />
+    <SubModuleClassType value="CUGovernorResearch.SubModule" />
+    <Tags><Tag key="DedicatedServerType" value="none" /><Tag key="IsNoRenderModeElement" value="false" /></Tags>
+  </SubModule></SubModules>
+</Module>
