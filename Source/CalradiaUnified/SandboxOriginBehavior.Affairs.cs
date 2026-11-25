@@ -129,7 +129,7 @@ namespace CalradiaUnified
                 var entries=all.Select((item,index)=>new InquiryElement(index,
                     item.Title+" | "+item.Status+(item.Day>=0?" | Day "+item.Day:""),null)).ToList();
                 MBInformationManager.ShowMultiSelectionInquiry(new MultiSelectionInquiryData(
-                    "Correspondence and affairs","Select a matter to read. Decisions still require the actual person.",
+                    "Correspondence","Select a letter or request.",
                     entries,true,1,1,"Read","Close",selected=>
                     {
                         if(AffairsBehavior()!=this || Hero.MainHero.StringId!=owner || selected==null ||
@@ -150,7 +150,7 @@ namespace CalradiaUnified
                 MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return;
             if(records.Length==0)
             {
-                ShowNativeDetail("Correspondence and affairs","No recorded matters. New requests and duties appear here when they arise.");
+                ShowNativeDetail("Correspondence","No correspondence.");
                 return;
             }
             if(index<0 || index>=records.Length)return;
@@ -236,7 +236,7 @@ namespace CalradiaUnified
                     Detail=(pendingStory!=null && pendingStory.Letter.Length>0?pendingStory.Letter:
                         PetitionConcern(request.Kind))+"\n\n"+
                         AffairLocation(p)+"\nReply within "+Math.Max(0,SandboxAgencyDecisionPolicy.ExpiryDays-(agencyDecisions.Day-request.OpenedDay))+
-                        " days. Speak with this person about their affairs. The journal cannot answer for you."});
+                        " days. Reply in person."});
             }
             foreach(var story in petitionStories.Stories)
             {
@@ -256,8 +256,8 @@ namespace CalradiaUnified
                     Status=p==null?status+" | Person unavailable":status,Pending=due,Day=story.ResolvedDay>=0?story.ResolvedDay:story.StartedDay,
                     Completed=story.Outcome=="Supported" || story.Outcome=="Declined",
                     Detail=(story.Letter.Length>0?story.Letter:PetitionConcern(story.Kind))+"\n\n"+AffairLocation(p)+"\n"+
-                        (due?"Ask how their affairs have fared since your decision.":
-                         "An earlier matter from your personal history.")});
+                        (due?"Ask how they have fared.":
+                         "Past matter.")});
             }
             foreach(var news in characterAgendas.Entries.Where(e=>e.NewsRecipient==player.StringId &&
                 e.NewsDay>=0 && e.NewsText.Length>0))
@@ -304,14 +304,14 @@ namespace CalradiaUnified
                     rows.Add(new SandboxAffair{Id="royal-audience",Category="Service",Title="Audience with the ruler",
                         HeroId=ruler==null?"":ruler.StringId,
                         Status="Recommendation recorded",Pending=true,Day=knightServiceOrders.RecommendationDay,
-                        Detail="Seek the ruler of your patron's kingdom in person. A hearing grants no land or title.\n"+AffairLocation(ruler)});
+                        Detail="Seek an audience with your patron's ruler.\n"+AffairLocation(ruler)});
                 }
             }
             if(RoyalAudienceAvailableToday())
                 rows.Add(new SandboxAffair{Id="royal-council-today",Category="Household",
                     SettlementId=royalCouncil.SeatId,Title="Royal court available",
                     Status="Optional audience today",Pending=true,Day=day,
-                    Detail="Your verified court is present at the recorded seat. Speak directly to your officers or convene through local affairs. No native vote is made here."});
+                    Detail="Your court is ready to meet."});
             if(gatheringPlan.Owner==player.StringId && gatheringPlan.Status.Length>0)
             {
                 var place=Settlement.Find(gatheringPlan.Seat);
@@ -323,7 +323,7 @@ namespace CalradiaUnified
                     Detail="Meeting at "+(place==null?"the recorded holding":place.Name.ToString())+
                         ". Due day "+gatheringPlan.Due+"; attendance window closes after day "+(gatheringPlan.Due+3)+
                         ". "+gatheringPlan.Accepted.Length+" accepted of "+gatheringPlan.Invited.Length+" invited. "+
-                        "Attend through the local gathering menu with eligible people actually present."});
+                        "Attend the gathering at your holding."});
             }
             if(OpenAffairsClaim())
             {
@@ -333,7 +333,7 @@ namespace CalradiaUnified
                     Status=inheritanceNegotiation.Authorized?"Awaiting lawful consent":"Disputed",
                     Pending=true,Day=inheritanceNegotiation.PetitionDay,Detail=
                         (estate==null?"The claim remains unresolved.":"Claim concerning "+estate.Name+".")+
-                        "\nVisit the birth family's hall for the existing claim process. No grant can be made here."});
+                        "\nVisit your birth family's hall."});
             }
             if(clan.Settlements!=null)
                 foreach(var estate in clan.Settlements.Where(s=>s!=null && s.OwnerClan==clan))
@@ -344,7 +344,7 @@ namespace CalradiaUnified
                         Pending=estate.IsUnderSiege,Day=estate.IsUnderSiege?day:-1,
                         Detail=(garrison==null || garrison.MemberRoster==null?"Garrison not confirmed.":
                             "Garrison: "+garrison.MemberRoster.TotalManCount+" soldiers.")+
-                            "\nUse the ordinary settlement and garrison controls to act."});
+                            "\nManage the garrison at the settlement."});
                 }
             if(clan.Companions!=null)
                 foreach(var officer in clan.Companions.Where(h=>h!=null && h.IsAlive && h.Clan==clan && h.CompanionOf==clan))
@@ -353,7 +353,7 @@ namespace CalradiaUnified
                     if(office.Length==0)continue;
                     rows.Add(new SandboxAffair{Id="officer:"+officer.StringId,Category="Household",
                         HeroId=officer.StringId,Title=officer.Name.ToString(),Status=office,Detail=AffairLocation(officer)+
-                            "\nSpeak in person about their office and duties."});
+                            "\nSpeak to your officer."});
                 }
             return rows;
         }

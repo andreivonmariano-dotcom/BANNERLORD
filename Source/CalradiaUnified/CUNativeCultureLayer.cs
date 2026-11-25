@@ -358,7 +358,7 @@ namespace CalradiaUnified
             {
                 if(!controller.SelectCulture(id))
                 {
-                    SetStatus("This culture is not in the native game list.");
+                    SetStatus("Culture unavailable.");
                     return;
                 }
                 Sync();
@@ -414,7 +414,7 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public string Subtitle
-            {get{return "CHAPTER 02 OF 05 | YOUR CHARACTER | CULTURE";}}
+            {get{return "Culture";}}
 
         [DataSourceProperty]
         public string SelectedName {get{return name;}}

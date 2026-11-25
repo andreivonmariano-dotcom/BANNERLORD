@@ -108,7 +108,7 @@ namespace CalradiaUnified
         }
 
         [DataSourceProperty]
-        public string Heading { get { return "HOUSE OF CALRADIA"; } }
+        public string Heading { get { return "Family"; } }
 
         [DataSourceProperty]
         public string Description
@@ -125,7 +125,7 @@ namespace CalradiaUnified
         [DataSourceProperty]
         public string MemberCount
         {
-            get { return Members.Count + " FAMILY MEMBERS"; }
+            get { return Members.Count + " family members"; }
         }
 
         public void ExecuteClose()
@@ -162,7 +162,7 @@ namespace CalradiaUnified
             Presence=relationship=="CHILD" ?
                 SandboxFamilyResidencePolicy.HumanStatus(category) :
                 (hero.IsChild?"Underage; no party recall":
-                    (scenePresent?"At settlement":"Location recorded"));
+                    (scenePresent?"At settlement":"Last known location"));
             if(relationship=="CHILD")
                 DiagnosticJournal.Event("cu_family_gallery_child",
                     "id="+hero.StringId+

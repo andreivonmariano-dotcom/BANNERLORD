@@ -33,7 +33,7 @@ namespace CalradiaUnified
             if(String.IsNullOrWhiteSpace(id))return "none";
             var hero=ResolveCampaignHero(id);
             return hero!=null && hero.Name!=null?
-                hero.Name.ToString():"native Hero not currently resolved";
+                hero.Name.ToString():"Unknown";
         }
         private static string NativeHeroDisplayNames(string csv)
         {
@@ -115,17 +115,17 @@ namespace CalradiaUnified
                 "Mother: "+NativePersonName(person.Mother)+
                 " | Father: "+NativePersonName(person.Father);
             string location=residence==null?
-                "Present location not recorded":
+                "Location unknown":
                 "Known place: "+residence.Name;
             string duty=companion?
-                "Recorded in your actual clan companion roster.":
-                "Family ties are verified from native Hero records.";
+                "Clan companion.":
+                "Family member.";
             string privateOffice=HouseholdOfficeFor(person.StringId);
             string assignedOffice=ExistingCourtDuty(person);
             if(assignedOffice.Length>0)privateOffice="";
             if(companion && privateOffice.Length>0)
                 duty="Assigned household duty: "+privateOffice+
-                    ". Verified reports: "+
+                    ". Reports: "+
                     householdDuties.ReportCount(privateOffice)+
                     ". Speak in person to give or review orders.";
             if(companion && lordInheritance.IsRecorded &&
@@ -135,7 +135,7 @@ namespace CalradiaUnified
                 NativeCourtOfficer("Marshal")==person)
                 duty="Marshal: personal office. Direct CU garrison orders held; use native garrison controls.";
             else if(companion && person.GovernorOf!=null)
-                duty="Native governor: currently serving at "+
+                duty="Governor of "+
                     person.GovernorOf.Settlement.Name+".";
             else if(companion && person.PartyBelongedTo!=null)
                 duty="Current field assignment: "+
@@ -162,11 +162,11 @@ namespace CalradiaUnified
             string culture=person==null || person.Culture==null?"":person.Culture.StringId;
             string guidance=SandboxCulturalInheritancePolicy.CustomGuidance(culture);
             string education=SandboxCulturalInheritancePolicy.EducationConvention(culture);
-            return "Native culture: "+(culture.Length==0?"unverified":culture)+
-                "\nCU custom guidance: "+(guidance.Length==0?"unestablished":guidance)+
+            return "Culture: "+(culture.Length==0?"unverified":culture)+
+                "\nCustom: "+(guidance.Length==0?"unestablished":guidance)+
                 "\nSuggested upbringing: "+(education.Length==0?"none":education)+
-                "\nModeled inheritance: "+SandboxCulturalInheritancePolicy.Model(culture)+
-                "\nActual rights and property remain native; no automatic skill or title.";
+                "\nInheritance custom: "+SandboxCulturalInheritancePolicy.Model(culture)+
+                "\nInheritance follows native law.";
         }
 
         private void OpenDossierFamilyPortraits()
@@ -266,26 +266,26 @@ namespace CalradiaUnified
             int children=player.Children==null?0:player.Children.Count(h=>h!=null &&
                 (h.Father==player || h.Mother==player));
             int holdings=clan.Settlements==null?0:clan.Settlements.Count;
-            string historic=String.IsNullOrEmpty(startAuditOwner)?"No historical startup receipt (older save or native-only start).":
+            string historic=String.IsNullOrEmpty(startAuditOwner)?"No startup record for this campaign.":
                 "Starting career: "+startAuditRole+" | Result: "+startAuditStatus+
                 "\nOriginal founder: "+(startAuditOwner==player.StringId?"current player":"previous player")+
                 "\nReason: "+(String.IsNullOrEmpty(startAuditReason)?"none recorded":startAuditReason);
-            string current="Current native state (not historical proof)\nKingdom: "+
+            string current="Current campaign\nKingdom: "+
                 (clan.Kingdom==null?"none":clan.Kingdom.Name.ToString())+
-                " | Native ruling clan: "+(clan.Kingdom!=null && clan.Kingdom.RulingClan==clan)+
-                " | Native mercenary: "+clan.IsUnderMercenaryService+
+                " | Ruling clan: "+(clan.Kingdom!=null && clan.Kingdom.RulingClan==clan)+
+                " | Mercenary: "+clan.IsUnderMercenaryService+
                 "\nHoldings: "+holdings+" | Reciprocal marriage: "+marriage+" | Linked children: "+children+
                 " | Full siblings: "+CountNativeFullSiblings(player)+
                 "\nKnight oath recorded: "+knightOath.IsConfigured+" | Lord claim recorded: "+lordInheritance.IsRecorded+
                 " | King claim recorded: "+kingSuccession.IsRecorded+
-                "\nSupported Serve as Soldier public API: "+SandboxSaSBridge.HasSupportedProvider()+
-                " (required only for Soldier). Other mod conflicts cannot be inferred from presence alone.";
+                "\nServe as Soldier: "+SandboxSaSBridge.HasSupportedProvider()+
+                " (required for Soldier).";
             DiagnosticJournal.Event("cu_start_diagnostic_open","historic="+(startAuditStatus??"")+
                 "|current_owner="+(startAuditOwner==player.StringId)+"|native_read_only=true");
             ShowNativeDetail("Calradia Unified | Initialization review",historic+"\n\n"+current+
                 "\n\n"+(familyRecovery.NeedsReview && familyRecovery.PlayerId==player.StringId?familyRecovery.Describe()+"\n\n":"")+
                 "Original requested settings:\n"+(String.IsNullOrEmpty(startAuditRequest)?"not recorded":startAuditRequest.Replace("|","\n"))+
-                "\nNo grants or family actions are replayed.");
+                "\nRead-only report.");
         }
         private void ShowStartingHouseholdStatus()
         {
@@ -302,11 +302,11 @@ namespace CalradiaUnified
                     .OrderBy(h=>h.StringId,StringComparer.Ordinal)
                     .Take(8).ToArray();
             string family="Family roll: "+children.Length+
-                " living children. View every portrait below.";
+                " living children.";
             string assignment=officers.Length==0?
-                "No appointed companions in your clan.":
-                "Tap a portrait to inspect an actual companion.";
-            string role="Unverified starting role.";
+                "No companions.":
+                "Select a companion.";
+            string role="Career unknown.";
             string type="none";
             if(knightOath.IsConfigured)
             {
@@ -443,7 +443,7 @@ namespace CalradiaUnified
                     NativeDossierTitle(type),
                     "Clan: "+clan.Name,
                     family,assignment,role,
-                    "Live native household records. No fabricated titles.",
+                    "",
                     InspectDossierHero,
                     OpenDossierFamilyPortraits,
                     ()=>OpenCampaignAffairs(),

@@ -170,7 +170,7 @@ namespace CalradiaUnified
                     (p.Accepted.Contains(id)?"modeled willingness to attend if present":"modeled decline of the invitation")+
                     (p.Status=="Held"?(p.Attended.Contains(id)?" | attended":" | did not attend"):""));
             }
-            ShowNativeDetail("Gathering arrangements",String.Join("\n",lines));
+            ShowNativeDetail("Gathering",String.Join("\n",lines));
         }
         private List<Hero> PlannedAttendees(string parent)
         {
@@ -195,7 +195,7 @@ namespace CalradiaUnified
             if(!GroupOccasionAllowed(gatheringPlan.Occasion))
             {
                 ClearGroupSession();
-                ShowNativeDetail("Gathering","The occasion can no longer be held with those present.");
+                ShowNativeDetail("Gathering","Too few guests are present.");
                 return;
             }
             BeginGroupOccasion(gatheringPlan.Occasion);
@@ -277,9 +277,9 @@ namespace CalradiaUnified
             foreach(var person in groupParticipants)
             {
                 string reputation=peerSocial.Reputation(person.StringId,CurrentHouseholdDay());
-                if(reputation.Length>0)lines.Add(person.Name+": "+reputation+". Based on recent recorded peer standings only.");
+                if(reputation.Length>0)lines.Add(person.Name+": "+reputation+".");
             }
-            ShowNativeDetail("Those gathered",String.Join("\n\n",lines));
+            ShowNativeDetail("Guests",String.Join("\n\n",lines));
         }
 
         private string GroupOccasionArgument(string priority,Hero speaker,int variant)
@@ -506,26 +506,26 @@ namespace CalradiaUnified
                     args=>OpenGroupDiscussion(parent),false);
                 if(parent!="cu_household_camp")
                 {
-                    starter.AddGameMenuOption(parent,"cu_group_plan_view_"+parent,"Review gathering arrangements",
+                    starter.AddGameMenuOption(parent,"cu_group_plan_view_"+parent,"Gathering plans",
                         args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent;},
                         args=>ShowGatheringPlan(),false);
-                    starter.AddGameMenuOption(parent,"cu_group_plan_attend_"+parent,"Hold the arranged gathering",
+                    starter.AddGameMenuOption(parent,"cu_group_plan_attend_"+parent,"Attend gathering",
                         args=>{args.optionLeaveType=GameMenuOption.LeaveType.Conversation;return PlannedAttendees(parent).Count>=2;},
                         args=>AttendPlannedGathering(parent),false);
-                    starter.AddGameMenuOption(parent,"cu_group_plan_cancel_"+parent,"Cancel the arranged gathering",
+                    starter.AddGameMenuOption(parent,"cu_group_plan_cancel_"+parent,"Cancel gathering",
                         args=>Hero.MainHero!=null && gatheringPlan.Owner==Hero.MainHero.StringId && gatheringPlan.Parent==parent && gatheringPlan.Status=="Pending",
                         args=>{if(Hero.MainHero!=null)gatheringPlan.Cancel(Hero.MainHero.StringId,CurrentHouseholdDay());},false);
                 }
             }
             starter.AddGameMenu("cu_group_topics","{CU_GROUP_TOPICS}",args=>
             {
-                string text=GroupSessionValid()?"Those gathered: "+String.Join(", ",
+                string text=GroupSessionValid()?"Guests: "+String.Join(", ",
                     groupParticipants.Select(h=>h.Name.ToString()))+". What shall we discuss?":
                     "The gathering can no longer continue.";
                 MBTextManager.SetTextVariable("CU_GROUP_TOPICS",new TextObject(text));
             });
             starter.AddGameMenuOption("cu_group_topics","cu_group_peer_standing",
-                "Consider how those gathered get along",
+                "Relations among guests",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
                     return GroupSessionValid();},
                 args=>ShowGroupPeerStanding(),false);

@@ -21,7 +21,7 @@ namespace CalradiaUnified
             try
             {
                 InformationManager.ShowInquiry(new InquiryData(
-                    heading,detail,true,false,"Continue",null,
+                    heading,detail,true,false,"Close",null,
                     ()=>{},null),true);
             }
             catch(Exception error)
@@ -327,7 +327,7 @@ namespace CalradiaUnified
                 petitionDecisionReply=relationProof?"Your goodwill has been received. Our personal standing has changed.":
                     paymentProof?"I have received the 200 denars personally. This is not a deposit into the estate treasury.":
                     rosterProof?"Five of our existing recruits are now accounted for in the garrison.":
-                    "The intended effect was not confirmed. Check the native records before issuing another order.";
+                    "The order could not be confirmed. Check the garrison or purse before trying again.";
             }
             finally{answeringCharacterRequest=false;}
         }
@@ -342,7 +342,7 @@ namespace CalradiaUnified
                 !agencyDecisions.SelectPending(actor.StringId))
             {
                 Notify("Speak with the person directly to answer "+
-                    "their petition. No remote decision was made.");
+                    "their petition. ");
                 return;
             }
             string kind=agencyDecisions.PendingKind;
@@ -368,7 +368,7 @@ namespace CalradiaUnified
                 if(!SandboxAgencyDecisionPolicy.NativeTransferPermitted(
                     kind,true,player.Gold,actor.IsAlive))
                 {
-                    Notify("You lack the denars for this support request.");
+                    Notify("You cannot afford this request.");
                     return;
                 }
                 int payerBefore=player.Gold;
@@ -526,7 +526,7 @@ namespace CalradiaUnified
             var player=Hero.MainHero;
             if(clan==null || player==null)
             {
-                Notify("No verified native family claim exists.");
+                Notify("You have no recognized family claim.");
                 return;
             }
             string leader=clan.Leader==null?"none":
@@ -559,7 +559,7 @@ namespace CalradiaUnified
             var clan=RecordedBirthClan();
             if(player==null || clan==null)
             {
-                Notify("Your native birth clan is unavailable.");
+                Notify("Your birth clan is unavailable.");
                 return;
             }
             var leader=clan.Leader;
@@ -834,22 +834,16 @@ namespace CalradiaUnified
             CampaignGameStarter starter)
         {
             starter.AddGameMenu("cu_people_lineage",
-                "You gather the people of your own house at court. "+
-                "Consult the household roll, receive your officers "+
-                "and review matters of land and inheritance. "+
-                "Other families must be spoken to in person.",
+                "Your household awaits. Hear petitions, consult your officers or review family affairs.",
                 args=>{});
             starter.AddGameMenu("cu_people_household",
-                "The household roll. Names, places and ambitions "+
-                "belong to people living in your campaign.",
+                "Members of your household.",
                 args=>{});
             starter.AddGameMenu("cu_people_requests",
-                "Private petitions from people close to your house. "+
-                "Your reply can change actual denars and relationships.",
+                "Petitions awaiting your answer.",
                 args=>{});
             starter.AddGameMenu("cu_people_claim",
-                "Family council. Hear claims to estates, review "+
-                "inheritance custom and seek a lawful settlement.",
+                "Hear claims and settle family disputes.",
                 args=>{});
             foreach(string location in new[]{"town","castle"})
             {
@@ -899,7 +893,7 @@ namespace CalradiaUnified
             // occupy a separate top-level settlement option.
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_partial_family_review",
-                "Review incomplete starting household",
+                "Incomplete household",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return familyRecovery.NeedsReview &&
                     Hero.MainHero!=null;},
                 args=>ShowNativeDetail(
@@ -907,7 +901,7 @@ namespace CalradiaUnified
                     familyRecovery.Describe()),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_role_economy_observed",
-                "My livelihood and obligations",
+                "Livelihood",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return roleEconomy.Started;},
                 args=>ShowNativeDetail(
                     "Starting Role | Verified livelihood record",
@@ -917,7 +911,7 @@ namespace CalradiaUnified
             // and saved campaign records, not an old creator .ini file.
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_starting_household_native_status",
-                "My household and present calling",
+                "Household",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null &&
                     (knightOath.IsConfigured ||
                      lordInheritance.IsRecorded ||
@@ -926,18 +920,18 @@ namespace CalradiaUnified
                 args=>ShowStartingHouseholdStatus(),false);
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_household_duty_ledger",
-                "My household officers and their duties",
+                "Officers and duties",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return Hero.MainHero!=null &&
                     Clan.PlayerClan!=null &&
                     Clan.PlayerClan.Companions!=null &&
                     Clan.PlayerClan.Companions.Count>0;},
                 args=>ShowHouseholdDutyLedger(),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_affairs_journal","Review correspondence and pending matters",
+                "cu_people_affairs_journal","Correspondence and requests",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenCampaignAffairs(),false);
             starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_affairs_list","Browse correspondence (native list)",
+                "cu_people_affairs_list","Browse correspondence",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenNativeAffairsList(),false);
             starter.AddGameMenuOption("cu_people_lineage",

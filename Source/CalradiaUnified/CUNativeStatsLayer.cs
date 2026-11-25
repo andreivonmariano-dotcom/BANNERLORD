@@ -672,8 +672,8 @@ namespace CalradiaUnified
 
         [DataSourceProperty]
         public string NativeValue
-            {get{return generatedTarget?"GENERATED (AUTO)":
-                "BASE "+native;}}
+            {get{return generatedTarget?"Auto":
+                "Base "+native;}}
 
         internal void ApplySelected(int updated)
         {
@@ -706,7 +706,7 @@ namespace CalradiaUnified
         [DataSourceProperty]
         public string SelectedValue
             {get{return autoValue&&selected==native?
-                "AUTO":"NEW "+selected;}}
+                "AUTO":""+selected;}}
 
         [DataSourceProperty]
         public string Difference
@@ -1401,7 +1401,7 @@ namespace CalradiaUnified
                 }
                 DiagnosticJournal.Event("cu_creator_validation_rejected","stage=Stats|"+
                     profile.ValidationContext(hero==null?30:(int)hero.Age)+"|reason="+error.Message);
-                status="Starting age or stats were not saved: "+
+                status="Could not save age or skills: "+
                     error.Message;
                 Refresh();
                 return;
@@ -1426,10 +1426,10 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Title
             {get{return "CALRADIA UNIFIED";}}
         [DataSourceProperty] public string Subtitle
-            {get{return "CHAPTER 02 OF 05 | STARTING STATS & TRAITS";}}
+            {get{return "Age and skills";}}
         [DataSourceProperty] public string Page
             {get{return pageIndex<0?"Starting Age":
-                "All Attributes, Skills, Focus & Traits";}}
+                "Attributes, skills and traits";}}
         [DataSourceProperty] public string PageProgress
             {get{return "STEP "+
                 CUNativeStatsNavigationPolicy.StepNumber(pageIndex)+
@@ -1476,8 +1476,8 @@ namespace CalradiaUnified
                     Math.Min(SandboxFamilyAgePolicy.MaximumPlayerAge,value));
                 if(age==PlayerAge)return;
                 profile.PlayerAge=age;
-                status="Exact starting age: "+age+
-                    ". Original native story rewards are unchanged.";
+                status="Age: "+age+
+                    ".";
                 OnPropertyChangedWithValue(age,"PlayerAge");
                 OnPropertyChangedWithValue(AgeDescription,"AgeDescription");
                 OnPropertyChangedWithValue(status,"Status");

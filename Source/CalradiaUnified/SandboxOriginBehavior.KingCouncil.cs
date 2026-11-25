@@ -192,7 +192,7 @@ namespace CalradiaUnified
             var keep=complex==null?null:complex.GetLocationWithId("lordshall");
             if(keep==null)
             {
-                ShowNativeDetail("Royal hall","The native keep roster is not currently available. Enter the keep through its ordinary settlement menu.");
+                ShowNativeDetail("Royal hall","Enter the keep to inspect the hall.");
                 return;
             }
             var officers=new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")};
@@ -201,8 +201,8 @@ namespace CalradiaUnified
             DiagnosticJournal.Event("cu_royal_keep_roster_observed","seat="+royalCouncil.SeatId+
                 "|native_location=lordshall|assigned="+officers.Count(h=>h!=null && complex.GetLocationOfCharacter(h)==keep)+
                 "|spawned_by_cu=false");
-            ShowNativeDetail("Royal hall | Native roster",String.Join("\n",lines)+
-                "\nNative location assignment is not proof of a rendered Agent. Enter the keep and speak to those actually present.");
+            ShowNativeDetail("Royal hall",String.Join("\n",lines)+
+                "\nAssigned places only. Enter the hall to meet your guests.");
         }
         // Only move pre-existing, native local location characters from
         // a campaign menu. Do not create agents or move campaign Heroes.
@@ -211,7 +211,7 @@ namespace CalradiaUnified
             if(!NativeRoyalCouncilPresent(true) || TaleWorlds.MountAndBlade.Mission.Current!=null)return;
             var complex=LocationComplex.Current;
             var keep=complex==null?null:complex.GetLocationWithId("lordshall");
-            if(keep==null){ShowNativeDetail("Royal hall","No native hall is available.");return;}
+            if(keep==null){ShowNativeDetail("Royal hall","Hall unavailable.");return;}
             var officers=new[]{NativeCourtOfficer("Marshal"),NativeCourtOfficer("Royal Minister"),NativeCourtOfficer("Kingsguard")};
             var attendees=officers.Where(h=>h!=null).ToList();
             if(gatheringPlan.IsDue(Hero.MainHero.StringId,"cu_native_royal_council",royalCouncil.SeatId,CurrentHouseholdDay()))
@@ -235,8 +235,8 @@ namespace CalradiaUnified
             }
             DiagnosticJournal.Event("cu_royal_keep_prepared","seat="+royalCouncil.SeatId+
                 "|assigned="+assigned+"|created_agents=0|campaign_heroes_moved=0");
-            ShowNativeDetail("Royal hall","Native hall assignments confirmed: "+assigned+
-                " of "+attendees.Count+" eligible officers and invited guests. Return to the settlement and enter the keep normally. Actual rendered attendance remains to be checked.");
+            ShowNativeDetail("Royal hall","Assigned to the hall: "+assigned+
+                " of "+attendees.Count+" officers and guests. Enter the keep to meet them.");
         }
         private bool PrepareRoyalOfficerAudience()
         {
@@ -331,7 +331,7 @@ namespace CalradiaUnified
                 // permanent tab in every foreign castle.
                 starter.AddGameMenuOption("cu_people_lineage",
                     "cu_native_royal_council_entry",
-                    "My royal court and council",
+                    "Royal court",
                     args=>CurrentNobleAuthority(true) && royalCouncil.IsRecorded &&
                         Hero.MainHero!=null &&
                         Hero.MainHero.StringId==royalCouncil.KingId &&
@@ -398,12 +398,12 @@ namespace CalradiaUnified
                     return NativeRoyalCouncilPresent(true) && TaleWorlds.MountAndBlade.Mission.Current==null;},
                 args=>PrepareNativeKeepAttendance(),false);
             starter.AddGameMenuOption("cu_native_royal_council",
-                "cu_royal_keep_roster","Review native keep attendance",
+                "cu_royal_keep_roster","Hall attendance",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return NativeRoyalCouncilPresent(true);},
                 args=>ReviewNativeKeepRoster(),false);
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_native_royal_council_view",
-                "Review the native royal council",
+                "Council members",
                 args=>NativeRoyalCouncilPresent(true),
                 args=>
                 {
