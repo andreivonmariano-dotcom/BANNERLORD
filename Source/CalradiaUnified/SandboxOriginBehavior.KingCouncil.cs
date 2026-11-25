@@ -401,8 +401,9 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_royal_keep_prepare","Prepare officers for the royal hall (test)",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;
-                    return NativeRoyalCouncilPresent(true) && TaleWorlds.MountAndBlade.Mission.Current==null;},
-                args=>PrepareNativeKeepAttendance(),false);
+                    return String.Equals(Environment.GetEnvironmentVariable("CU_ROYAL_HALL_TRIAL"),"1",StringComparison.Ordinal) &&
+                        NativeRoyalCouncilPresent(true) && TaleWorlds.MountAndBlade.Mission.Current==null;},
+                args=>{if(String.Equals(Environment.GetEnvironmentVariable("CU_ROYAL_HALL_TRIAL"),"1",StringComparison.Ordinal))PrepareNativeKeepAttendance();},false);
             starter.AddGameMenuOption("cu_native_royal_council",
                 "cu_royal_keep_roster","Hall attendance",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return NativeRoyalCouncilPresent(true);},

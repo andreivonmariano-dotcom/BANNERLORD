@@ -151,17 +151,13 @@ namespace CalradiaUnified
             if(player.GetRelation(actor)<0 || ObservedStandingShift(player,actor)!=0)candidates.Add("Standing");
             if(player.GetRelation(actor)>=50 && livingPersons.SharedConversationMemory(player.StringId,actor.StringId)!=null)
                 candidates.Add("Standing");
-            if(CanCounselCareer() && IsPersonalChargeActive())candidates.Add("Service");
             if(actor==player.Spouse && actor.Spouse==player && player.Children!=null &&
                 player.Children.Any(h=>h!=null && h.IsAlive && h.Age<18f &&
                     (h.Father==actor || h.Mother==actor)))candidates.Add("Family");
-            if(characterAgendas.Get(actor.StringId)!=null)candidates.Add("Ambitions");
-            if(PersonalMemoryText().Length>0)candidates.Add("Memory");
             var eligible=candidates.Distinct().Where(topic=>CanDiscussPersonalTopic(topic) &&
                 !livingPersons.HasRecentConversationChoice(player.StringId,actor.StringId,topic,day)).ToArray();
             if(eligible.Length==0)return "";
             if(eligible.Contains("Concerns"))return "Concerns"; // Actual siege is urgent.
-            if(CanDiscussStory(StoryTopic()))return StoryTopic();
             return eligible[dialogueVariety.Variant(player.StringId,actor.StringId,"Initiative",eligible.Length)];
         }
 
@@ -952,7 +948,6 @@ namespace CalradiaUnified
                     reply=PersonalMemoryText();
                     if(reply.Length==0)reply="There is nothing further I can recall with certainty.";
                 }
-                if(CanDiscussStory(topic))reply+=" "+StoryWords();
                 string opinion=topic=="Opinions" || topic=="Memory"?"":SandboxPetitionVoicePolicy.PersonalReflection(topic,tone,personalTopicVariant);
                 if(opinion.Length==0 && topic!="Opinions" && topic!="Memory")opinion=SandboxPetitionVoicePolicy.Opinion(tone,topic);
                 if(opinion.Length>0 && topic!="Concerns" && !reply.Contains(opinion))reply+=" "+opinion;

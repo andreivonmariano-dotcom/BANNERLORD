@@ -102,23 +102,11 @@ namespace CalradiaUnified
         private string CampOfficerText()
         {
             var clan=Clan.PlayerClan;
-            string summary="";
-            foreach(var office in new[]{"Steward","Captain","Envoy"})
-            {
-                string id=householdDuties.AssignedId(office);
-                var person=ResolveCampaignHero(id);
-                bool verified=person!=null && person.IsAlive &&
-                    clan!=null && person.CompanionOf==clan &&
-                    person.Clan==clan;
-                summary+=office+": "+(id.Length==0?"vacant":
-                    verified?person.Name.ToString():
-                    "previous holder unavailable")+
-                    " | reports "+householdDuties.ReportCount(office)+
-                    "\n";
-            }
-            return summary+
-                "\nMeet your companion in person to grant "+
-                "a duty or hear a witnessed report.";
+            var party=MobileParty.MainParty;
+            if(clan==null || party==null)return "No current company.";
+            return String.Join("\n",HouseholdSpecialties.Select(role=>role+": "+
+                NativePersonName(EffectiveSpecialist(party,role))))+
+                "\nSpeak with a present adult family member or companion to fill a vacant native duty. Existing appointments remain in the native party screen.";
         }
         private string CampServiceText()
         {

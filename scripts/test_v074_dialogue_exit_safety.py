@@ -158,7 +158,7 @@ print("PASS personal intention and evolving goal references. SOURCE ONLY.")
 # Occasion and peer social model: no synthetic marriages, funerals or native changes.
 peer=(src/"SandboxOriginBehavior.PeerSocial.cs").read_text()
 peerstate=(src/"SandboxPeerSocialState.cs").read_text()
-assert 'ObservePeerSocialDaily(player);' in origin
+assert 'ObservePeerSocialDaily(player);' not in origin
 assert 'store.SyncData("CU_peer_social_1",ref peerRecords);' in origin
 assert 'ProbeNativeGroupConversationApi();' in origin
 assert 'SetupAndStartMissionConversationWithMultipleAgents' in peer and 'AddDialogLineMultiAgent' in peer
@@ -231,8 +231,8 @@ print("PASS campaign-specific variation, action-only exposure, observed relation
 director=(src/"SandboxOriginBehavior.StoryDirector.cs").read_text()
 directorstate=(src/"SandboxStoryDirectorState.cs").read_text()
 assert 'store.SyncData("CU_story_director_1",ref story);' in origin
-assert 'var lastStoryObservation=livingPersons.Events.LastOrDefault();' in origin
-assert 'ObserveStoryDirector(player,lastStoryObservation);' in origin
+assert 'var lastStoryObservation=livingPersons.Events.LastOrDefault();' not in origin
+assert 'ObserveStoryDirector(player,lastStoryObservation);' not in origin
 assert 'livingPersons.Events.Skip(index+1).Take(8)' in director
 assert 'if(previous!=null && index<0)return;' in director
 assert 'observed.Target==player.StringId' in director and 'observed.Actor==player.StringId' in director
@@ -289,3 +289,10 @@ assert '"cu_family_education_child_"+slot' not in depth
 assert '"cu_household_governor_order","hero_main_options","cu_household_governor_reply"' in officer
 assert '"cu_household_governor_from_concern","cu_personal_followup_choices"' in officer
 assert 'this, AdvanceFamilyUpbringing);' not in origin
+
+# Keep actual personal observations; retire speculative peer and story generation.
+social=(src/"SandboxOriginBehavior.SocialRecords.cs").read_text()
+assert 'peerInitiatives.Record(' not in social
+assert 'householdAccounts.Observe(player.StringId,day,player.Gold)' in social
+assert 'candidates.Add("Ambitions")' not in depth and 'candidates.Add("Memory")' not in depth
+assert 'if(CanDiscussStory(topic))reply' not in depth

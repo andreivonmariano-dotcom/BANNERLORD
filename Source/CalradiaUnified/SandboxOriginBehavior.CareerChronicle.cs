@@ -38,6 +38,27 @@ namespace CalradiaUnified
             return true;
         }
 
+        // Observe only roles supported by actual authority. Never infer a new criminal or civilian calling.
+        private void ObserveLifetimeCareerAutomatically()
+        {
+            var player=Hero.MainHero;
+            if(player==null || !applied || !IsStandaloneSandbox())return;
+            try
+            {
+                string role=new[]{"Soldier","Knight","King","Lord","Mercenary"}.FirstOrDefault(CanRecordLifetimeRole);
+                if(role==null && player.StringId==startAuditOwner &&
+                    (startAuditRole=="Wanderer" || startAuditRole=="Outlaw") && CanRecordLifetimeRole(startAuditRole))
+                {
+                    // Do not re-label a former contract-holder as an outlaw or wanderer simply for traveling independently.
+                    if(!lifetimeCareers.For(player.StringId).Any(e=>e.Role!=startAuditRole))role=startAuditRole;
+                }
+                if(role==null)return;
+                int day=(int)Math.Floor(CampaignTime.Now.ToDays);
+                if(lifetimeCareers.Record(player.StringId,role,day,true,true))
+                    DiagnosticJournal.Event("cu_lifetime_native_observation","hero="+player.StringId+"|role="+role+"|day="+day+"|no_new_title=true");
+            }
+            catch(Exception error){DiagnosticJournal.Exception("cu_lifetime_observation_failed",error);}
+        }
         private void RecordLifetimeRole(string role)
         {
             var player=Hero.MainHero;
@@ -161,6 +182,9 @@ namespace CalradiaUnified
                 Hero.MainHero==null || Clan.PlayerClan==null ||
                 MobileParty.MainParty==null || !roleEconomy.Started)
                 return;
+            ObserveLifetimeCareerAutomatically();
+            // Old starting chapters are founder-specific. Do not award them to successors.
+            if(Hero.MainHero.StringId!=startAuditOwner)return;
             string role=CurrentCareerRole();
             if(role.Length==0)return;
             // Never continue the old starting-role chapters on a new calling.
@@ -249,9 +273,7 @@ namespace CalradiaUnified
                     "|location="+(townId.Length>0?townId:"none")+
                     "|native_state_verified=true"+
                     "|no_fake_rank_or_salary=true");
-                Notify("Your "+role+" chronicle has recorded "+
-                    "chapter "+careerChronicle.Chapter+" of three. "+
-                    "Review your next duty from the household ledger.");
+                // Historical milestones are recorded silently, never presented as new chores.
             }
         }
 
@@ -286,16 +308,8 @@ namespace CalradiaUnified
                 (knightOath.IsConfigured?knightOath.Status:"none")+
                 "\nLast service status: "+
                 serviceCareer.Status+
-                "\nWitnessed chapters: "+careerChronicle.Chapter+"/3"+
-                "\nSelected review calling: "+SelectedReviewRole()+
-                "\n"+RecurringCareerReviewText()+
-                "\nAgreed charge: "+ChargeDescription()+
-                "\nPresent charge: "+
-                SandboxCareerChronicleState.ChapterObjective(
-                    role,careerChronicle.Chapter)+
-                (careerChronicle.ConsecutiveDays>0?
-                    "\nConfirmed days in this duty: "+
-                    careerChronicle.ConsecutiveDays:"")+
+                "\nHistorical starting milestones: "+careerChronicle.Chapter+"/3"+
+                (IsPersonalChargeActive()?"\nA legacy personal goal remains. You can set it aside.":"")+
                 "\nThese chapters record actual Bannerlord "+
                 "actions, real parties, native contracts and "+
                 "recognized people. They do not grant a "+
@@ -320,11 +334,11 @@ namespace CalradiaUnified
                     "cu_career_chronicle"),false);
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_career_chronicle_review",
-                "Review my current chapter",
+                "Read my career history",
                 args=>true,
                 args=>{
                     ObserveCareerChronicleDaily();
-                    ShowNativeDetail("Career | Your next charge",
+                    ShowNativeDetail("Career history",
                         CareerChronicleDescription());
                 },false);
             starter.AddGameMenuOption("cu_career_chronicle",
@@ -335,14 +349,6 @@ namespace CalradiaUnified
                 "cu_lifetime_history","Read my lifetime career history",
                 args=>true,args=>ShowNativeDetail("Lifetime career",
                     LifetimeCareerText(Hero.MainHero)),false);
-            foreach(string candidate in SandboxStartingLifePolicy.SevenPaths)
-            {
-                string role=candidate;
-                starter.AddGameMenuOption("cu_career_chronicle",
-                    "cu_lifetime_record_"+role,"Record observed calling: "+role,
-                    args=>CanRecordLifetimeRole(role),
-                    args=>RecordLifetimeRole(role),false);
-            }
             starter.AddGameMenuOption("cu_career_chronicle",
                 "cu_battle_history","Review witnessed campaign battles",
                 args=>true,args=>ShowNativeDetail("Career | Battle history",

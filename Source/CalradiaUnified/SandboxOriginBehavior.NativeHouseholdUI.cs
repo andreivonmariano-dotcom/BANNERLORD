@@ -341,7 +341,7 @@ namespace CalradiaUnified
         private void ReviewDossierCalling()
         {
             ObserveCareerChronicleDaily();
-            ShowNativeDetail("Career | Your next charge",
+            ShowNativeDetail("Career history",
                 CareerChronicleDescription());
         }
 

@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Actions;
@@ -231,10 +232,98 @@ namespace CalradiaUnified
             }
             MBTextManager.SetTextVariable("CU_HOUSEHOLD_GOVERNOR_REPLY",new TextObject(reply));
         }
+        private static readonly PartyRole[] HouseholdSpecialties={PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer};
+        private static Hero EffectiveSpecialist(MobileParty party,PartyRole role)
+        {
+            switch(role)
+            {
+                case PartyRole.Quartermaster:return party.EffectiveQuartermaster;
+                case PartyRole.Scout:return party.EffectiveScout;
+                case PartyRole.Surgeon:return party.EffectiveSurgeon;
+                case PartyRole.Engineer:return party.EffectiveEngineer;
+                default:return null;
+            }
+        }
+        private static bool ActualAdultHouseholdMember(Hero player,Hero actor,Clan clan)
+        {
+            if(player==null || actor==null || actor==player || clan==null || actor.Clan!=clan ||
+                !actor.IsAlive || !actor.IsActive || actor.Age<18f || actor.IsPrisoner || actor.IsTraveling || actor.IsFugitive)return false;
+            return (actor==player.Spouse && actor.Spouse==player) ||
+                (player.Children!=null && player.Children.Contains(actor) && (actor.Father==player || actor.Mother==player)) ||
+                (clan.Companions!=null && clan.Companions.Contains(actor) && actor.CompanionOf==clan);
+        }
+        private bool CanAssignHouseholdSpecialty(PartyRole role)
+        {
+            try
+            {
+                var player=Hero.MainHero;var actor=Hero.OneToOneConversationHero;
+                var clan=Clan.PlayerClan;var party=MobileParty.MainParty;
+                if(!applied || !IsStandaloneSandbox() || !HouseholdSpecialties.Contains(role) ||
+                    player==null || !player.IsAlive || !player.IsActive || player.IsPrisoner || clan==null || clan.Leader!=player ||
+                    party==null || party.LeaderHero!=player || party.ActualClan!=clan || party.Army!=null ||
+                    party.MapEvent!=null || party.IsCurrentlyAtSea || party.MemberRoster==null ||
+                    !ActualAdultHouseholdMember(player,actor,clan) || actor.GetRelation(player)<0 || actor.GovernorOf!=null ||
+                    actor.PartyBelongedTo!=party || party.MemberRoster.GetTroopCount(actor.CharacterObject)!=1)return false;
+                var service=SandboxSaSBridge.Read();
+                if(service.Enlisted || (!service.Available && (serviceCareer.VerifiedExternalEnlistment || serviceCareer.Status=="ExternalStatusUnverified" || CurrentCareerRole()=="Soldier")))return false;
+                var seat=Settlement.CurrentSettlement;
+                if(seat!=null && seat.IsUnderSiege)return false;
+                // Effective roles can fall back to the player. Never replace an explicitly assigned specialist.
+                var effective=EffectiveSpecialist(party,role);
+                if(effective!=null && effective!=player)return false;
+                if(party.GetHeroPartyRoles(actor).Any(x=>HouseholdSpecialties.Contains(x)))return false;
+                foreach(var entry in party.MemberRoster.GetTroopRoster())
+                {
+                    var member=entry.Character==null?null:entry.Character.HeroObject;
+                    if(entry.Number>0 && member!=null && party.GetHeroPartyRoles(member).Contains(role))return false;
+                }
+                return !party.GetHeroPartyRoles(player).Contains(role);
+            }
+            catch{return false;}
+        }
+        private bool CanOfferHouseholdResponsibilities()
+        {
+            return HouseholdSpecialties.Any(role=>CanAssignHouseholdSpecialty(role));
+        }
+        private void AssignHouseholdSpecialty(PartyRole role)
+        {
+            string reply="I cannot take that duty just now. No appointment was confirmed.";
+            if(CanAssignHouseholdSpecialty(role))
+            {
+                var actor=Hero.OneToOneConversationHero;var party=MobileParty.MainParty;
+                var previous=HouseholdSpecialties.Select(x=>EffectiveSpecialist(party,x)).ToArray();
+                try{party.SetHeroPartyRole(actor,role);}
+                catch(Exception error){DiagnosticJournal.Exception("cu_native_party_duty_failed",error);}
+                bool assigned=party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor;
+                bool othersUnchanged=HouseholdSpecialties.Select((x,i)=>x==role || EffectiveSpecialist(party,x)==previous[i]).All(x=>x);
+                bool confirmed=assigned && othersUnchanged;
+                DiagnosticJournal.Event("cu_household_native_party_duty","result="+(confirmed?"PASS":"UNCONFIRMED")+
+                    "|actor="+actor.StringId+"|party="+party.StringId+"|role="+role+"|native_role_confirmed="+assigned+"|other_specialists_unchanged="+othersUnchanged);
+                if(confirmed)
+                {
+                    livingPersons.Remember("NativePartyDutyAssigned",Hero.MainHero.StringId,actor.StringId,"role="+role+"|day="+CurrentHouseholdDay());
+                    reply="I accept. I will serve as your "+role.ToString().ToLowerInvariant()+". You can see the appointment in the party screen.";
+                }
+                else reply="The appointment was not fully confirmed. Review the native party screen before issuing another duty.";
+            }
+            MBTextManager.SetTextVariable("CU_NATIVE_PARTY_DUTY_REPLY",new TextObject(reply));
+        }
         private void RegisterNobleOfficerConversations(
             CampaignGameStarter starter)
         {
             if(starter==null)return;
+            starter.AddPlayerLine("cu_native_party_duties_open","hero_main_options","cu_native_party_duties_intro",
+                "I have a responsibility for you in our company.",()=>CanOfferHouseholdResponsibilities(),null,139);
+            starter.AddDialogLine("cu_native_party_duties_intro","cu_native_party_duties_intro","cu_native_party_duties_choices",
+                "What duty do you wish me to undertake?",null,null,139);
+            foreach(var specialty in HouseholdSpecialties)
+            {
+                var role=specialty;
+                starter.AddPlayerLine("cu_native_party_duty_"+role,"cu_native_party_duties_choices","cu_native_party_duty_reply",
+                    "Serve as our "+role.ToString().ToLowerInvariant()+".",()=>CanAssignHouseholdSpecialty(role),()=>AssignHouseholdSpecialty(role),139);
+            }
+            starter.AddPlayerLine("cu_native_party_duties_cancel","cu_native_party_duties_choices","close_window","Not now.",null,null,1);
+            starter.AddDialogLine("cu_native_party_duty_reply","cu_native_party_duty_reply","close_window","{CU_NATIVE_PARTY_DUTY_REPLY}",null,null,139);
             starter.AddPlayerLine("cu_household_governor_order","hero_main_options","cu_household_governor_reply",
                 "Will you govern this holding for our house?",()=>CanAskResidentToGovern(),()=>AskResidentToGovern(),140);
             starter.AddPlayerLine("cu_household_governor_from_concern","cu_personal_followup_choices","cu_household_governor_reply",

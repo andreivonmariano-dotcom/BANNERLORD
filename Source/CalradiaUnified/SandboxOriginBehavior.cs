@@ -745,14 +745,13 @@ namespace CalradiaUnified
                         if(officer==player || officer.Clan!=Clan.PlayerClan || officer.CompanionOf!=Clan.PlayerClan)
                             if(retinueOffices.Revoke(officer.StringId))
                                 DiagnosticJournal.Event("cu_retinue_office_revoked","hero="+officer.StringId+"|native_membership_lost=true");
-                var lastStoryObservation=livingPersons.Events.LastOrDefault();
                 SandboxLivingPersons.ObserveDaily(livingPersons,
                     socialObservations,player);
                 SandboxLivingPersons.ObserveAgenda(livingPersons,
                     characterAgendas,player);
-                ObserveStoryDirector(player,lastStoryObservation);
+                // Retired modeled story generation: keep saved historical receipts only.
                 ObserveAgencyDaily(player);
-                ObservePeerSocialDaily(player);
+                // No speculative peer sampling in ordinary campaigns.
                 gatheringPlan.Expire(CurrentHouseholdDay());
                 if(serviceCareer.IsConfigured)
                 {

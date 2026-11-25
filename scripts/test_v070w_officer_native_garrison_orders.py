@@ -79,3 +79,15 @@ assert 'seat.Town.Governor==actor && actor.GovernorOf==seat.Town' in s
 assert 'actor.PartyBelongedTo==null' in s and 'seat.Town.Governor==null' in s
 assert 'actor.CurrentSettlement==seat' in s and 'actor.GovernorOf==null' in s
 assert 'no_teleport=true|no_incumbent_replaced=true' in s
+
+# Direct native party duties, no invented officer roster or new role simulation.
+assert 'party.SetHeroPartyRole(actor,role)' in s
+assert 'party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor' in s
+assert 'other_specialists_unchanged=' in s
+assert 'actor.PartyBelongedTo!=party' in s and 'party.MemberRoster.GetTroopCount(actor.CharacterObject)!=1' in s
+assert 'party.GetHeroPartyRoles(member).Contains(role)' in s
+assert 'party.GetHeroPartyRoles(player).Contains(role)' in s
+assert 'service.Enlisted || (!service.Available' in s
+assert 'party.Army!=null' in s and 'party.IsCurrentlyAtSea' in s
+assert 'PartyRole.Quartermaster,PartyRole.Scout,PartyRole.Surgeon,PartyRole.Engineer' in s
+assert 'cu_native_party_duties_cancel' in s
