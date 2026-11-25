@@ -160,7 +160,7 @@ peer=(src/"SandboxOriginBehavior.PeerSocial.cs").read_text()
 peerstate=(src/"SandboxPeerSocialState.cs").read_text()
 assert 'ObservePeerSocialDaily(player);' not in origin
 assert 'store.SyncData("CU_peer_social_1",ref peerRecords);' in origin
-assert 'ProbeNativeGroupConversationApi();' in origin
+assert 'ProbeNativeGroupConversationApi();' not in origin # historical scene probe is compile-excluded
 assert 'SetupAndStartMissionConversationWithMultipleAgents' in peer and 'AddDialogLineMultiAgent' in peer
 assert '|invoked=false|scene_verified=false' in peer
 assert 'h!=Hero.MainHero && h.IsAlive && h.IsActive' in peer

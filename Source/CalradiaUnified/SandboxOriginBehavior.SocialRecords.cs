@@ -15,22 +15,6 @@ namespace CalradiaUnified
         private SandboxHouseholdAccountsState householdAccounts=
             new SandboxHouseholdAccountsState();
 
-        private static bool EligiblePeer(Hero h)
-        {
-            return h!=null && h.IsAlive && h.IsActive &&
-                !h.IsPrisoner && h.Age>=18f;
-        }
-
-        private static bool PeerCoLocated(Hero a,Hero b)
-        {
-            if(a==null || b==null || a==b)return false;
-            if(a.PartyBelongedTo!=null && a.PartyBelongedTo==b.PartyBelongedTo)
-                return true;
-            var place=a.StayingInSettlement ?? a.CurrentSettlement;
-            var other=b.StayingInSettlement ?? b.CurrentSettlement;
-            return place!=null && place==other;
-        }
-
         private void ObserveSocietyAccountsAndPeers()
         {
             try

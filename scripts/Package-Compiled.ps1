@@ -23,7 +23,7 @@ Copy-Item $manifest (Join-Path $stage 'SubModule.xml')
 $gui = Join-Path $module 'GUI'
 if (Test-Path -LiteralPath $gui) {
     Copy-Item $gui (Join-Path $stage 'GUI') -Recurse
-    foreach ($retired in @('CUOriginPanel.xml','CUSettingsPanel.xml')) {
+    foreach ($retired in @('CUOriginPanel.xml','CUSettingsPanel.xml','CUHouseholdCamp.xml')) {
         $discontinued = Join-Path $stage ("GUI\Prefabs\" + $retired)
         if (Test-Path -LiteralPath $discontinued) {
             Remove-Item -LiteralPath $discontinued -Force
