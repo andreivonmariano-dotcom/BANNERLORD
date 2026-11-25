@@ -58,3 +58,15 @@ with (root/"Data"/"CU_Feature_Compatibility_Audit.csv").open(encoding="utf-8",ne
 assert len(dispositions)==55 and {row["feature_id"] for row in dispositions}=={row["feature_id"] for row in historical}
 assert all(row["disposition"] in {"KEEP","MERGE","RETIRED","OPTIONAL","DEFER"} and row["reason"] and row["owner"] for row in dispositions)
 print("PASS all 55 historical features have explicit disposition; legacy civic and autonomy save keys retained without active tick subscriptions.")
+
+# The expanded six-system review covers every canonical CU entry without treating historical references as implemented features.
+with (root/"Data"/"CU_Core_System_Review.csv").open(encoding="utf-8",newline="") as handle:
+    core_review=list(csv.DictReader(handle))
+with (root/"Data"/"Feature_Registry.csv").open(encoding="utf-8",newline="") as handle:
+    registered={row["feature_id"] for row in csv.DictReader(handle) if row["feature_id"].startswith("CU-")}
+ids=[row["feature_id"] for row in core_review]
+assert len(registered)==70 and registered <= set(ids)
+assert len(ids)==len(set(ids)) and len(ids)>70
+assert all(row["review_reason"] and row["owner"] and (root/row["source_path"]).is_file() for row in core_review)
+assert all(row["disposition"] in {"KEEP","IMPROVE","MERGE","RETIRE","DEFER","ARCHIVE","OPTIONAL"} for row in core_review)
+print("PASS six-system review includes every canonical CU feature and unique supplemental source contracts.")
