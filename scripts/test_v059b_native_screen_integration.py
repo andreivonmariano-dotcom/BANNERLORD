@@ -28,7 +28,7 @@ house=(root/"Source/CalradiaUnified/CUNativeHouseLayer.cs").read_text(encoding="
 guided_commands={
     "ExecutePreviousChoice","ExecuteNextChoice","ExecuteToggle",
     "ExecuteDecrease","ExecuteIncrease","ExecuteExact",
-    "ExecuteEditText","ExecuteNativeDefault","ExecuteBack",
+    "ExecuteEditText","ExecuteHouseholdPreview","ExecuteNativeDefault","ExecuteBack",
     "ExecuteContinue","ExecuteAdvanced",
 }
 for name,movie in (("native",guided),("fallback",guided_fallback)):

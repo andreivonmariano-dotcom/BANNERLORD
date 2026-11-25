@@ -53,7 +53,7 @@
               WidthSizePolicy="Fixed" SuggestedWidth="720"
               HeightSizePolicy="Fixed" SuggestedHeight="30"
               PositionXOffset="28" PositionYOffset="59"/>
-            <TextWidget Brush.FontSize="20" Text="YOUR LEGACY" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="20" Text="Starting life" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="220"
               HeightSizePolicy="Fixed" SuggestedHeight="34"
               PositionXOffset="22" PositionYOffset="121"/>
@@ -143,7 +143,7 @@
    UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
    HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="174"
    PositionYOffset="6" Command.Click="ExecuteToggle" IsVisible="@IsBoolean">
-   <Children><TextWidget Brush.FontSize="17" Text="Toggle Yes / No" Color="#F6E4C4FF"
+   <Children><TextWidget Brush.FontSize="17" Text="Change" Color="#F6E4C4FF"
    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
    HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
    </ButtonWidget>
@@ -167,7 +167,7 @@
    UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="190"
    HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="397"
    PositionYOffset="6" Command.Click="ExecuteExact" IsVisible="@IsNumber">
-   <Children><TextWidget Brush.FontSize="17" Text="Exact value" Color="#F6E4C4FF"
+   <Children><TextWidget Brush.FontSize="17" Text="Enter value" Color="#F6E4C4FF"
    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
    HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
    </ButtonWidget>
@@ -175,7 +175,15 @@
    UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
    HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="174"
    PositionYOffset="6" Command.Click="ExecuteEditText" IsVisible="@IsText">
-   <Children><TextWidget Brush.FontSize="17" Text="Edit text" Color="#F6E4C4FF"
+   <Children><TextWidget Brush.FontSize="17" Text="Edit" Color="#F6E4C4FF"
+   WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
+   HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
+   </ButtonWidget>
+<ButtonWidget Brush="ButtonBrush" DoNotPassEventsToChildren="true"
+   UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
+   HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="174"
+   PositionYOffset="6" Command.Click="ExecuteHouseholdPreview" IsVisible="@IsReview">
+   <Children><TextWidget Brush.FontSize="17" Text="Review household" Color="#F6E4C4FF"
    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
    HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
    </ButtonWidget>
@@ -183,7 +191,7 @@
    UpdateChildrenStates="true" WidthSizePolicy="Fixed" SuggestedWidth="260"
    HeightSizePolicy="Fixed" SuggestedHeight="47" PositionXOffset="174"
    PositionYOffset="64" Command.Click="ExecuteNativeDefault" IsVisible="@IsNativeDefaultAvailable">
-   <Children><TextWidget Brush.FontSize="17" Text="Use native default" Color="#F6E4C4FF"
+   <Children><TextWidget Brush.FontSize="17" Text="Default" Color="#F6E4C4FF"
    WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"
    HorizontalAlignment="Center" VerticalAlignment="Center"/></Children>
    </ButtonWidget>
@@ -195,7 +203,7 @@
               WidthSizePolicy="Fixed" SuggestedWidth="610"
               HeightSizePolicy="Fixed" SuggestedHeight="49"
               HorizontalAlignment="Center" PositionYOffset="552"/>
-            <TextWidget Brush.FontSize="19" Text="YOUR STARTING PLAN" Color="#D6AA69FF"
+            <TextWidget Brush.FontSize="19" Text="Starting choices" Color="#D6AA69FF"
               WidthSizePolicy="Fixed" SuggestedWidth="313"
               HeightSizePolicy="Fixed" SuggestedHeight="43"
               HorizontalAlignment="Right" PositionXOffset="-26"

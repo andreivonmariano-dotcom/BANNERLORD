@@ -164,7 +164,7 @@ namespace CalradiaUnified
             {
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartingScenario",
                     "Choose your world",
-                    "Select the native campaign scenario. It is committed before the campaign exists.",
+                    "Choose the state of Calradia at the start.",
                     choices:SandboxOriginProfile.Scenarios));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","ScenarioFaction1",
                     "First scenario faction",
@@ -201,7 +201,7 @@ namespace CalradiaUnified
                     "boolean",advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","Role",
                     "Your starting life",
-                    "Choose one of seven careers. Each has one starting path. Family, appearance and kingdom choices remain separate.",
+                    "Choose how your story begins.",
                     choices:SandboxStartingLifePolicy.SevenPaths));
                 // New Wanderer collects its sole companion here, before
                 // the native player stats and appearance sequence. There
@@ -242,7 +242,7 @@ namespace CalradiaUnified
                     choices:SandboxStartingLifePolicy.Ambitions,advanced:true));
                 list.Add(new Field("CHAPTER I | YOUR WORLD","StartingKingdomId",
                     "Starting kingdom",
-                    "Landed and mercenary roles use native allegiance. Landless roles choose a patron or birth-family kingdom without a native oath.",
+                    "Choose your realm or the kingdom of your patron.",
                     choices:SandboxOriginProfile.KingdomIds));
                 list.Add(new Field("CHAPTER I | YOUR WORLD",
                     "ServicePatronHeroId","Commanding lord Hero ID (optional)",
@@ -355,11 +355,11 @@ namespace CalradiaUnified
                     advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Gold",
                     "Starting gold",
-                    "Use -1 to keep Bannerlord's original start.",
+                    "Default keeps your starting gold.",
                     "number",min:-1,max:2000000,step:1000,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Influence",
                     "Starting influence",
-                    "Use -1 to retain your native starting influence.",
+                    "Default keeps your starting influence.",
                     "number",min:-1,max:100000,step:100,advanced:true));
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","Troops",
                     "Additional native recruits",
@@ -390,7 +390,7 @@ namespace CalradiaUnified
                 // for the game's native final character review.
                 list.Add(new Field("CHAPTER IV | YOUR FORTUNE","HouseholdPreview",
                     "Review your household plan",
-                    "Inspect all proposed family members, their ages, residence, officers and requested resources. Nothing has been created yet.",
+                    "Review your family, retinue and starting possessions.",
                     "review"));
             }
             return list;
@@ -883,8 +883,8 @@ namespace CalradiaUnified
                 field=>field.Key==selected);
             cursor=matched>=0 ? matched :
                 Math.Max(0,Math.Min(cursor,available.Length-1));
-            Report(advanced ? "Advanced settings: names, ages, retainers, wealth and holdings.":
-                "Automatic household details are selected.");
+            Report(advanced ? "":
+                "");
             Refresh();
         }
         public void ExecuteBack()
@@ -1355,10 +1355,10 @@ namespace CalradiaUnified
         [DataSourceProperty] public string Title
             {get{return "CALRADIA UNIFIED";}}
         [DataSourceProperty] public string Chapter
-            {get{return Current==null?"YOUR LEGACY":Current.Chapter;}}
+            {get{return Current==null?"Starting life":Current.Chapter.Replace("CHAPTER I | YOUR WORLD","World").Replace("CHAPTER II | YOUR COMPANION","Companion").Replace("CHAPTER III | YOUR HOUSE","Household").Replace("CHAPTER IV | YOUR FORTUNE","Starting possessions");}}
         [DataSourceProperty] public string PhaseLabel
-            {get{return preCampaign ? "YOUR WORLD | BEFORE CHARACTER CREATION" :
-                "YOUR HOUSE & FORTUNE | AFTER IDENTITY AND ORIGINS";}}
+            {get{return preCampaign ? "World and career" :
+                "Household and possessions";}}
         [DataSourceProperty] public string StepProgress
             {get{return "STEP "+(cursor+1)+" / "+Visible.Length;}}
         [DataSourceProperty] public string StepTitle
@@ -1553,87 +1553,26 @@ namespace CalradiaUnified
         {
             get
             {
-                if(preCampaign && profile.Role=="King")
-                    return "King | native sovereign of a real kingdom\n"+
-                        "Chosen kingdom: "+
-                        (profile.StartingKingdomId.Length==0?
-                            "not selected":profile.StartingKingdomId)+
-                        "\nPlayer must genuinely lead its ruling clan "+
-                        "and main party. At least one real native fief."+
-                        "\nNo invented crown, fief grant, treasury, "+
-                        "royal stipend or free army."+
-                        "\nThree same-culture Heroes: Marshal and "+
-                        "Kingsguard travel with the King. Royal Minister "+
-                        "governs a genuine vacant native royal fief."+
-                        "\nSpouse and at least one child required. "+
-                        "Siblings remain optional."+
-                        "\nNo older brother in an uncontested founding house."+
-                        "\nRoyal heir ranking is a saved family custom, "+
-                        "not a native kingship transfer or regency.";
-                if(preCampaign && profile.Role=="Lord")
-                    return "Lord | founder of your own native noble house\n"+
-                        "True vassal in "+
-                        (profile.StartingKingdomId.Length==0?
-                            "an unselected kingdom":profile.StartingKingdomId)+
-                        "\nNative clan leadership and party command required."+
-                        "\nAt least one real native Advanced Start holding."+
-                        "\nNo additional fief gift, bonus funds or troops."+
-                        "\nTwo cultured native Heroes: Master of Arms "+
-                        "and sworn Knight. Both must join the clan party."+
-                        "\nSpouse from verified native noble parents "+
-                        "and at least one child required."+
-                        "\nChild inheritance: eldest living child "+
-                        "by default, or chosen male-preference rule."+
-                        "\nNative leadership and land stay game-owned."+
-                        "\nSiblings optional. No older founding brother."+
-                        "\nOlder sisters are allowed."+
-                        "\nNo royal title or invented court authority.";
-                if(preCampaign && profile.Role=="Knight")
-                    return "Knight | independent landless house\n"+
-                        "Sworn service: independent landless house, "+
-                        "real personal lord and 30-day muster in person.\n"+
-                        "Missed muster: native relation -3, oath break: -20.\n"+
-                        "One culturally trained Squire. No automatic castle, wage or vassalage.\n"+
-                        "Spouse and children remain optional.";
-                if(preCampaign && profile.Role=="Soldier")
-                    return "Soldier | sworn service under a real lord\n"+
-                        "Begin as a recruit (native private).\n"+
-                        "Kingdom to join: "+
-                        (profile.StartingKingdomId.Length==0?
-                            "not selected":profile.StartingKingdomId)+
-                        "\nThe SaS start-enlisted menu selects the actual "+
-                        "troop and commander. Rank and advancement remain native.\n"+
-                        "No independent mercenary company, fief or court.\n"+
-                        "Native appearance and full stats remain editable.";
-                if(preCampaign && profile.Role=="Mercenary")
-                    return "Mercenary | paid native company\n"+
-                        "Contract kingdom: "+
-                        (profile.StartingKingdomId.Length==0?
-                            "not selected":profile.StartingKingdomId)+
-                        "\nNo noble rank, fief or NPC-party enlistment"+
-                        "\nExisting native troop payroll and wages apply"+
-                        "\nFamily: optional spouse, children and siblings; "+
-                        "no invented owned residence"+
-                        "\nNative player appearance and stats remain editable.";
-                if(preCampaign && profile.Role=="Outlaw")
-                    return "Outlaw / Bandit | native outlaw start\n"+
-                        "No kingdom, estate or noble title\n"+
-                        "Band: six low-tier native bandits and "+
-                        "one culturally trained lieutenant\n"+
-                        "Wages: fourteen-day native payroll reserve, "+
-                        "plus starting food\n"+
-                        "Family: optional spouse, children and siblings; "+
-                        "no owned residence\n"+
-                        "Player appearance and stats remain editable.";
-                if(preCampaign && profile.Role=="Wanderer")
-                    return "Wanderer | independent native start\n"+
-                        "House screen: removed\n"+
-                        "Companion: "+(profile.WandererCompanionEnabled?
-                            profile.WandererCompanionName+" | "+
-                            profile.WandererCompanionSpecialty+
-                            " | 100 relation | native wages":"none")+
-                        "\nNative appearance, attributes, skills and "+
-                        "traits remain editable.";
+                if(preCampaign)
+                {
+                    string kingdom=profile.StartingKingdomId.Length==0?"Not selected":DisplayChoice("StartingKingdomId",profile.StartingKingdomId);
+                    switch(profile.Role)
+                    {
+                        case "King":return "Rule a kingdom.\nRealm: "+kingdom+
+                            "\nCourt: Marshal, Minister, Kingsguard\nFamily: spouse and at least one child\nSuccession follows the kingdom's laws.";
+                        case "Lord":return "Serve as a landed vassal.\nRealm: "+kingdom+
+                            "\nRetinue: Master of Arms and Knight\nFamily: spouse and at least one child";
+                        case "Knight":return "Swear service to a lord.\nPatron's kingdom: "+kingdom+
+                            "\nRetinue: Squire\nMuster every 30 days.\nNo starting fief.";
+                        case "Soldier":return "Enlist in a lord's army.\nKingdom: "+kingdom+
+                            "\nStarting rank: Recruit\nRequires Serve as Soldier.";
+                        case "Mercenary":return "Lead a company for hire.\nContract kingdom: "+kingdom+
+                            "\nNative wages and troop upkeep apply.";
+                        case "Outlaw":return "Lead a band outside the law.\nSix bandits and a lieutenant.\nFourteen days' wages and starting food.";
+                        case "Wanderer":return "Travel Calradia independently.\nCompanion: "+
+                            (profile.WandererCompanionEnabled?profile.WandererCompanionName:"None");
+                    }
+                }
                 if(preCampaign)
                     return SandboxStartingLifePolicy.Dossier(
                             profile.Role,profile.NobleBirthPosition,
