@@ -104,7 +104,11 @@ assert 'if(!CanReadAffairs(owner))return;' in affairs
 assert 'Hero.MainHero.StringId==expectedOwner' in affairs
 assert 'MobileParty.MainParty.MapEvent==null' in affairs
 assert 'Mission.Current==null' in affairs
-assert 'if(RoyalAudienceAvailableToday())count++;' in affairs
+assert 'if(RoyalAudienceAvailableToday())count++;' not in affairs
+assert 'SandboxAffairsIndexPolicy.Inbox(all)' in affairs
+assert 'SandboxAffairsIndexPolicy.Archive(BuildAffairs())' in affairs
+assert 'Pending=estate.IsUnderSiege' not in affairs
+assert 'cu_household_archived_letters' in menu
 assert 'store.SyncData("CU_news_read_1",ref newsReads);' in origin
 assert 'if(PendingAffairsGathering(day))count++;' in affairs
 assert 'bool pending=PendingAffairsGathering(day);' in affairs

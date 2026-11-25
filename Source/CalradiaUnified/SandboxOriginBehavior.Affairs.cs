@@ -82,10 +82,6 @@ namespace CalradiaUnified
                 knightServiceOrders.CanHearKing(CurrentOathDay()))count++;
             if(oath && knightEscort.IsActive && knightEscort.PatronId==knightOath.PatronId)count++;
             if(PendingAffairsGathering(day))count++;
-            if(RoyalAudienceAvailableToday())count++;
-            var clan=Clan.PlayerClan;
-            if(clan.Settlements!=null)
-                count+=clan.Settlements.Count(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
             return count;
         }
         private bool CanReadAffairs(string expectedOwner)
@@ -107,6 +103,7 @@ namespace CalradiaUnified
                     .Select(g=>g.First()).OrderByDescending(x=>x.Pending)
                     .ThenByDescending(x=>x.Unread).ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
                 if(CUAffairsScreen.TryOpenDiagnosticProbe(all.ToList()))return true;
+                all=SandboxAffairsIndexPolicy.Inbox(all);
                 DiagnosticJournal.Event("cu_campaign_affairs_native_open","records="+all.Length+
                     "|pending="+all.Count(x=>x.Pending)+"|custom_movie=false");
                 b.ShowAffairsNativePage(all,0);
@@ -117,6 +114,12 @@ namespace CalradiaUnified
                 DiagnosticJournal.Exception("cu_affairs_native_failed",error);
                 return false;
             }
+        }
+        private void OpenArchivedCorrespondence()
+        {
+            if(AffairsBehavior()!=this || !CanReadAffairs(Hero.MainHero.StringId))return;
+            try { ShowAffairsNativePage(SandboxAffairsIndexPolicy.Archive(BuildAffairs()),0); }
+            catch(Exception error) { DiagnosticJournal.Exception("cu_affairs_archive_failed",error); }
         }
         // Optional game-owned list from a settlement; the known inquiry route
         // stays available from all original buttons during live crash recovery.
@@ -316,7 +319,7 @@ namespace CalradiaUnified
             if(RoyalAudienceAvailableToday())
                 rows.Add(new SandboxAffair{Id="royal-council-today",Category="Household",
                     SettlementId=royalCouncil.SeatId,Title="Royal court available",
-                    Status="Optional audience today",Pending=true,Day=day,
+                    Status="Optional audience today",Pending=false,Day=day,
                     Detail="Your court is ready to meet."});
             if(gatheringPlan.Owner==player.StringId && gatheringPlan.Status.Length>0)
             {
@@ -347,7 +350,7 @@ namespace CalradiaUnified
                     var garrison=estate.Town==null?null:estate.Town.GarrisonParty;
                     rows.Add(new SandboxAffair{Id="estate:"+estate.StringId,Category="Household",
                         SettlementId=estate.StringId,Title=estate.Name.ToString(),Status=estate.IsUnderSiege?"Under siege":"Holding",
-                        Pending=estate.IsUnderSiege,Day=estate.IsUnderSiege?day:-1,
+                        Pending=false,Day=estate.IsUnderSiege?day:-1,
                         Detail=(garrison==null || garrison.MemberRoster==null?"Garrison not confirmed.":
                             "Garrison: "+garrison.MemberRoster.TotalManCount+" soldiers.")+
                             "\nManage the garrison at the settlement."});

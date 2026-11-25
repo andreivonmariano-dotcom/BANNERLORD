@@ -27,6 +27,18 @@ namespace CalradiaUnified
                 .ThenByDescending(x=>x.Day)
                 .ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
         }
+        public static SandboxAffair[] Inbox(IEnumerable<SandboxAffair> items)
+        {
+            return (items??Enumerable.Empty<SandboxAffair>())
+                .Where(x=>x!=null && !String.IsNullOrWhiteSpace(x.Id) && (x.Pending || x.Unread))
+                .GroupBy(x=>x.Id,StringComparer.Ordinal).Select(g=>g.First())
+                .OrderByDescending(x=>x.Pending).ThenByDescending(x=>x.Unread)
+                .ThenByDescending(x=>x.Day).ThenBy(x=>x.Id,StringComparer.Ordinal).ToArray();
+        }
+        public static SandboxAffair[] Archive(IEnumerable<SandboxAffair> items)
+        {
+            return Select(items,"History").Where(x=>!x.Unread).ToArray();
+        }
         public static int PageCount(int count)
         {
             return Math.Max(1,(Math.Max(0,count)+PageSize-1)/PageSize);

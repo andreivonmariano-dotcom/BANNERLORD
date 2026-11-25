@@ -121,6 +121,11 @@ internal static class Program
             SandboxAffairsIndexPolicy.Select(affairs,"History").Single().Id=="story:b" &&
             SandboxAffairsIndexPolicy.Select(affairs,"Household").Single().Id=="officer:d" &&
             SandboxAffairsIndexPolicy.Select(affairs,"Letters").Length==2);
+        var inboxItems=affairs.Concat(new[]{new SandboxAffair{Id="news:e",Category="Letters",Unread=true,Day=20}});
+        Check("inbox contains only outstanding requests and unread correspondence",
+            SandboxAffairsIndexPolicy.Inbox(inboxItems).Select(x=>x.Id).SequenceEqual(new[]{"service:c","petition:a","news:e"}));
+        Check("archive retains old letters without duplicating unread messages or reference records",
+            SandboxAffairsIndexPolicy.Archive(inboxItems).Single().Id=="story:b");
         Check("affairs pagination is bounded without dropping later records",
             SandboxAffairsIndexPolicy.PageCount(0)==1 &&
             SandboxAffairsIndexPolicy.PageCount(5)==1 &&

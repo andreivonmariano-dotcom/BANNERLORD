@@ -82,3 +82,6 @@ The old upbringing subsystem independently trained generated children and increa
 The old family estate negotiation had a modeled consent threshold, optional native gold/relation payments and a guarded direct settlement ownership action. These are redundant and may bypass native/Diplomacy political decisions. Remove the petition, mediation and grant entry points; explicitly fail closed in the historical mutation gates. Keep existing historical claims readable and withdrawable, not pending alerts. No new CU inheritance payment or fief transfer after creation. Starting-life valid native fief selection and succession records remain distinct.
 
 The governor request is directly visible in the native dialogue root for eligible local residents and available after relevant family/concerns conversation. No third-party command method is invoked.
+
+### Correspondence triage
+The default native inbox shows only outstanding requests, real service duties, existing gatherings, and unread correspondence. Historical letters remain under Family and records. Routine court availability and native siege alerts no longer inflate CU's pending count. Native diagnostic movie remains opt-in. Policy tests cover inbox ordering, deduplication, and archive exclusion.

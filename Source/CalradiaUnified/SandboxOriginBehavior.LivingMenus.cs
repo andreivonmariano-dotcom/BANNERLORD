@@ -834,6 +834,9 @@ namespace CalradiaUnified
             starter.AddGameMenuOption("cu_people_lineage","cu_household_records_entry",
                 "Family and records",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return true;},
                 args=>GameMenu.SwitchToMenu("cu_household_records"),false);
+            starter.AddGameMenuOption("cu_household_records","cu_household_archived_letters",
+                "Archived letters",args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()==this;},
+                args=>OpenArchivedCorrespondence(),false);
             starter.AddGameMenuOption("cu_household_records","cu_household_records_back",
                 "Back",args=>true,args=>GameMenu.SwitchToMenu("cu_people_lineage"),false);
             starter.AddGameMenu("cu_people_household",
