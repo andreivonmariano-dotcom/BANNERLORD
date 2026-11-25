@@ -44,3 +44,4 @@
 "D001-E02","Return save reload no duplicate outcome","NOT_RUN","Native test"
 "D001-F01","Player critique and distinct complementary value","NOT_RUN","Discard if duplicate"
 "D001-F02","Restore full-profile selection and separate compatibility test","NOT_RUN","No active changes yet; separate authorization"
+"D001-P03","Authorized control profile activation and readback","PASS","Process 22800; exact selected IDs and hashes; 40 save metadata records unchanged"
