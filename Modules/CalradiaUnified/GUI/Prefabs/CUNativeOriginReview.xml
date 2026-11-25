@@ -8,7 +8,7 @@
         <!-- Overlay has no buttons, keyboard focus or input restrictions.
              The engine-owned review view continues to render and rotate
              the actual character in its native 3D SceneLayer. -->
-        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE9"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#211911E9"
                 WidthSizePolicy="Fixed" SuggestedWidth="391"
                 HeightSizePolicy="Fixed" SuggestedHeight="244"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -26,7 +26,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="28"
                     PositionXOffset="42" PositionYOffset="194"/>
-        <TextWidget Text="@NativeCulture" Color="#DDE4EDFF"
+        <TextWidget Text="@NativeCulture" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="28"
                     PositionXOffset="42" PositionYOffset="225"/>
@@ -34,7 +34,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="30"
                     PositionXOffset="42" PositionYOffset="258"/>
-        <TextWidget Text="@Children" Color="#DDE4EDFF"
+        <TextWidget Text="@Children" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="27"
                     PositionXOffset="42" PositionYOffset="290"/>
@@ -42,7 +42,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="27"
                     PositionXOffset="42" PositionYOffset="320"/>
-        <TextWidget Text="@Notice" Color="#BCCBDBFF"
+        <TextWidget Text="@Notice" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="360"
                     HeightSizePolicy="Fixed" SuggestedHeight="39"
                     PositionXOffset="42" PositionYOffset="348"/>

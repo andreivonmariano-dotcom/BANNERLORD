@@ -4,7 +4,7 @@
     <Widget WidthSizePolicy="StretchToParent"
             HeightSizePolicy="StretchToParent">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#110D0999"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#100D0A99"
                 WidthSizePolicy="StretchToParent"
                 HeightSizePolicy="StretchToParent"/>
         <Widget WidthSizePolicy="Fixed" SuggestedWidth="1080"
@@ -14,10 +14,7 @@
             <Widget Sprite="StdAssets\Popup\canvas"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="StdAssets\Popup\canvas"
-                    WidthSizePolicy="Fixed" SuggestedWidth="1074"
-                    HeightSizePolicy="Fixed" SuggestedHeight="644"
-                    PositionXOffset="3" PositionYOffset="3"/>
+            
             <Widget Sprite="frame_9" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
             <Widget Sprite="Clan\clan_header"
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
@@ -31,7 +28,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="5"
                     HeightSizePolicy="Fixed" SuggestedHeight="86"
                     PositionXOffset="15" PositionYOffset="15"/>
-            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="27" Text="@Heading" Color="#FFE6B8FF"
+            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="26" Text="@Heading" Color="#FFE6B8FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="700"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="34" PositionYOffset="28"/>
@@ -82,7 +79,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="1050"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionXOffset="15" PositionYOffset="589"/>
-            <TextWidget Brush.FontSize="16" Text="CHILDREN STAY AT THEIR RECORDED HOME UNTIL THEY COME OF AGE."
+            <TextWidget Brush.FontSize="16" Text="Children remain at home until adulthood."
                     Color="#D4BC9AFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="763"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
@@ -95,7 +92,7 @@
                     PositionXOffset="846" PositionYOffset="597"
                     Command.Click="ExecuteClose">
               <Children>
-                <TextWidget Brush="Popup.Button.Text" Brush.FontSize="16" Text="Close gallery"
+                <TextWidget Brush="Popup.Button.Text" Brush.FontSize="16" Text="Close"
                     Color="#FFEED6FF"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"

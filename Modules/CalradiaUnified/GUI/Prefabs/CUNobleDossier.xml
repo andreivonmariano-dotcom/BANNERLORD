@@ -15,10 +15,7 @@
             <Widget Sprite="StdAssets\Popup\canvas"
                     WidthSizePolicy="StretchToParent"
                     HeightSizePolicy="StretchToParent"/>
-            <Widget Sprite="StdAssets\Popup\canvas"
-                    WidthSizePolicy="Fixed" SuggestedWidth="954"
-                    HeightSizePolicy="Fixed" SuggestedHeight="614"
-                    PositionXOffset="3" PositionYOffset="3"/>
+            
             <Widget Sprite="frame_9" WidthSizePolicy="StretchToParent" HeightSizePolicy="StretchToParent"/>
             <Widget Sprite="Clan\clan_header"
                     WidthSizePolicy="Fixed" SuggestedWidth="930"
@@ -28,7 +25,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="930"
                     HeightSizePolicy="Fixed" SuggestedHeight="3"
                     PositionXOffset="15" PositionYOffset="116"/>
-            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="29" Text="@Title"
+            <TextWidget Brush="Stage.Title.Text" Brush.FontSize="26" Text="@Title"
                     Color="#FFE6B8FF" WidthSizePolicy="Fixed"
                     SuggestedWidth="874" HeightSizePolicy="Fixed"
                     SuggestedHeight="43" PositionXOffset="35"
@@ -38,11 +35,11 @@
                     SuggestedWidth="874" HeightSizePolicy="Fixed"
                     SuggestedHeight="28" PositionXOffset="35"
                     PositionYOffset="77"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#30271EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="439"
                     HeightSizePolicy="Fixed" SuggestedHeight="239"
                     PositionXOffset="33" PositionYOffset="135"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#30271EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="439"
                     HeightSizePolicy="Fixed" SuggestedHeight="239"
                     PositionXOffset="488" PositionYOffset="135"/>
@@ -142,7 +139,7 @@
                     SuggestedWidth="398" HeightSizePolicy="Fixed"
                     SuggestedHeight="35" PositionXOffset="503"
                     PositionYOffset="336"/>
-            <Widget Sprite="BlankWhiteSquare_9" Color="#342719FF"
+            <Widget Sprite="BlankWhiteSquare_9" Color="#30271EFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="894"
                     HeightSizePolicy="Fixed" SuggestedHeight="152"
                     PositionXOffset="33" PositionYOffset="385"/>
@@ -173,7 +170,7 @@
                     PositionXOffset="34" PositionYOffset="562"
                     Command.Click="ExecuteOpenFamily">
               <Children>
-                <TextWidget Brush="Popup.Button.Text" Text="View family portraits"
+                <TextWidget Brush="Popup.Button.Text" Text="Family"
                         Brush.FontSize="16" Color="#FFEED6FF"
                         WidthSizePolicy="StretchToParent"
                         HeightSizePolicy="StretchToParent"

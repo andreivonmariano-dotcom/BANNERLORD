@@ -7,7 +7,7 @@
             HeightSizePolicy="StretchToParent"
             DoNotPassEventsToChildren="false">
       <Children>
-        <Widget Sprite="BlankWhiteSquare_9" Color="#07111FE0"
+        <Widget Sprite="BlankWhiteSquare_9" Color="#211911E0"
                 WidthSizePolicy="Fixed" SuggestedWidth="480"
                 HeightSizePolicy="Fixed" SuggestedHeight="170"
                 HorizontalAlignment="Left" VerticalAlignment="Top"
@@ -25,7 +25,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="450"
                     HeightSizePolicy="Fixed" SuggestedHeight="25"
                     PositionXOffset="36" PositionYOffset="159"/>
-        <TextWidget Text="@Culture" Color="#DDE4EDFF"
+        <TextWidget Text="@Culture" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="450"
                     HeightSizePolicy="Fixed" SuggestedHeight="25"
                     PositionXOffset="36" PositionYOffset="187"/>
@@ -33,7 +33,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="450"
                     HeightSizePolicy="Fixed" SuggestedHeight="25"
                     PositionXOffset="36" PositionYOffset="215"/>
-        <TextWidget Text="@Notice" Color="#BAC8D9FF"
+        <TextWidget Text="@Notice" Color="#D4C2AAFF"
                     WidthSizePolicy="Fixed" SuggestedWidth="450"
                     HeightSizePolicy="Fixed" SuggestedHeight="48"
                     PositionXOffset="36" PositionYOffset="245"/>

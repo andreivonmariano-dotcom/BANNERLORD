@@ -60,7 +60,7 @@
                     WidthSizePolicy="Fixed" SuggestedWidth="442"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionXOffset="24" PositionYOffset="97"/>
-            <TextWidget Brush.FontSize="18" Text="CHOOSE YOUR CULTURE"
+            <TextWidget Brush.FontSize="18" Text="Choose your culture"
                     Color="#E3B474FF"
                     WidthSizePolicy="Fixed" SuggestedWidth="415"
                     HeightSizePolicy="Fixed" SuggestedHeight="30"
@@ -111,7 +111,7 @@
                     WidthSizePolicy="StretchToParent" MarginLeft="505" MarginRight="61"
                     HeightSizePolicy="Fixed" SuggestedHeight="2"
                     PositionYOffset="237"/>
-            <TextWidget Brush.FontSize="17" Text="YOUR CULTURE"
+            <TextWidget Brush.FontSize="17" Text="Culture"
                     Color="#D4A669FF"
                     WidthSizePolicy="StretchToParent" MarginLeft="507" MarginRight="43"
                     HeightSizePolicy="Fixed" SuggestedHeight="26" PositionYOffset="113"/>
@@ -154,7 +154,7 @@
                     PositionXOffset="262" VerticalAlignment="Bottom" PositionYOffset="-9"
                     Command.Click="ExecuteUseNativeControls">
               <Children>
-                <TextWidget Brush.FontSize="17" Text="Original culture screen"
+                <TextWidget Brush.FontSize="17" Text="Original screen"
                             Color="#F6E2C4FF"
                             WidthSizePolicy="StretchToParent"
                             HeightSizePolicy="StretchToParent"
