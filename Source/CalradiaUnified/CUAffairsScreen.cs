@@ -18,24 +18,35 @@ namespace CalradiaUnified
         private readonly List<SandboxAffair> records;
         private GauntletLayer layer;
         private CUAffairsVM data;
-        public CUAffairsScreen(List<SandboxAffair> items){records=items;}
+        private bool firstFrame;
+        public CUAffairsScreen(List<SandboxAffair> items){records=items??new List<SandboxAffair>();}
         protected override void OnInitialize()
         {
             base.OnInitialize();
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=initialize|records="+records.Count);
             data=new CUAffairsVM(records,CloseSafely,OpenEncyclopedia,ShowOnMap);
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=view_model_ready");
             layer=new GauntletLayer("CUAffairs",130,false){IsFocusLayer=true};
             AddLayer(layer);
             layer.InputRestrictions.SetInputRestrictions();
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=before_movie_load");
             layer.LoadMovie("CUAffairs",data);
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=movie_loaded");
             DiagnosticJournal.Event("cu_campaign_affairs_open","records="+records.Count+"|read_only=true");
         }
         protected override void OnActivate()
         {
             base.OnActivate();
             if(layer!=null){layer.IsFocusLayer=true;ScreenManager.TrySetFocus(layer);}
+            DiagnosticJournal.Event("cu_affairs_screen_probe","phase=activated");
         }
         protected override void OnFrameTick(float dt)
         {
+            if(!firstFrame)
+            {
+                firstFrame=true;
+                DiagnosticJournal.Event("cu_affairs_screen_probe","phase=first_frame");
+            }
             base.OnFrameTick(dt);
             if(ScreenManager.TopScreen==this && Input.IsKeyReleased(InputKey.Escape))CloseSafely();
         }
@@ -101,16 +112,26 @@ namespace CalradiaUnified
         }
         public void ExecuteOpen(){if(open!=null)open(matter);}
     }
+    // An absent image has no Gauntlet item at all. Visibility alone does not
+    // guarantee a child data source will not be evaluated by the native movie.
+    public sealed class CUAffairPortraitSlotVM : ViewModel
+    {
+        public CUAffairPortraitSlotVM(CharacterImageIdentifierVM portrait){Portrait=portrait;}
+        [DataSourceProperty] public CharacterImageIdentifierVM Portrait{get;private set;}
+    }
+    public sealed class CUAffairBannerSlotVM : ViewModel
+    {
+        public CUAffairBannerSlotVM(BannerImageIdentifierVM banner){SenderBanner=banner;}
+        [DataSourceProperty] public BannerImageIdentifierVM SenderBanner{get;private set;}
+    }
     public sealed class CUAffairsVM : ViewModel
     {
         private readonly List<SandboxAffair> records;
         private readonly Action close;
         private readonly Action<SandboxAffair> encyclopedia,map;
         private SandboxAffair current;
-        [DataSourceProperty] public CharacterImageIdentifierVM Portrait{get;private set;}
-        [DataSourceProperty] public bool HasPortrait{get;private set;}
-        [DataSourceProperty] public BannerImageIdentifierVM SenderBanner{get;private set;}
-        [DataSourceProperty] public bool HasSenderBanner{get;private set;}
+        [DataSourceProperty] public MBBindingList<CUAffairPortraitSlotVM> PortraitSlots{get;private set;}
+        [DataSourceProperty] public MBBindingList<CUAffairBannerSlotVM> BannerSlots{get;private set;}
         [DataSourceProperty] public string LetterSender{get;private set;}
         [DataSourceProperty] public string LetterDate{get;private set;}
         [DataSourceProperty] public bool HasEncyclopedia{get;private set;}
@@ -125,7 +146,10 @@ namespace CalradiaUnified
         public CUAffairsVM(List<SandboxAffair> items,Action closeAction,Action<SandboxAffair> openEncyclopedia,Action<SandboxAffair> showOnMap)
         {
             records=items??new List<SandboxAffair>();close=closeAction;encyclopedia=openEncyclopedia;map=showOnMap;
-            Rows=new MBBindingList<CUAffairRowVM>();RefreshPage();
+            Rows=new MBBindingList<CUAffairRowVM>();
+            PortraitSlots=new MBBindingList<CUAffairPortraitSlotVM>();
+            BannerSlots=new MBBindingList<CUAffairBannerSlotVM>();
+            RefreshPage();
         }
         private void RefreshPage()
         {
@@ -148,26 +172,30 @@ namespace CalradiaUnified
             foreach(var row in Rows)row.Select(item==null?"":item.Id);
             var hero=item==null?null:SandboxOriginBehavior.ResolveAffairHero(item.HeroId);
             var place=SandboxOriginBehavior.ResolveAffairPlace(item);
-            HasPortrait=hero!=null && hero.CharacterObject!=null;
-            try{Portrait=new CharacterImageIdentifierVM(HasPortrait?CharacterCode.CreateFrom(hero.CharacterObject):null);}
-            catch{HasPortrait=false;Portrait=new CharacterImageIdentifierVM(null);}
+            PortraitSlots.Clear();
+            BannerSlots.Clear();
+            if(hero!=null && hero.CharacterObject!=null)
+            {
+                try{PortraitSlots.Add(new CUAffairPortraitSlotVM(
+                    new CharacterImageIdentifierVM(CharacterCode.CreateFrom(hero.CharacterObject))));}
+                catch(Exception error){DiagnosticJournal.Exception("cu_affairs_portrait_unavailable",error);}
+            }
             var senderClan=hero==null?null:hero.Clan;
-            HasSenderBanner=senderClan!=null && senderClan.Banner!=null;
-            try{SenderBanner=new BannerImageIdentifierVM(HasSenderBanner?
-                senderClan.Banner:null);}
-            catch(Exception error){HasSenderBanner=false;SenderBanner=null;
-                DiagnosticJournal.Exception("cu_affairs_banner_unavailable",error);}
+            if(senderClan!=null && senderClan.Banner!=null)
+            {
+                try{BannerSlots.Add(new CUAffairBannerSlotVM(
+                    new BannerImageIdentifierVM(senderClan.Banner)));}
+                catch(Exception error){DiagnosticJournal.Exception("cu_affairs_banner_unavailable",error);}
+            }
+            DiagnosticJournal.Event("cu_affairs_image_slots",
+                "portrait="+PortraitSlots.Count+"|banner="+BannerSlots.Count);
             LetterSender=hero==null?(item==null?"":"Campaign record"):
                 hero.Name.ToString()+(senderClan==null?"":" | "+senderClan.Name);
             LetterDate=item==null || item.Day<0?"":"Recorded day "+item.Day;
-            OnPropertyChangedWithValue(SenderBanner,"SenderBanner");
-            OnPropertyChangedWithValue(HasSenderBanner,"HasSenderBanner");
             OnPropertyChangedWithValue(LetterSender,"LetterSender");
             OnPropertyChangedWithValue(LetterDate,"LetterDate");
             HasEncyclopedia=hero!=null || place!=null;
             HasLocation=place!=null;
-            OnPropertyChangedWithValue(Portrait,"Portrait");
-            OnPropertyChangedWithValue(HasPortrait,"HasPortrait");
             OnPropertyChangedWithValue(HasEncyclopedia,"HasEncyclopedia");
             OnPropertyChangedWithValue(HasLocation,"HasLocation");
             DetailTitle=item==null?"Select a matter":item.Title;

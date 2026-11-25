@@ -88,8 +88,19 @@ for e in journal.iter():
         if v.startswith("@") and e.tag!="ImageIdentifierWidget":assert re.search(r"\b"+re.escape(v[1:])+r"\s*\{",journal_vm),v
 assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{Portrait}" for e in journal.iter())
 assert any(e.tag=="ImageIdentifierWidget" and e.get("DataSource")=="{SenderBanner}" for e in journal.iter())
-assert "new BannerImageIdentifierVM(HasSenderBanner?" in journal_vm
-assert "senderClan.Banner:null" in journal_vm
+# Do not bind absent images through hidden widgets. Empty slots create no image item.
+for slot,field in (("PortraitSlots","Portrait"),("BannerSlots","SenderBanner")):
+    panel=next(e for e in journal.iter("ListPanel") if e.get("DataSource")=="{"+slot+"}")
+    assert any(e.get("DataSource")=="{"+field+"}" for e in panel.iter("ImageIdentifierWidget"))
+    assert slot+".Clear()" in journal_vm
+    assert slot+".Add(" in journal_vm
+assert "new BannerImageIdentifierVM(senderClan.Banner)" in journal_vm
+assert "if(senderClan!=null && senderClan.Banner!=null)" in journal_vm
+assert "new CharacterImageIdentifierVM(CharacterCode.CreateFrom(hero.CharacterObject))" in journal_vm
+assert "new CharacterImageIdentifierVM(null)" not in journal_vm
+assert "new BannerImageIdentifierVM(null)" not in journal_vm
+for phase in ("initialize","view_model_ready","before_movie_load","movie_loaded","activated","first_frame"):
+    assert "phase="+phase in journal_vm
 for name in active:
     movie=ET.parse(ui/name).getroot()
     sprites={e.get("Sprite") for e in movie.iter()}
