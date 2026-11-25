@@ -1,5 +1,7 @@
 # BANNERLORD | Living project direction and cross-chat handoff
 
+> **Historical record, superseded 25 November 2026.** Current controlling direction is v2.0, [CU_MASTER_ROADMAP.md](CU_MASTER_ROADMAP.md). Six systems, seven new-game careers, no parallel provider-owned features. Current source baseline e0f94b48dc05e3e92e44afce8cfbce1faf7ca3eb, both CI runs green, byte-verified COMPILED_UNTESTED artifact 15029171592. Prior decisions below are chronological historical evidence, not active priorities. Current native acceptance is Data/CU_Six_System_Native_Test_Matrix.csv, all live cases pending.
+
 **Established:** 21 November 2026. **Canonical source Google Doc:** https://docs.google.com/document/d/1A6AZpYpCyY6PoI1J6hn1rC2NQqnvPt9dsvZIZ0vwJpk/edit . The Google Doc contains the controlling “CURRENT MASTER PRIORITY” section near its beginning. Treat this file as a dated engineering handoff, not a substitute for inspecting live source or CI.
 
 ## User decision: Q1 → Q2 → Q3, in that order
