@@ -49,7 +49,7 @@ for name in ("CUGuidedCreator","CUGuidedCreatorPlainFallback",
     left_texts=[w for w in xml.iter("TextWidget")
                 if w.get("Text") in ("@Title","@PhaseLabel",
                                     "@Summary","@StepProgress",
-                                    "Your beginning")]
+                                    "Starting life")]
     assert len(left_texts)==5,name
     assert all(w.get("IsVisible")=="@IsWorldSetup"
                for w in left_texts),name

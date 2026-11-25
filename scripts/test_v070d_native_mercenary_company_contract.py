@@ -60,7 +60,7 @@ for snippet in (
     'candidate.Influence=-1;',
     'candidate.Troops=0;',
     'candidate.Role=="Mercenary";',
-    'No noble rank, fief or NPC-party enlistment',
+    'No noble title or fief.',
 ):
     assert snippet in vm,snippet
 assert 'String.IsNullOrEmpty(StartingKingdomId)' in p

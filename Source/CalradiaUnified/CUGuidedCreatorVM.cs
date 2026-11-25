@@ -1567,8 +1567,8 @@ namespace CalradiaUnified
                         case "Soldier":return "Enlist in a lord's army.\nKingdom: "+kingdom+
                             "\nStarting rank: Recruit\nRequires Serve as Soldier.";
                         case "Mercenary":return "Lead a company for hire.\nContract kingdom: "+kingdom+
-                            "\nNative wages and troop upkeep apply.";
-                        case "Outlaw":return "Lead a band outside the law.\nSix bandits and a lieutenant.\nFourteen days' wages and starting food.";
+                            "\nNo noble title or fief.\nWages and troop upkeep apply.";
+                        case "Outlaw":return "Lead a band outside the law.\nBand: six low-tier bandits and a lieutenant.\nWages: fourteen days' pay and starting food.";
                         case "Wanderer":return "Travel Calradia independently.\nCompanion: "+
                             (profile.WandererCompanionEnabled?profile.WandererCompanionName:"None");
                     }

@@ -167,7 +167,7 @@ for i in range(1,7):
     assert not list(item.iter("SliderWidget"))
     assert not any(x.get("Text")=="EDIT WITH - / + OR EXACT"
         for x in item.iter("TextWidget"))
-    assert any(x.get("Text")=="STAT / NATIVE"
+    assert any(x.get("Text")=="Stat / Base"
         for x in stats.iter("TextWidget"))
 
 print("PASS: warm native-style custom creator, compact text, native original stages unobscured, age slider, child-age cap and skill-vs-focus labels (STATIC ONLY)")

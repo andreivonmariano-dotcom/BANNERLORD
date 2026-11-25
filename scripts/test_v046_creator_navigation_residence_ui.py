@@ -58,7 +58,7 @@ assert 'Report("Selected: "+key+" = "+value)' not in guide
 assert "Report(\"\");" in guide
 assert '"These are real game culture choices."' not in culture_vm
 assert 'SetStatus("Selected in Bannerlord' not in culture_vm
-assert any(x.get("Text")=="Original culture screen" for x in cult.iter("TextWidget"))
+assert any(x.get("Text")=="Original screen" for x in cult.iter("TextWidget"))
 assert any(x.get("SuggestedHeight")=="226" and
            x.get("Color")=="#1B140FFF" for x in cult.iter("Widget"))
 

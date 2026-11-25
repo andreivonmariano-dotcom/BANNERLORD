@@ -59,7 +59,7 @@ for kind in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         assert not list(row.iter("SliderWidget")),kind
         assert not any(w.get("Text")=="EDIT WITH - / + OR EXACT"
             for w in row.iter("TextWidget")),kind
-        assert any(w.get("Text")=="CURRENT VALUE"
+        assert any(w.get("Text")=="Current"
             for w in x.iter("TextWidget")),kind
         for bound in (f"Slot{i}Value",f"Slot{i}Min",
                       f"Slot{i}Max",f"Slot{i}Increment"):

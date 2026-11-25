@@ -43,7 +43,7 @@ for n in ("CUNativeStatsEditor","CUNativeStatsEditorPlainFallback",
         assert row.get("IsVisible")==f"@Slot{i}Visible"
         assert not any(w.get("Text")=="EDIT WITH - / + OR EXACT"
             for w in row.iter("TextWidget"))
-        assert any(w.get("Text")=="ADJUST"
+        assert any(w.get("Text")=="Adjust"
             for w in root.iter("TextWidget"))
     assert len(list(root.iter("SliderWidget")))==(
         0 if n=="CUNativeStatsEditorSafe" else 1)
