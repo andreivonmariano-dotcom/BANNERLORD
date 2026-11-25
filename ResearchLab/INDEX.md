@@ -16,3 +16,4 @@ Evidence anchor 29d8233ea33404904df4fc829401c8c6a1106fa8; compiled L001 source f
 - D001 control selection now activated; [protocol and activation evidence](ControlCampaigns/D001.md). Gameplay NOT_RUN.
 
 D001 playthrough reported; game process and selected profile verified, delegation not run. See D001 record.
+- D001 native dispatch visually observed; risk and troop allocation confirmed in selection UI. Persistence and outcome pending.
