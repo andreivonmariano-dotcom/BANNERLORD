@@ -43,122 +43,170 @@ jobs:
           python scripts/generate_v059f_native_review_shell.py
           python scripts/test_v059f_shared_native_review_shell.py
       - name: Inventory complete CU source and runtime reachability candidates
+        if: ${{ !cancelled() }}
         run: python scripts/audit_cu_source_reachability.py
       - name: Audit ownership freeze and retired feature paths
+        if: ${{ !cancelled() }}
         run: python scripts/test_cu_acceptance_freeze_ownership.py
       - name: Audit stabilization pass 2 existing role and creator wiring
+        if: ${{ !cancelled() }}
         run: python scripts/test_cu_stabilization_pass_2.py
       - name: Audit current creator Back state and NPC save provenance
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069f_creator_back_state_and_agency_save.py
       - name: Regress live-reported missing noble elder and House family recovery
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069g_noble_house_preflight.py
       - name: Audit all twelve starts, world scenarios, noble origins and native handoff
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069h_all_starting_options.py
       - name: Regress Soldier Recruit Sergeant Captain real native SaS service and pending save
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070g_soldier_native_enlistment.py
       - name: Regress Knight personal oath native effects and clan-join safety
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070i_knight_oath_and_native_kin_guard.py
       - name: Regress real sworn-lord conversations, first audience and visible service
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070t_knight_patron_dialogue.py
       - name: Regress Lord native vassal estate and real two-officer household
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070j_lord_vassal_native_contract.py
       - name: Regress Lord noble in-laws and saved child inheritance claims
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070k_lord_noble_marriage_heirs.py
       - name: Regress King native ruling clan, royal court and saved heir claims
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070l_king_native_crown_and_royal_house.py
       - name: Regress in-person native royal council, Kingsguard and real royal seat
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070n_royal_seat_council_kingsguard.py
       - name: Guard native household screens, readable hero labels and seven-path UI release evidence
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070s_native_household_integration.py
       - name: Audit Gauntlet noble dossier and small-screen family gallery layouts
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070x_gauntlet_dossier_layout.py
       - name: Knight arrival and immersive UI source gate
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071a_knight_arrival_and_immersion.py
       - name: Seven-role portrait-led household actions and first-audience gate
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071b_household_portraits_roles_and_decisions.py
       - name: Native household duties and seven-role career chapters
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071c_career_chapters_and_household_duties.py
       - name: Immersive household access and face-to-face petition source gate
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071d_immersive_household_context.py
       - name: Reject conversation traps and technical settlement entries
+        if: ${{ !cancelled() }}
         run: python scripts/test_v074_dialogue_exit_safety.py
       - name: Native household camp, petitioner stories and knight service orders
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071e_camp_petition_stories_knight_orders.py
       - name: Illustrated 2D camp, personality petitions and verified knight standing
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071f_illustrated_camp_personality_knight_standing.py
       - name: Verified household social history and native vassal witness gate
+        if: ${{ !cancelled() }}
         run: python scripts/test_v071g_social_history_and_native_military_witness.py
       - name: Guard required BUTR stack, native mixins and patch placement
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070y_butr_required_native_integration.py
       - name: Audit every custom Gauntlet prefab and native BUTR patch
+        if: ${{ !cancelled() }}
         run: python scripts/audit_v070y_all_prefab_layouts.py
       - name: Audit settlement entry budget and context placement for all starts
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070v_native_menu_placement.py
       - name: Guard native Lord and King officer garrison orders
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070w_officer_native_garrison_orders.py
       - name: Regress live Knight Lord King failed-family handoffs
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070q_failed_native_family_handoffs.py
       - name: Verify seven-path native-game acceptance fails shut without playthrough evidence
+        if: ${{ !cancelled() }}
         run: python scripts/test_v070o_seven_game_acceptance_failclosed.py
       - name: Regress mercenary low-pay consent, protected exit bond and renegotiation
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070f_mercenary_three_consent_rules.py
       - name: Regress mercenary company runway, funded-offer economics and design boundary
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070e_mercenary_solvent_contract_design.py
       - name: Regress native Mercenary company identity, kingdom oath and family safety
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070d_native_mercenary_company_contract.py
       - name: Regress new Outlaw paid native band, real fourteen-day wages and food
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070c_outlaw_paid_band_and_payroll.py
       - name: Regress new Wanderer no-House and one loyal wage-free companion
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v070b_wanderer_single_companion_no_house.py
       - name: Regress latest native noble loop, historical parents and cultural retinue
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069i_two_session_noble_parents_retinue.py
       - name: Simulate active creator controls and hit boxes at three viewports
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/simulate_v069e_creator_hitboxes.py
       - name: Regress v060 native younger siblings culture-matched retinues and enlarged controls
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v060_noble_start_and_retinue.py
       - name: Regress v060b World noble-birth flow and native companion replacement
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v060b_world_birth_retinue_replacement.py
       - name: Regress v061 cultural names and simplified House advanced editing
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v061_auto_house_and_cultural_names.py
       - name: Regress v062 named noble relatives and culturally equipped officers
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v062_named_dynasty_and_officer_gear.py
       - name: Regress v063 actual son lineage and Soldier Knight named patron starts
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v063_dynasty_and_service_starts.py
       - name: Regress v064 Starting Life dossier, genealogy preflight and Living Persons
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v064_life_dossier_and_family_integrity.py
       - name: Regress v065 starting flow, native career, relationship memory and succession
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v065_service_relationship_succession_audit.py
       - name: Regress v066 native landless careers, external enlistment and simulated culture contracts
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v066_realistic_life_paths.py
       - name: Regress v067 vanilla-compatible character agency and native estate petitions
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v067_people_and_lineage_menus.py
       - name: Regress v069 native phase-9 family, fief and award ordering
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069b_family_fief_commit_order.py
       - name: Regress v069c provisional family cleanup, twelve roles and living goals
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069c_family_role_persona_contracts.py
       - name: Regress v069d native proof, failed kin, role economy and NPC agency
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v069d_native_evidence_economy_recovery.py
       - name: Self-test native Review screenshot chrome comparison
@@ -175,15 +223,18 @@ jobs:
           python scripts/validate_feature_registry.py
           python scripts/test_feature_registry.py
       - name: Validate 78-module reconstruction priorities
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_priority_ranking.py
       - name: Audit all 64 settings against source parser ranges
         shell: pwsh
         run: python scripts/validate_settings_catalog.py
       - name: Audit native Gauntlet XML against ViewModel bindings
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_gauntlet_bindings.py
       - name: Validate pre-game origin creator XML and ViewModel
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_sandbox_origin_panel.py
       - name: Validate direct Sandbox main-menu action and native graph observer
@@ -198,90 +249,119 @@ jobs:
           if (-not $behavior.Contains('OnCharacterCreationInitializedEvent')) { throw 'Native character-creation event hook missing' }
           if (-not $behavior.Contains('cu_native_sandbox_menu')) { throw 'Native creation graph not recorded' }
       - name: Audit native Starting Life links and irreversible hero gates
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_starting_life.py
       - name: Audit direct Sandbox creator with button brushes and Escape
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_sandbox_overhaul.py
       - name: Enforce locked five-page CU Sandbox creation flow
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_locked_sandbox_flow.py
       - name: Block unsupported editable fields in CU Sandbox creator
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_cu_creator_unavailable_fields.py
       - name: Verify real native starts and post-creation family effects
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_start_handoff.py
       - name: Audit safe native appearance registration, family eligibility and guided fief choices
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_face_fief_creator.py
       - name: Regression check native spouse donors, children and readable UI
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_family_templates_readable_ui.py
       - name: Verify generated spouse clan ancestry and parent-blended child appearance
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_generated_family.py
       - name: Guard native generated spouse activation and orphan cleanup
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_active_generated_marriage.py
       - name: Regress committed child count and native wizard boundary
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_child_count_native_wizard.py
       - name: Guard real castle home for spouse and nonactive minor children
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_family_home_settlement.py
       - name: Audit opt-in native 3D origin review and actual Hero family portraits
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_origin_review_and_portraits.py
       - name: Verify real 3D native face composition and seven-stage parity
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_face_workshop.py
       - name: Check persistent CU native-state culture and face shell pilot
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_cu_native_state_shell.py
       - name: Verify unified native culture FaceGen origins banner clan review and difficulty chrome
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_unified_native_chrome.py
       - name: Verify real native control brush/text styling and F10 rollback
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_control_skin.py
       - name: Verify measured native content/footer alignment and safe wide chapter rail
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_layout_alignment.py
       - name: Check native-bound CU culture chooser and real 3D face ownership
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_cu_native_culture_composition.py
       - name: Audit native-bound CU culture chooser and real FaceGen scene retention
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_native_culture_and_face_dock.py
       - name: Lock native five-chapter stage rail and explicit 3D dock capability
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_cu_native_five_chapter_rail.py
       - name: Verify fullscreen native-style Sandbox and culture screens
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_fullscreen_native_style.py
       - name: Audit responsive full-screen CU and reversible original native FaceGen right dock
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_responsive_native_face_trial.py
       - name: Verify new Sandbox auto-attaches the native bridge without experimental toggles
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_auto_native_creator_bridge.py
       - name: Verify post-origins native attributes skills and trait editor
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_post_origin_stats.py
       - name: Verify identity-first guided World then native identity then House and Fortune
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_guided_creator_flow.py
       - name: Regress screenshot defects and real-age creator controls
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_creator_visual_and_age_repair.py
       - name: Verify game-native assets, real age slider, original screens and Banner Back
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v047_native_assets_slider_bridge.py
       - name: Audit v048 native age, family, lifespan and creator handoff
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v048_sandbox_family_age_contract.py
       - name: Audit v049 native UI and live SliderWidget code contract
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v049_native_creator_ui_parity.py
       - name: Test native art inventory collector without game assets
@@ -293,30 +373,39 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts/Audit-CU-Native-Creator-Assets.ps1 -SelfTest
           if($LASTEXITCODE -ne 0){exit $LASTEXITCODE}
       - name: Regress observed 1650x927 nonresponsive native age slider
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v050_native_age_pointer_drag.py
       - name: Verify actual age hit-test stacking and game-safe focus probes
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v051_age_hit_routing.py
       - name: Audit v052 family scenario, native skills, traits and persistent child upbringing
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v052_family_development.py
       - name: Audit v053 single-screen family stat editor, inheritance and youth face
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v053_native_family_stats.py
       - name: Regress v054 War Sails skills, levels and cross-generation training
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v054_warsails_level_creator.py
       - name: Regress v056 hard-exit fix with static named Gauntlet slider slots
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v056_fixed_stat_slots.py
       - name: Regress Age-to-Stats hard exit and bounded native stat widgets
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v055_stats_crash_guard.py
       - name: Verify one-screen Back Next and underage family residence reports
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v046_creator_navigation_residence_ui.py
       - name: Check observed start contracts and read-only face-stage integration probe
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_unified_creator_contract.py
       - name: Verify runtime evidence analyzer rejects unproven game claims
@@ -358,17 +447,23 @@ jobs:
             }
           } finally { $zip.Dispose() }
       - name: Audit automatic local diagnostics and crash-recovery contracts
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: python scripts/test_v057_automatic_session_reports.py
       - name: Verify v059b native-right-pane creator and age/stats fallback
+        if: ${{ !cancelled() }}
         run: python scripts/test_v059b_native_screen_integration.py
       - name: Audit v059c native 1650x927 UI geometry
+        if: ${{ !cancelled() }}
         run: python scripts/test_v059c_layout_1650.py
       - name: Check v059c native Review Back to House restoration
+        if: ${{ !cancelled() }}
         run: python scripts/test_v059c_review_back_to_house.py
       - name: Verify animated main menu continues under World creator
+        if: ${{ !cancelled() }}
         run: python scripts/test_v059d_animated_main_menu.py
       - name: Verify v059e native Gauntlet isolation and scene-safe creator
+        if: ${{ !cancelled() }}
         run: python scripts/test_v059e_native_scene_isolation.py
       - name: Validate UI art installer PowerShell syntax
         shell: pwsh
@@ -410,9 +505,14 @@ jobs:
         run: |
           dotnet run --project Tests/AuditSimulator/AuditSimulator.csproj --configuration Release -- --json BuildResults/audit-personal-stress.json 2>&1 | Tee-Object -FilePath BuildResults/audit-personal-stress.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      # Compile independently of source-audit failures to expose API errors
+      # in the same run. Package/upload retain their default success gate.
       - name: Restore pinned game references from NuGet
+        id: game_refs
+        if: ${{ !cancelled() }}
         shell: pwsh
         run: |
+          New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
           dotnet restore Source/CalradiaUnified/CalradiaUnified.csproj -p:UsePublicReferences=true 2>&1 | Tee-Object -FilePath BuildResults/game-restore.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Inspect exact v1.5.7 native character creator API
@@ -443,12 +543,14 @@ jobs:
         shell: pwsh
         run: ./scripts/Inspect-CU-Widget-Layout-Metadata.ps1
       - name: Compile game module against reference assemblies
+        if: ${{ !cancelled() && steps.game_refs.outcome == 'success' }}
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path BuildResults | Out-Null
           dotnet build Source/CalradiaUnified/CalradiaUnified.csproj --configuration Release --no-restore -p:UsePublicReferences=true "-p:SourceRevisionId=$env:GITHUB_SHA" -v:normal 2>&1 | Tee-Object -FilePath BuildResults/compile.log
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - name: Package DLL and runtime files only
+        if: ${{ success() }}
         shell: pwsh
         run: ./scripts/Package-Compiled.ps1 -Dll "Source/CalradiaUnified/bin/Release/net472/CalradiaUnified.dll"
       - name: Verify ZIP paths, CRC, DLL identity and hashes
@@ -652,6 +754,7 @@ jobs:
           }
           Write-Output 'PASS: latest guided World/House failure and missing-contract sessions are not marked successful'
       - name: Upload untested paste-ready compiled candidate
+        if: ${{ success() }}
         uses: actions/upload-artifact@v4
         with:
           name: CalradiaUnified-v0.74.0-compiled-untested

@@ -930,10 +930,7 @@ namespace CalradiaUnified
                 "cu_people_affairs_journal","Correspondence and requests",
                 args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
                 args=>OpenCampaignAffairs(),false);
-            starter.AddGameMenuOption("cu_people_lineage",
-                "cu_people_affairs_list","Browse correspondence",
-                args=>{args.optionLeaveType=GameMenuOption.LeaveType.Submenu;return AffairsBehavior()!=null;},
-                args=>OpenNativeAffairsList(),false);
+            // The second, untested selection-list entry is held until live UI acceptance.
             starter.AddGameMenuOption("cu_people_lineage",
                 "cu_people_open_household",
                 "People of my household",

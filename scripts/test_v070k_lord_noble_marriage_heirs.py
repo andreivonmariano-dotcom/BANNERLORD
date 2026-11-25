@@ -95,7 +95,7 @@ duties=read("SandboxOriginBehavior.HouseholdDuties.cs")
 office=read("SandboxRetinueOfficePolicy.cs")
 variety=read("SandboxDialogueVarietyState.cs")
 assert 'public static string DutyFocus(' in office
-assert 'SandboxRetinueOfficePolicy.DutyFocus(office,owned,' in duties
+assert 'SandboxRetinueOfficePolicy.DutyFocus(ActiveRetainerService(speaker)?retainerService.Rank:office,owned,' in duties
 assert 'dutyReplyVariant=NextDialogueVariant(person,"OfficerDuty",2);' in duties
 assert 's=="OfficerDuty"' in variety
 assert 'e.Kind=="CourtDutyConsulted"' in duties

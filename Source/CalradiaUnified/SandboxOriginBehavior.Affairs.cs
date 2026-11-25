@@ -90,11 +90,16 @@ namespace CalradiaUnified
                 count+=clan.Settlements.Count(x=>x!=null && x.OwnerClan==clan && x.IsUnderSiege);
             return count;
         }
+        private bool CanReadAffairs(string expectedOwner)
+        {
+            return AffairsBehavior()==this && Hero.MainHero.StringId==expectedOwner &&
+                !Hero.MainHero.IsPrisoner && MobileParty.MainParty!=null &&
+                MobileParty.MainParty.MapEvent==null && TaleWorlds.MountAndBlade.Mission.Current==null;
+        }
         public static bool OpenCampaignAffairs()
         {
             var b=AffairsBehavior();
-            if(b==null || Hero.MainHero.IsPrisoner ||
-                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return false;
+            if(b==null || !b.CanReadAffairs(Hero.MainHero.StringId))return false;
             try
             {
                 // Live War Sails log terminated after CUAffairsScreen resumed.
@@ -132,7 +137,7 @@ namespace CalradiaUnified
                     "Correspondence","Select a letter or request.",
                     entries,true,1,1,"Read","Close",selected=>
                     {
-                        if(AffairsBehavior()!=this || Hero.MainHero.StringId!=owner || selected==null ||
+                        if(!CanReadAffairs(owner) || selected==null ||
                             selected.Count!=1 || !(selected[0].Identifier is int))return;
                         ShowAffairsNativePage(all,(int)selected[0].Identifier);
                     },selected=>{}),true);
@@ -146,8 +151,9 @@ namespace CalradiaUnified
         }
         private void ShowAffairsNativePage(SandboxAffair[] records,int index)
         {
-            if(AffairsBehavior()!=this || Hero.MainHero.IsPrisoner ||
-                MobileParty.MainParty==null || MobileParty.MainParty.MapEvent!=null)return;
+            if(AffairsBehavior()!=this)return;
+            string owner=Hero.MainHero.StringId;
+            if(!CanReadAffairs(owner))return;
             if(records.Length==0)
             {
                 ShowNativeDetail("Correspondence","No correspondence.");
@@ -165,8 +171,8 @@ namespace CalradiaUnified
                 "Close",unread?(more?"Mark read & next":"Mark read"):(more?"Next matter":null),
                 ()=>{},(more || unread)?(Action)(()=>
                 {
-                    if(AffairsBehavior()!=this)return;
-                    if(unread && characterAgendas.MarkNewsRead(item.HeroId,Hero.MainHero.StringId,item.Day))
+                    if(!CanReadAffairs(owner))return;
+                    if(unread && characterAgendas.MarkNewsRead(item.HeroId,owner,item.Day))
                         DiagnosticJournal.Event("cu_correspondence_read","sender="+item.HeroId+"|recipient="+Hero.MainHero.StringId+"|day="+item.Day);
                     if(more)ShowAffairsNativePage(records,index+1);
                 }):null),true);

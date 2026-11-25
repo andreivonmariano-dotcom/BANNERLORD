@@ -56,7 +56,7 @@ for movie,fragment in zip(("Clan","Party","Kingdom","PartyCamp"),fragments):
     assert label is not None
     if movie=="PartyCamp":
         assert widget.get("Command.Click")=="ExecuteCUCamp"
-        assert label.get("Text")=="Visit traveling household camp"
+        assert label.get("Text")=="Household camp"
         bindings=[]
         commands=["ExecuteCUCamp"]
     else:

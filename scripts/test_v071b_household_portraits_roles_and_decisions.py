@@ -56,7 +56,8 @@ assert 'ShowNativeDetail(' in house
 assert 'GiveGoldAction.ApplyBetweenCharacters(' in menu
 assert 'ChangeRelationAction.ApplyRelationChangeBetweenHeroes(' in menu
 assert 'roleEconomy.Started' in menu
-assert '"My household and present calling"' in menu
+assert '"cu_people_open_household"' in menu
+assert '"cu_people_lineage"' in menu
 for role in ("Wanderer","Outlaw","Mercenary",
              "Soldier","Knight","Lord","King"):
     assert 'case "'+role+'":' in screen,role

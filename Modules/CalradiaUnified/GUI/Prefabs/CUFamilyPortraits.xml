@@ -29,7 +29,7 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="86"
                     PositionXOffset="15" PositionYOffset="15"/>
             <TextWidget Brush="Stage.Title.Text" Brush.FontSize="26" Text="@Heading" Color="#FFE6B8FF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="700"
+                    WidthSizePolicy="Fixed" SuggestedWidth="670"
                     HeightSizePolicy="Fixed" SuggestedHeight="36"
                     PositionXOffset="34" PositionYOffset="28"/>
             <TextWidget Brush.FontSize="17" Text="@Description" Color="#E8E1D4FF"
@@ -37,9 +37,24 @@
                     HeightSizePolicy="Fixed" SuggestedHeight="40"
                     PositionXOffset="34" PositionYOffset="66"/>
             <TextWidget Brush.FontSize="16" Text="@MemberCount" Color="#D9B77EFF"
-                    WidthSizePolicy="Fixed" SuggestedWidth="400"
+                    WidthSizePolicy="Fixed" SuggestedWidth="326"
                     HeightSizePolicy="Fixed" SuggestedHeight="32"
-                    PositionXOffset="36" PositionYOffset="121"/>
+                    PositionXOffset="718" PositionYOffset="28"/>
+            <TextWidget Brush.FontSize="15" Text="Name" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="194" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="86" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Standing" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="145" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="280" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Age" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="111" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="425" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Residence" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="213" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="536" PositionYOffset="125"/>
+            <TextWidget Brush.FontSize="15" Text="Location" Color="#D4BC9AFF"
+                WidthSizePolicy="Fixed" SuggestedWidth="290" HeightSizePolicy="Fixed" SuggestedHeight="23"
+                PositionXOffset="749" PositionYOffset="125"/>
             <ListPanel DataSource="{Members}"
                     WidthSizePolicy="Fixed" SuggestedWidth="1005"
                     HeightSizePolicy="Fixed" SuggestedHeight="432"

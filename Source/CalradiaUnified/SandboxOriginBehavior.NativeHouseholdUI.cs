@@ -162,7 +162,7 @@ namespace CalradiaUnified
                 "\nOnly recorded family members are affected. No land, office or title grant.",
                 true,true,"Correct","Cancel",()=>
                 {
-                    if(Hero.MainHero==null || Hero.MainHero.StringId!=owner)return;
+                    if(!CanReviewStartDiagnostics() || Hero.MainHero.StringId!=owner)return;
                     int changed=0;
                     foreach(var h in FamilyOccupationRepairs().Where(h=>ids.Contains(h.StringId)))
                     {
@@ -348,20 +348,24 @@ namespace CalradiaUnified
         private void RegisterStartDiagnosticMenus(CampaignGameStarter starter)
         {
             foreach(var menu in new[]{"town","castle"})
-                starter.AddGameMenuOption(menu,"cu_start_diagnostic_"+menu,"Review CU initialization",
+                starter.AddGameMenuOption(menu,"cu_start_diagnostic_"+menu,"CU diagnostics",
                     args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
-                        return Hero.MainHero!=null && !Hero.MainHero.IsPrisoner && Clan.PlayerClan!=null;},
+                        return CanReviewStartDiagnostics();},
                     args=>ShowStartDiagnostics(),false);
-            foreach(var menu in new[]{"town","castle"})
-                starter.AddGameMenuOption(menu,"cu_family_occupation_repair_"+menu,"Correct family occupations",
-                    args=>{args.optionLeaveType=TaleWorlds.CampaignSystem.GameMenus.GameMenuOption.LeaveType.Submenu;
-                        return FamilyOccupationRepairs().Length>0;},
-                    args=>ReviewFamilyOccupationRepair(),false);
+        }
+        private bool CanReviewStartDiagnostics()
+        {
+            var c=Campaign.Current;
+            return c!=null && c.GetCampaignBehavior<SandboxOriginBehavior>()==this &&
+                Hero.MainHero!=null && Hero.MainHero.IsAlive && !Hero.MainHero.IsPrisoner &&
+                Clan.PlayerClan!=null && MobileParty.MainParty!=null &&
+                MobileParty.MainParty.MapEvent==null && TaleWorlds.MountAndBlade.Mission.Current==null;
         }
         private void ShowStartDiagnostics()
         {
+            if(!CanReviewStartDiagnostics())return;
             var player=Hero.MainHero;var clan=Clan.PlayerClan;
-            if(player==null || clan==null)return;
+            string owner=player.StringId;
             var spouse=player.Spouse;
             bool marriage=spouse!=null && spouse.Spouse==player;
             int children=player.Children==null?0:player.Children.Count(h=>h!=null &&
@@ -387,10 +391,17 @@ namespace CalradiaUnified
                 " (required for Soldier).";
             DiagnosticJournal.Event("cu_start_diagnostic_open","historic="+(startAuditStatus??"")+
                 "|current_owner="+(startAuditOwner==player.StringId)+"|native_read_only=true");
-            ShowNativeDetail("Calradia Unified | Initialization review",historic+"\n\n"+current+
+            string detail=historic+"\n\n"+current+
                 "\n\n"+(familyRecovery.NeedsReview && familyRecovery.PlayerId==player.StringId?familyRecovery.Describe()+"\n\n":"")+
-                "Original requested settings:\n"+(String.IsNullOrEmpty(startAuditRequest)?"not recorded":startAuditRequest.Replace("|","\n"))+
-                "\nRead-only report.");
+                "Original requested settings:\n"+(String.IsNullOrEmpty(startAuditRequest)?"not recorded":startAuditRequest.Replace("|","\n"));
+            if(FamilyOccupationRepairs().Length==0){ShowNativeDetail("CU diagnostics",detail);return;}
+            // Repair is a second, explicit confirmation, never a side effect of viewing the report.
+            InformationManager.ShowInquiry(new InquiryData("CU diagnostics",detail,true,true,
+                "Close","Family occupations",()=>{},()=>
+                {
+                    if(CanReviewStartDiagnostics() && Hero.MainHero.StringId==owner)
+                        ReviewFamilyOccupationRepair();
+                }),true);
         }
         private void ShowStartingHouseholdStatus()
         {

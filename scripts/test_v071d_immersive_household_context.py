@@ -98,7 +98,12 @@ assert 'ScreenManager.PushScreen(new CUAffairsScreen' not in affairs
 assert 'b.ShowAffairsNativePage(all,0)' in affairs
 assert 'InformationManager.ShowInquiry(new InquiryData(title,body,true,more || unread,' in affairs
 assert '"Close",unread?(more?"Mark read & next":"Mark read")' in affairs
-assert 'characterAgendas.MarkNewsRead(item.HeroId,Hero.MainHero.StringId,item.Day)' in affairs
+assert 'characterAgendas.MarkNewsRead(item.HeroId,owner,item.Day)' in affairs
+assert 'string owner=Hero.MainHero.StringId;' in affairs
+assert 'if(!CanReadAffairs(owner))return;' in affairs
+assert 'Hero.MainHero.StringId==expectedOwner' in affairs
+assert 'MobileParty.MainParty.MapEvent==null' in affairs
+assert 'Mission.Current==null' in affairs
 assert 'if(RoyalAudienceAvailableToday())count++;' in affairs
 assert 'store.SyncData("CU_news_read_1",ref newsReads);' in origin
 assert 'if(PendingAffairsGathering(day))count++;' in affairs
@@ -112,6 +117,7 @@ assert 'agencyDecisions.PendingCount' in affairs
 assert 'foreach(var request in agencyDecisions.PendingRequests)' in menu
 assert 'CU_petition_recipient_1' in origin
 assert 'MBInformationManager.ShowMultiSelectionInquiry' in affairs
-assert '"cu_people_affairs_list"' in menu
+assert '"cu_people_affairs_list"' not in menu
+assert 'args=>OpenCampaignAffairs(),false' in menu
 assert 'new InquiryElement(index,' in affairs
 assert 'item.Title+" | "+item.Status+(item.Day>=0?' in affairs
