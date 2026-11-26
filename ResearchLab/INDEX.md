@@ -25,3 +25,4 @@ D001 playthrough reported; game process and selected profile verified, delegatio
 - D001 completed native quest and companion return/aggregate roster observed; post-return reload, control clarification and player critique pending.
 - D001 positive native lifecycle baseline observed; successful post-return reload reported by player; critique and independent duplicate-outcome audit remain pending.
 - [SAV-003 offline save inspection](Persistence/OFFLINE_SAVE_INSPECTION.md): D001 exact save metadata, section framing and selected strings verified. No typed object reconstruction.
+- [INV-001 installation inventory](Simulator/INVENTORY.md), [SIM-001 standalone simulator](Simulator/README.md) and [execution evidence](Simulator/EVIDENCE.md). Independent model tests, not native gameplay.
