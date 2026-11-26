@@ -169,3 +169,6 @@
 "AUT001-C02","Native mouse and text input","PASS","Sandbox and character creation; typed name insertion process3500"
 "AUT001-D01","Fresh native campaign and session observer","PARTIAL","Processes44844/44856/16040; exact tick and active models"
 "AUT001-D02","Autonomous save reload and surgeon comparison","NOT_RUN","Escape menu not visually confirmed; no new save"
+"NAV002-A01","Five runtime-identified naval model static branch inspection","PASS","Process26516 48 bodies 0 unresolved selected references"
+"NAV002-A02","Isolated native ExplainedNumber factor observation","PASS","Process45740 16 observed arithmetic cases"
+"NAV002-D01","Live naval model full outcome comparison","NOT_RUN","Predecessor roles and controlled outcomes pending"
