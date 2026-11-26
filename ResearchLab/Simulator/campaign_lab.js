@@ -56,10 +56,10 @@ function daily(b,s){
   for(const k of keys(b.forts))if(b.forts[k].owner===c&&guards[k]>=10&&s.forts[k].security<60&&budget(s,h,50))options.push({type:"guard",target:k,score:60-s.forts[k].security+(war.length?20:0)});
   const kin=[...new Set([hero.spouse,hero.father,hero.mother,...(hero.children||[])])].filter(k=>k&&k!==h&&b.heroes[k]?.state==="Active"&&s.gold[k]<200);
   for(const k of kin)if(b.heroes[k].id!=="main_hero"&&budget(s,h,100))options.push({type:"aid",target:k,score:30+(200-s.gold[k])/20});
-  for(const w of war){const other=leaderClan(b,w.other),oh=b.clans[other]?.leader;if(!other||other===c||!oh||b.heroes[oh]?.state!=="Active"||playerClan(b,other)||!budget(s,h,100)||s.days<(s.cooldown[pair(w.a,w.d)]||0))continue;
+  for(const w of war){const own=w.a===w.other?w.d:w.a;if(leaderClan(b,own)!==c)continue;const other=leaderClan(b,w.other),oh=b.clans[other]?.leader;if(!other||other===c||!oh||b.heroes[oh]?.state!=="Active"||playerClan(b,other)||!budget(s,h,100)||s.days<(s.cooldown[pair(w.a,w.d)]||0))continue;
    options.push({type:"offer",target:oh,other,war:pair(w.a,w.d),score:20+Math.min(30,(strengths[other]||0)/Math.max(1,strengths[c]||0)*10)})
   }
-  options.sort((a,b)=>b.score-a.score||(a.type+"|"+a.target).localeCompare(b.type+"|"+b.target));
+  options.sort((a,b)=>b.score-a.score||((a.type+"|"+a.target)<(b.type+"|"+b.target)?-1:(a.type+"|"+a.target)>(b.type+"|"+b.target)?1:0));
   const a=options[0];if(!a){s.counts.hold++;continue}
   if(a.type==="guard"){s.gold[h]-=50;s.sinks+=50;s.forts[a.target].security=clamp(s.forts[a.target].security+1,0,100);s.counts.guard++;log(s,"guard",h,a.target,"50 denars spent; experimental local watch +1 security; no troops moved")}
   else if(a.type==="aid"){s.gold[h]-=100;s.gold[a.target]+=100;s.relation[pair(h,a.target)]=clamp(relation(b,s,h,a.target)+1,-100,100);s.counts.aid++;log(s,"aid",h,a.target,"100 denars transferred; experimental raw relation +1")}
