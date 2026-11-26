@@ -39,7 +39,7 @@
 "D001-P02","Stage separate control and backup launcher selection","PASS","Exact backup and semantic selection-only validation; not applied"
 "D001-C01","Launch control and create fresh save","PARTIAL","Player reports fresh playthrough; responding game and 11 selected config verified; named save/runtime module list unverified"
 "D001-D01","Decline no mutation and accept native delegation","PARTIAL","Native dispatch banner, journal and aggregate party count 54 observed; decline skipped and individual roster unverified"
-"D001-E01","Active task save quit relaunch reload","PARTIAL","Reported reload and new PID verified; journal and aggregate count match; exact save name and individual roster unverified"
+"D001-E01","Active task save quit relaunch reload","PARTIAL","Reported reload and new PID verified; journal, companion status and aggregate count match; exact save name and troop-type roster unverified"
 "D001-D02","Resolution and distinct return outcomes","NOT_RUN","Observe actual roster hero and journal"
 "D001-E02","Return save reload no duplicate outcome","NOT_RUN","Native test"
 "D001-F01","Player critique and distinct complementary value","NOT_RUN","Discard if duplicate"
@@ -48,3 +48,4 @@
 "D001-D03","Native candidate risk display and troop allocation","PASS","Two candidate risks match traced expression; 11 assigned and 54 retained in selection UI"
 "D001-D04","Active journal and post-dispatch aggregate party count","PASS","Player screenshot confirms 6 days and 550 promised denars; Nerric plus 10 dispatched; party 54"
 "D001-E03","Post-reload active journal and aggregate party persistence","PASS","Player screenshot and new PID; same 6 days, Nerric plus ten, 550 promised, party 54"
+"D001-E04","Post-reload companion availability and clan party status","PASS","Nerric solving issue; Tholrik in party; 54/70; only 1/2 clan parties shown"
