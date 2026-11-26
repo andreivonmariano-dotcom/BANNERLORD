@@ -47,7 +47,7 @@ def save_id(r,depth=0):
 def archive(data):
     r=Reader(data);folders={};entries={}
     for _ in range(r.count()):
-        g,p,l,e=r.u24(),r.u24(),r.u24(),r.b()
+        p,g,l,e=r.u24(),r.u24(),r.u24(),r.b()
         if g<0 or g in folders:raise ValueError("invalid folder")
         folders[g]=(p,l,e)
     for _ in range(r.count()):
@@ -104,10 +104,11 @@ def inspect(path,expected):
         root=roots[0];record={"type":name,"fields":{}}
         for (folder,entry,extension),raw in es.items():
             if folder!=root or extension not in (2,3):continue
-            kind,level,local,value=field(raw)
+            h=Reader(raw);kind,level,local=h.b(),h.b(),h.s()
             label=FIELDS.get(name,{}).get(local) if extension==2 else None
-            if extension==3 and local==1 and kind==2 and name!="TextObject":label="string_id"
+            if extension==3 and local==1 and kind==2 and name in ("Hero","Clan","Town","MobileParty","Settlement","BrigandIssue"):label="string_id"
             if label:
+                kind,level,local,value=field(raw)
                 if label in record["fields"]:raise ValueError("ambiguous field")
                 record["fields"][label]={"kind":kind,"level":level,"value":value}
                 unknown+=value is None

@@ -4,7 +4,7 @@ from delegation_rules import casualties,duration,required_troops
 class TypedRulesTests(unittest.TestCase):
     def test_archive(self):
         def u(x):return (x&0xffffff).to_bytes(3,"little")
-        d=struct.pack("<i",1)+u(0)+u(-1)+u(0)+bytes([1])+struct.pack("<i",1)+u(0)+u(-1)+bytes([8])+struct.pack("<h",9)+bytes([0])+struct.pack("<ihh",330048,1,0)
+        d=struct.pack("<i",1)+u(-1)+u(0)+u(0)+bytes([1])+struct.pack("<i",1)+u(0)+u(-1)+bytes([8])+struct.pack("<h",9)+bytes([0])+struct.pack("<ihh",330048,1,0)
         f,e=archive(d);self.assertEqual(f,{0:(-1,0,1)});r=Reader(e[(0,-1,8)]);self.assertEqual(save_id(r),330048)
         with self.assertRaises(ValueError):archive(d[:-1])
     def test_reference(self):
