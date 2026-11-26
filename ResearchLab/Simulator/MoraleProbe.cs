@@ -6,12 +6,12 @@ class MoraleProbe {
   Assembly a=Assembly.LoadFrom(Path.Combine(args[0],"TaleWorlds.CampaignSystem.dll"));
   Type t=a.GetType("TaleWorlds.CampaignSystem.GameComponents.DefaultCombatSimulationModel",true);
   Type e=a.GetType("TaleWorlds.CampaignSystem.ExplainedNumber",true);
-  object m=Activator.CreateInstance(t);
-  MethodInfo method=t.GetMethod("CalculateSimulationMoraleEffects",BindingFlags.Instance|BindingFlags.NonPublic);
+  MethodInfo method=t.GetMethod("CalculateSimulationMoraleEffects",BindingFlags.Static|BindingFlags.NonPublic);
+  if(method==null)throw new MissingMethodException("CalculateSimulationMoraleEffects");
   int n=0;double max=0;
   foreach(float d in new[]{0f,20f,40f,100f})foreach(float s in new[]{0f,25f,50f,75f,100f})foreach(float v in new[]{0f,25f,50f,75f,100f}){
    object en=Activator.CreateInstance(e,new object[]{d,false,null});
-   object[] p={s,v,en};method.Invoke(m,p);
+   object[] p={s,v,en};method.Invoke(null,p);
    float actual=(float)e.GetProperty("ResultNumber").GetValue(p[2],null);
    float expected=d*(1f+(Math.Min(s-50f,0f)-Math.Max(v-50f,0f))*.005f);
    double err=Math.Abs(actual-expected);max=Math.Max(max,err);if(err>0.00002)return 1;n++;
