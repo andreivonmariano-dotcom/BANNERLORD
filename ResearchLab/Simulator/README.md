@@ -5,3 +5,6 @@ Research boundary: simulator test PASS is not Gate C-F or player acceptance. Fut
 
 ## Next milestone
 DATA-001 source catalogue (`world_data.py`), API-001 (`Index-Assemblies.ps1`, `assembly_data.py`), SIM-002 (`world_campaign.py`, `run_world.py`, `test_world.py`). Use `py -3.14 -B -m unittest -v test_world test_simulator`. Use `run_world.py start <new lab directory>`, then `resume` and `verify` in separate processes. Never place simulator output in the game/save directory. See respective evidence records for exact local paths and limitations; no integration with native game or effective world state.
+
+## SIM-003
+`native_rules.py` implements limited default-model arithmetic; `source_world.py <world.sqlite> <base|war_sails> <new lab .json> --days 21` runs a source-selected fixed-prosperity town market scenario. Not engine-effective merged world, autonomous economy or SIM-002 save format. Run `py -3.14 -B -m unittest -v test_native_rules test_world test_simulator`. See NATIVE_RULES.md and WORLD_IMPORT.md.
