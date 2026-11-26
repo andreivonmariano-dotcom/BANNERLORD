@@ -8,7 +8,7 @@ using TaleWorlds.CampaignSystem.Party;
 using TaleWorlds.CampaignSystem.Settlements;
 using TaleWorlds.Core;
 
-namespace CU80.Lab
+namespace CalradiaUnified.CU80
 {
     // Host must be the existing SandboxOriginBehavior on the campaign thread.
     // Bind the four delegates to its existing scope, service authority, CanAssignHouseholdSpecialty

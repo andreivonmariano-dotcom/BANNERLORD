@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace CU80.Lab
+namespace CalradiaUnified.CU80
 {
     [Flags] public enum Authority
     {

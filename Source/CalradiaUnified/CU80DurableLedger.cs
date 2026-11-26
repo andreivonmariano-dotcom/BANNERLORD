@@ -4,7 +4,7 @@ using System.Globalization;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
-namespace CU80.Lab
+namespace CalradiaUnified.CU80
 {
     public enum AttemptState { Started=1, Confirmed=2, Uncertain=3, Declined=4, Deferred=5, NoAction=6, ObservedAssigned=7 }
     public sealed class DurableLedger

@@ -2,7 +2,7 @@ using System;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.Core;
 using TaleWorlds.Localization;
-namespace CU80.Lab
+namespace CalradiaUnified.CU80
 {
     // Native registration, but no separate behavior or role setter.
     public sealed class SurgeonDialogue

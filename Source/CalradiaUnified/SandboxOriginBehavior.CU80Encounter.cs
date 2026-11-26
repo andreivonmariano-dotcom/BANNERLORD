@@ -1,5 +1,5 @@
 using System;
-using CU80.Lab;
+using CalradiaUnified.CU80;
 using TaleWorlds.CampaignSystem;
 using TaleWorlds.CampaignSystem.Party;
 namespace CalradiaUnified
