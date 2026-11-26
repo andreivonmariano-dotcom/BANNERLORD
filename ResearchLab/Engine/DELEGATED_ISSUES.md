@@ -24,3 +24,5 @@ Two candidate risk displays match default formula (Tactics 86 -> 17%, Scouting 5
 D001 active journal and aggregate personnel count preserved after reported full reload; new game PID independently confirmed. See D001 evidence; actual individual roster and outcomes pending.
 
 D001 post-reload native clan UI confirms delegated companion solving issue and no additional listed clan party; supports simulated assignment distinction, not exhaustive map proof.
+
+D001 journal shows intermediate 'Your men should be on their way' before aggregate roster return, supporting separate lifecycle stages. Internal effect flag and final success not verified.

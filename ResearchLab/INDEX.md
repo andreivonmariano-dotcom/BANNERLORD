@@ -20,3 +20,4 @@ D001 playthrough reported; game process and selected profile verified, delegatio
 - D001 active journal and aggregate party count verified; save/reload next.
 - D001 active journal/aggregate party persistence visually passed after reported reload and new process; individual roster and return pending.
 - D001 post-reload companion status verified; one clan party listed. Resolution and return pending.
+- D001 intermediate return journal observed with party still 54; final outcome pending.
