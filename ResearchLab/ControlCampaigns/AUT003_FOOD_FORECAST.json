@@ -1,0 +1,22 @@
+{
+  "baseline_tick": 78691175652889,
+  "conditions": {
+    "food_before": 0.95,
+    "healthy": 2,
+    "no_food_perk_modifier_assumed": true,
+    "no_roster_or_inventory_change": true,
+    "prisoners": 0,
+    "sea": false,
+    "wounded": 0
+  },
+  "endpoint": "first subsequent food_event in same observer session; if absent or conditions fail, not scored",
+  "experiment": "AUT003-FOOD-001",
+  "predicted_delta": -0.10000000149011612,
+  "predicted_food": 0.8499999642372131,
+  "prior_log_sha": "f9ea05c8c048ecc58ef57c2654317692a71a9a1428b0e89a229392711a59d6be",
+  "prior_seq": 17,
+  "scope": "conditional isolated base food hypothesis, not full campaign forecast",
+  "source_projection_sha": "708e3dc16b4cca2e2e068cfbcd6c062556eaa9831f88a4a5bb15350bf11f4d8e",
+  "source_save_sha": "a9535052bf487f6106d2223ca3c42d6215b91e97d81786ef60b32dff3a1ae1a0",
+  "tolerance": 1e-05
+}
