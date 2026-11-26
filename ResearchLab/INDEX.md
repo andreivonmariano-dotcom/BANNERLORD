@@ -78,3 +78,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [L007 native candidate and reversible save isolation](CU80/L007.md): real Lord startup, unique save and same-process reload; rollback verified; surgeon encounter still untested.
 
 - [L008 surgeon preflight and SAV-011](CU80/L008.md): actual saved candidate skills and empty ledger string-table evidence; 54/54 regression; native encounter still not run.
+
+- [L009 clean native control](CU80/L009.md): fresh process baseline reload, unwounded Concerns negative case, movement control limitation, verified complete rollback.
