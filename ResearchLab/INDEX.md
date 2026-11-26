@@ -68,3 +68,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [AUT-006 bounded native control and companion negotiation](Autonomous/AUT006.md): two normal-speed pulses paused, forward/lateral movement, camera and direct scene exit observed; native wanderer quote and decline verified.
 
 - [AUT-007 prospective food trial and shared autosave isolation failure](Autonomous/AUT007.md): eight pulses; endpoint absent; original autosave backup verified; native advancement blocked.
+
+- [CU80 redevelopment milestone](CU80/EVIDENCE.md): 143-entry audit, six-system GDD, architecture and L004 r2 pure C# prototype 61/61; native/player acceptance held.
