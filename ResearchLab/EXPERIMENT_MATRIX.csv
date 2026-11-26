@@ -205,3 +205,7 @@
 "AUT006-C04","Scan-code Tab return to tavern district","PASS","26244 native paused district"
 "AUT006-D01","Named wanderer Talk quote decline and exit","PASS","45552/19824/11724/692/42856 native quote594 and final HUD960"
 "AUT006-D02","Companion hiring medicine and surgeon recovery","NOT_RUN","Medicine suitability unknown; offer declined"
+"AUT007-A01","Exact three-member checkpoint and initial zero prisoners","PASS","Processes47296/7192"
+"AUT007-C01","Eight supervised pulses and pause poststate","PARTIAL","All paused; hard play duration not verified"
+"AUT007-FOOD-001","Precommitted three-member first food event","INCOMPLETE","22 hourly events and zero food callbacks; no error score"
+"AUT007-S01","Original save isolation","FAIL","Shared saveauto2 changed; original and changed copies verified; stop advancement"
