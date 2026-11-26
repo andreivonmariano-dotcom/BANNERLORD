@@ -441,6 +441,7 @@ namespace CalradiaUnified
         public override void SyncData(IDataStore store)
         {
             store.SyncData("CU_v016_origin_applied", ref applied);
+            SyncCU80Encounter(store);
             store.SyncData("CU_start_audit_owner_1",ref startAuditOwner);
             store.SyncData("CU_start_audit_role_1",ref startAuditRole);
             store.SyncData("CU_start_audit_status_1",ref startAuditStatus);
@@ -602,6 +603,7 @@ namespace CalradiaUnified
             RegisterKnightOathMenus(starter);
             RegisterKnightPatronConversations(starter);
             RegisterNobleOfficerConversations(starter);
+            RegisterCU80Encounter(starter);
             RegisterHouseholdConversations(starter);
             RegisterLivingDialogueDepth(starter);
             RegisterPrivatePetitionConversations(starter);

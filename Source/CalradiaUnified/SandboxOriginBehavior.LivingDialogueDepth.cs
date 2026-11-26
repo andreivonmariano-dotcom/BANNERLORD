@@ -52,6 +52,7 @@ namespace CalradiaUnified
         }
         private void BeginPersonalConversation()
         {
+            ResetCU80Conversation();
             if(!CanSpeakSocially())return;
             var actor=Hero.OneToOneConversationHero;
             personalOpeningActor=actor.StringId;personalOpeningPlayer=Hero.MainHero.StringId;

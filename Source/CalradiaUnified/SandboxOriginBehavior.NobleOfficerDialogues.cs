@@ -303,7 +303,7 @@ namespace CalradiaUnified
         }
         private bool CanOfferHouseholdResponsibilities()
         {
-            return CanAskResidentToGovern() || HouseholdSpecialties.Any(role=>CanAssignHouseholdSpecialty(role));
+            return CanAskResidentToGovern() || HouseholdSpecialties.Any(role=>(role!=PartyRole.Surgeon || CU80ManualSurgeonAllowed()) && CanAssignHouseholdSpecialty(role));
         }
         private bool CanReviewNativeHouseholdAssignment()
         {
@@ -313,13 +313,22 @@ namespace CalradiaUnified
         }
         private void AssignHouseholdSpecialty(PartyRole role)
         {
+            if(role==PartyRole.Surgeon && !CU80ManualSurgeonAllowed())
+            {
+                MBTextManager.SetTextVariable("CU_NATIVE_PARTY_DUTY_REPLY",new TextObject("We should check the party screen before issuing another duty."));
+                return;
+            }
+            AssignHouseholdSpecialty(role,true);
+        }
+        private void AssignHouseholdSpecialty(PartyRole role,bool recordMemory)
+        {
             string reply="I cannot take that duty just now. No appointment was confirmed.";
             if(CanAssignHouseholdSpecialty(role))
             {
                 var actor=Hero.OneToOneConversationHero;var party=MobileParty.MainParty;
                 var previous=NativeAssignmentSlots.Select(x=>party.GetRoleHolder(x)).ToArray();
                 try{party.SetHeroPartyRole(actor,role);}
-                catch(Exception error){DiagnosticJournal.Exception("cu_native_party_duty_failed",error);}
+                catch(Exception error){DiagnosticJournal.Exception("cu_native_party_duty_failed",error);if(!recordMemory)throw;}
                 bool assigned=party.GetRoleHolder(role)==actor && party.GetHeroPartyRoles(actor).Contains(role) && EffectiveSpecialist(party,role)==actor;
                 bool othersUnchanged=NativeAssignmentSlots.Select((x,i)=>x==role || party.GetRoleHolder(x)==previous[i]).All(x=>x);
                 bool confirmed=assigned && othersUnchanged;
@@ -327,7 +336,7 @@ namespace CalradiaUnified
                     "|actor="+actor.StringId+"|party="+party.StringId+"|role="+role+"|native_role_confirmed="+assigned+"|other_specialists_unchanged="+othersUnchanged);
                 if(confirmed)
                 {
-                    livingPersons.Remember("NativePartyDutyAssigned",Hero.MainHero.StringId,actor.StringId,"role="+role+"|day="+CurrentHouseholdDay());
+                    if(recordMemory)livingPersons.Remember("NativePartyDutyAssigned",Hero.MainHero.StringId,actor.StringId,"role="+role+"|day="+CurrentHouseholdDay());
                     reply="I now serve as your "+role.ToString().ToLowerInvariant()+". You can see the appointment in the party screen.";
                 }
                 else reply="The appointment was not fully confirmed. Review the native party screen before issuing another duty.";
@@ -344,14 +353,15 @@ namespace CalradiaUnified
                 "Let us arrange your responsibilities.",()=>CanOfferHouseholdResponsibilities(),null,139);
             starter.AddPlayerLine("cu_native_party_duties_concern","cu_personal_followup_choices","cu_native_party_duties_intro",
                 "Then let us agree on a duty you can carry out.",()=>CanFollowPersonalTopic() &&
-                    (personalTopicName=="Concerns" || personalTopicName=="Family") && CanOfferHouseholdResponsibilities(),null,139);
+                    (personalTopicName=="Concerns" || personalTopicName=="Family") && CanOfferHouseholdResponsibilities() &&
+                    !(personalTopicName=="Concerns" && CU80ContextualSurgeonAvailable()),null,139);
             starter.AddDialogLine("cu_native_party_duties_intro","cu_native_party_duties_intro","cu_native_party_duties_choices",
                 "What duty do you wish me to undertake?",null,null,139);
             foreach(var specialty in HouseholdSpecialties)
             {
                 var role=specialty;
                 starter.AddPlayerLine("cu_native_party_duty_"+role,"cu_native_party_duties_choices","cu_native_party_duty_reply",
-                    "Serve as our "+role.ToString().ToLowerInvariant()+".",()=>CanAssignHouseholdSpecialty(role),()=>AssignHouseholdSpecialty(role),139);
+                    "Serve as our "+role.ToString().ToLowerInvariant()+".",()=>(role!=PartyRole.Surgeon || CU80ManualSurgeonAllowed()) && CanAssignHouseholdSpecialty(role),()=>AssignHouseholdSpecialty(role),139);
             }
             starter.AddPlayerLine("cu_native_party_duties_cancel","cu_native_party_duties_choices","close_window","Not now.",null,null,1);
             starter.AddDialogLine("cu_native_party_duty_reply","cu_native_party_duty_reply","close_window","{CU_NATIVE_PARTY_DUTY_REPLY}",null,null,139);
