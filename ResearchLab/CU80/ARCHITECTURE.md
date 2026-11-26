@@ -17,3 +17,6 @@ Prototype/Encounter.cs and Tests.cs implement the first surgeon situation contra
 
 ## L005 follow-up
 NativeSurgeonPort compiled against installed public native references; actual host binding and runtime not executed. Public campaign hours encoded as opaque revision, not exact ticks. Four new pure situation policies in Prototype/Situations.cs; see L005.md for limits and evidence.
+
+## L006 follow-up
+Actual isolated candidate b0fcf7d695daecddfd951424b72e2532766827e0 wires existing behavior, one additive string ledger and existing native action; full CI45840870126 passed. No actual save/reload or native/player acceptance. Read-only namespace gate blocks live advancement. See L006.md.
