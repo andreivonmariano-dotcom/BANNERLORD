@@ -14,3 +14,6 @@ Native/approved provider -> read-only adapter -> immutable scoped snapshot -> pu
 
 ## First implementation boundary
 Prototype/Encounter.cs and Tests.cs implement the first surgeon situation contract, explicit choice, fresh snapshot comparison, one-call adapter boundary, protected-slot verification and descriptive recovery. This is original C# isolated policy with a fake adapter; no native assembly references, no game code invocation, no production integration. Native adapter must supply faithful snapshot from existing verified guard and role readback; false or missing fields fail closed. No proof of native healing benefit, UI, or persistence. Build/test commands in prototype README. No code from external mods copied.
+
+## L005 follow-up
+NativeSurgeonPort compiled against installed public native references; actual host binding and runtime not executed. Public campaign hours encoded as opaque revision, not exact ticks. Four new pure situation policies in Prototype/Situations.cs; see L005.md for limits and evidence.
