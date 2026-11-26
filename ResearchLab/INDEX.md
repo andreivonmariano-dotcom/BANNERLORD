@@ -48,3 +48,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [API-004 selected native arithmetic](Engine/DEFAULT_RECRUITMENT_FOOD_HEALING.md), [L003 native observer](Prototypes/L003.md), [SAV-007 single baseline](Simulator/SINGLE_BASELINE_IMPORT.md), [DESIGN-001 surgeon duty candidate](Prototypes/SURGEON_DUTY_DESIGN.md).
 
 - [ROLE-001 specialist effects](Engine/NATIVE_SPECIALIST_EFFECTS.md); [D002-R role observation protocol](ControlCampaigns/D002_ROLE_TEST.md), L003.1 compiled only.
+
+- [D002-R authorized activation and launcher checkpoint](ControlCampaigns/D002_R_ACTIVATION.md): installed observer, 43 saves backed up, native test not run.

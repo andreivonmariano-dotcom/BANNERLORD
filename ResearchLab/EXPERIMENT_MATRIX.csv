@@ -162,3 +162,6 @@
 "L0031-B01","Role snapshot observer compile","PASS","Process46436 not installed"
 "ROLE001-A02","Synthetic role evidence checks","PASS","Process44296 7 tests"
 "D002-R-D01","Native specialist and recovery control","NOT_RUN","Authorization and native observation pending"
+"D002-R-C01","Observer installation and profile activation","PASS","Process31268 verified exact DLL and 43 original saves unchanged"
+"D002-R-C02","Normal Steam launcher open","PASS","Process42132 launcher PID43388 no campaign logs"
+"D002-R-D02","Native observer callbacks and surgeon outcome","NOT_RUN","Player must start fresh Sandbox and provide baseline"
