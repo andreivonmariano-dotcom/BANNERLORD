@@ -163,7 +163,7 @@ def inspect(path,expected):
             if extension==3 and local==1 and kind==2 and name in ("Hero","Clan","Town","MobileParty","Settlement","BrigandIssue"):label="string_id"
             if extension==3 and local==2 and level==2 and name=="Hero":label="guid"
             if label:
-                expected_level=2 if label in ("string_id","guid") or name in ("CharacterRelationManager","HeroRelations","TextObject") else 5 if name=="Town" else 3
+                expected_level=2 if label in ("string_id","guid") or name in ("CharacterRelationManager","HeroRelations","TextObject") else 5 if name=="Town" else 4 if name=="MobileParty" else 3
                 if level!=expected_level:raise ValueError(f"unexpected inheritance level {name}.{label}: {level}")
                 kind,level,local,value=field(raw)
                 if label in record["fields"]:raise ValueError("ambiguous field")
