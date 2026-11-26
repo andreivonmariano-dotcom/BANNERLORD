@@ -177,3 +177,8 @@
 "SIM008-A01","Isolated native factor grid and independent arithmetic","PASS","Processes17108 and33464 120 exact cases 8 policy tests"
 "SIM008-A02","Historical simulator regression","PASS","Process25712 101 tests"
 "SIM008-D01","Live provider-aware prospective forecast","NOT_RUN","Stable new baseline and observed provider chain required"
+"AUT002-C01","Native distinct save and same-process reload","PASS","Processes23312/27956/31196 exact saved state and loaded tick"
+"AUT002-D01","Native hourly food and arrival observation","PASS","Process31196 nine hourly one food and arrival rows"
+"AUT002-D02","Native single recruitment transaction","PASS","Processes47560/31196 payment20 and healthy1 to2"
+"AUT002-D03","Recruitment observer callback","FAIL","No recruit_event row despite confirmed transaction"
+"AUT002-D04","Companion surgeon recovery and independent forecast","NOT_RUN","No companion wounded baseline or frozen forecast"
