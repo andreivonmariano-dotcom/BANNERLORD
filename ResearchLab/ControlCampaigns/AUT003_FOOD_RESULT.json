@@ -1,0 +1,19 @@
+{
+  "absolute_error": 0.0,
+  "experiment": "AUT003-FOOD-001",
+  "forecast_sha": "071d855b4506d30212dd08b1a98188984b22f8237b7501728d66fdc57c8c1f8c",
+  "limitations": [
+    "prisoner and complete perk context not independently observed",
+    "first event rather than fixed time horizon",
+    "full active model chain not verified",
+    "subsequent wait overshoot; no extra events scored"
+  ],
+  "observed_food": 0.8499999642372131,
+  "observed_log_snapshot_sha": "0dfbab360712402876401abc236b9c859f4e035208af70cc9112967adf608e69",
+  "observed_seq": 34,
+  "observed_tick": 78691749096276,
+  "predicted_food": 0.8499999642372131,
+  "preexisting_log_prefix_sha": "f9ea05c8c048ecc58ef57c2654317692a71a9a1428b0e89a229392711a59d6be",
+  "previous_party_samples": 16,
+  "status": "CONDITIONAL_NUMERIC_MATCH"
+}
