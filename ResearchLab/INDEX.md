@@ -44,3 +44,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [API-002 military and economic observation contracts](Engine/NATIVE_OBSERVATION_CONTRACTS.md); [VAL-003 exact-clock validation](Simulator/EXACT_CLOCK_VALIDATION.md): zero tick residual, town/castle metrics, accuracy gap retained.
 
 - [API-003 native implementation call edges](Engine/NATIVE_IMPLEMENTATION_TRACE.md), [ECO-004 economic observation](Simulator/ECONOMIC_OBSERVATION.md), [D002 prospective control](ControlCampaigns/D002.md), [CU evidence matrix](CU_EVIDENCE_MATRIX.csv): offline tooling tested; native control not run.
+
+- [API-004 selected native arithmetic](Engine/DEFAULT_RECRUITMENT_FOOD_HEALING.md), [L003 native observer](Prototypes/L003.md), [SAV-007 single baseline](Simulator/SINGLE_BASELINE_IMPORT.md), [DESIGN-001 surgeon duty candidate](Prototypes/SURGEON_DUTY_DESIGN.md).
