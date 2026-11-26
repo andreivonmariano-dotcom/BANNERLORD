@@ -20,3 +20,6 @@ Compile `NativePriceExport.cs` with existing Framework64 csc /platform:x64, invo
 
 ## SAV-004 and DUT-003
 `typed_save.py <D001 save directory> <new local typed.json>` reads three exact pinned D001 hashes and selected type IDs/fields; local output contains private game state, never publish. `delegation_rules.py` implements selected static arithmetic, not native execution. Run `py -3.14 -B -m unittest -q test_typed_rules test_comparison test_integrated test_economy_dynasty test_native_rules test_world test_simulator`. See TYPED_SAVE_RECORDS.md, DELEGATION_OUTCOMES.md and HAR004.md. No full native save import or modified game.
+
+## SIM-006
+`campaign_import.py <D001 save directory> <new existing local projection directory>` creates exclusive JSON files for the three pinned checkpoints. `imported_experiment.py <projection directory> <new experiment directory>` executes bounded imported replay and synthetic failure. Keep all projection and experiment outputs private. Run `py -3.14 -B -m unittest -q test_imported_experiment test_typed_rules test_comparison test_integrated test_economy_dynasty test_native_rules test_world test_simulator`. See SAV-005 and SIM-006. No general native engine initialization, live game mutation or arbitrary save loading.

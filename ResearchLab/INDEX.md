@@ -34,3 +34,4 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [HAR-002 expanded managed model probe](Simulator/HAR002.md), [SIM-005 integrated research campaign and batch evidence](Simulator/SIM005_EVIDENCE.md).
 - [HAR-003 constructor dependencies](Simulator/HAR003.md), [AI-003 competing NPC objectives](Engine/COMPETING_NPC_OBJECTIVES.md), [VAL-001 differential validation](Simulator/VALIDATION.md).
 - [HAR-004 text service](Simulator/HAR004.md), [SAV-004 typed save records and relation](Persistence/TYPED_SAVE_RECORDS.md), [DUT-003 delegation outcomes](Engine/DELEGATION_OUTCOMES.md).
+- [SAV-005 roster/skills/equipment projection](Persistence/ROSTER_AND_INVENTORY.md), [SIM-006 imported campaign experiment](Simulator/IMPORTED_CAMPAIGN.md).
