@@ -17,3 +17,6 @@ DATA-001 source catalogue (`world_data.py`), API-001 (`Index-Assemblies.ps1`, `a
 
 ## VAL-001
 Compile `NativePriceExport.cs` with existing Framework64 csc /platform:x64, invoke with pinned installed bin directory and new lab CSV path; run `py -3.14 -B compare_native.py <native_prices.csv> <D001 save directory> <new report.json>`. Run `py -3.14 -B -m unittest -v test_comparison test_integrated test_economy_dynasty test_native_rules test_world test_simulator`. Explicit partial-economy mismatch remains reportable; no native outcome prediction. See VALIDATION.md and HAR003.md.
+
+## SAV-004 and DUT-003
+`typed_save.py <D001 save directory> <new local typed.json>` reads three exact pinned D001 hashes and selected type IDs/fields; local output contains private game state, never publish. `delegation_rules.py` implements selected static arithmetic, not native execution. Run `py -3.14 -B -m unittest -q test_typed_rules test_comparison test_integrated test_economy_dynasty test_native_rules test_world test_simulator`. See TYPED_SAVE_RECORDS.md, DELEGATION_OUTCOMES.md and HAR004.md. No full native save import or modified game.

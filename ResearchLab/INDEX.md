@@ -33,3 +33,4 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [HAR-001 native managed execution](Simulator/NATIVE_HARNESS.md), [ECO-002 supply and demand](Engine/SUPPLY_DEMAND_AND_TRADE.md), [LIFE-002 synthetic dynasty](Simulator/DYNASTY.md), [SIM-004 evidence](Simulator/SIM004_EVIDENCE.md).
 - [HAR-002 expanded managed model probe](Simulator/HAR002.md), [SIM-005 integrated research campaign and batch evidence](Simulator/SIM005_EVIDENCE.md).
 - [HAR-003 constructor dependencies](Simulator/HAR003.md), [AI-003 competing NPC objectives](Engine/COMPETING_NPC_OBJECTIVES.md), [VAL-001 differential validation](Simulator/VALIDATION.md).
+- [HAR-004 text service](Simulator/HAR004.md), [SAV-004 typed save records and relation](Persistence/TYPED_SAVE_RECORDS.md), [DUT-003 delegation outcomes](Engine/DELEGATION_OUTCOMES.md).
