@@ -58,3 +58,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [NAV-003 crew and ship contracts](WarSails/CREW_SHIPS_AND_SPEED.md); [AI-004 political and marriage contracts](Engine/POLITICAL_AND_MARRIAGE_CONTRACTS.md); [SIM-008 provider terms](Simulator/PROVIDER_TERMS.md): static findings and isolated arithmetic 120/120; full native outcomes not run.
 
 - [AUT-002 native checkpoint, reload, arrival and recruitment](Autonomous/AUT002.md): two verified saves, actual transaction and food/arrival evidence; callback gap open.
+
+- [AUT-003 recruitment event repair and conditional food forecast](Autonomous/AUT003.md): L003.2 compiled only; SAV-008 two pinned observer checkpoint imports; first-event numerical match and restored checkpoint.
