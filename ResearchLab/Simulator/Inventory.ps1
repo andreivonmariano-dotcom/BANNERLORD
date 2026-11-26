@@ -30,5 +30,5 @@ $manifest=foreach($r in $rows|Where-Object {$_.Path -match '^Modules\\[^\\]+\\Su
 $manifest|Export-Csv -LiteralPath (Join-Path $out 'modules.csv') -NoTypeInformation -Encoding UTF8
 'MANIFESTS '+@($manifest).Count+' PARSED '+@($manifest|Where-Object Status -eq 'parsed').Count
 'ERRORS FINAL '+$errors.Count
-$errors|Set-Content -LiteralPath (Join-Path $out 'errors.txt') -Encoding UTF8
+[IO.File]::WriteAllLines((Join-Path $out 'errors.txt'),[string[]]$errors)
 'INVENTORY_COMPLETE'

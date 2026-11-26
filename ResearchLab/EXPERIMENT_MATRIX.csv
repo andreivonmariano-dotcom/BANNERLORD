@@ -61,7 +61,7 @@
 "SAV003-A04","Saved quest string markers","PASS","Title active/return; return-phase and resolution strings only in return"
 "SAV003-A05","Typed relationship/quest object graph reconstruction","NOT_RUN","Metadata and string markers only; no object reference mapping"
 "INV001-A01","Recursive installation inventory and classification","PASS","25118 files; no enumeration errors; extension categories"
-"INV001-A02","All binary fingerprints and manifest parsing","PARTIAL","Long-running scan; final output not yet received"
+"INV001-A02","All binary fingerprints and manifest parsing","PASS","4986 hashes without error; 42 manifests parsed; 2841 unique binary hashes"
 "SIM001-A01","Independent simulator unit suite","PASS","20/20 Python tests; source f7b8a724"
 "SIM001-A02","Offline actual D001 save read and outcome replay","PASS","Aggregate personnel match with observed outcome input; gold residual 85"
 "SIM001-A03","Seeded risk sampling","PASS","20000 draws; modeled probabilities only"
