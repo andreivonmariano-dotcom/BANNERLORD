@@ -20,3 +20,5 @@ Use native alternative solutions as baseline, not a parallel companion mission s
 
 ## D001 native UI cross-check
 Two candidate risk displays match default formula (Tactics 86 -> 17%, Scouting 56 -> 32%); 10 soldiers plus one companion allocated for six days. See [D001](../ControlCampaigns/D001.md). This does not prove full model equivalence or actual outcomes.
+
+D001 active journal and aggregate personnel count preserved after reported full reload; new game PID independently confirmed. See D001 evidence; actual individual roster and outcomes pending.

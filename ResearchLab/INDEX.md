@@ -18,3 +18,4 @@ Evidence anchor 29d8233ea33404904df4fc829401c8c6a1106fa8; compiled L001 source f
 D001 playthrough reported; game process and selected profile verified, delegation not run. See D001 record.
 - D001 native dispatch visually observed; risk and troop allocation confirmed in selection UI. Persistence and outcome pending.
 - D001 active journal and aggregate party count verified; save/reload next.
+- D001 active journal/aggregate party persistence visually passed after reported reload and new process; individual roster and return pending.
