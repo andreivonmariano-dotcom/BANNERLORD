@@ -1,5 +1,5 @@
 import unittest,struct
-from typed_save import Reader,archive,save_id,field
+from typed_save import Reader,archive,save_id,field,signed_hash
 from delegation_rules import casualties,duration,required_troops
 class TypedRulesTests(unittest.TestCase):
     def test_archive(self):
@@ -11,6 +11,8 @@ class TypedRulesTests(unittest.TestCase):
         self.assertEqual(field(struct.pack("<BBhi",0,1,500,42)),(0,1,500,42))
     def test_basic(self):
         self.assertEqual(field(struct.pack("<BBhBii",6,1,650,0,30001,50)),(6,1,650,50))
+    def test_guid_hash(self):
+        self.assertEqual(signed_hash(2147483648),-2147483648);self.assertEqual(signed_hash(4294967295),-1)
     def test_casualties(self):
         self.assertEqual(casualties(86,120,10),(1,2));self.assertEqual(casualties(56,120,10),(1,2));self.assertEqual(casualties(0,120,10),(4,8))
     def test_duration_integer(self):
