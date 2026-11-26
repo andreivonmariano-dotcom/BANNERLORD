@@ -194,3 +194,8 @@
 "AUT004-C03","Tavern forward movement and leave shortcut","FAIL","Processes19632/32028/45724; no verified displacement or exit"
 "VAL005-A01","Predeclare four component hypotheses","PASS","Process6352 manifest create-new"
 "VAL005-D01","New independent native outcome comparison","NOT_RUN","Actual eligible inputs and receipts required"
+"AUT005-C01","Guarded scan-code scene pause and native exit to main menu","PASS","Processes48248/46924; movement and direct scene exit to map unverified"
+"AUT005-R01","Native two-recruit cart and unit events plus independent receipt","PASS","Processes17600/45136/22668; paid40 and roster3"
+"AUT005-R02","Cancellation and companion listener","NOT_RUN","Separate native cases required"
+"AUT005-A01","Native checkpoint v032 save inspection and historical regression","PASS","Processes47944/48160; 101 tests"
+"AUT005-D01","Four VAL005 independent outcomes","NOT_RUN","New 3-member baseline available; remaining conditions and prospective outcomes pending"
