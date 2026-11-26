@@ -1,5 +1,8 @@
 import unittest
-from world_campaign import World,sample_world
+from world_campaign import World,sample_world,save_snapshot,load_snapshot
+from pathlib import Path
+import tempfile
+import json
 class WorldTest(unittest.TestCase):
     def test_parallel(self):
         w=sample_world();w.dispatch("a","retainer_a",10,6);w.dispatch("b","retainer_b",10,6)
@@ -32,4 +35,19 @@ class WorldTest(unittest.TestCase):
     def test_early_return(self):
         w=sample_world();w.dispatch("a","retainer_a",10,6)
         with self.assertRaises(ValueError):w.finish("a",2,5,550)
+    def test_protect_named_personnel(self):
+        w=sample_world();before=w.snapshot()
+        with self.assertRaises(ValueError):w.dispatch("a","retainer_a",63,6)
+        self.assertEqual(before,w.snapshot())
+    def test_invalid_completed_accounting(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);w.advance(6);w.finish("a",2,5,550)
+        x=json.loads(w.snapshot());x["tasks"]["a"]["returned"]=99
+        with self.assertRaises(ValueError):World.restore(json.dumps(x))
+    def test_disk_roundtrip_and_no_overwrite(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6)
+        with tempfile.TemporaryDirectory() as d:
+            p=Path(d)/"active.json";save_snapshot(w,p)
+            self.assertEqual(load_snapshot(p).snapshot(),w.snapshot())
+            with self.assertRaises(FileExistsError):save_snapshot(w,p)
+            with self.assertRaises(ValueError):save_snapshot(w,Path(d)/"game.sav")
 if __name__=="__main__":unittest.main()
