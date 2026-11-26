@@ -88,6 +88,19 @@ public static class Tests
         f=F();f.ThrowAssign=true;e=new Encounter(f,"s");o=e.Present();
         Check("exception after side effect unconfirmed",e.Resolve(o,Choice.Assign).Status==Outcome.Unconfirmed&&f.Calls==1);
         Check("exception no retry",e.Present()==null&&e.Resolve(o,Choice.Assign).Status==Outcome.Locked&&f.Calls==1);
+        f=F();e=new Encounter(f,"s");o=e.Present();
+        Check("repeated presentation preserves same token",Object.ReferenceEquals(o,e.Present()));
+        Check("repeated rendering still allows assignment",e.Resolve(o,Choice.Assign).Confirmed&&f.Calls==1);
+        f=F();e=new Encounter(f,"s");o=e.Present();
+        f.Current=S(actor:"other");Offer other=e.Present();
+        Check("speaker switch invalidates previous token",other!=null&&e.Resolve(o,Choice.Assign).Status==Outcome.InvalidOffer&&f.Calls==0);
+        e.Resolve(other,Choice.Defer);f.Current=S();
+        Check("speaker switch does not revive same concern",e.Present()==null);
+        f=F();e=new Encounter(f,"s");bool filled=true;
+        for(int i=0;i<64;i++){f.Current=S(actor:"actor"+i);Offer x=e.Present();if(x==null){filled=false;break;}e.Resolve(x,Choice.Defer);}
+        Check("64 distinct contexts supported",filled);
+        f.Current=S(actor:"overflow");Check("bounded capacity refuses new context",e.Present()==null&&f.Calls==0);
+        f.Current=S(actor:"actor0");Check("no eviction revives earlier concern",e.Present()==null);
         Console.WriteLine("TOTAL_PASS="+count);
     }
 }

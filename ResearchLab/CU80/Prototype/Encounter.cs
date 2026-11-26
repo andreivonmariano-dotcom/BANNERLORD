@@ -106,7 +106,8 @@ namespace CU80.Lab
         private readonly string session;
         private Offer pending;
         private bool locked;
-        private Snapshot lastPresented;
+        private const int MaxContexts=64;
+        private readonly List<Snapshot> presented=new List<Snapshot>();
         public Encounter(ISurgeonPort port,string session)
         {
             if(port==null||String.IsNullOrWhiteSpace(session)) throw new ArgumentException();
@@ -115,16 +116,26 @@ namespace CU80.Lab
         public Offer Present()
         {
             if(locked) return null;
-            pending=null;
             Snapshot s;
-            try { s=port.Read(); } catch { return null; }
-            if(s==null || s.Session!=session || !s.Eligible) return null;
-            // Repeated same-context opening is suppressed. Deliberate native role UI stays available.
-            // Materially different state (not a mere tick) can surface a fresh offer.
-            if(lastPresented!=null && lastPresented.SameIdentity(s) && lastPresented.RosterKey==s.RosterKey
-                && lastPresented.Wounded==s.Wounded && lastPresented.ActorMedicine==s.ActorMedicine
-                && lastPresented.EffectiveMedicine==s.EffectiveMedicine) return null;
-            lastPresented=s;
+            try { s=port.Read(); } catch { pending=null; return null; }
+            if(s==null || s.Session!=session || !s.Eligible) { pending=null; return null; }
+            // Repeated rendering is idempotent; a changed snapshot invalidates the prior token.
+            if(pending!=null && pending.Before.SameOfferState(s)) return pending;
+            pending=null;
+            int index=presented.FindIndex(x=>x.SameIdentity(s));
+            if(index>=0)
+            {
+                Snapshot old=presented[index];
+                if(old.RosterKey==s.RosterKey && old.Wounded==s.Wounded
+                    && old.ActorMedicine==s.ActorMedicine && old.EffectiveMedicine==s.EffectiveMedicine) return null;
+                presented[index]=s;
+            }
+            else
+            {
+                // No silent eviction that would revive old encounters.
+                if(presented.Count>=MaxContexts) return null;
+                presented.Add(s);
+            }
             pending=new Offer(s);
             return pending;
         }
