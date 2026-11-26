@@ -28,3 +28,5 @@ D001 post-reload native clan UI confirms delegated companion solving issue and n
 D001 journal shows intermediate 'Your men should be on their way' before aggregate roster return, supporting separate lifecycle stages. Internal effect flag and final success not verified.
 
 D001 success and return banner plus 550-denar receipt observed after intermediate return message. Actual individual return/roster and post-return persistence remain pending. See D001.
+
+D001 completed journal reports nine of eleven returned; native roster 63 including five wounded; named companion again in party at full health. Distinct lifecycle empirically supported in this case. Post-return reload and strict clean control not established; see D001 limitations.

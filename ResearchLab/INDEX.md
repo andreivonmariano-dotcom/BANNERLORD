@@ -22,3 +22,4 @@ D001 playthrough reported; game process and selected profile verified, delegatio
 - D001 post-reload companion status verified; one clan party listed. Resolution and return pending.
 - D001 intermediate return journal observed with party still 54; final outcome pending.
 - D001 native success and return notification plus reward observed; detailed roster and post-return reload pending.
+- D001 completed native quest and companion return/aggregate roster observed; post-return reload, control clarification and player critique pending.
