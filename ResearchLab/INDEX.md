@@ -64,3 +64,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [AUT-004 observer upgrade and full restart](Autonomous/AUT004.md): v032 load verified; scene controls limited; four unscored component hypotheses.
 
 - [AUT-005 native scene escape and recruitment receipts](Autonomous/AUT005.md): L003.2 recruitment callbacks and independent new three-member save verified; VAL005 outcomes pending.
+
+- [AUT-006 bounded native control and companion negotiation](Autonomous/AUT006.md): two normal-speed pulses paused, forward/lateral movement, camera and direct scene exit observed; native wanderer quote and decline verified.
