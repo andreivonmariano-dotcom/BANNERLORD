@@ -11,3 +11,6 @@ DATA-001 source catalogue (`world_data.py`), API-001 (`Index-Assemblies.ps1`, `a
 
 ## SIM-004
 `NativeProbe.cs` compile using existing Framework64 csc to lab-only x64 EXE; invoke with installed bin directory. Selected native managed model checks only. `economy_lab.py`, `dynasty_lab.py`, `run_economy_dynasty.py` independent experiments. Use `py -3.14 -B -m unittest -v test_economy_dynasty test_native_rules test_world test_simulator`; `run_economy_dynasty.py start <new lab directory> --db <world.sqlite>` then `resume` and `verify` in separate processes. No native save serialization or production module. See SIM004_EVIDENCE.md.
+
+## SIM-005
+`ProgressionProbe.cs` separate x64 EXE: partial results expected under current initialization; see HAR002.md. `integrated_lab.py`, `run_integrated.py` and `test_integrated.py` combine explicitly synthetic two-town experiment. Run `py -3.14 -B -m unittest -v test_integrated test_economy_dynasty test_native_rules test_world test_simulator`. `run_integrated.py start <new lab directory> --db <world.sqlite>` then `resume`, `verify`, `batch --db <world.sqlite> --seeds 128` using same directory. Do not place output in actual game/save folders. See SIM005_EVIDENCE.md for scope and exact source. No native campaign equivalence.
