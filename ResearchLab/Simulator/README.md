@@ -32,3 +32,6 @@ Compile `NativePriceExport.cs` with existing Framework64 csc /platform:x64, invo
 
 ## TIME-001 / SIM-007 / UI-LAB-002
 `prepare_campaign_lab.py <D001 saves> <GEO-001 projection dir> <DATA-001 world.sqlite> <new fixture.json>` creates private exact-fixture projection. `node test_campaign_lab.js <fixture.json> <new history.json>` checks 90-day deterministic policy and synthetic branches. `build_campaign_control.py <fixture.json> <new CalradiaCampaignLab.html>` builds private standalone UI from pinned fixture. User controls are counterfactual only, no native save writes. See CAMPAIGN_CLOCK.md, AUTONOMOUS_CAMPAIGN.md and CAMPAIGN_CONTROL.md. Human usability and native predictive equivalence remain unverified.
+
+## SIM-008
+See [provider arithmetic](PROVIDER_TERMS.md). Standalone partial terms and explicit chain guard; not integrated into campaign core. Run provider_terms.py for policy checks; use an independently generated native factor grid for comparison. Full outcome NOT_RUN.

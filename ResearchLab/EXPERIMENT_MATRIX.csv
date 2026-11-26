@@ -172,3 +172,8 @@
 "NAV002-A01","Five runtime-identified naval model static branch inspection","PASS","Process26516 48 bodies 0 unresolved selected references"
 "NAV002-A02","Isolated native ExplainedNumber factor observation","PASS","Process45740 16 observed arithmetic cases"
 "NAV002-D01","Live naval model full outcome comparison","NOT_RUN","Predecessor roles and controlled outcomes pending"
+"NAV003-A01","Selected crew ship cost and sailing bodies","PASS","Process46748 20 naval bodies zero unresolved selected references"
+"AI004-A01","Selected marriage relation and political bodies","PASS","Process46748 20 social political bodies zero unresolved selected references"
+"SIM008-A01","Isolated native factor grid and independent arithmetic","PASS","Processes17108 and33464 120 exact cases 8 policy tests"
+"SIM008-A02","Historical simulator regression","PASS","Process25712 101 tests"
+"SIM008-D01","Live provider-aware prospective forecast","NOT_RUN","Stable new baseline and observed provider chain required"

@@ -54,3 +54,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [AUT-001 guarded remote graphical control](Autonomous/AUT001.md): launcher and native mouse/text input verified, fresh paused Sandbox and L003.1 session callback observed, no saved checkpoint or recovery experiment.
 
 - [NAV-002 active War Sails model chains](WarSails/ACTIVE_MODELS.md): 48 selected static bodies and isolated native factor arithmetic; full live outcomes pending.
+
+- [NAV-003 crew and ship contracts](WarSails/CREW_SHIPS_AND_SPEED.md); [AI-004 political and marriage contracts](Engine/POLITICAL_AND_MARRIAGE_CONTRACTS.md); [SIM-008 provider terms](Simulator/PROVIDER_TERMS.md): static findings and isolated arithmetic 120/120; full native outcomes not run.
