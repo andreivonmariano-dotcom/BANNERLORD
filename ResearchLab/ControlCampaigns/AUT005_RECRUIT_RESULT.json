@@ -1,0 +1,37 @@
+{
+  "cart_events": 2,
+  "checkpoint_sha": "e704f14fb4aa0b75e871e3b4bc8f99585405c9cd78196d28a3900326ffbfe652",
+  "event_gold": 1000,
+  "event_party": 3,
+  "event_tick": 78690884321455,
+  "experiment": "AUT005-R01",
+  "limitations": [
+    "actorless event is not a general player receipt",
+    "no cancellation case",
+    "no new blind quote prediction",
+    "projected party trade_gold differs from live observer; not used as hero gold"
+  ],
+  "payment": 40,
+  "post_gold": 960,
+  "post_roster": [
+    {
+      "character": "main_hero",
+      "count": 1,
+      "hero": "main_hero",
+      "wounded": 0,
+      "xp": 0
+    },
+    {
+      "character": "imperial_recruit",
+      "count": 2,
+      "hero": null,
+      "wounded": 0,
+      "xp": 0
+    }
+  ],
+  "protocol_commit": "157655299cb8ed753b0765e53f70dc380ed8655c",
+  "session_sha": "fb09a1f23fb4d158059e7e664b51b14a9ef58c810d5a45766607dceda931bdf9",
+  "status": "PASS_UI_CORRELATED_RECRUITMENT",
+  "total_units": 2,
+  "unit_events": 2
+}
