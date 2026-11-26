@@ -1,0 +1,35 @@
+import unittest
+from world_campaign import World,sample_world
+class WorldTest(unittest.TestCase):
+    def test_parallel(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);w.dispatch("b","retainer_b",10,6)
+        self.assertEqual(w.parties["main"].healthy,43);w.advance(6);w=World.restore(w.snapshot())
+        w.finish("a",2,5,550);w.finish("b",1,1,0,False)
+        p=w.parties["main"];self.assertEqual((p.healthy,p.wounded),(56,6))
+        self.assertEqual(w.clans["house"].gold,50172)
+        self.assertEqual(p.healthy+p.wounded+sum(t["lost"] for t in w.tasks.values()),65)
+    def test_duplicate_actor(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);before=w.snapshot()
+        with self.assertRaises(ValueError):w.dispatch("b","retainer_a",10,6)
+        self.assertEqual(before,w.snapshot())
+    def test_duplicate_reward(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);w.advance(6);w.finish("a",2,5,550)
+        w=World.restore(w.snapshot());before=w.snapshot()
+        with self.assertRaises(ValueError):w.finish("a",2,5,550)
+        self.assertEqual(before,w.snapshot())
+    def test_blocked_return(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);w.advance(6);before=w.snapshot()
+        self.assertFalse(w.finish("a",2,5,550,map_event=True));self.assertEqual(before,w.snapshot())
+    def test_separate_resources(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6);w.advance(6);w.finish("a",2,5,550)
+        s=w.settlements["holding"];self.assertEqual((s.food,s.market_gold,s.construction_reserve),(100,20000,500))
+    def test_missing_reference(self):
+        w=sample_world();w.parties["main"].settlement="missing"
+        with self.assertRaises(ValueError):w.snapshot()
+    def test_restore_roundtrip(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6)
+        self.assertEqual(World.restore(w.snapshot()).snapshot(),w.snapshot())
+    def test_early_return(self):
+        w=sample_world();w.dispatch("a","retainer_a",10,6)
+        with self.assertRaises(ValueError):w.finish("a",2,5,550)
+if __name__=="__main__":unittest.main()
