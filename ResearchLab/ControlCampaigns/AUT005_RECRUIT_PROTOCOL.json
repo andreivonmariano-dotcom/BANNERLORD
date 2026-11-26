@@ -1,0 +1,23 @@
+{
+  "experiment": "AUT005-R01",
+  "scope": "native observer and transaction test; quotes visible before experiment; no blind price prediction",
+  "baseline": {
+    "checkpoint_sha": "d740bcd873e9e91a66dd693dd0f1059319a5a70cb2cf05227168e497461d35ea",
+    "arrival_tick": 78690884321455,
+    "healthy": 1,
+    "wounded": 0,
+    "gold": 1000,
+    "food": 0.95,
+    "settlement": "town_ES1"
+  },
+  "action": "select two available 20-denar volunteers through native UI, then confirm once",
+  "expected": {
+    "total_payment": 40,
+    "healthy": 3,
+    "gold": 960,
+    "cart_event": "at least one per observed cart operation, not completion",
+    "unit_event": "positive total of two for selected troop(s), actorless; pre-payment snapshot is not completion"
+  },
+  "acceptance": "verify staged and post-confirmation UI; independently verify roster and gold from a separate saved checkpoint if possible; correlate events by same session, sequence and tick; do not infer actor from event alone",
+  "next_food": "AUT004-F01 only if stable three-member baseline, zero prisoners and land, complete perk/provider context or explicitly conditional match; no fast wait"
+}

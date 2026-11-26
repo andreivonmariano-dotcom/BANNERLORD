@@ -1,0 +1,36 @@
+{
+  "absolute_error": null,
+  "baseline_tick": 78690884321455,
+  "completed_pulses": 8,
+  "experiment": "AUT007-FOOD-001",
+  "food_events": 0,
+  "forecast_commit": "d280a3994b1b6cf60a7dfac143c24e78b830fb55",
+  "forecast_sha": "e2b962f25fcbc54e15e76223e0426260f39378033ec1f622ce32b64fcf6e0bf4",
+  "hourly_events": 22,
+  "last_observed_food": 0.95,
+  "last_observed_tick": 78691673107448,
+  "local_control_sequence_ms": [
+    10145,
+    10133,
+    10016,
+    10033,
+    10069,
+    10046,
+    10029,
+    10033
+  ],
+  "log_snapshot_sha": "55b9c04ca8e0fb170cea1d0b1e80a98dbcc20e7cd5e419c75ab1baf37166e4ce",
+  "notes": [
+    "local sequence durations include control overhead, not measured unpaused time; 10-second requested cap was not proven exact",
+    "focus rejection before input; resumed after fresh paused frame",
+    "no new forecast accuracy claim; endpoint not reached",
+    "initial prisoners checked via UI; complete perk/provider context unverified"
+  ],
+  "observed_elapsed_ticks": 788785993,
+  "observed_endpoint_food": null,
+  "post_baseline_party_samples": 23,
+  "predicted_food": 0.7999999523162842,
+  "prior_log_sha": "dc62f3d22883a7604e7fc757dd47a928bee9e231f9c20ccfca128979485cc9bb",
+  "rejected_before_input": 1,
+  "status": "INCOMPLETE_NO_ENDPOINT_WITHIN_PULSE_LIMIT"
+}

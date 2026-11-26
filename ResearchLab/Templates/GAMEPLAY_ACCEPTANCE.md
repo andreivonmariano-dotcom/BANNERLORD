@@ -1,0 +1,2 @@
+# [ID] Gameplay acceptance
+Player problem; native situation and motivation; distinct choices/tradeoffs including decline; supported action/provider/preconditions; actual before/after state and failure handling; build/hash/profile/session; positive/negative/repetition cases; visual review and player critique; save/quit/relaunch/reload; control/full-stack comparison; discard/revise/eligible for integration with authorization. No compilation-only acceptance.

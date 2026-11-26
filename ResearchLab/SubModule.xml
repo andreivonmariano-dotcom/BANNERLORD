@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Module>
+  <Name value="CU Research Lab (disposable control only)" />
+  <Id value="CUResearchLab" />
+  <Version value="v0.0.1" />
+  <SingleplayerModule value="true" />
+  <MultiplayerModule value="false" />
+  <DependedModules>
+    <DependedModule Id="Native" />
+    <DependedModule Id="SandBoxCore" />
+    <DependedModule Id="Sandbox" />
+  </DependedModules>
+  <SubModules>
+    <SubModule>
+      <Name value="Native research probe" />
+      <DLLName value="CUResearchLab.dll" />
+      <SubModuleClassType value="CUResearchLab.SubModule" />
+      <Tags>
+        <Tag key="DedicatedServerType" value="none" />
+        <Tag key="IsNoRenderModeElement" value="false" />
+      </Tags>
+    </SubModule>
+  </SubModules>
+</Module>

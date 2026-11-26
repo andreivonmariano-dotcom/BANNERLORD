@@ -1,0 +1,112 @@
+[
+  {
+    "id": "CU-REVIEW-037",
+    "fields": [
+      "current_implementation"
+    ],
+    "review": [
+      "IMPROVE",
+      "ACTIVE_SOURCE",
+      "Source/CalradiaUnified/SandboxOriginBehavior.HouseholdDuties.cs",
+      "CU",
+      "Memory only; do not falsely claim relationship increase.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ],
+    "tracker": [
+      "IMPROVE",
+      "CONTEXTUAL_SOURCE_COMPILED_NATIVE_PENDING",
+      "Source/CalradiaUnified/SandboxOriginBehavior.HouseholdDuties.cs",
+      "CU",
+      "Memory only; do not falsely claim relationship increase.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ]
+  },
+  {
+    "id": "CU-REVIEW-038",
+    "fields": [
+      "current_implementation"
+    ],
+    "review": [
+      "KEEP",
+      "ACTIVE_SOURCE",
+      "Source/CalradiaUnified/SandboxOriginBehavior.HouseholdDuties.cs",
+      "Native",
+      "Verify actual native debit and credit; no repeat reward.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ],
+    "tracker": [
+      "KEEP",
+      "CONTEXTUAL_SOURCE_COMPILED_NATIVE_PENDING",
+      "Source/CalradiaUnified/SandboxOriginBehavior.HouseholdDuties.cs",
+      "Native",
+      "Verify actual native debit and credit; no repeat reward.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ]
+  },
+  {
+    "id": "CU-REVIEW-039",
+    "fields": [
+      "current_implementation"
+    ],
+    "review": [
+      "IMPROVE",
+      "ACTIVE_SOURCE",
+      "Source/CalradiaUnified/SandboxOriginBehavior.LivingDialogueDepth.cs",
+      "CU",
+      "Restrict initiative to relevant topics; no speculative story generation.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ],
+    "tracker": [
+      "IMPROVE",
+      "CONTEXTUAL_SOURCE_COMPILED_NATIVE_PENDING",
+      "Source/CalradiaUnified/SandboxOriginBehavior.LivingDialogueDepth.cs",
+      "CU",
+      "Restrict initiative to relevant topics; no speculative story generation.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ]
+  },
+  {
+    "id": "CU-REVIEW-043",
+    "fields": [
+      "current_implementation"
+    ],
+    "review": [
+      "KEEP",
+      "ACTIVE_SOURCE",
+      "Source/CalradiaUnified/SandboxOriginBehavior.PetitionConversations.cs",
+      "Native / CU",
+      "Explicit face-to-face choice with verified native effects.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ],
+    "tracker": [
+      "KEEP",
+      "CONTEXTUAL_SOURCE_COMPILED_NATIVE_PENDING",
+      "Source/CalradiaUnified/SandboxOriginBehavior.PetitionConversations.cs",
+      "Native / CU",
+      "Explicit face-to-face choice with verified native effects.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ]
+  },
+  {
+    "id": "CU-REVIEW-044",
+    "fields": [
+      "current_implementation"
+    ],
+    "review": [
+      "IMPROVE",
+      "ACTIVE_SOURCE",
+      "Source/CalradiaUnified/SandboxOriginBehavior.PetitionConversations.cs",
+      "Native / Diplomacy",
+      "No fake resolution; provider-owned actions remain separate.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ],
+    "tracker": [
+      "IMPROVE",
+      "CONTEXTUAL_SOURCE_COMPILED_NATIVE_PENDING",
+      "Source/CalradiaUnified/SandboxOriginBehavior.PetitionConversations.cs",
+      "Native / Diplomacy",
+      "No fake resolution; provider-owned actions remain separate.",
+      "SUPPLEMENTAL_SOURCE_REVIEW"
+    ]
+  }
+]

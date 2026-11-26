@@ -1,0 +1,31 @@
+{
+  "active_food_model": "NavalDLC.GameComponents.NavalDLCMobilePartyFoodConsumptionModel",
+  "baseline_tick": 78690884321455,
+  "conditions": {
+    "food_before": 0.95,
+    "healthy": 3,
+    "no_food_perk_modifier_assumed": true,
+    "no_roster_or_inventory_change": true,
+    "prisoners": 0,
+    "sea": false,
+    "wounded": 0
+  },
+  "endpoint": "first subsequent main-party food_event in same session; no retrospective selection; abort on changed roster or other intervention",
+  "experiment": "AUT007-FOOD-001",
+  "limitations": [
+    "full active predecessor and complete perk context not verified",
+    "initial prisoner count verified by UI; not observed in every callback",
+    "event endpoint, not exact fixed horizon"
+  ],
+  "maximum_play_seconds_per_pulse": 10,
+  "maximum_supervised_pulses": 8,
+  "predicted_delta": -0.15000000596046448,
+  "predicted_food": 0.7999999523162842,
+  "prior_log_sha": "dc62f3d22883a7604e7fc757dd47a928bee9e231f9c20ccfca128979485cc9bb",
+  "prior_seq": 4,
+  "prisoner_ui_evidence_sha": "52210866e7e9c9c1f530ce29411f20f4843dad7293e387ebf8b8906c474ff165",
+  "registered_case": "AUT004-F01",
+  "scope": "conditional prospective base food hypothesis",
+  "source_save_sha": "e704f14fb4aa0b75e871e3b4bc8f99585405c9cd78196d28a3900326ffbfe652",
+  "tolerance": 1e-05
+}

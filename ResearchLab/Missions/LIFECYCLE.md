@@ -1,0 +1,2 @@
+# MIS-001 | Mission lifecycle
+UNKNOWN beyond TaleWorlds.MountAndBlade fingerprint in [native reference](../NATIVE_ENGINE_1_5_7.md). No agent action verified. [Distinguished Service study](../MOD_IMPLEMENTATION_STUDIES.md) connects earned battle performance to native promotion, not proof of current API compatibility. Next: inspect actual mission registration, start/end, agent and map-event callbacks; build read-only control probe. Verify battle/retreat/exit, no duplicate subscriptions. Respect RBM/RTS. No fabricated battle awards.

@@ -1,0 +1,10 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("fs"),L=require(process.argv[2]),F=require("./freeze_prediction.js");
+const b=JSON.parse(fs.readFileSync(process.argv[3])),t=b.clocks[0].ticks+L.DAY,ids=Object.values(b.forts).slice(0,2).map(r=>r.id);
+const a=F.freeze(b,L,t,ids);assert.equal(a.target_tick,t);assert.equal(a.forecast.length,2);
+assert.deepEqual(a,F.freeze(b,L,t,ids));
+assert.throws(()=>F.freeze(b,L,b.clocks[0].ticks,ids));
+assert.throws(()=>F.freeze(b,L,t,[ids[0],ids[0]]));
+assert.throws(()=>F.freeze(b,L,t,["missing"]));
+assert.throws(()=>F.freeze(b,L,t,[]));
+console.log("7 forecast manifest assertions passed");

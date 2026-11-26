@@ -1,0 +1,74 @@
+{
+  "cases": [
+    {
+      "expected_component": 50,
+      "id": "AUT004-R01",
+      "inputs": {
+        "level": 11,
+        "occupation": "Soldier",
+        "troop": "imperial_infantryman"
+      },
+      "kind": "recruitment_base",
+      "required": [
+        "new recruitable volunteer identity",
+        "effective runtime model chain",
+        "horse surcharge and perk context",
+        "quote before transaction",
+        "post-roster and gold receipt"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "expected_component": 3,
+      "id": "AUT004-W01",
+      "inputs": {
+        "mercenary": false,
+        "tier": 2
+      },
+      "kind": "character_base_wage",
+      "required": [
+        "actual native tier and occupation",
+        "native per-character wage observation",
+        "separate final party wage and daily gold flow"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "expected_component": -0.15000000596046448,
+      "id": "AUT004-F01",
+      "inputs": {
+        "members": 3,
+        "prisoners": 0,
+        "sea": false
+      },
+      "kind": "base_food_delta",
+      "required": [
+        "new stable baseline and complete roster",
+        "prisoner count",
+        "perk and model-chain context",
+        "first subsequent food event",
+        "no other inventory actions"
+      ],
+      "status": "NOT_RUN"
+    },
+    {
+      "expected_component": 8624,
+      "id": "AUT004-M01",
+      "inputs": {
+        "market_gold": 34302,
+        "prosperity": 4900
+      },
+      "kind": "isolated_market_correction",
+      "required": [
+        "new pre-tick state exactly matching inputs or preregister new case",
+        "actual active economy model",
+        "isolated correction receipt",
+        "separate other market flows"
+      ],
+      "status": "NOT_RUN"
+    }
+  ],
+  "prior_checkpoint_sha": "a9535052bf487f6106d2223ca3c42d6215b91e97d81786ef60b32dff3a1ae1a0",
+  "scope": "conditional native-component hypotheses; no outcome input or scored native prediction",
+  "source_definition_sha": "0b83105df4ba877a8dfc403b0d5113356227640f2a040b16e14a49789f1bbfae"
+}

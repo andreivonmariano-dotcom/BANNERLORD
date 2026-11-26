@@ -1,0 +1,2 @@
+# Failure knowledge base
+Read REGISTER.csv before design and implementation. Keep original failure, context, remedy, verification and remaining scope. CORRECTED means only the evidenced reproduction is resolved; OPEN gameplay issues block promotion. Initial rows derive from LAB_EVIDENCE.md and MOD_IMPLEMENTATION_STUDIES.md. Add historical crash cases only after reopening exact evidence; not a comprehensive crash history.

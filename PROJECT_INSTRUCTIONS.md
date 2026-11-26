@@ -1,4 +1,13 @@
 # BANNERLORD
+
+## Controlling research-first directive | 25 November 2026
+
+The player rejected v0.74.0's shallow dialogue, nominal titles, duplicate reports and debug-facing gameplay despite successful compilation and native receipts. Production remains frozen: draft PR #100, head a116a97b01e33d04b7dc3b392b5bcec36f32149a. No new production mechanics until a useful isolated prototype passes native and player acceptance. Older roadmaps are historical or conditional where inconsistent with this directive; preserve all compatible legacy engineering, provider ownership, privacy and save rules.
+
+Before development, retrieve the live Google Doc, this handbook, AGENTS.md, current production handoff and exact branch/CI. Then independently resolve lab/native-engine-research and read ResearchLab/INDEX.md, ResearchLab/Handoff/CURRENT.md, ResearchLab/Failures/REGISTER.csv, and relevant actual technical files. Record consulted IDs and immutable revisions. Metadata, static call edges, compilation, native execution and player acceptance are distinct. If a required source is unavailable, identify the blocker before affected development. No dependency on chat memory.
+
+After each milestone update the lab's catalog, technical records, cumulative learning log, failure register when applicable, experiment matrix, evidence and current handoff. Preserve previous evidence and mark stale or superseded findings. Revalidate changed fingerprints/provider versions. Research > design > isolated prototype > native test > player critique > integration > regression. Verify player problem, actionable choices, native state changes, failure cases, repetition, save/reload and compatibility. No integration, merge, installation or release without required evidence and authorization.
+
 ## Comprehensive project source instructions | v2.0
 
 25 November 2026. Canonical repository: https://github.com/andreivonmariano-dotcom/BANNERLORD. This handbook governs the dedicated project, repository and companion source document. Current trajectory supersedes previous broad reconstruction, 12/13-role and obsolete UI directives. Retain the historical archive and all previous commits as evidence, not live instructions.

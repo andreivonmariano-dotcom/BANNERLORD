@@ -1,0 +1,34 @@
+# DUT-002 | Delegated issue skill, resources, resolution and return
+26 November 2026 PHT; observed UTC 2026-11-25T23:40:30.3621789Z. Reopened canonical Google Doc v2.0, AGENTS, PROJECT_INSTRUCTIONS, handoff, index, catalog, failure register, knowledge protocol, DUT-001 and QST-002 at lab a527e0e4e0028512ec62338687738afce9995e8e. Production PR #100 a116a97b01e33d04b7dc3b392b5bcec36f32149a, latest CI 45639026509 and 45639011312 success. Fresh installed CampaignSystem SHA256 d7e5c67a04ef83964c882fda2a1f20f0e2afaf2bfe31345ed31d1061c495d462; CU e6bcbde295ecf0527ec97b0c4805d11916a28bd92ee099f18d838da68e6d0bba. No gameplay code executed. Separate read-only reflection processes 32244,46496,47172,44400 completed; selected metadata and managed references only.
+## Native contract
+IssueBase public properties IsThereAlternativeSolution, IsSolvingWithAlternative, AlternativeSolutionHero, AlternativeSolutionReturnTimeForTroops, AlternativeSolutionIssueEffectClearTime, AlternativeSolutionScaleFlags, AlternativeSolutionHasCasualties/HasFailureRisk/HasScaledDuration/HasScaledRequiredTroops, IssueOwner, StringId; public field AlternativeSolutionSentTroops (TroopRoster). IssueManager.Issues public MBReadOnlyDictionary<Hero,IssueBase>; IssueSolvingCompanionList public IEnumerable<Hero>. Reading existing state differs from CheckForIssues (dispatches events). No mutation or reflection into active saves. Exact flag values: None=0, Duration=1, RequiredTroops=2, Casualties=4, FailureRisk=8.
+Native candidate getter traces:
+- HeadmanNeedsGrainIssue: alternative true, Duration flag, greater of Trade/Medicine (Trade on tie), reference 120.
+- VillageNeedsToolsIssue: alternative true, Duration flag, greater of Engineering/Crafting (Engineering on tie), reference 120.
+- NearbyBanditBaseIssue: alternative true, Casualties|FailureRisk, highest of OneHanded/TwoHanded/Polearm, reference 120.
+- LandlordTrainingForRetainersIssue: alternative true, Casualties|FailureRisk, greater of Steward/Leadership (Steward on tie), reference 120.
+- MerchantNeedsHelpWithOutlawsIssue: alternative true, Casualties|FailureRisk, greater of Tactics/Scouting (Tactics on tie), reference 120.
+- LordsNeedsTutorIssue, ScoutEnemyGarrisonsIssue: alternative false.
+Availability of a particular issue or eligible candidate during actual play not guaranteed. Reference skill is model input, not established hard eligibility threshold.
+## Default model
+GetFailureRiskForHero(Hero,IssueBase): selected arithmetic and tuple-field references establish clamp((reference-actualSkill)*0.5/100,0,0.9). Risk only used at start when issue flag applies. GetDurationOfResolutionForHero: base days + 2*ratio, ratio=10 for zero skill, otherwise clamp(reference/actualSkill,0,10); IL div before conv.r4 on integer operands, do not assume continuous ratio. GetTroopsRequiredForHero: base men * clamp(reference/actualSkill,0.2,1.2), default multiplier 1.2 if zero skill, then integer conversion. These are static default model formulas, not predictions of UI or actual provider behavior; only relevant if configured scale flag applies. GetCausalityForHero (engine spelling) references relevant skill, required troop count, clamps and ceiling; exact expression not reconstructed, no casualty estimate asserted. No method invoked. 
+## Lifecycle and return
+StartIssueWithAlternativeSolution references active IssueModel, caches failure chance and casualty count conditioned on flags, records reward skill, issue state, due/return time, separate effect clear time (return minus a day, with past-time guard), native DisableHeroAction, location change and OnIssueUpdated. This is native delegated simulation, not evidence of visible roaming party. OnAlternativeSolutionSolvedAndTroopsAreReturning sets effect-resolved and adds log. CompleteIssueWithAlternativeSolution (DUT-001) branches to outcome and calls troop return/finalization. IssueUpdateDetails: None=0, PlayerStartedIssueQuestClassicSolution=1, PlayerSentTroopsToQuest=2, SentTroopsFinishedQuest=3, SentTroopsFailedQuest=4, IssueFinishedWithSuccess=5, IssueFinishedWithBetrayal=6, IssueFinishedByAILord=7, IssueFail=8, IssueCancel=9, IssueTimedOut=10. Do not treat enum names alone as complete post-state proof.
+DefaultIssueModel.CanTroopsReturnFromAlternativeSolution returns false when player prisoner, at sea without current settlement, or main party has map event. Otherwise true in inspected branch. IssueManager.TryToMakeTroopsReturn dispatches active model check; if allowed, MakeAlternativeTroopsReturn; otherwise adds sent roster to private awaiting roster. CheckIfTroopsCanReturnToMainParty checks awaiting roster and active model, references return inquiry. MakeAlternativeTroopsReturn iterates hero records, checks dead state, changes surviving hero state, adds roster to main party. No timing/side effect inferred beyond traced paths; actual success, return UI, roster conservation, reload pending. Never force return or double-credit personnel based on issue completion.
+## Design
+Use native alternative solutions as baseline, not a parallel companion mission simulator. Observe skill/requirements, troop cost, task resolution and separate return on a disposable campaign. Distinct decisions and utility must be demonstrated before any CU proposal; native companions may already cover the desired activity. F013 captures resolved-vs-returned risk. See D001 control protocol.
+
+## D001 native UI cross-check
+Two candidate risk displays match default formula (Tactics 86 -> 17%, Scouting 56 -> 32%); 10 soldiers plus one companion allocated for six days. See [D001](../ControlCampaigns/D001.md). This does not prove full model equivalence or actual outcomes.
+
+D001 active journal and aggregate personnel count preserved after reported full reload; new game PID independently confirmed. See D001 evidence; actual individual roster and outcomes pending.
+
+D001 post-reload native clan UI confirms delegated companion solving issue and no additional listed clan party; supports simulated assignment distinction, not exhaustive map proof.
+
+D001 journal shows intermediate 'Your men should be on their way' before aggregate roster return, supporting separate lifecycle stages. Internal effect flag and final success not verified.
+
+D001 success and return banner plus 550-denar receipt observed after intermediate return message. Actual individual return/roster and post-return persistence remain pending. See D001.
+
+D001 completed journal reports nine of eleven returned; native roster 63 including five wounded; named companion again in party at full health. Distinct lifecycle empirically supported in this case. Post-return reload and strict clean control not established; see D001 limitations.
+
+D001 player reports completed-state reload works and denies cheat use. Positive native baseline documented; exact post-reload readback and negative cases remain unverified. No CU feature acceptance.
