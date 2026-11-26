@@ -24,7 +24,8 @@ def source_world(database,profile):
         if not source:raise ValueError("source not indexed")
         for oid,xml in db.execute("SELECT object_id,xml FROM definitions WHERE source=? ORDER BY ordinal",(source[0],)):
             e=ET.fromstring(xml)
-            components=list(e.find("Components") or ())
+            container=e.find("Components")
+            components=list(container) if container is not None else []
             if not oid or oid in records or len(components)!=1:raise ValueError("unexpected source structure")
             c=components[0];kind=c.tag
             if kind=="Town":kind="castle" if c.get("is_castle","false").lower()=="true" else "town"

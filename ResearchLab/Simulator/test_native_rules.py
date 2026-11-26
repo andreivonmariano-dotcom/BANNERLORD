@@ -1,5 +1,6 @@
 import unittest
 import sqlite3
+from contextlib import closing
 import tempfile
 from pathlib import Path
 from native_rules import *
@@ -45,7 +46,7 @@ class RuleTests(unittest.TestCase):
     def test_source_selection(self):
         with tempfile.TemporaryDirectory() as d:
             p=Path(d)/"source.sqlite"
-            with sqlite3.connect(p) as db:
+            with closing(sqlite3.connect(p)) as db, db:
                 db.executescript("CREATE TABLE sources(id,module,path,kind,sha256,status); CREATE TABLE definitions(source,ordinal,object_id,xml);")
                 for i,module in enumerate(("SandBox","NavalDLC"),1):
                     db.execute("INSERT INTO sources VALUES(?,?,?,?,?,?)",(i,module,f"Modules/{module}/ModuleData/settlements.xml","Settlements","test","parsed"))
