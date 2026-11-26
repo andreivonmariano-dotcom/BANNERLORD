@@ -30,3 +30,5 @@ D001 journal shows intermediate 'Your men should be on their way' before aggrega
 D001 success and return banner plus 550-denar receipt observed after intermediate return message. Actual individual return/roster and post-return persistence remain pending. See D001.
 
 D001 completed journal reports nine of eleven returned; native roster 63 including five wounded; named companion again in party at full health. Distinct lifecycle empirically supported in this case. Post-return reload and strict clean control not established; see D001 limitations.
+
+D001 player reports completed-state reload works and denies cheat use. Positive native baseline documented; exact post-reload readback and negative cases remain unverified. No CU feature acceptance.

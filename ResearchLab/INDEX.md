@@ -23,3 +23,4 @@ D001 playthrough reported; game process and selected profile verified, delegatio
 - D001 intermediate return journal observed with party still 54; final outcome pending.
 - D001 native success and return notification plus reward observed; detailed roster and post-return reload pending.
 - D001 completed native quest and companion return/aggregate roster observed; post-return reload, control clarification and player critique pending.
+- D001 positive native lifecycle baseline observed; successful post-return reload reported by player; critique and independent duplicate-outcome audit remain pending.
