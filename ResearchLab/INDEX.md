@@ -38,3 +38,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [SAV-006 broad world projection](Persistence/WORLD_PROJECTION.md), [ECO-003 daily settlement and finance](Engine/SETTLEMENT_DAILY_UPDATES.md), [MIL-001 military power and combat](Engine/MILITARY_POWER_AND_COMBAT.md).
 - [GEO-001 campaign geography and navigation](Engine/CAMPAIGN_GEOGRAPHY.md), [MIL-002 regular-troop experiment](Simulator/MILITARY_EXPERIMENT.md), [UI-LAB-001 offline atlas](Simulator/ATLAS.md).
 - [TIME-001 native clock and scheduler](Engine/CAMPAIGN_CLOCK.md), [SIM-007 experimental NPC decisions](Simulator/AUTONOMOUS_CAMPAIGN.md), [UI-LAB-002 campaign control](Simulator/CAMPAIGN_CONTROL.md).
+
+- [VAL-002 retrospective world differential](Simulator/RETROSPECTIVE_VALIDATION.md): security and gold worse than no-change benchmark; native endpoint movement quantified; prospective validation pending.

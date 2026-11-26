@@ -138,3 +138,6 @@
 "SIM007-D01","Native NPC decisions and world progression equivalence","NOT_RUN","Authored scores and frozen movement/personnel; incomplete economic inputs"
 "UILAB002-A01","Offline control DOM readiness and interactions","PASS","Process44844; advance shocks replay reset"
 "UILAB002-D01","Human usability and browser file picker/export","NOT_RUN","Headless direct history function only"
+"VAL002-A01","Pinned D001 endpoint diagnostic and benchmark","PASS","Process29024; four synthetic assertions and 133 matched forts"
+"VAL002-D01","Retrospective security and gold outperform persistence","FAIL","Security MAE 11.64 vs 8.22; gold 8861 vs 3960; clock mismatch retained"
+"VAL002-D02","Independent prospective exact-clock native validation","NOT_RUN","D002 authorization and withheld outcomes pending"
