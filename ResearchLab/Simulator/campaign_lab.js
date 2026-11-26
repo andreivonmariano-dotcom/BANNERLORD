@@ -73,8 +73,9 @@ function daily(b,s){
 function command(b,state,c){
  require(state.commands.length<MAX_COMMANDS,"command limit");const s=clone(state);
  require(c&&typeof c==="object","command");
- if(c.type==="advance"){require(int(c.days)&&c.days>=1&&c.days<=30&&s.ticks+c.days*DAY<=s.start+MAX_DAYS*DAY,"advance 1–30 days; max 90");
-  const end=s.ticks+c.days*DAY;while(s.next<=end){s.ticks=s.next;s.next+=DAY;daily(b,s)}s.ticks=end;
+ if(c.type==="advance"||c.type==="advanceTicks"){
+  let delta;if(c.type==="advance"){require(int(c.days)&&c.days>=1&&c.days<=30,"advance 1–30 days");delta=c.days*DAY}else{require(int(c.ticks)&&c.ticks>=1&&c.ticks<=30*DAY,"advanceTicks range");delta=c.ticks}
+  require(s.ticks+delta<=s.start+MAX_DAYS*DAY,"max 90 days");const end=s.ticks+delta;while(s.next<=end){s.ticks=s.next;s.next+=DAY;daily(b,s)}s.ticks=end;
  }else if(c.type==="shock"){
   require(Object.hasOwn(s.forts,c.target)&&["security","market"].includes(c.kind),"shock target/type");
   const r=s.forts[c.target];if(c.kind==="security"){r.security=clamp(r.security-10,0,100)}else{require(b.forts[c.target].kind==="town","market only town");const loss=Math.min(1000,r.gold);r.gold-=loss;s.external-=loss}

@@ -40,3 +40,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [TIME-001 native clock and scheduler](Engine/CAMPAIGN_CLOCK.md), [SIM-007 experimental NPC decisions](Simulator/AUTONOMOUS_CAMPAIGN.md), [UI-LAB-002 campaign control](Simulator/CAMPAIGN_CONTROL.md).
 
 - [VAL-002 retrospective world differential](Simulator/RETROSPECTIVE_VALIDATION.md): security and gold worse than no-change benchmark; native endpoint movement quantified; prospective validation pending.
+
+- [API-002 military and economic observation contracts](Engine/NATIVE_OBSERVATION_CONTRACTS.md); [VAL-003 exact-clock validation](Simulator/EXACT_CLOCK_VALIDATION.md): zero tick residual, town/castle metrics, accuracy gap retained.

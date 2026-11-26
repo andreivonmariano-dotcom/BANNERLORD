@@ -1,0 +1,18 @@
+"use strict";
+const assert=require("node:assert/strict"),fs=require("node:fs"),L=require("./campaign_lab.js");
+const b=JSON.parse(fs.readFileSync(process.argv[2],"utf8")),s=L.create(b);
+const delta=b.clocks[2].ticks-s.ticks;
+const a=L.command(b,s,{type:"advanceTicks",ticks:delta});
+assert.equal(a.ticks,b.clocks[2].ticks);
+assert.equal(a.days,7);
+const split=L.command(b,L.command(b,s,{type:"advanceTicks",ticks:1}),{type:"advanceTicks",ticks:delta-1});
+const clean=s=>{const {commands,...rest}=s;return rest};
+assert.deepEqual(clean(a),clean(split));
+assert.deepEqual(L.replay(b,L.exportHistory(b,a)),a);
+const before=L.command(b,s,{type:"advanceTicks",ticks:s.next-s.ticks-1});
+assert.equal(before.days,0);
+assert.equal(L.command(b,before,{type:"advanceTicks",ticks:1}).days,1);
+for(const ticks of [0,-1,1.5,31*L.DAY,NaN])assert.throws(()=>L.command(b,s,{type:"advanceTicks",ticks}));
+assert.equal(s.days,0);
+assert.deepEqual(clean(L.command(b,s,{type:"advance",days:7})),clean(L.command(b,s,{type:"advanceTicks",ticks:7*L.DAY})));
+console.log("13 exact tick assertions PASS");
