@@ -165,3 +165,7 @@
 "D002-R-C01","Observer installation and profile activation","PASS","Process31268 verified exact DLL and 43 original saves unchanged"
 "D002-R-C02","Normal Steam launcher open","PASS","Process42132 launcher PID43388 no campaign logs"
 "D002-R-D02","Native observer callbacks and surgeon outcome","NOT_RUN","Player must start fresh Sandbox and provide baseline"
+"AUT001-C01","Remote capture and launcher navigation","PASS","Processes44212/26244/47632/27088/47060"
+"AUT001-C02","Native mouse and text input","PASS","Sandbox and character creation; typed name insertion process3500"
+"AUT001-D01","Fresh native campaign and session observer","PARTIAL","Processes44844/44856/16040; exact tick and active models"
+"AUT001-D02","Autonomous save reload and surgeon comparison","NOT_RUN","Escape menu not visually confirmed; no new save"

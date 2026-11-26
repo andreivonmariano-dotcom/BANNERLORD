@@ -50,3 +50,5 @@ INV-001 terminal result: remote process 35128 completed exit 0 in reported 202.8
 - [ROLE-001 specialist effects](Engine/NATIVE_SPECIALIST_EFFECTS.md); [D002-R role observation protocol](ControlCampaigns/D002_ROLE_TEST.md), L003.1 compiled only.
 
 - [D002-R authorized activation and launcher checkpoint](ControlCampaigns/D002_R_ACTIVATION.md): installed observer, 43 saves backed up, native test not run.
+
+- [AUT-001 guarded remote graphical control](Autonomous/AUT001.md): launcher and native mouse/text input verified, fresh paused Sandbox and L003.1 session callback observed, no saved checkpoint or recovery experiment.
